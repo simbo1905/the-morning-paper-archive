@@ -48,9 +48,13 @@ export async function initWasm() {
     wasmReady = true;
     searchMode = "wasm";
     console.log(`WASM search ready: ${wasmSearcher.num_docs()} docs, built in ${buildTime.toFixed(1)}ms`);
+    const indicator = document.getElementById("search-mode");
+    if (indicator) indicator.title = `WASM BM25: ${wasmSearcher.num_docs()} docs, built in ${buildTime.toFixed(1)}ms`;
   } catch (err) {
     console.log("WASM search unavailable, using dumb search:", err.message);
     searchMode = "dumb";
+    const indicator = document.getElementById("search-mode");
+    if (indicator) indicator.title = `WASM failed: ${err.message}`;
   }
 }
 
