@@ -33,7 +33,15 @@ class PaperCard extends HTMLElement {
       .map(t => `<span class="tag-pill">${t}</span>`).join("");
 
     const abstractHtml = p.paper_abstract
-      ? `<details class="abstract"><summary>Abstract</summary><p>${escapeHtml(p.paper_abstract)}</p></details>`
+      ? `<details class="abstract">
+        <summary>Paper Abstract &mdash; ${escapeHtml(p.paper_title)} by ${escapeHtml(authorsStr)}</summary>
+        <div class="abstract-body">
+          <p class="abstract-title">${escapeHtml(p.paper_title)}</p>
+          <p class="abstract-authors">${escapeHtml(p.paper_authors.join(", "))}</p>
+          ${p.paper_venue ? `<p class="abstract-venue">${escapeHtml(p.paper_venue)}${p.paper_year ? ` (${p.paper_year})` : ""}</p>` : ""}
+          <p class="abstract-text">${escapeHtml(p.paper_abstract)}</p>
+        </div>
+      </details>`
       : "";
 
     const pdfLink = p.paper_file
