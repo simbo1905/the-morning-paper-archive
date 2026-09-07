@@ -37,7 +37,9 @@ async function ensureLoaded() {
  */
 export async function initWasm() {
   try {
-    const wasmModule = await import("../simple_search.js");
+    // Use absolute path relative to document for GitHub Pages compatibility
+    const basePath = new URL("./web/simple_search.js", document.baseURI).href;
+    const wasmModule = await import(/* @vite-ignore */ basePath);
     await wasmModule.default();
     const response = await fetch("./wasm-test/search_data.jsonl");
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
