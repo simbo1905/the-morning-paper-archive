@@ -54,7 +54,7 @@ export async function init() {
  * Load paper metadata from the JSONL file and store in IndexedDB.
  */
 async function loadData() {
-  const response = await fetch("../wasm-test/search_data.jsonl");
+  const response = await fetch("./wasm-test/search_data.jsonl");
   if (!response.ok) throw new Error(`Failed to fetch data: ${response.status}`);
   const text = await response.text();
   const papers = [];

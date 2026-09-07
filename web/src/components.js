@@ -37,7 +37,7 @@ class PaperCard extends HTMLElement {
       : "";
 
     const pdfLink = p.paper_file
-      ? `<a href="../papers/${p.date.slice(0, 4)}/${p.date.slice(4, 6)}/${p.date.slice(6, 8)}/${p.slug}.pdf" target="_blank" rel="noopener">PDF</a>`
+      ? `<a href="./papers/${p.date.slice(0, 4)}/${p.date.slice(4, 6)}/${p.date.slice(6, 8)}/${p.slug}.pdf" target="_blank" rel="noopener">PDF</a>`
       : "";
 
     const paperLink = p.paper_url
@@ -110,7 +110,7 @@ class BlogPost extends HTMLElement {
   async loadPost(date) {
     this.innerHTML = `<p class="loading">Loading blog post...</p>`;
     try {
-      const response = await fetch(`../pages/${date}.md`);
+      const response = await fetch(`./pages/${date}.md`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const md = await response.text();
       this.renderMarkdown(md);
