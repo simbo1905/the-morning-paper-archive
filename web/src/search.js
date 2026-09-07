@@ -67,6 +67,9 @@ export async function initWasm() {
  * @returns {Promise<ReadonlyArray<import("./types.js").SearchResult>>}
  */
 export async function search(query, limit = 500) {
+  if (!query.trim()) {
+    return dumbSearch(query, limit);
+  }
   if (wasmReady && wasmSearcher) {
     return wasmSearch(query, limit);
   }
