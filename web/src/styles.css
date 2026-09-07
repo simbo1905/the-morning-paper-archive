@@ -1,0 +1,266 @@
+:root {
+  --bg: #fafafa;
+  --fg: #1a1a1a;
+  --muted: #666;
+  --accent: #0066cc;
+  --border: #ddd;
+  --card-bg: #fff;
+  --tag-bg: #e8f0fe;
+  --tag-fg: #1a73e8;
+  --tag-remove: #d93025;
+  --link: #0066cc;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --max-width: 800px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a1a;
+    --fg: #e0e0e0;
+    --muted: #999;
+    --accent: #66b3ff;
+    --border: #333;
+    --card-bg: #2a2a2a;
+    --tag-bg: #1a3a5c;
+    --tag-fg: #66b3ff;
+    --link: #66b3ff;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--fg);
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+}
+.skip-link:focus {
+  position: static;
+}
+
+header {
+  text-align: center;
+  padding: 2rem 1rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0;
+}
+
+.status {
+  text-align: center;
+  padding: 1rem;
+  color: var(--muted);
+}
+
+main {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.search-section {
+  margin-bottom: 1.5rem;
+}
+
+input[type="search"],
+input[type="text"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--fg);
+  margin-bottom: 0.75rem;
+}
+
+input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.tag-filter {
+  margin-bottom: 0.75rem;
+}
+
+.selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.tag-pill {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: var(--tag-bg);
+  color: var(--tag-fg);
+  border-radius: 16px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tag-pill.removable:hover {
+  background: var(--tag-remove);
+  color: white;
+}
+
+.tag-pill.removable::after {
+  content: " \00d7";
+  margin-left: 0.25rem;
+}
+
+.result-info {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.timing {
+  font-variant-numeric: tabular-nums;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+paper-card {
+  display: block;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+paper-card article {
+  margin: 0;
+}
+
+paper-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  line-height: 1.3;
+}
+
+paper-card .meta {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 0 0 0.75rem;
+}
+
+paper-card .summary {
+  font-size: 0.95rem;
+  margin: 0 0 0.75rem;
+}
+
+paper-card .abstract {
+  margin: 0.5rem 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+paper-card .abstract summary {
+  cursor: pointer;
+  color: var(--accent);
+}
+
+paper-card .abstract p {
+  margin: 0.5rem 0 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+}
+
+paper-card .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+paper-card .tags .tag-pill {
+  font-size: 0.75rem;
+  cursor: default;
+}
+
+paper-card .links {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+}
+
+paper-card .links a {
+  color: var(--link);
+  text-decoration: none;
+}
+
+paper-card .links a:hover {
+  text-decoration: underline;
+}
+
+.blog-post {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  line-height: 1.7;
+}
+
+.blog-post h1 { font-size: 1.5rem; }
+.blog-post h2 { font-size: 1.3rem; margin-top: 1.5rem; }
+.blog-post h3 { font-size: 1.1rem; margin-top: 1rem; }
+.blog-post blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 1rem;
+  color: var(--muted);
+  margin: 1rem 0;
+}
+.blog-post a { color: var(--link); }
+
+.back-link {
+  display: inline-block;
+  margin: 1rem;
+  color: var(--link);
+  text-decoration: none;
+}
+
+.loading { color: var(--muted); padding: 2rem; text-align: center; }
+.error { color: var(--tag-remove); padding: 2rem; }
+
+footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+footer a { color: var(--link); }
+
+#scroll-sentinel { height: 1px; }
+
+@media (max-width: 320px) {
+  main { padding: 0.5rem; }
+  paper-card { padding: 0.75rem; }
+  header h1 { font-size: 1.4rem; }
+}

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>The Morning Paper - WASM Search</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; border: none; border-radius: 4px; background: #007bff; color: white; }
+        button:hover { background: #0056b3; }
+        .fuzzy { background: #28a745; }
+        .fuzzy:hover { background: #1e7e34; }
+        .results { list-style: none; padding: 0; }
+        .result { padding: 12px; border-bottom: 1px solid #eee; }
+        .result h3 { margin: 0 0 5px 0; font-size: 16px; }
+        .result .meta { color: #666; font-size: 13px; }
+        .score { float: right; color: #007bff; font-weight: bold; }
+        .status { padding: 10px; background: #f0f0f0; border-radius: 4px; margin-bottom: 20px; }
+        .loading { color: #999; }
+        .timing { color: #999; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>The Morning Paper - WASM Search</h1>
+    <div class="status" id="status">Loading WASM module...</div>
+    <div class="search-box" id="searchBox" style="display:none">
+        <input type="text" id="query" placeholder="Search papers..." value="paxos consensus">
+        <button onclick="doSearch()">Search</button>
+        <button class="fuzzy" onclick="doFuzzySearch()">Fuzzy Search</button>
+    </div>
+    <div class="timing" id="timing"></div>
+    <ul class="results" id="results"></ul>
+
+    <script type="module">
+        import init, { WasmSearcher } from './simple_search.js';
+
+        let searcher = null;
+
+        async function loadData() {
+            const response = await fetch('./search_data.jsonl');
+            const text = await response.text();
+            return text;
+        }
+
+        async function main() {
+            await init();
+            document.getElementById('status').textContent = 'WASM loaded. Loading index data...';
+
+            const data = await loadData();
+            document.getElementById('status').textContent = `Index data loaded (${(data.length / 1_000_000).toFixed(2)} MB). Building index...`;
+
+            const t0 = performance.now();
+            searcher = new WasmSearcher(data);
+            const buildTime = performance.now() - t0;
+
+            document.getElementById('status').textContent =
+                `Index ready: ${searcher.num_docs()} docs, built in ${buildTime.toFixed(1)}ms`;
+            document.getElementById('searchBox').style.display = 'flex';
+
+            // Run initial search
+            doSearch();
+        }
+
+        window.doSearch = function() {
+            if (!searcher) return;
+            const query = document.getElementById('query').value;
+            const t0 = performance.now();
+            const results = searcher.search(query, 20);
+            const searchTime = performance.now() - t0;
+            displayResults(results, searchTime);
+        };
+
+        window.doFuzzySearch = function() {
+            if (!searcher) return;
+            const query = document.getElementById('query').value;
+            const t0 = performance.now();
+            const results = searcher.search_fuzzy(query, 20, 2);
+            const searchTime = performance.now() - t0;
+            displayResults(results, searchTime);
+        };
+
+        function displayResults(jsonStr, time) {
+            const results = JSON.parse(jsonStr);
+            const ul = document.getElementById('results');
+            ul.innerHTML = '';
+            document.getElementById('timing').textContent =
+                `${results.length} results in ${time.toFixed(2)}ms`;
+
+            for (const r of results) {
+                const li = document.createElement('li');
+                li.className = 'result';
+                li.innerHTML = `
+                    <span class="score">${r.score.toFixed(3)}</span>
+                    <h3>${r.title}</h3>
+                    <div class="meta">[${r.date}] ${r.authors.join(', ')} (${r.year}) ${r.venue}</div>
+                `;
+                ul.appendChild(li);
+            }
+        }
+
+        document.getElementById('query').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') doSearch();
+        });
+
+        main().catch(err => {
+            document.getElementById('status').textContent = 'Error: ' + err.message;
+        });
+    </script>
+</body>
+</html>
