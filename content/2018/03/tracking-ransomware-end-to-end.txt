@@ -1,0 +1,404 @@
+URL: https://blog.acolyer.org/2018/03/23/tracking-ransomware-end-to-end/
+Title: Tracking ransomware end-to-end
+---
+
+Tracking ransomware end-to-end Huang et al., IEEE Security & Privacy 2018
+
+With thanks to Elie Bursztein for bringing this paper to my attention.
+
+You get two for the price of one with today’s paper! Firstly, it’s a fascinating insight into the ransomware business and how it operates, with data gathered over a period of two years. Secondly, since ransomware largely transacts using Bitcoin, the methods used by the research team to uncover and trace ransomware activity are also of interest in their own right.
+
+> 
+
+ In this paper, we create a measurement framework that we use to perform a large-scale two-year, end-to-end measurement of ransomware payments, victims, and operators... In total we are able to track over &#036;16 million in likely ransom payments made by 19,750 potential victims during a two-year period.
+
+In case you’ve been hiding under a rock for the last few years, ransomware is a type of malware that encrypts a victim’s files and then demands a ransom in order to decrypt them. Bitcoin is the payment medium of choice for ransomware: it’s decentralised, largely unregulated, and parties in transactions are hidden behind pseudo-anonymous identities. It’s also widely available for victims to purchase, and transactions are irreversible. However...
+
+> 
+
+ ... Bitcoin has a property that is undesirable to cybercriminals: all transactions are public by design. This enables researchers, through transaction clustering and tracing, to glean the financial inner workings of entire cybercriminal operations.
+
+## Ransomware essentials
+
+First malware is delivered to a victim’s machine using any of the available methods (e.g., inducing a target to click on a malicious email attachment). When it executes, the ransomware silently encrypts files on the victim’s machine, and then displays a ransom note informing the user that their files have been encrypted and the contents will be lost forever unless they pay a ransom to have them decrypted again.
+
+The ransom note either includes a ransom address to which payment much be made, or a link to a payment website displaying this address. For the convenience of the victim, the note also often includes information on how to purchase the required Bitcoins from exchanges. Some ransomware operators generate a new ransom address for each victim, others reuse addresses across victims.
+
+When payment is confirmed, the ransomware either automatically decrypts the files, or instructs the user on how to download and execute a decryption binary (oh great, I really want to run another of your executables on my system!!). The operator doesn’t need to decrypt the user’s files at all of course, but in general I guess it’s bad for business if word gets out on the Internet that even if you pay the ransom you still won’t regain access to your files.
+
+The ransomware operator now needs to move the funds deposited to the ransomware address into a wallet controlled by an exchange (so that e.g., they can convert into fiat currency). Some move funds directly, others go via mixer services to obfuscate the trail.
+
+## Finding ransomware addresses
+
+> 
+
+ To discern transactions attributable to ransom campaigns, we design a methodology to trace known-victim payments, cluster them with previously unknown victims, estimate potentially missing payments, and filter transactions to discard the ones that are likely not attributable to ransom payments.
+
+Real victim ransom addresses can be found by scraping reports of ransomware infection from public forums, and from proprietary sources such as ID Ransomware which maintain a record of ransomware victims and associated addresses. The number of deposit addresses that can be recovered this way is still fairly minimal though. So to extend the set the authors obtain a set of ransomware binaries, and deliberately become victims! (Using sandbox environments of course). The ransomware notes displayed in the course of this process reveal additional addresses.
+
+In total, the authors gathered 25 seed random addresses from actual victims, across eight ransomware families: CoinVault, CryptXXX, CryptoDefense, CryptoLocker, CryptoWall, Dharma, Spora, and WannaCry. Using the sandbox environments, a further 32 ransom addresses are obtained for Cerber, and 28 for Locky.
+
+## Following the money
+
+Starting with the seed addresses above, we can look for addresses that co-spent with them (are used as inputs to the same transaction), and hence are highly likely to also be under the control of the ransomware operator. This is a refinement of the techniques described in ‘A fistful of bitcoins’ :
+
+> 
+
+ ...this method is now prone to incorrectly linking flows that use anonymization techniques, such as CoinJoin and CoinSwap. Moser and Bohme developed methods of detecting likely anonymized transactions. We use Chainalysis’s platform, which uses all these methods and additional proprietary techniques to detect and remove anonymized transactions, to trace flows of Bitcoins.
+
+Of course, the technique only works if the ransomware operator actually spends the bitcoins. For the ransom addresses obtained via self-infection, that’s not going to happen unless the ransom is paid! Instead of paying the full ransom, the authors make micropayments of 0.001 bitcoins to these addresses.
+
+All 28 micropayments made to Locky addresses were later co-spent by the operator in conjunction with other wallet addresses, "presumably in an attempt to aggregate ransom payments." These lead to the discovery of a cluster of 7,093 addresses (it turns out the same cluster could have been discovered even with just a single traced micropayment).
+
+All 32 micropayments made to Cerber addresses were moved into a unique aggregation address. This address is then used to move the funds on, co-spending with other addresses. This ultimately leads to the discovery of a cluster of 8,526 addresses.
+
+The table below summarises the clusters of likely operator-controlled addresses for the different ransomware operators in the study. In the last column, ‘R’ denotes the number of real victim ransom addresses, and ‘S’ denotes synthetic victims:
+
+As a cross-check to see if there are potentially missed clusters, the authors compare the timing of bitcoin inflow to the ransom addresses (i.e., victim payments and affiliate fees), Google Trends for ransomware family search terms (if many victims are being caught, it’s likely they’ll google the ransomware name ), and the number of ransomware binaries on VirusTotal. This results in the following chart for the period from November 3rd, 2012 to August 31st, 2017:
+
+(Enlarge)
+
+Bitcoin amounts have been converted into USD in the chart above, based on the USD-Bitcoin exchange rate on the day the ransomware cluster received the bitcoins.
+
+## How much money are ransomware operators collecting?
+
+Payments made to ransomware addresses are checked to see if it’s likely they come from real victims. Two filters are applied. The first filter checks to see if the payment amounts match known ransom amounts (e.g., Locky demands BTC for some integer , and CryptXXX charges 1.2 BTC, 2.4BTC, &#036;500 or &#036;1000 per victim ). The second filter checks that the movement of bitcoin in the transaction graph matches the expected pattern for the ransomware in question (e.g., for Cerber are deposited coins moved to a unique aggregation address and subsequently transferred again in a co-spending transaction).
+
+Based on this analysis, it’s possible to estimate each ransomware family’s revenue:
+
+> 
+
+ In total we are able to trace &#036;16,322,006 US Dollars in 19,750 likely victim ransom payments for 5 ransomware families over 22 months. This is probably a conservative estimate of total victim ransom payments due to our incomplete coverage.
+
+For Cerber and Locky, which generate unique addresses for each victim, it’s possible to estimate the number of paying victims over time:
+
+Looking at the outflows from ransomware addresses, we can trace movement to bitcoin exchanges (unless the coins are sent through a mixer). The Chainalysis API is used to obtain real-world identities of destination clusters (exchanges, mixers, or ‘unknown’). The top entities are BTC-e, CoinOne, and LocalBitcoins (all exchanges), along with BitMixer and Bitcoin Fog (both mixers).
+
+> 
+
+ ...BTC-e (whose operator was arrested and which is now defunct) is the biggest known exchange responsible for the outflows of Locky and CryptoDefense; &#036;3,223,015 of Locky’s outflows entered BTC-e’s cluster. If law enforcement agencies were able to obtain BTC-e’s internal transaction records...they could potentially trace 41.0% of Locky’s outflow values to real-world entities.
+
+The paper also includes the result of reverse engineering the Cerber protocol and monitoring its UDP packets in the wild. This leads to the following estimate of the number of infected IP addresses by country (see section VI for more details):
+
+## Prevention, detection, and intervention
+
+As the study shows, it is sometimes possible to trace ransomware payments to the point where ransomware operators cash out. It is also potentially possible to disrupt the process by which victims pay the ransom, thus depriving operators of their profits.
+
+> 
+
+ This introduces a unique ethical issue. We must consider the impact on victims before taking down ransomware infrastructure. Whereas disrupting conventional malware reduces the damage to victims, the effect could be the opposite for ransomware.... if every victim did not pay or was prevented from paying, the scale of the problem would likely decrease; however this would mean that some individuals would incur additional harm by not being able to recover their files.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousThree years of the Right To Be ForgottenNext &rsaquo;Information flow reveals prediction limits in online social activity
+ 
+ 
+
+ 
+ 
+## 
+ 7 thoughts on &ldquo;Tracking ransomware end-to-end&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Tracking ransomware end-to-end - Tech + Hckr News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Tracking ransomware end-to-end - ÇlusterAssets Inc., 
+ 
+ 
+- 
+ 
+ 
+ 
+ ebneter says: 
+
+ 
+ March 23, 2018 at 10:00 pm 
+
+ 
+
+ 
+ 
+For some reason the email version of this and the previous two papers have not included the links to the papers. Can that be fixed?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ March 24, 2018 at 6:03 am 
+
+ 
+
+ 
+ 
+Sorry about this, something has clearly gone wrong in my process. I’ll look into what’s happening and get it fixed. Thanks for bringing it to my attention!
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ Pingback: Tracking ransomware end-to-end | the morning paper 
+ 
+ 
+- 
+ 
+ 
+ 
+ Martin Lercher says: 
+
+ 
+ March 24, 2018 at 5:53 pm 
+
+ 
+
+ 
+ 
+„... but in general I guess it’s bad for business if word gets out on the Internet that even if you pay the ransom you still won’t regain access to your file“
+
+-> I guess, that might be a quite good application for some intentional fake news.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ virtuallyonit says: 
+
+ 
+ March 26, 2018 at 10:23 am 
+
+ 
+
+ 
+ 
+Great write up, I do question whether ransomware is indeed actually targeted anymore I believe it to be more spray and pray. I think organizations are making enough now from bitcoin mining
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

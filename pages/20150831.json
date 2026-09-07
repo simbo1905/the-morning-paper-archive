@@ -1,0 +1,38 @@
+{
+  "date": "20150831",
+  "file_name": "20150831",
+  "slug": "probabilistically-bounded-staleness-for-practical-partial-quorums",
+  "blog_url": "https://blog.acolyer.org/2015/08/31/probabilistically-bounded-staleness-for-practical-partial-quorums/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the Probabilistically Bounded Staleness (PBS) framework from Bailis et al. as a groundbreaking approach to quantify the trade-offs of using partial quorums in distributed systems. The paper addresses the lack of formal tools to evaluate eventual consistency in systems like Dynamo, Cassandra, and Riak, which often prioritize availability and latency over strong consistency. The key insight is that while partial quorums cannot guarantee absolute bounds on staleness, they can provide probabilistic guarantees—such as the likelihood of reading a value no older than k versions or within a time window t. The blog praises the simplicity and practicality of the PBS models, which enable operators to make informed decisions about quorum configurations (N, R, W) based on desired consistency guarantees. The author also notes the paper's extension of these models to time-based staleness (t-visibility) and the impact of anti-entropy mechanisms on consistency.",
+  "paper_title": "Probabilistically Bounded Staleness for Practical Partial Quorums",
+  "paper_authors": [
+    "Peter Bailis",
+    "Shivaram Venkataraman",
+    "Michael J. Franklin",
+    "Joseph M. Hellerstein",
+    "Ion Stoica"
+  ],
+  "paper_year": 2012,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.bailis.org/papers/pbs-vldb2012.pdf",
+  "paper_abstract": "Data store replication results in a fundamental trade-off between operation latency and data consistency. In this paper, we examine this trade-off in the context of quorum-replicated data stores. Under partial, or non-strict quorum replication, a data store waits for responses from a subset of replicas before answering a query, without guaranteeing that read and write replica sets intersect. As deployed in practice, these configurations provide only basic eventual consistency guarantees, with no limit to the recency of data returned. However, anecdotally, partial quorums are often “good enough” for practitioners given their latency benefits. In this work, we explain why partial quorums are regularly acceptable in practice, analyzing both the staleness of data they return and the latency benefits they offer. We introduce Probabilistically Bounded Staleness (PBS) consistency, which provides expected bounds on staleness with respect to both versions and wall clock time. We derive a closed-form solution for versioned staleness as well as model real-time staleness for representative Dynamo-style systems under internet-scale production workloads. Using PBS, we measure the latency-consistency trade-off for partial quorum systems. We quantitatively demonstrate how eventually consistent systems frequently return consistent data within tens of milliseconds while offering significant latency benefits. 1. 1.1 Practical Partial Quorums In this work, we examine the latency-consistency trade-off in the context of quorum-replicated data stores. Quorum systems ensure strong consistency across reads and writes to replicas by ensuring that read and write replica sets overlap. However, employing partial (or non-strict) quorums can lower latency by requiring fewer replicas to respond. With partial quorums, sets of replicas written to and read from need not overlap: given N replicas and read and write quorum sizes R and W, partial quorums imply R+W ≤N . Quorum-replicated data stores such...",
+  "paper_file": "papers/2015/08/31/probabilistically-bounded-staleness-for-practical-partial-quorums.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "quorum-replication",
+    "eventual-consistency",
+    "staleness",
+    "partial-quorums",
+    "Dynamo-style-systems",
+    "consistency-models",
+    "PBS",
+    "anti-entropy"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

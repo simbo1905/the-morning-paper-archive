@@ -1,0 +1,42 @@
+{
+  "date": "20201130",
+  "file_name": "20201130",
+  "slug": "seeing-is-believing",
+  "blog_url": "https://blog.acolyer.org/2020/11/30/seeing-is-believing/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights 'Seeing is believing' as a groundbreaking paper that redefines database isolation levels from a client-centric perspective. Instead of defining isolation based on internal database mechanisms (e.g., serialization graphs), Crooks et al. propose a state-based formalization that focuses on externally observable states and read operations. This approach aligns isolation guarantees with what applications actually see, making it easier for developers to understand and reason about database behavior. The paper introduces a novel framework where isolation levels are specified in terms of admissible states and parent states, offering implementors greater flexibility while clarifying the guarantees for users. Colyer emphasizes the elegance of this idea, noting that prior definitions (including Adya's) were overly constrained by implementation concerns. The paper also reveals performance optimization opportunities by decoupling external guarantees from internal implementations.",
+  "paper_title": "Seeing is believing: a client-centric specification of database isolation",
+  "paper_authors": [
+    "Kyle Kingsbury",
+    "Peter Alvaro",
+    "Neil Conway",
+    "Joseph M. Hellerstein",
+    "Ion Stoica"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "PODC'17",
+  "paper_url": "http://www.cs.cornell.edu/lorenzo/papers/Crooks17Seeing.pdf",
+  "paper_abstract": "This paper introduces the first state-based formalization of isolation guarantees. Our approach is premised on a simple observation: applications view storage systems as black-boxes that transition through a series of states, a subset of which are observed by applications. Defining isolation guarantees in terms of these states frees definitions from implementation-specific assumptions. It makes immediately clear what anomalies, if any, applications can expect to observe, thus bridging the gap that exists today between how isolation guarantees are defined and how they are perceived. The clarity that results from definitions based on client-observable states brings forth several benefits. First, it allows us to easily compare the guarantees of distinct, but semantically close, isolation guarantees. We find that several well-known guarantees, previously thought to be distinct, are in fact equivalent, and that many previously incomparable flavors of snapshot isolation can be organized in a clean hierarchy. Second, freeing definitions from implementation-specific artefacts can suggest more efficient implementations of the same isolation guarantee. We show how a client-centric implementation of parallel snapshot isolation can be more resilient to slowdown cascades, a common phenomenon in large-scale datacenters. ACM Reference format: Natacha Crooks, Youer Pu, Lorenzo Alvisi, and Allen Clement. 2017. Seeing is Believing: A Client-Centric Specification of Database Isolation. In Proceedings of PODC ’17, Washington, DC, USA, July 25-27, 2017, 30 pages. http://dx.doi.org/10.1145/3087801.3087802",
+  "paper_file": "papers/2020/11/30/seeing-is-believing.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "isolation-levels",
+    "database-consistency",
+    "snapshot-isolation",
+    "serializability",
+    "consistency-models",
+    "state-based-semantics"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Serializability",
+      "caption": "Serializability. Abbreviations refer to: S[47], MS[17], AS[15] O[46], M[45], R[43]."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

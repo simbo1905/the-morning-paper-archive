@@ -1,0 +1,434 @@
+URL: https://blog.acolyer.org/2018/10/22/legoos-a-disseminated-distributed-os-for-hardware-resource-disaggregation/
+Title: LegoOS: a disseminated, distributed OS for hardware resource&nbsp;disaggregation
+---
+
+LegoOS: a disseminated, distributed OS for hardware resource disaggregation Shan et al., OSDI'18
+
+One of the interesting trends in hardware is the proliferation and importance of dedicated accelerators as general purposes CPUs stopped benefitting from Moore’s law. At the same time we’ve seen networking getting faster and faster, causing us to rethink some of the trade-offs between local I/O and network access. The monolithic server as the unit of packaging for collections of such devices is starting to look less attractive:
+
+- It leads to inefficient resource utilisation, since CPU and memory for a job have to be allocated from the same machine. This can lead to eviction even when utilisation is overall low (e.g. 50%).
+
+- It is difficult to add, move, remove, or reconfigure hardware components after they have been installed in a server, leading to long up-front planning cycles for hardware rollouts at odds with the fast-moving rate of change in requirements.
+
+- It creates a coarse failure domain - when any hardware component within a server fails, the whole server is often unusable.
+
+- It doesn’t work well with heterogeneous devices and their rollout: e.g. GPGPUs, TPUs, DPUs, FGPAs, NVM, and NVMe-based SSDs.
+
+> 
+
+ To fully support the growing heterogeneity in hardware and to provide elasticity and flexibility at the hardware level, we should break the monolithic server model. We envision a hardware resource disaggregation model where hardware resources in traditional servers are disseminated into network-attached hardware components. Each component has a controller and a network interface, can operate on its own, and is an independent, failure-isolated entity.
+
+Hardware resource disaggregation is enabled by three hardware trends:
+
+- Rapidly growing networks speeds (e.g. 200 Gbps InfiniBand will be only 2-4x slower than the main memory bus in bandwidth). "With the main memory bus facing a bandwidth wall, future network bandwith (at line rate) is even projected to exceed local DRAM bandwidth" (just think about how many design assumptions that turns on their heads!).
+
+- Network technologies such as Intel OmniPath, RDMA, and NVMe over Fabrics enable hardware devices to access the network directly without the need to attached any process.
+
+- Hardware devices are incorporating more processing power, making it possible to offload more application and OS functionality to them.
+
+From a hardware perspective this seems to open up a bunch of exciting possibilities. But what on earth does an operating system look like in such a world? That’s the question this paper sets out to address, with the design of LegoOS. LegoOS distributes operating system functions across a collection of loosely-coupled monitors, each of which runs and manages a hardware component. The initial implementation goes after the big three: processing, memory, and storage. Yes, that does mean that processor and memory are separated over the network!
+
+> 
+
+ The biggest challenge and our focus in building LegoOS is the separation of processor and memory and their management. Modern processors and OSes assume all hardware memory units including main memory, page tables, and TLB are local. Simply moving all memory hardware and memory management software to across the network will not work.
+
+LegoOS is available at http://LegoOS.io.
+
+## The Splitkernel architecture
+
+Single-node OSes (e.g. Linux) view a server as the unit of management and assume all hardware components are local. Running such an OS on a processor and accessing everything else remotely causes high overheads and makes processors a single point of failure.
+
+Multi-kernel solutions run a kernel on each core/processor/programmable device within a server and use message passing to communicate between servers. They still run within the bounds of a single server though and access some common hardware resources such as memory and network interfaces.
+
+> 
+
+ Hardware resource disaggregation is fundamentally different from the traditional monolithic server model. A complete disaggregation of processor, memory, and storage means that when managing one of them, there will be no local access to the other two.... when hardware is disaggregated, the OS should be also.
+
+The splitkernel architecture breaks traditional OS functions into loosely-coupled monitors, each running at and managing a hardware component. Monitors can be added, removed, and restarted dynamically. Monitors communicate solely via network messaging. There are only two global tasks in a splitkernel OS: orchestrating resource allocation across components and handling component failure.
+
+## LegoOS
+
+LegoOS follows the splitkernel architecture and appears to applications as a set of virtual servers (vNodes). The initial implementation focuses on process, memory, and storage monitors communicating via a customised RDMA-based network stack. A vNode has a unique ID and IP address, and its own storage mount point. LegoOS protects and isolates the resources given to each node from others. Internally, vNodes comprise multiple process components (pComponents), memory components (mComponents), and storage components (sComponents). There is no writable shared memory across processors. LegoOS supports the Linux system call interface and unmodified Linux ABI. Distributed applications that run on Linux can seamlessly run on a LegoOS cluster by running on a set of vNodes.
+
+## Process components and monitors
+
+All hardware memory functions such as page tables and TLBs are the responsibility of mComponents, so pComponents are left with just caches. They see only virtual addresses and use virtual memory to address these caches.
+
+> 
+
+ Previous studies and our own show that today’s network speed cannot meet application performance requirements if all memory accesses are across the network. Fortunately, many modern datacenter applications exhibit strong memory access temporal locality...
+
+Keeping a small amount of memory (e.g. 4GB) at each pComponent and moving most memory across the network therefore works well in practice. The pComponent cache is called an extended cache or ExCache, and is placed under the current processor last-level cache (LLC). ExCache is managed using a combination of hardware and software (software to set permission bits when a line is inserted, and hardware to check them at access time).
+
+The LegoOS process monitor runs in the kernel space of a pComponent and manages its CPU cores and ExCache. It uses a simple local thread scheduling model that targets datacenter applications. After a thread is assigned to a core, it runs to completion with no scheduling or kernel preemption under common scenarios. Since LegoOS itself can freely schedule processes on any pComponents without considering memory utilisation we already win on utilisation and don’t need to push for perfect individual core utilisation. LegoOS will preempt if a pComponent ends up needing to schedule more threads than its number of available cores.
+
+## Memory components and monitors
+
+Memory components are used for anonymous memory (heaps, stacks), memory-mapped files, and storage buffer caches. The memory monitor manages virtual and physical address spaces, their allocation, deallocation, and the memory address mappings. A process address space can span multiple mComponents. Each application process has a home mComponent that initially loads the process and handles all virtual memory space management system calls. The home component handles coarse-grained high level virtual memory allocation and the other mComponents perform fine-grained allocation. An optimisation in LegoOS (see section 4.4.2 in the paper) is to delay physical memory allocation until write time.
+
+## Storage components and monitors
+
+LegoOS provides a POSIX compatible file interface with core storage functionality implemented at sComponents. The design is stateless, with each request to a storage server containing all the information needed to fulfil the request. Although it supports a hierarchical file interface, internally it uses a simple non-hierarchical hash table. This reduces the complexity of the implementation making it possible for storage monitors to fit in storage device controllers with limited processing power.
+
+## Minimal global state
+
+LegoOS has three global resource managers for process, memory, and storage resources: GPM, GMM, and GSM. For example, the global memory resource manager (GMM) is used to assign a home mComponent to each new process at its creation time, and the GPM allocates a pComponent. The global resource managers run on one normal Linux machine.
+
+## Implementation and evaluation
+
+LegoOS is 206K SLOC, with 56K SLOC for drivers. It ships with three network stacks! There’s a customised RDMA-based RPC framework used for all internal communications, designed to save on NIC SRAM by eliminating physical-to-virtual address translation; a socket interface implemented on top of RDMA; and a traditional socket TCP/IP stack.
+
+> 
+
+ Network communication is at the core of LegoOS’ performance.
+
+Here’s a chart comparing the network latency of three stacks. Both of the LegoOS networking stacks outperform Linux’s.
+
+A microbenchmark evaluation of mComponent performance (compared with Linux’s single-node memory performance) shows that in general more worker threads per mComponent and using more mComponents both improve throughput, up to about four worker threads.
+
+In a similar vein, a storage microbenchmark compares LegoOS’s sComponent performance compared to a single-node Linux.
+
+More interesting is the performance of LegoOS on real unmodified applications. The evaluation uses TensorFlow and the Phoenix single-node multi-threaded MapReduce system. The evaluation uses one pComponent, one mComponent, and one sComponent for the LegoOS vNode. For TensorFlow there is a 256MB ExCache, and for Phoenix a 512MB ExCache. The following figures show the slowdown when running with LegoOS compared to (a) a remote swapping system, (b) a Linux server with a swap file in a local high-end NVMe SSD, and (c) a Linux server with a swap file in local ramdisk. For systems other than LegoOS, the main memory size is set to match the ExCache size.
+
+> 
+
+ With around 25% working set, LegoOS only has a slowdown of 1.68x and 1.34x for TensorFlow and Phoenix compared to a monolithic Linux server that can fit all working sets in main memory. LegoOS’ performance is significantly better than swapping to SSD and to remote memory, largely because of our efficiently implemented network stack, simplified code path compared with the Linux paging subsystem, and &#091;the optimisation to delay physical memory allocation until write time].
+
+The authors also conduct a very interesting analysis of the expected failure rate of a LegoOS cluster compared to a monolithic server, based on MTTF rates for hardware failures requiring replacement (the only available data). The assumption is that a monolithic server and a LegoOS component both fail when any hardware device in them fails, and that devices fail independently.
+
+(Enlarge)
+
+> 
+
+ With better resource utilization and simplified hardware components (e.g., no motherboard), LegoOS improves MTTF by 17% to 49% compared to an equivalent monolithic server cluster.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Operating Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousOrca: differential bug localization in large-scale servicesNext &rsaquo;Maelstrom: mitigating datacenter-level disasters by draining interdependent traffic safely and efficiently
+ 
+ 
+
+ 
+ 
+## 
+ 6 thoughts on &ldquo;LegoOS: a disseminated, distributed OS for hardware resource disaggregation&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ ZolaIII says: 
+
+ 
+ October 22, 2018 at 8:54 am 
+
+ 
+
+ 
+ 
+It looks messy and won't really work. We still need a main kernel which will do scheduling for functional & security reasons call it monolithic or as you wish. Putting it against the Linux also ain't stellar as you will get more comparable results with BSD's, several of which have incorporated multi kernel (monolithic + micro kernels) support like DragonFly BSD. That are more polished and more secure (still less than Linux as BSD community is relatively smal).
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Fred says: 
+
+ 
+ October 22, 2018 at 11:58 am 
+
+ 
+
+ 
+ 
+LegoOS sounds great, even though I havent tested it yet. 
+
+I am wondering - how does LegoOS compare to cloud computing? In a cloud vendor (pick any) environment, we can setup a flexible and scalable environment which does computations and storage in a fairly efficient way.
+
+What would be the use case where LegoOS would be superior to any cloud vendor? What are the benefits of LegoOS aside from performance? Security, administration? Data analysis at scale?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ October 23, 2018 at 7:11 am 
+
+ 
+
+ 
+ 
+It’s much more likely that LegoOS would be used *by* a cloud vendor to manage hw resources and upgrades at massive scale (imho!), than direct use by end users. 
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ 
+ 
+ Jerry Elmore says: 
+
+ 
+ October 22, 2018 at 6:18 pm 
+
+ 
+
+ 
+ 
+Reblogged this on Insecure Automaton and commented:
+
+Interesting concepts here and highly relevant at today's network speeds. Link to original paper as well: https://www.usenix.org/conference/osdi18/presentation/shan
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: LegoOS: a disseminated, distributed OS for hardware resource disaggregation - Insecure Automaton 
+ 
+ 
+- 
+ 
+ 
+ 
+ networking says: 
+
+ 
+ January 7, 2019 at 5:24 am 
+
+ 
+
+ 
+ 
+A computer is a programmable machine that accepts input, stores and manipulates data, and provides output in a useful format. A computer is made up of combination of two components, which is hardware and software.
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

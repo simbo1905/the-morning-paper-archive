@@ -1,0 +1,34 @@
+{
+  "date": "20150121",
+  "file_name": "20150121",
+  "slug": "a-new-presumed-commit-optimisation-for-two-phase-commit",
+  "blog_url": "https://blog.acolyer.org/2015/01/21/a-new-presumed-commit-optimisation-for-two-phase-commit/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes a 1993 paper by Lampson and Lomet that introduces optimizations to the classic Two-Phase Commit (2PC) protocol. The paper first explains the 'presumed nothing' (PrN) protocol, then discusses existing optimizations like 'presumed abort' (PrA) and 'presumed commit' (PrC), before proposing a new variant of PrC that reduces message and log write costs. The key insight is a trade-off: maintaining a small amount of state (the 'Initiated Set') indefinitely to avoid expensive logging during recovery. The paper argues this trade-off is worthwhile, as the state overhead is minimal (e.g., 1MB of crash-related information would take 6 years to accumulate at 1993 disk prices). The new PrC protocol avoids ACKs for committed transactions and reduces coordinator logging, making it more efficient than PrA for commit-heavy workloads.",
+  "paper_title": "A new presumed commit optimisation for two phase commit",
+  "paper_authors": [
+    "Butler Lampson",
+    "David Lomet"
+  ],
+  "paper_year": 1993,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.vldb.org/conf/1993/P630.PDF",
+  "paper_abstract": "l Two phase commit (ZPC) ia used to coordinate the commitment of trunsactiom in distributed systems. The standard 2PC optimization is the presumed abort variant, which wea fewer messages when trannsactions are aborted and allows the coordinator to forget about aborted transactions. The presumed commit variant of 2PC wea even fewer messages, but its coordinator must do additional logging. We describe a new form of presumed commit that reduces the number of log writes while preserving the reduction in me.+ saged, bringing both these costs below those of presumed abort. The penalty for this is the need to retain a small amount of crash related information forever.",
+  "paper_file": "papers/2015/01/21/a-new-presumed-commit-optimisation-for-two-phase-commit.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "two-phase-commit",
+    "2pc",
+    "presumed-commit",
+    "presumed-abort",
+    "transaction-processing",
+    "crash-recovery",
+    "logging-optimization"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

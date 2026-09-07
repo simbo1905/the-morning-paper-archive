@@ -1,0 +1,40 @@
+{
+  "date": "20180820",
+  "file_name": "20180820",
+  "slug": "filter-before-you-parse-faster-analytics-on-raw-data-with-sparser",
+  "blog_url": "https://blog.acolyer.org/2018/08/20/filter-before-you-parse-faster-analytics-on-raw-data-with-sparser/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a groundbreaking approach to JSON parsing in this paper, achieving an order-of-magnitude speed-up with Sparser. The key insight is to avoid parsing entirely when possible by using fast online filters that can quickly determine if a raw data file cannot contain the desired information. This reframing of the problem leverages modern CPU capabilities (SIMD instructions) to create highly efficient raw filters that operate on unstructured or semi-structured data. The paper demonstrates that even state-of-the-art parsers like Mison are significantly slower than raw data scanning, leaving room for optimization. Sparser's filter cascades, optimized for specific queries and data distributions, can achieve up to 22x speed-ups over Mison and even improve end-to-end application performance by 9x when integrated into Spark systems.",
+  "paper_title": "Filter before you parse: faster analytics on raw data with Sparser",
+  "paper_authors": [
+    "Palkar et al."
+  ],
+  "paper_year": 2018,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.vldb.org/pvldb/vol11/p1576-palkar.pdf",
+  "paper_abstract": "PVLDB Reference Format: S. Palkar, F. Abuzaid, P. Bailis, M. Zaharia. Filter Before You Parse: Faster Analytics on Raw Data with Sparser. PVLDB, 11(11): 1576-1589, 2018. DOI: https://doi.org/10.14778/3236187.3236207",
+  "paper_file": "papers/2018/08/20/filter-before-you-parse-faster-analytics-on-raw-data-with-sparser.pdf",
+  "topics": [
+    "storage-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "json-parsing",
+    "simd-optimization",
+    "raw-filters",
+    "query-optimization",
+    "data-filtering",
+    "sparser",
+    "serialization",
+    "big-data-analytics"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "CDF of selectivities",
+      "caption": "CDF of selectivities from (1) Spark SQL queries on Databricks that read JSON or CSV data, and (2) researchers’ queries over JSON data on the Censys search engine [25]. Both sets of queries are highly selective."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

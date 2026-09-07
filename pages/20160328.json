@@ -1,0 +1,36 @@
+{
+  "date": "20160328",
+  "file_name": "20160328",
+  "slug": "speeding-up-web-page-loads-with-shandian",
+  "blog_url": "https://blog.acolyer.org/2016/03/28/speeding-up-web-page-loads-with-shandian/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Shandian, a system designed to significantly reduce web page load times (PLT) by addressing inefficiencies in the traditional page load process. The key insight is that modern web pages suffer from redundant code, blocking transfers, and limited parallelism due to dependencies between HTML, CSS, and JavaScript. Shandian introduces a reverse proxy that preloads a page up to the load event, computes the resulting state (including DOM elements and styles), and sends only this critical state to the client. This avoids unnecessary JavaScript/CSS evaluation and parsing on the client, reducing PLT by over half on mobile devices even for heavily optimized pages. The system is compatible with existing caching/CDN infrastructure but requires a lightly modified client-side browser. Colyer notes that Shandian's approach is particularly effective because it targets both network and computation bottlenecks, unlike prior techniques that focus on only one aspect.",
+  "paper_title": "Shandian: Speeding up Web Page Loads with Server-Side Computation and Selective State Migration",
+  "paper_authors": [
+    "Xiao Sophia Wang",
+    "Arvind Krishnamurthy",
+    "David Wetherall"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "NSDI'16",
+  "paper_url": "https://www.usenix.org/system/files/conference/nsdi16/nsdi16-paper-wang-xiao-sophia.pdf",
+  "paper_abstract": "pages use JavaScript libraries such as jQuery [21] or include large customized JavaScript code in order to support a high degree of user interactivity. The result is that a large portion of the code conveyed to a browser is never used on a page or is only used when a user triggers an action. The second inefficiency stems from how the different stages of the page load process are scheduled to ensure semantic correctness in the presence of concurrent access to shared resources. This results in limited overlap between computation and network transfer, thus increasing PLT. The third and related inefficiency is that many resources included in a Web page are often loaded sequentially due to the complex dependencies in the page load process, and this results in sub-optimal use of the network and increased PLTs. Reducing PLT is hard given these inefficiencies. Human inspection is not ideal since there is no guarantee that Web developers adhere to the ever-changing best practices prescribed by experts [35]. Thus, it is widely believed that the inefficiencies should be transparently mitigated by automated tools and techniques. Many previously proposed techniques focus on improving the network transfer times. For example, techniques such as DNS pre-resolution [22], TCP pre-connect [19], and TCP fast open [28] reduce latencies, and the SPDY protocol improves network efficiency at the application layer [32]. Other techniques lower computation costs by either exploiting parallelism [25, 12] or adding software architecture support [41, 13]. While these techniques are moderately effective at speeding up the individual activities corresponding to a page load, they have had limited impact in reducing overall PLT, because they still communicate redundant code, stall in the presence of conflicting operations, and are constrained by the limited parallelism in the page load process. The key and yet unresolved issue with page loads is that the page load process is suboptimally prioritized...",
+  "paper_file": "papers/2016/03/28/speeding-up-web-page-loads-with-shandian.pdf",
+  "topics": [
+    "networking",
+    "distributed-systems"
+  ],
+  "tags": [
+    "web-performance",
+    "page-load-time",
+    "reverse-proxy",
+    "client-server-computation",
+    "DOM-serialization",
+    "CSS-parsing",
+    "JavaScript-evaluation",
+    "critical-path-optimization"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,41 @@
+{
+  "date": "20161129",
+  "file_name": "20161129",
+  "slug": "early-detection-of-configuration-errors-to-reduce-failure-damage",
+  "blog_url": "https://blog.acolyer.org/2016/11/29/early-detection-of-configuration-errors-to-reduce-failure-damage/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a critical but often overlooked source of production failures: latent configuration errors. These are bugs where configuration settings (especially for reliability, availability, and serviceability features) are not validated until they are needed, often during critical operations like failover. This leads to 'ticking time bombs' that can cause severe system failures when triggered. The paper analyzes real-world systems, finding that 10%+ of RAS parameters in most studied systems contain such latent errors. The authors introduce PCheck, a static analysis tool that automatically generates initialization-time checks for configuration parameters, catching 70%+ of these errors when tested against 830 configuration files. The key insight is that early detection through simple initialization checks can prevent major production incidents.",
+  "paper_title": "Early detection of configuration errors to reduce failure damage",
+  "paper_authors": [
+    "Chengwei Xu",
+    "Haryadi S. Gunawi",
+    "Rastislav Bodík"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/system/files/conference/osdi16/osdi16-xu.pdf",
+  "paper_abstract": "Early detection is the key to minimizing failure damage induced by configuration errors, especially those errors in configurations that control failure handling and fault tolerance. Since such configurations are not needed for initialization, many systems do not check their settings early (e.g., at startup time). Consequently, the errors become latent until their manifestations cause severe damage, such as breaking the failure handling. Such latent errors are likely to escape from sysadmins’ observation and testing, and be deployed to production at scale. Our study shows that many of today’s mature, widelyused software systems are subject to latent configuration errors (referred to as LC errors) in their critically important configurations—those related to the system’s reliability, availability, and serviceability. One root cause is that many (14.0%–93.2%) of these configurations do not have any special code for checking the correctness of their settings at the system’s initialization time. To help software systems detect LC errors early, we present a tool named PC HECK that analyzes the source code and automatically generates configuration checking code (called checkers). The checkers emulate the late execution that uses configuration values, and detect LC errors if the error manifestations are captured during the emulated execution. Our results show that PC HECK can help systems detect 75+% of real-world LC errors at the initialization phase, including 37 new LC errors that have not been exposed before. Compared with existing detection tools, it can detect 31% more LC errors.",
+  "paper_file": "papers/2016/11/29/early-detection-of-configuration-errors-to-reduce-failure-damage.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "configuration-errors",
+    "latent-bugs",
+    "fail-fast",
+    "static-analysis",
+    "PCheck",
+    "RAS-parameters",
+    "system-initialization"
+  ],
+  "figures": [
+    {
+      "number": "Figure 3a",
+      "title": "Example of LC error in fail-over configuration",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

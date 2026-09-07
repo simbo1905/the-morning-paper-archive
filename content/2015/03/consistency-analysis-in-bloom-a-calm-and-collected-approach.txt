@@ -1,0 +1,422 @@
+URL: https://blog.acolyer.org/2015/03/16/consistency-analysis-in-bloom-a-calm-and-collected-approach/
+Title: Consistency analysis in Bloom: a CALM and collected&nbsp;approach
+---
+
+Consistency analysis in Bloom: a CALM and collected approach - Alvaro et al. 2011
+
+This week I'm delighted to bring you another edition of Desert Island Papers, featuring Jonas Bonér. And it seems fitting that Jonas' first choice is a paper by our previous Desert Island Paper guest, Peter Alvaro.
+
+There are several big ideas in this paper: first, the introduction of the CALM principle for reasoning about distributed system behaviour; second, a declarative language called Bloom that encourages CALM programming and is well-suited to the inherent characteristics of distribution; and third, practical guidance and tools for developing software in this manner.
+
+> 
+
+ We show that we can bring that theory to bear on the practice of software development via “disorderly” programming patterns, complemented with automatic analysis techniques for identifying and managing a program’s points of order in a principled way.
+
+If you're interested in digging deeper into the theoretical underpinnings of Bloom, you might want to check out Joe Hellerstein's 'The Declarative Imperative' paper. Also, don't forget to read about Peter Alvaro's follow-on work with Edelweiss.
+
+## Staying CALM in the face of uncertainty
+
+> 
+
+ The challenges of distribution—concurrency and asynchrony, performance variability, and partial failure—often translate into tricky data management challenges regarding task coordination and data consistency.... There are two main bodies of work to guide programmers through these issues. The first is the “ACID” foundation of distributed transactions, grounded in the theory of serializable read/write schedules and consensus protocols like Paxos and Two-Phase Commit. [...] The second point of reference is a long tradition of research and system development that uses application-specific reasoning to tolerate “loose” consistency arising from flexible ordering of reads, writes and messages.
+
+The latter approach can give better availability and/or lower latency but "it is typically unclear what guarantees are provided by systems built in this style. " Temporal nondeterminism (i.e., not knowing when things are going to happen) is at the root of a lot of the difficulties. We can be eventually consistent however if we have order independence (tolerance of temporal nondetermism). Declarative languages based on sets tend to have this property, and the theory of relational databases and logic programming helps us to reason about them.
+
+> 
+
+ Monotonic programs—e.g., programs expressible via selection, projection and join (even with recursion)—can be implemented by streaming algorithms that incrementally produce output elements as they receive input elements. The final order or contents of the input will never cause any earlier output to be “revoked” once it has been generated. Non-monotonic programs—e.g., those that contain aggregation or negation operations—can only be implemented correctly via blocking algorithms that do not produce any output until they have received all tuples in logical partitions of an input set.
+
+Monotonic programs are therefore easy to distribute and can tolerate message reordering and delays. "By contrast, even simple non-monotonic tasks like counting are difficult in distributed systems."
+
+> 
+
+ As a mnemonic, we say that counting requires waiting in a distributed system: in general, a complete count of distributed data must wait for all its inputs, including stragglers, before producing the correct output. “Waiting” is specified in a program via coordination logic (Paxos, 2PC, ...).
+
+As we've seen over the last two weeks, distributed consensus also involves counting (to ensure a quorum). Thus we can also say 'waiting requires counting.'
+
+And here comes the big idea:
+
+> 
+
+ Our observations about waiting and counting illustrate the crux of what we call the CALM principle: the tight relationship between Consistency And Logical Monotonicity. Monotonic programs guarantee eventual consistency under any interleaving of delivery and computation. By contrast, non-monotonicity—the property that adding an element to an input set may revoke a previously valid element of an output set—requires coordination schemes that “wait” until inputs can be guaranteed to be complete.
+
+We'd like to minimize the amount of coordination (for latency and availability reasons). By building the program on top of a logic language we can develop checks for distributed consistency since conservative tests for monotonicity are well understood in that domain.
+
+> 
+
+ In cases where an analysis cannot guarantee monotonicity of a whole program, it can instead provide a conservative assessment of the points in the program where coordination may be required to ensure consistency.
+
+If all this sounds a bit daunting, don't worry. The ideas can be embodied in a 2,400 line Ruby DSL with surprising power.
+
+## Keep CALM and code on
+
+von Neumann architectures bring with them a legacy of implicit ordering assumptions...
+
+> 
+
+ Traditional imperative programming grew out of these pervasive assumptions about order. Therefore, it is no surprise that popular imperative languages are a bad match to parallel and distributed platforms, which make few guarantees about order of execution and communication. By contrast, set-oriented approaches like SQL and batch dataflow approaches like MapReduce translate better to architectures with loose control over ordering. Bloom is designed in the tradition of programming styles that are “disorderly” by nature. State is captured in unordered sets. Computation is expressed in logic: an unordered set of declarative rules, each consisting of an unordered conjunction of predicates.
+
+Bloom programs comprise of a set of local collections (state), and a set of declarative statements concerning those collections.
+
+> 
+
+ Bloom statements are defined with respect to atomic “timesteps,” which can be implemented via successive rounds of evaluation. In each timestep, certain “ground facts” exist in collections due to persistence or the arrival of messages from outside agents (e.g., the network or system clock). The statements in a Bloom program specify the derivation of additional facts, which can be declared to exist either in the current timestep, at the very next timestep, or at some non-deterministic time in the future at a remote node.
+
+Bloom is side-effect free and has no mutable state. Collections can be one of five basic types, and statements follow a simple 'lhs rhs' format. The collection types are:
+
+- table - a collection that persists across timesteps
+
+- scratch - a collection whose contents last for only a single timestep
+
+- channel - a scratch collection with a special location specifier attribute. Tuples 'appear' at the network address specified by this location specifier
+
+- periodic - a scratch collection in which tuples 'appear' approximately every period seconds with a unique id and the current wallclock time
+
+- interface - a scratch collection especiallly designated as an interface point between modules
+
+And the operations are:
+
+- scratch = rhs (the contents of scratch are determined by the rhs for this timestep)
+
+- table or scratch <= rhs (lhs includes the contents of rhs in the current timestep)
+
+- table or scratch <+ rhs (lhs will include the contents of rhs in the next timestep)
+
+- table <- rhs (lhs will not include tuples in rhs in the next timestep)
+
+- channel <~ rhs (tuples in rhs will appear in the remote lhs at some point in the future)
+
+This should be enough information for you to get a good impression of how the reliable unicast messaging program below works. Please refer to the full paper for a worked key-value store example including an abstract specification of a store and both single node and distributed implementations.
+
+ module DeliveryProtocol
+ def state 
+ interface input, :pipe_in, 
+ ['dst','src','ident'],['payload']
+ interface output, :pipe_sent,
+ ['dst','src','ident'],['payload']
+ end
+ end 
+ 
+ module ReliableDelivery include DeliveryProtocol
+ 
+ def state
+ channel :data_chan, ['@dst','src','ident'],['payload']
+ channel :ack_chan, ['@src','dst','ident']
+ table :send_buf, ['dst','src','ident'],['payload']
+ periodic :timer, 10
+ end
+ 
+ declare
+ def send_packet
+ send_buf <= pipe_in
+ data_chan <~ pipe_in
+ end
+ 
+ declare
+ def timer_retry
+ data_chan <~ join([send_buf,timer]).map{|p,t| p}
+ end 
+ 
+ declare
+ def send_ack
+ ack_chan <~ data_chan.map{|p| [p.src, p.dst, p.ident] }
+ end
+ 
+ declare
+ def recv_ack
+ got_ack = join [ack_chan, send_buf], 
+ [ack_chan.ident, send_buf.ident]
+ pipe_sent <= got_ack.map{|a, sb| sb}
+ send_buf <- got_ack.map{|a, sb| sb}
+ end
+ 
+ end
+
+(See the aforementioned Edelweiss paper for a way to make this program even simpler).
+
+## Thinking CALM thoughts
+
+> 
+
+ A Bloom program may be viewed as a dataflow graph with external input interfaces as sources, external output interfaces as sinks, collections as internal nodes, and rules as edges. This graph represents the dependencies between the collections in a program and is generated automatically by the Bud interpreter.
+
+Generating such a graph makes it easy to visualise a program, and especially to see the points where coordination is required due to non-monotonicity. (Of course, it's the fundamental properties of the logic-based language that enables this kind of analysis). This is turn helps you to reason about your design, and perhaps to choose alternatives that reduce the amount of coordination needed. A worked shopping cart example shows these ideas in action. The first alternative deletes items from the shopping cart in response to a delete request (which seems like a good idea on the surface!). But the second alternative simply accumulates update requests (adding and removing items) in a monotonically increasing set. This set is 'summed up' only at checkout. Instead of requiring coordination on every cart action, now we only require it on checkout.
+
+> 
+
+ Strictly monotonic programs are rare in practice, so adding some amount of coordination is often required to ensure consistency. In this running example we studied two candidate implementations of a simple distributed application with the aid of our program analysis. Both programs have points of order, but the analysis tool helped us reason about their relative coordination costs. Deciding that the disorderly approach is “better” required us to apply domain knowledge: checkout is a coarser-grained coordination point than cart actions and their replication.
+
+If adding additional coordination is undesirable, Bloom's 'point-of-order' analysis can help programmers figure out where they need to take appropriate action to tolerate inconsistency. Helland and Campbell's "Building on Quicksand" paper is cited as a model from which we may draw inspiration (definitely one I'll cover on The Morning Paper sometime soon). This introduces the notions of memories, guesses, and apologies.
+
+> 
+
+ Most of these patterns can be implemented as automatic program rewrites. We envision building a system that facilitates running low-latency, “guess”-driven decision making in the foreground, and expensive but consistent logic as a background process. When the background process detects an inconsistency in the results produced by the foreground system (e.g., because a “guess” turns out to be mistaken), it can then take corrective action by generating an “apology.” Importantly, both of these subsystems are implementations of the same high-level design, except with different consistency and coordination requirements; hence, it should be possible to synthesize both variants of the program from the same source code. Throughout this process—making calculated “guesses,” storing appropriate “memories,” and generating the necessary “apologies”—we see significant opportunities to build scaffolding and tool support to lighten the burden on the programmer.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems 
+ 
+ ConsistencyDistributed SystemsProgramming Languages 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousDesert Island Papers: Jonas BonérNext &rsaquo;Consistency, Availability, and Convergence + COPS
+ 
+ 
+
+ 
+ 
+## 
+ 12 thoughts on &ldquo;Consistency analysis in Bloom: a CALM and collected approach&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: A Comprehensive study of Convergent and Commutative Replicated Data Types | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Coordination Avoidance in Database Systems | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Out of the Tar Pit | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Building on quicksand | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Declarative Interaction Design for Data Visualization | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Naiad: A Timely Dataflow System | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Consistency Without Borders | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Out of the Fire Swamp - Part II, Peering into the mist | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Growing a protocol | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Anna: A KVS for any scale | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Keeping CALM: when distributed consistency is easy | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Cloud computing simplified: a Berkeley view on serverless computing | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

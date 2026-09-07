@@ -1,0 +1,41 @@
+{
+  "date": "20150127",
+  "file_name": "20150127",
+  "slug": "zookeeper-wait-free-coordination-for-internet-scale-systems",
+  "blog_url": "https://blog.acolyer.org/2015/01/27/zookeeper-wait-free-coordination-for-internet-scale-systems/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights ZooKeeper as a foundational coordination service for distributed systems, designed to simplify complex coordination tasks like leader elections, group membership, and resource locking. Instead of implementing specific primitives, ZooKeeper provides a minimal API that allows developers to build their own coordination protocols on top of it. The paper emphasizes ZooKeeper's high throughput (tens to hundreds of thousands of transactions per second) under read-dominated workloads, achieved through a wait-free, non-blocking design where reads are processed locally while writes use an atomic broadcast protocol for linearizability. The blog also praises ZooKeeper's asynchronous API, which enables multiple outstanding operations, and its hierarchical node structure (znodes) with ephemeral and sequential nodes for tracking session state and ordering. Colyer notes the elegance of how simple primitives can be combined to implement complex coordination mechanisms, though he cautions about the subtleties in correctness proofs for such algorithms.",
+  "paper_title": "ZooKeeper: Wait-free coordination for Internet-scale systems",
+  "paper_authors": [
+    "Patrick Hunt",
+    "Mahadev Konar",
+    "Flavio P. Junqueira",
+    "Benjamin Reed"
+  ],
+  "paper_year": 2010,
+  "paper_venue": "USENIX Annual Technical Conference (ATC)",
+  "paper_url": "https://www.usenix.org/legacy/event/atc10/tech/full_papers/Hunt.pdf",
+  "paper_abstract": "that implement mutually exclusive access to critical resources. One approach to coordination is to develop services for each of the different coordination needs. For example, Amazon Simple Queue Service [3] focuses specifically on queuing. Other services have been developed specifically for leader election [25] and configuration [27]. Services that implement more powerful primitives can be used to implement less powerful ones. For example, Chubby [6] is a locking service with strong synchronization guarantees. Locks can then be used to implement leader election, group membership, etc. When designing our coordination service, we moved away from implementing specific primitives on the server side, and instead we opted for exposing an API that enables application developers to implement their own primitives. Such a choice led to the implementation of a coordination kernel that enables new primitives without requiring changes to the service core. This approach enables multiple forms of coordination adapted to the requirements of applications, instead of constraining developers to a fixed set of primitives. When designing the API of ZooKeeper, we moved away from blocking primitives, such as locks. Blocking primitives for a coordination service can cause, among other problems, slow or faulty clients to impact negatively the performance of faster clients. The implementation of the service itself becomes more complicated if processing requests depends on responses and failure detection of other clients. Our system, Zookeeper, hence implements an API that manipulates simple waitfree data objects organized hierarchically as in file systems. In fact, the ZooKeeper API resembles the one of any other file system, and looking at just the API signatures, ZooKeeper seems to be Chubby without the lock methods, open, and close. Implementing wait-free data objects, however, differentiates ZooKeeper significantly from systems based on blocking primitives such as locks. Although the wai...",
+  "paper_file": "papers/2015/01/27/zookeeper-wait-free-coordination-for-internet-scale-systems.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "coordination-protocols",
+    "atomic-broadcast",
+    "linearizability",
+    "ephemeral-nodes",
+    "sequential-nodes",
+    "watches",
+    "configuration-management",
+    "group-membership",
+    "locking",
+    "leader-election",
+    "quorum",
+    "session-management"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,33 @@
+{
+  "date": "20150211",
+  "file_name": "20150211",
+  "slug": "encapsulation-of-parallelism-in-the-volcano-query-processing-system",
+  "blog_url": "https://blog.acolyer.org/2015/02/11/encapsulation-of-parallelism-in-the-volcano-query-processing-system/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the foundational 'Volcano-style' query processing system introduced by Graefe in 1989, which encapsulates parallelism through a novel 'exchange operator.' The paper's key insight is that parallelism can be transparently added to query processing algorithms by inserting this single operator at any point in a query tree, without requiring modifications to existing operators. The exchange operator handles all parallelism issues, including process synchronization and dataflow translation, enabling three forms of parallelism: pipelined (vertical), bushy (inter-operator), and intra-operator (partitioned). Colyer emphasizes the elegance of this approach—operators remain unaware of parallelism, and the system scales from single-process to distributed execution with minimal overhead. The paper also demonstrates practical optimizations, such as a propagation tree for process forking and data-driven flow control to prevent producer-consumer imbalance.",
+  "paper_title": "Encapsulation of parallelism in the volcano query processing system",
+  "paper_authors": [
+    "Goetz Graefe"
+  ],
+  "paper_year": 1989,
+  "paper_venue": "ACM SIGMOD Record",
+  "paper_url": "http://digitalcommons.ohsu.edu/cgi/viewcontent.cgi?article=1192&amp;context=csetech",
+  "paper_abstract": "-To investigate the interactions of extensibility and parallelism in database query processing, we have developed a new dataflow query execution system called Volcano. The Volcano effort provides a rich environment for research and education in database systems design, heuristics for query optimization, parallel query execution, and resource allocation. Volcano uses a standard interface between algebra operators, allowing easy addition of new operators and operator implementations. Operations on individual items, e.g., predicates, are imported into the query processing operators using support functions. The semantics of support functions is not prescribed; any data type including complex objects and any operation can be realized. Thus, Volcano is extensible with new operators, algorithms, data types, and type-specific methods. Volcano includes two novel meta-operators. The choose-plan meta-operator supports dynamic query evaluation plans that allow delaying selected optimization decisions until run-time, e.g., for embedded queries with free variables. The exchange meta-operator supports intra-operator parallelism on partitioned datasets and both vertical and horizontal inter-operator parallelism, translating between demand-driven dataflow within processes and data-driven dataflow between processes. All operators, with the exception of the exchange operator, have been designed and implemented in a single-process environment, and parallelized using the exchange operator. Even operators not yet designed can be parallelized using this new operator if they use and provide the interator interface. Thus, the issues of data manipulation and parallelism have become orthogonal, making Volcano the first implemented query execution engine that effectively combines extensibility and parallelism. Index Terms-Dynamic query evaluation plans, extensible database systems, iterators, operator model of parallelization, query execution. I. INTRODUCTION N ORDER to investigate the interac...",
+  "paper_file": "papers/2015/02/11/encapsulation-of-parallelism-in-the-volcano-query-processing-system.pdf",
+  "topics": [
+    "data-engineering"
+  ],
+  "tags": [
+    "query-processing",
+    "parallelism",
+    "exchange-operator",
+    "volcano-model",
+    "iterators",
+    "pipelined-parallelism",
+    "bushy-parallelism",
+    "intra-operator-parallelism"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

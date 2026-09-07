@@ -1,0 +1,46 @@
+{
+  "date": "20190830",
+  "file_name": "20190830",
+  "slug": "choosing-a-cloud-dbms",
+  "blog_url": "https://blog.acolyer.org/2019/08/30/choosing-a-cloud-dbms/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes a VLDB'19 paper that evaluates various cloud-based OLAP database systems (Redshift, Redshift Spectrum, Athena, Presto, Hive, Vertica) using the TPC-H benchmark to assess their performance, cost, and trade-offs. The paper explores three key design dimensions: external storage (S3 vs. EBS vs. Instance Store), on-demand query executors, and DBMS-as-a-service offerings. Key findings include the recommendation to store data in S3 using portable formats like ORC/Parquet for flexibility, with Athena performing well for ad-hoc queries despite some query restrictions. The study highlights that while faster storage (Instance Store > EBS > S3) improves performance, the cost advantage of S3 often outweighs its performance drawbacks. Redshift Spectrum emerges as particularly expensive, while Athena offers competitive cost/performance for select workloads. The paper also examines initialization times, scalability (favoring horizontal over vertical scaling), and data compatibility across systems.",
+  "paper_title": "Choosing a cloud DBMS: architectures and tradeoffs",
+  "paper_authors": [
+    "Wentao Tan",
+    "Jialin Liu",
+    "Joy Arulraj",
+    "Andrew Pavlo"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "VLDB",
+  "paper_url": "http://vldb.org/pvldb/vol12/p2170-tan.pdf",
+  "paper_abstract": "As analytic (OLAP) applications move to the cloud, DBMSs have shifted from employing a pure shared-nothing design with locally attached storage to a hybrid design that combines the use of shared-storage (e.g., AWS S3) with the use of shared-nothing query execution mechanisms. This paper sheds light on the resulting tradeoffs, which have not been properly identified in previous work. To this end, it evaluates the TPC-H benchmark across a variety of DBMS offerings running in a cloud environment (AWS) on fast 10Gb+ networks, specifically database-as-a-service offerings (Redshift, Athena), query engines (Presto, Hive), and a traditional cloud agnostic OLAP database (Vertica). While these comparisons cannot be apples-to-apples in all cases due to cloud configuration restrictions, we nonetheless identify patterns and design choices that are advantageous. These include prioritizing low-cost object stores like S3 for data storage, using system agnostic yet still performant columnar formats like ORC that allow easy switching to other systems for different workloads, and making features that benefit subsequent runs like query precompilation and caching remote data to faster storage optional rather than required because they disadvantage ad hoc queries. PVLDB Reference Format: Junjay Tan, Thanaa Ghanem, Matthew Perron, Xiangyao Yu, Michael Stonebraker, David DeWitt, Marco Serafini, Ashraf Aboulnaga, Tim Kraska. Choosing A Cloud DBMS: Architectures and Tradeoffs. PVLDB, 12(12): 2170-2182, 2019. DOI: https://doi.org/10.14778/3352063.3352133",
+  "paper_file": "papers/2019/08/30/choosing-a-cloud-dbms.pdf",
+  "topics": [
+    "data-engineering",
+    "cloud-computing"
+  ],
+  "tags": [
+    "olap",
+    "tpch-benchmark",
+    "amazon-web-services",
+    "s3",
+    "athena",
+    "redshift",
+    "data-compatibility",
+    "cost-analysis",
+    "scalability",
+    "storage-systems",
+    "query-performance"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Shared Disk Architecture",
+      "caption": "Shared Disk Architecture"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

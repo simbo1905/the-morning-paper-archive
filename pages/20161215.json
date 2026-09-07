@@ -1,0 +1,38 @@
+{
+  "date": "20161215",
+  "file_name": "20161215",
+  "slug": "fasst-fast-scalable-and-simple-distributed-transactions-with-two-sided-rdma-datagram-rpcs",
+  "blog_url": "https://blog.acolyer.org/2016/12/15/fasst-fast-scalable-and-simple-distributed-transactions-with-two-sided-rdma-datagram-rpcs/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights FaSST, a system for fast, scalable, and simple distributed transactions using two-sided RDMA datagram RPCs. The paper challenges the conventional wisdom that one-sided RDMA operations are always superior for transactional systems, demonstrating that RPC-based approaches can achieve better performance, simplicity, and scalability. FaSST achieves millions of transactions per second with low latency by leveraging RDMA's datagram transport, which enables efficient 'Doorbell batching' and avoids the scalability limitations of queue pair (QP) caching in NICs. The key insight is that while one-sided RDMA may seem faster in isolation, RPCs better match the needs of transactional applications, especially in larger clusters, by reducing software complexity and improving CPU efficiency.",
+  "paper_title": "FaSST: Fast, scalable and simple distributed transactions with two-sided (RDMA) datagram rpcs",
+  "paper_authors": [
+    "Anuj Kalia",
+    "Michael Kaminsky",
+    "David G. Andersen"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/system/files/conference/osdi16/osdi16-kalia.pdf",
+  "paper_abstract": "FaSST is an RDMA-based system that provides distributed in-memory transactions with serializability and durability. Existing RDMA-based transaction processing systems use one-sided RDMA primitives for their ability to bypass the remote CPU. This design choice brings several drawbacks. First, the limited flexibility of one-sided RDMA reduces performance and increases software complexity when designing distributed data stores. Second, deep-rooted technical limitations of RDMA hardware limit scalability in large clusters. FaSST eschews onesided RDMA for fast RPCs using two-sided unreliable datagrams, which we show drop packets extremely rarely on modern RDMA networks. This approach provides better performance, scalability, and simplicity, without requiring expensive reliability mechanisms in software. In comparison with published numbers, FaSST outperforms FaRM on the TATP benchmark by almost 2x while using close to half the hardware resources, and it outperforms DrTM+R on the SmallBank benchmark by around 1.7x without making data locality assumptions.",
+  "paper_file": "papers/2016/12/15/fasst-fast-scalable-and-simple-distributed-transactions-with-two-sided-rdma-datagram-rpcs.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "rdma",
+    "rpc",
+    "distributed-transactions",
+    "olap",
+    "oltp",
+    "datagram-transport",
+    "queue-pairs",
+    "doorbell-batching",
+    "one-sided-rdma",
+    "two-sided-rdma"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,37 @@
+{
+  "date": "20161209",
+  "file_name": "20161209",
+  "slug": "dqbarge-improving-data-quality-tradeoffs-in-large-scale-internet-services",
+  "blog_url": "https://blog.acolyer.org/2016/12/09/dqbarge-improving-data-quality-tradeoffs-in-large-scale-internet-services/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the paper 'DQBarge: Improving data-quality tradeoffs in large-scale Internet services' by Chow et al., presented at OSDI 2016. Adrian Colyer highlights DQBarge as an example of programming advanced functionality into the 'warehouse-scale computer OS' (a datacenter OS). The key insight is shifting data-quality trade-off decisions from reactive local components to proactive, globally informed ones, which significantly improves response times, scalability, and result quality. The paper first studies the prevalence and types of data-quality trade-offs at Facebook, finding that over 90% of client applications make such trade-offs, often reactively. DQBarge introduces offline models to predict performance and quality trade-offs and uses these models online to make contextual decisions, reducing resource waste from failed or timed-out requests. The system supports three high-level goals: maximizing quality under latency constraints, leveraging slack execution time, and maximizing utility as a function of quality and performance.",
+  "paper_title": "DQBarge: Improving data-quality tradeoffs in large-scale Internet services",
+  "paper_authors": [
+    "Chow",
+    "A"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/system/files/conference/osdi16/osdi16-chow.pdf",
+  "paper_abstract": "Modern Internet services often involve hundreds of distinct software components cooperating to handle a single user request. Each component must balance the competing goals of minimizing service response time and maximizing the quality of the service provided. This leads to low-level components making data-quality tradeoffs, which we define to be explicit decisions to return lowerfidelity data in order to improve response time or minimize resource usage. We first perform a comprehensive study of low-level data-quality tradeoffs at Facebook. We find that such tradeoffs are widespread. We also find that existing data-quality tradeoffs are often suboptimal because the low-level components making the tradeoffs lack global knowledge that could enable better decisions. Finally, we find that most tradeoffs are reactive, rather than proactive, and so waste resources and fail to mitigate system overload. Next, we develop DQBarge, a system that enables better data-quality tradeoffs by propagating critical information along the causal path of request processing. This information includes data provenance, load metrics, and critical path predictions. DQBarge generates performance and quality models that help low-level components make better, more proactive, tradeoffs. Our evaluation shows that DQBarge helps Internet services mitigate load spikes, improve utilization of spare resources, and implement dynamic capacity planning.",
+  "paper_file": "papers/2016/12/09/dqbarge-improving-data-quality-tradeoffs-in-large-scale-internet-services.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "data-quality",
+    "trade-offs",
+    "warehouse-scale-computing",
+    "latency-optimization",
+    "proactive-decision-making",
+    "utility-maximization",
+    "critical-path-analysis",
+    "slack-execution-time",
+    "request-pipelines",
+    "load-spikes"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

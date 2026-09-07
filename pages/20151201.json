@@ -1,0 +1,33 @@
+{
+  "date": "20151201",
+  "file_name": "20151201",
+  "slug": "rop",
+  "blog_url": "https://blog.acolyer.org/2015/12/01/rop/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a groundbreaking attack technique described in Shacham's 2007 paper, which demonstrates that the widely deployed W⊕X defense against code corruption attacks is less effective than previously believed. The paper introduces new return-into-libc attack methods that allow arbitrary computation without any function calls, leveraging unintended instruction sequences in x86 code—particularly in the libc library. The key insight is that due to the dense and flexible nature of the x86 instruction set architecture (ISA), attackers can chain short, unintended instruction sequences (ending in a 'ret' instruction) to perform any desired task, effectively bypassing W⊕X protections. This technique, termed 'return-oriented programming,' repurposes existing code in a program's memory to execute malicious operations, making it resilient to defenses that remove specific functions from libraries or alter code generation. The paper catalogs numerous such sequences and demonstrates their Turing completeness, enabling full exploitation.",
+  "paper_title": "The geometry of innocent flesh on the bone: Return-into-libc without function calls (on x86)",
+  "paper_authors": [
+    "Hovav Shacham"
+  ],
+  "paper_year": 2007,
+  "paper_venue": "ACM Conference on Computer and Communications Security (CCS'07)",
+  "paper_url": "https://cseweb.ucsd.edu/~hovav/dist/geometry.pdf",
+  "paper_abstract": "We present new techniques that allow a return-into-libc attack to be mounted on x86 executables that calls no functions at all. Our attack combines a large number of short instruction sequences to build gadgets that allow arbitrary computation. We show how to discover such instruction sequences by means of static analysis. We make use, in an essential way, of the properties of the x86 instruction set.",
+  "paper_file": "papers/2015/12/01/rop.pdf",
+  "topics": [
+    "systems-security"
+  ],
+  "tags": [
+    "return-oriented-programming",
+    "return-into-libc",
+    "code-reuse-attacks",
+    "W⊕X",
+    "x86-ISA",
+    "gadgets",
+    "control-flow-hijacking",
+    "exploit-techniques"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

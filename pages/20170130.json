@@ -1,0 +1,43 @@
+{
+  "date": "20170130",
+  "file_name": "20170130",
+  "slug": "how-good-are-query-optimizers-really",
+  "blog_url": "https://blog.acolyer.org/2017/01/30/how-good-are-query-optimizers-really/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer reviews a paper introducing the Join Order Benchmark (JOB), which evaluates the performance of industrial-strength query optimizers (PostgreSQL, HyPer, and three commercial databases) in a realistic setting. The paper highlights that cardinality estimation is the most critical factor in producing good query plans, with cost models and the number of query plans considered being less significant. The authors demonstrate that cardinality estimation errors grow exponentially with the number of joins, often leading to severe underestimation of intermediate result sizes. The JOB, based on real-world IMDB data, reveals that mainstream optimizers struggle with correlations and non-uniform distributions, unlike synthetic benchmarks like TPC-H. The study also shows that misestimations can lead to poor query performance, including timeouts, particularly when nested-loop joins are incorrectly chosen due to low cardinality estimates.",
+  "paper_title": "How Good Are Query Optimizers, Really?",
+  "paper_authors": [
+    "Thomas Neumann",
+    "Alfons Kemper"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.vldb.org/pvldb/vol9/p204-leis.pdf",
+  "paper_abstract": "Finding a good join order is crucial for query performance. In this paper, we introduce the Join Order Benchmark (JOB) and experimentally revisit the main components in the classic query optimizer architecture using a complex, real-world data set and realistic multi-join queries. We investigate the quality of industrial-strength cardinality estimators and find that all estimators routinely produce large errors. We further show that while estimates are essential for finding a good join order, query performance is unsatisfactory if the query engine relies too heavily on these estimates. Using another set of experiments that measure the impact of the cost model, we find that it has much less influence on query performance than the cardinality estimates. Finally, we investigate plan enumeration techniques comparing exhaustive dynamic programming with heuristic algorithms and find that exhaustive enumeration improves performance despite the sub-optimal cardinality estimates. 1. SELECT ... FROM R,S,T WHERE ... cardinality estimation cost model plan space enumeration B INL B v R T S Figure 1: Traditional query optimizer architecture • How important is an accurate cost model for the overall query optimization process? • How large does the enumerated plan space need to be? To answer these questions, we use a novel methodology that allows us to isolate the influence of the individual optimizer components on query performance. Our experiments are conducted using a realworld data set and 113 multi-join queries that provide a challenging, diverse, and realistic workload. Another novel aspect of this paper is that it focuses on the increasingly common main-memory scenario, where all data fits into RAM. The main contributions of this paper are listed in the following:",
+  "paper_file": "papers/2017/01/30/how-good-are-query-optimizers-really.pdf",
+  "topics": [
+    "data-engineering"
+  ],
+  "tags": [
+    "query-optimization",
+    "cardinality-estimation",
+    "join-order-benchmark",
+    "cost-models",
+    "database-systems",
+    "query-plans"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Traditional query optimizer architecture",
+      "caption": "Traditional query optimizer architecture"
+    },
+    {
+      "number": "Figure 2",
+      "title": "Typical query graph of our workload",
+      "caption": "Typical query graph of our workload"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

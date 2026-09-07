@@ -1,0 +1,40 @@
+{
+  "date": "20160129",
+  "file_name": "20160129",
+  "slug": "panopticon",
+  "blog_url": "https://blog.acolyer.org/2016/01/29/panopticon/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses 'Panopticon', a centralized lock broker designed to improve the efficiency of distributed transactions in datacenters. Adrian Colyer highlights Panopticon's key innovation: decoupling locks from the data items they protect, allowing locks to migrate independently. This reduces coordination overhead and latency, especially in scenarios where locks are accessed repeatedly from the same server. The paper introduces a heuristic-based lock migration strategy, categorizing locks into three types based on access patterns, and demonstrates how this approach minimizes remote lock acquisition costs. The author notes that while the paper is accessible, it could benefit from a more formal treatment of the system's reasoning. The evaluation shows Panopticon outperforming Hazelcast's default distributed transaction protocol, though the author questions the system's sensitivity to workload patterns and suggests further testing with real-world scenarios.",
+  "paper_title": "Panopticon: An Omniscient Lock Broker for Efficient Distributed Transactions in the Datacenter",
+  "paper_authors": [
+    "Tasci",
+    "Demirbas"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "IEEE Big Data (Best Paper Award)",
+  "paper_url": "http://www.cse.buffalo.edu/tech-reports/2014-06.pdf",
+  "paper_abstract": "For datacenter applications that require tight synchronization, transactions are commonly employed for achieving concurrency while preserving correctness. Unfortunately, distributed transactions are hard to scale due to the decentralized lock acquisition and coordination protocols they employ. In this paper, we show that it is possible to achieve scalability for distributed transactions by using a lock broker architecture, and present the design and development of such a framework, called PANOPTICON. Panopticon achieves scalability by divorcing locks from the data items and striving to improve lock access locality. A lock can be hosted at the lock broker or at a different server than the server that hosts the corresponding data item. The lock broker mediates the access to data shared across servers by migrating the associated locks like tokens, and in the process gets to learn about the access patterns of transactions. We show that the broker can drastically improve the lock access locality and, hence, the performance of distributed transactions by employing simple rules. Our experiments show that Panopticon performed significantly better than distributed transactions as the the number of data items and number of servers involved in transactions increase. Moreover, as the history locality (the probability of using the same objects in consecutive transactions) increase, Panopticon’s lock migration strategies improved lock-access locality and resulted in significantly better performance.",
+  "paper_file": "papers/2016/01/29/panopticon.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "distributed-transactions",
+    "locking",
+    "two-phase-locking",
+    "lock-migration",
+    "consensus",
+    "transaction-protocols",
+    "hazelcast"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Panopticon lock broker",
+      "caption": "Panopticon lock broker Differing from centralized lock service solutions such as Chubby [6] or Zookeeper [16], Panopticon does not keep all the locks in the broker. Dealing with large scale data, such as in Spanner [8], it is impossible to fit all the locks in the broker and have all centralized locking. And, even when that is possible, it is not desirable since it kills all opportunities for local access: None of the servers can have local transactions in that setup. Panopticon employs the broker as a cache for locks that receive across-server access. The broker migrates the locks that get accesses mostly from one server to that server to improves lockaccess locality further."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

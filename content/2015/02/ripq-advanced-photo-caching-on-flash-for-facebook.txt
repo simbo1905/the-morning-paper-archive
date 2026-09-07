@@ -1,0 +1,300 @@
+URL: https://blog.acolyer.org/2015/02/27/ripq-advanced-photo-caching-on-flash-for-facebook/
+Title: RIPQ: Advanced photo caching on flash for&nbsp;Facebook
+---
+
+RIPQ: Advanced Photo Caching on Flash for Facebook - Tang et al. 2015
+
+It's three for the price of one with this paper: we get to deepen our understanding of the characteristics of flash, examine a number of priority queue and caching algorithms, and get a glimpse into what's behind an important part of Facebook's infrastructure.
+
+Facebook's photo serving stack consists of an Edge caching layer with independent caches at Internet Points of Presence, an Origin cache distributed across Facebook's datacenters that sits behind the Edge cache, and of course the actual disk-based storage back-end (see 'f4: Facebook's warm BLOB storage system' for more details on the back-end).
+
+> 
+
+ Facing high request rates for a large set of objects, both the Edge and Origin caches are equipped with flash drives.
+
+A 15-day trace from these caches contains over 4 billion requests to the Origin cache and 100TB worth of data. The Edge trace (for a single facility) contains over 600 million requests and 26TB worth of data.
+
+Studies on the caching algorithms used by Facebook showed that the SLRU algorithm could increase hit ratios by up to 14%, and the GDFS algorithm can do even better in the Origin cache. Unfortunately,
+
+> 
+
+ ... flash-based hardware has unique performance characteristics that often require software customization. In particular, a naive implementation of advanced caching algorithms may generate a large number of small random writes on flash, by inserting missed content or updating hit content.
+
+Facebook carried out a series of experiments to determine how bad these effects can be.
+
+> 
+
+ ...as writes become smaller or space utilization increases, write throughput dramatically decreases and FTL write amplification increases. For example, 8MiB random writes at 90% device utilization achieve only 160 MiB/s, a ~3.7x reduction from the maximum 590 MiB/s.
+
+With mixed 50:50 read/write workloads at 90% utilization the throughput reduction was 2.3x.
+
+(Write amplification is the ratio between the byte sizes of the write requests written by the host, and the actual data written by the FTL - Flash Translation Layer).
+
+> 
+
+ High FTL write amplification also reduces device lifespan, and as the erasure cycle continues to decrease for large capacity flash cards, the effects of small random writes become worse over time... we are surprised to find that under 90% utilization the minimum write size to achieve peak random write throughput has reached 256 MiB to 512 MiB. This large write size is necessary because modern flash hardware consists of many parallel NAND flash chips and the aggregated erase block size across all parallel chips can add up to hundreds of megabytes.
+
+Testing with sequential writes confirmed that under this scenario FTL write amplification can be low or even avoided entirely.
+
+## Priority Queues, Caching Algorithms, and Flash
+
+Facebook have determined that different cache algorithms best suit different layers of their stack. It is preferable to have one flash-friendly abstraction on top of which all of these caching algorithms can be built.
+
+> 
+
+ Our experience and previous studies have shown that a Priority Queue is a general abstraction that naturally supports various advanced caching policies.
+
+RIPQ (which clearly doesn't stand for 'the death of the Q' in this context, but instead for 'Restricted Insertion Priority Queue') provides this abstraction with an approximate priority queue. It supports the operations
+
+- insert(x,p) : insert a new object x with priority value of p
+
+- increase(x,p) : increase the priority value of x to p
+
+- delete-min() : delete the object with the lowest priority
+
+A cache designer can use anything they like for priority (e.g. access time, access frequency, size, and so on). RIPQ uses relative priorities.
+
+> 
+
+ In a relative priority queue, an object's priority is a number in the [0,1] range representing the position of the object relative to the rest of the queue. For example, if an object i has a relative priority of 0.2, then 20% of the objects in the queue have lower priority values than i and their positions are closer to the tail.
+
+The relative priority of an object is implicitly decreased as other objects are inserted closer to the head of the queue.
+
+RIPQ maintains an index map in-memory which associates all objects with their metadata, including their locations in RAM or flash, sizes, and block IDs. The main queue structure of RIPQ has K sections each divided into blocks. The relatively priority range is split into the K intervals, and when an object is inserted into the queue with priority p, it is placed in the head of the section whose range contains p.
+
+> 
+
+ RIPQ approximates the priority queue abstraction because its design restricts where data can be inserted. The insertion point count, K, represents the key design trade-off in RIPQ between insertion accuracy and memory consumption. Each section has size O(1/K), so larger Ks result in smaller sections and thus higher insertion accuracy. However, because each active block is buffered in RAM until it is full and flushed to flash, the memory consumption of RIPQ is proportional to K. Our experiments show K = 8 ensures that that RIPQ achieves hit ratios similar to the exact algorithm, and we use this value in our experiments. With 256MiB device blocks, it translates to a moderate memory footprint of 2GiB.
+
+Every section has one active device block, one active virtual block, and an ordered list of sealed blocks (both device and virtual). An active device block accepts insertions of new objects and buffers them in memory. When it is full, it is sealed and flushed to flash as a sealed device block.
+
+When the priority of an object is increased, RIPQ lazily updates its location using virtual blocks to track where it has been moved. The active virtual block at the head of each section accepts these virtually updated objects. The active virtual block is sealed when its associated device block is sealed.
+
+> 
+
+ Upon eviction of a sealed device block, the block header is examined to determine all objects in the block. The objects are looked up in the Index Map to see if their virtual block ID is set, i.e., their priority was increased after insertion. If so, RIPQ reinserts the objects to the priorities represented by their virtual blocks. The objects move into active device blocks and their corresponding virtual objects are deleted. Because the updated object will not be written until the old object is about to be evicted, RIPQ maintains at most one copy of each object and duplication is avoided. In addition, lazy updates also allow RIPQ to coalesce all the priority updates to an object between its insertion and reinsertion.
+
+Active device blocks are held in RAM, sealed device blocks occupy a large contiguous space on flash. Virtual blocks resides only in memory and are very small.
+
+The segmented-l LRU algorithm maintains L LRU caches of equal size. On a miss, an object is inserted at the head of the last (Lth) LRU cache. On a hit, an object is promoted to the head of the previous LRU cache. Evictions move in the opposite direction.
+
+> 
+
+ Implementing this family of caching algorithms is straightforward with the relative priority queue interface. On a miss, the object is inserted with priority value 1/L, equating to the head of the L-th cache. On a hit, based on the existing priority p of the accessed object, RIPQ promotes it from the (1− p)*L-th cache to the head of the previous cache with the new, higher priority min(1, (1+(p-L))/L)
+
+The Greedy-Dual-Size-Frequency cache algorithm is also implemented on top of RIPQ in a straightforward manner. It requires use of absolute (not relative) priority values on insertion and update. This is handled with a mapping structure based on a dynamic histogram that supports insertion and deletion of absolute priority values, and when given absolute priorities returns approximate quantiles which are used as the internal relative priority values.
+
+> 
+
+ RIPQ also supports many other advanced caching algorithms like LFU, LRFU, LRU-k, LIRS, SIZE, but there are a few notable exceptions that are not implementable with a single RIPQ, e.g., MQ and ARC. These algorithms involve multiple queues and thus cannot be implemented with one RIPQ. Extending our design to support them with multiple RIPQs coexisting on the same hardware is one of our future directions.
+
+RIPQ has complexity O(K), which can be reduced O(log K) by arranging the K sections in a red-black tree. In contrast an exact implementation of priority queues using red-black trees would be O(N) for N objects. N is typically ~50M, and K ~8.
+
+> 
+
+ RIPQ hits the sweet spot with fast operations and high fidelity, in terms of both theoretical analysis and empirical hit ratios.
+
+## Evaluation
+
+Remember that the SLRU and GDSF cache algorithms both promise upwards of 14% cache hit improvements on Facebook's workload, but are not efficient on flash. The evaluation section therefore is concerned with the question of how close to the ideal exact priority queue implementation RIPQ can get.
+
+> 
+
+ RIPQ consistently achieves high approximation fidelities for the SLRU family, and its hit ratios are less than 0.2% different for object-wise/byte-wise metric compared to the exact algorithm results on Origin/Edge trace. For the GDSF family, RIPQ’s algorithm fidelity becomes lower as the algorithm complexity increases. The greatest “infidelity” seen for RIPQ is a 5% difference on the Edge trace for GDSF-1. Interestingly, for the GDSF family, the infidelity generated by RIPQ improves byte-wise hit ratio: the largest infidelity was a 5% improvement compared to the exact algorithm.
+
+The write amplification of RIPQ is also shown to be largely stable regardless of the complexity of the caching algorithms, ranging from 1.14 to 1.25.
+
+> 
+
+ RIPQ and SIPQ have applicability beyond Facebook’s photo caches. They should enable the use of advanced caching algorithms for static-content caching — i.e., read-only caching—on flash in general, such as in Netflix’s flash-based video caches.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Datastores, Large Scale Systems 
+ 
+ Algorithms and data structuresFacebookStorage 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousF2FS: A new file system for flash storageNext &rsaquo;Can't we all just agree?
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

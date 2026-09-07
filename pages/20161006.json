@@ -1,0 +1,44 @@
+{
+  "date": "20161006",
+  "file_name": "20161006",
+  "slug": "simple-testing-can-prevent-most-critical-failures",
+  "blog_url": "https://blog.acolyer.org/2016/10/06/simple-testing-can-prevent-most-critical-failures/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a key insight from this OSDI 2014 paper: most catastrophic failures in distributed data-intensive systems stem from simple, often trivial mistakes in error handling. The authors analyzed 198 production failures across five systems (Cassandra, HBase, HDFS, MapReduce, Redis) and found that 92% of catastrophic failures (48 total) were caused by incorrect handling of non-fatal errors explicitly signaled in software. Notably, a third of these were due to trivial mistakes like ignoring errors, leaving 'TODO' comments in error handlers, or catching overly broad exceptions. The paper introduces Aspirator, a static checker that could have prevented 33% of catastrophic failures in the studied systems. The blog also emphasizes that most failures are easy to reproduce (77% via unit tests, 98% on ≤3 nodes) and that their triggering events are typically logged (84%), suggesting deterministic replay is feasible.",
+  "paper_title": "Simple testing can prevent most critical failures: an analysis of production failures in distributed data-intensive systems",
+  "paper_authors": [
+    "Yuan",
+    "Shan",
+    "Zhou",
+    "Cao",
+    "Narasayya",
+    "Zheng",
+    "Chen"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-yuan.pdf",
+  "paper_abstract": "raises the questions of why these systems still experience failures and what can be done to increase their resiliency. To help answer these questions, we studied 198 randomly sampled, user-reported failures of five dataintensive distributed systems that were designed to tolerate component failures and are widely used in production environments. The specific systems we considered were Cassandra, HBase, Hadoop Distributed File System (HDFS), Hadoop MapReduce, and Redis. Our goal is to better understand the specific failure manifestation sequences that occurred in these systems in order to identify opportunities for improving their availability and resiliency. Specifically, we want to better understand how one or multiple errors1 evolve into component failures and how some of them eventually evolve into service-wide catastrophic failures. Individual elements of the failure sequence have previously been studied in isolation, including root causes categorizations [33, 52, 50, 56], different types of causes including misconfiguraitons [43, 66, 49], bugs [12, 41, 42, 51] hardware faults [62], and the failure symptoms [33, 56], and many of these studies have made significant impact in that they led to tools capable of identifying many bugs (e.g., [16, 39]). However, the entire manifestation sequence connecting them is far less well-understood. For each failure considered, we carefully studied the failure report, the discussion between users and developers, the logs and the code, and we manually reproduced 73 of the failures to better understand the specific manifestations that occurred. Overall, we found that the error manifestation sequences tend to be relatively complex: more often than not, they require an unusual sequence of multiple events with specific input parameters from a large space to lead the system to a failure. This is perhaps not surprising considering that these systems have undergone thorough testing using unit tests, random error injections [18], and stat...",
+  "paper_file": "papers/2016/10/06/simple-testing-can-prevent-most-critical-failures.pdf",
+  "topics": [
+    "distributed-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "error-handling",
+    "failure-analysis",
+    "static-analysis",
+    "testing",
+    "production-failures",
+    "crash-consistency"
+  ],
+  "figures": [
+    {
+      "number": "Table 1",
+      "title": "Number of reported and sampled failures for the systems studied",
+      "caption": "Number of reported and sampled failures for the systems we studied, and the catastrophic ones from the sample set."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

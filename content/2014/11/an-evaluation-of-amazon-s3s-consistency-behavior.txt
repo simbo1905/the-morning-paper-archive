@@ -1,0 +1,303 @@
+URL: https://blog.acolyer.org/2014/11/12/an-evaluation-of-amazon-s3s-consistency-behavior/
+Title: An Evaluation of Amazon S3&#8217;s Consistency&nbsp;Behavior
+---
+
+Eventual Consistency: How soon is eventual? An Evaluation of Amazon S3's Consistency Behavior - Bermbach and Tai, 2011
+
+In honour of AWS re:Invent this week, and since we've already covered the excellent Dynamo paper at #31 in this series, here's a paper looking at eventual consistency and the behaviour of S3.
+
+> 
+In this work we present a novel approach to benchmark staleness in distributed datastores and use the approach to evaluate Amazon's Simple Storage Service (S3). We report on our unexpected findings.
+
+We can take two different perspectives on consistency: the data-centric / server-side view, and the client-centric view. 
+
+> 
+Data-centric consistency models focus on the internal state of a storage system, i.e., consistency has been reached as soon as all replica of a given data item are idential. ... Client-centric consistency models do not care about the internal state of a storage system. Instead they focus on the consistency guarantees which can actually be observed by one or more clients, e.g. whether stale data is returned or not.
+
+Bermbach and Tai have an easily understood approach for measuring client-centric (in)consistency:
+
+- Create a timestamp
+
+- Write a version number to the storage system
+
+- Continously read until the old version no. is no longer returned, then create a new timestamp
+
+- Calculate the difference between the write timestamp and the last-read timestamp
+
+- Repeat until statistical significance
+
+Note that step 3 is not the first time you read the new version, but the last time you read the old one - i.e. you need to set some maximum imagined inconsistency window, and keep checking until some time >> this.
+
+> 
+The firest actual Cloud storage service which we evaluated via our consistency monitoring was Amazon's Simple Storage Service (S3).
+
+The results showed some very surprising behaviour. S3 toggled between a 'LOW' phase and a 'SAW' phase roughly every 12 hours. 
+
+> 
+During the LOW phase we actually find a random distribution [of the inconsistency window] with a mean value of 28ms and a median of 15ms.
+
+> 
+During the SAW phase we can observe a curve which resembles a sawtooth wave. First, the inconsistency window's length is close to zero. Then, it increases by one or two seconds with every test until it peaks at about eleven seconds before dropping straight down to the next minimum.
+
+These results were repeatable over a period of time. What is going on in the implementation to cause this??
+
+> 
+After these initial considerations, we evaluated Amazon S3 in terms of consistency guarantees and found, in stark contrast to the findings by Wada et al., that S3 frequently violates monotonic read consistency.
+
+(in the tests, about 12% of reads violated monotonic read consistency).
+
+> 
+In exchange, we observed an availability of more than eight nines (99.9999997%).
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ AmazonConsistencyStorage 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousThe Power of Interoperability: why objects are inevitableNext &rsaquo;The Declarative Imperative: Experiences and Conjectures in Distributed Logic
+ 
+ 
+
+ 
+ 
+## 
+ 2 thoughts on &ldquo;An Evaluation of Amazon S3's Consistency Behavior&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Dor says: 
+
+ 
+ November 18, 2014 at 8:44 pm 
+
+ 
+
+ 
+ 
+This is from 2011, I wonder if someone issued another test
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ November 19, 2014 at 6:24 am 
+
+ 
+
+ 
+ 
+I couldn't find any more recent reports. Since the reason for the behaviour was never explained afaik, and the service has grown rapdily since then, it's quite likely things are different now. The methodology for testing is the reusable part of the paper!
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

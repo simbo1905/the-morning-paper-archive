@@ -1,0 +1,35 @@
+{
+  "date": "20191118",
+  "file_name": "20191118",
+  "slug": "formal-foundations-of-serverless-computing",
+  "blog_url": "https://blog.acolyer.org/2019/11/18/formal-foundations-of-serverless-computing/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes the award-winning OOPSLA'19 paper by Jangda et al., which provides formal foundations for serverless computing. The authors highlight the unique challenges of serverless environments, such as warm starts, state reuse, and at-least-once execution semantics, which can lead to correctness and security issues if misunderstood. They introduce operational semantics for serverless platforms, capturing behaviors like instance reuse, abrupt termination, and non-deterministic execution. The paper then proposes a 'naive semantics' that simplifies reasoning about serverless functions under certain conditions, using a weak bisimulation theorem to justify ignoring low-level platform details. The authors also discuss the complexities of idempotency and interactions with external services, offering transaction semantics for a key-value store to ensure idempotent operations.",
+  "paper_title": "Formal foundations of serverless computing",
+  "paper_authors": [
+    "Amitangshu Jana",
+    "Aman Nougrahiya",
+    "Rastislav Bodík",
+    "Dan Grossman"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "OOPSLA'19",
+  "paper_url": "https://arxiv.org/pdf/1902.05870.pdf",
+  "paper_abstract": "s away the details of concurrent execution and warm starts. The state of a naive platform ⇀ consists of (1) the function’s name (𝑓 ); (2) its execution mode (𝑚); (3) a trace of function states (𝜎), where the last element of the trace is the current state, and the first element was the initial state of the function (we write+ + to append two traces); and (4) a buffer of responses that have yet to be returned (B). The trace is a convenience that helps us relate the naive semantics to 𝜆 , but has no effect on execution because step 𝑓 only works on the latest state in the semantics. Naive semantics safety. Note that the naive semantics is an idealized model and is not correct for arbitrary serverless functions. However, we can precisely characterize the exact conditions when it is safe for a programmer to reason with the naive semantics, even if their code is running on a full-fledged serverless platform (i.e., using 𝜆 ). We require the programmer to define a safety relation over the state of the serverless function. At a high-level, the safety relation is an equivalence relation on program states, which ensures that the (1) serverless function produces the same observable command (if any) on equivalent states and that (2) all final states are equivalent to the initial state. Intuitively, the latter condition ensures that warm starts and cold starts are indistinguishable from each other, and the former condition ensures that interactions between the serverless function and the external world are identical in equivalent states. The safety relation is formally defined below. Definition 4.1 (Safety Relation). For a serverless function ⟨𝑓 , Σ, recv 𝑓 , step 𝑓 , init⟩, the relation R ⊆ Σ × Σ is a safety relation if: (1) R is an equivalence relation, (2) for all (𝜎1, 𝜎2 ) ∈ R and 𝑣, (recv 𝑓 (𝑣, 𝜎1 ), recv 𝑓 (𝑣, 𝜎2 )) ∈ R, (3) for all (𝜎1, 𝜎2 ) ∈ R, if (𝜎1′, 𝑡 1 ) = step 𝑓 (𝜎1 ) and (𝜎2′, 𝑡 2 ) = step 𝑓 (𝜎2 ) then (𝜎1′, 𝜎2′ ) ∈ R and 𝑡 1 = 𝑡 2 , and (4) for all 𝜎, if step 𝑓 (𝜎...",
+  "paper_file": "papers/2019/11/18/formal-foundations-of-serverless-computing.pdf",
+  "topics": [
+    "programming-languages",
+    "distributed-systems"
+  ],
+  "tags": [
+    "serverless-computing",
+    "operational-semantics",
+    "idempotency",
+    "state-management",
+    "function-composition",
+    "bisimulation"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

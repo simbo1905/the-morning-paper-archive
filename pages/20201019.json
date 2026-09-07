@@ -1,0 +1,39 @@
+{
+  "date": "20201019",
+  "file_name": "20201019",
+  "slug": "the-case-for-a-learned-sorting-algorithm",
+  "blog_url": "https://blog.acolyer.org/2020/10/19/the-case-for-a-learned-sorting-algorithm/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses a paper titled 'The case for a learned sorting algorithm' from SIGMOD'20, which introduces Learned Sort, a machine learning-based approach to sorting. The key insight is to use a model to predict the position of elements in a sorted array, reducing the need for traditional sorting algorithms. The author highlights that Learned Sort outperforms RadixSort by 1.49x on a 1 billion item dataset, even when including the model training time. The paper builds on prior work like SageDB and 'The case for learned index structures,' using a Recursive Model Index (RMI) architecture with linear spline fitting for efficient model training and inference. The blog also explores optimizations like cascading bucket sort to improve cache efficiency and reduce random memory accesses, which initially hindered performance. The evaluation demonstrates that Learned Sort is particularly effective when the number of elements is much smaller than the key domain size.",
+  "paper_title": "The case for a learned sorting algorithm",
+  "paper_authors": [
+    "Kristo",
+    "Vaidya"
+  ],
+  "paper_year": 2020,
+  "paper_venue": "SIGMOD'20",
+  "paper_url": "https://dl.acm.org/doi/10.1145/3318464.3389752",
+  "paper_abstract": "1 Sorting is one of the most fundamental algorithms in Computer Science and a common operation in databases not just for sorting query results but also as part of joins (i.e., sortmerge-join) or indexing. In this work, we introduce a new type of distribution sort that leverages a learned model of the empirical CDF of the data. Our algorithm uses a model to efficiently get an approximation of the scaled empirical CDF for each record key and map it to the corresponding position in the output array. We then apply a deterministic sorting algorithm that works well on nearly-sorted arrays (e.g., Insertion Sort) to establish a totally sorted order. We compared this algorithm against common sorting approaches and measured its performance for up to 1 billion normally-distributed double-precision keys. The results show that our approach yields an average 3.38× performance improvement over C++ STL sort, which is an optimized Quicksort hybrid, 1.49× improvement over sequential Radix Sort, and 5.54× improvement over a C++ implementation of Timsort, which is the default sorting function for Java and Python. Sorting is one of the most fundamental and well-studied problems in Computer Science. Counting-based sorting algorithms, such as Radix Sort, have a complexity of O(wN ) with N being the number of keys and w being the key length and are often the fastest algorithms for small keys. However, for larger key domains comparison-based sorting algorithms are often faster, such as Quicksort or Mergesort, which have a time complexity of O(N log N ), or hybrid algorithms, which combine various comparative and distributive sorting techniques. Those are also the default sorting algorithms used in most standard libraries (i.e., C++ STL sort). In this paper, we introduce a ML-enhanced sorting algorithm by building on our previous work [28]. The core idea of the algorithm is simple: we train a CDF model F over a small sample of keys A and then use the model to predict the position of each key...",
+  "paper_file": "papers/2020/10/19/the-case-for-a-learned-sorting-algorithm.pdf",
+  "topics": [
+    "machine-learning",
+    "algorithms"
+  ],
+  "tags": [
+    "sorting-algorithms",
+    "learned-index-structures",
+    "recursive-model-index",
+    "cascading-bucket-sort",
+    "cache-efficiency",
+    "linear-spline-fitting"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Sorting with the perfect CDF model",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

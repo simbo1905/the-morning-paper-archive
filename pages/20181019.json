@@ -1,0 +1,34 @@
+{
+  "date": "20181019",
+  "file_name": "20181019",
+  "slug": "orca-differential-bug-localization-in-large-scale-services",
+  "blog_url": "https://blog.acolyer.org/2018/10/19/orca-differential-bug-localization-in-large-scale-services/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Orca, a production-deployed bug localization service at Microsoft that helps on-call engineers (OCEs) quickly identify the commit responsible for a bug in large-scale services like Office 365 (codenamed 'Orion'). The tool reduces OCE workload by 3x by leveraging a custom search engine that queries symptoms against code changes, configurations, and commit metadata. Key insights include the frequent overlap between symptom and cause terms (e.g., 'suggest' in a failing People Suggestion feature), the delayed surfacing of bugs introduced in older builds, and the need to rank commits by risk. Orca combines a build provenance graph, differential code analysis (using ASTs to capture structural changes), and a commit risk prediction model trained on 93,000 commits to rank suspect commits. The system integrates with alerting systems to provide suspect commits upfront.",
+  "paper_title": "Orca: differential bug localization in large-scale services",
+  "paper_authors": [
+    "Bhagwan et al."
+  ],
+  "paper_year": 2018,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/conference/osdi18/presentation/bhagwan",
+  "paper_abstract": "Today, we depend on numerous large-scale services for basic operations such as email. These services are complex and extremely dynamic as developers continuously commit code and introduce new features, fixes and, consequently, new bugs. Hundreds of commits may enter deployment simultaneously. Therefore one of the most time-critical, yet complex tasks towards mitigating service disruption is to localize the bug to the right commit. This paper presents the concept of differential bug localization that uses a combination of differential code analysis and software provenance tracking to effectively pin-point buggy commits. We have built Orca, a customized code search-engine that implements differential bug localization. On-Call Engineers (OCEs) of Orion, a large enterprise email and collaboration service, use Orca to localize bugs to the appropriate buggy commits. Our evaluation shows that Orca correctly localizes 77% of bugs for which it has been used. We also show that it causes a 3x reduction in the work done by the OCE.",
+  "paper_file": "papers/2018/10/19/orca-differential-bug-localization-in-large-scale-services.pdf",
+  "topics": [
+    "distributed-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "bug-localization",
+    "commit-analysis",
+    "differential-analysis",
+    "AST-diff",
+    "risk-prediction",
+    "build-provenance",
+    "search-engine",
+    "on-call-engineering"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

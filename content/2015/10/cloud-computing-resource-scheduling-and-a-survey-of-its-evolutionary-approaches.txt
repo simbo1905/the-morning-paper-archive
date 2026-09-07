@@ -1,0 +1,276 @@
+URL: https://blog.acolyer.org/2015/10/02/cloud-computing-resource-scheduling-and-a-survey-of-its-evolutionary-approaches/
+Title: Cloud Computing Resource Scheduling and a Survey of its Evolutionary&nbsp;Approaches
+---
+
+Cloud Computing Resource Scheduling and a Survey of its Evolutionary Approaches - Zhan et al. 2015
+
+> 
+
+ In both academia and industry, the problem of cloud resource scheduling is seen to be as hard as a Nondeterministic Polynomial (NP) optimization problem, that is, an NP-hard problem, whose intractability increases exponentially with the number of variables if using a deterministic algorithm such as exhaustive search is attempted. Hence, algorithms that solve relatively routine cloud scheduling problems can suffer from a dimensionality breakdown when the size of the problem grows. This problem becomes more challenging with the increase of the proliferation, ambition, and complexity of cloud computing.
+
+The "Cloud resource scheduling" problem applies at three layers: scheduling resources for applications, scheduling virtual resources (e.g. VMs) onto physical resources, and scheduling and placement of physical resources. Furthermore, there can be multiple different objectives to be optimised for at each layer. In the application layer it might be to meet a user-specified Service Level Objective (SLO) - i.e. scheduling for QoS, to optimise for provider efficiency, or to negotiate some compromise between the two. At the virtual resources layer it may be to optimise for load balancing, for cost effectiveness, or for energy conservation.
+
+> 
+
+ Similar to an ordinary scheduling problem, cloud resource scheduling aims to ﬁnd an “optimal” mapping C : T×R → &real;z that assigns M required tasks (or virtual resources) T = {T1, T2, . . . , TM} onto N available cloud (or physical) resources R = {R1, R2, . . . , RN} such that the ﬁtness of z given objectives F = {F1, F2, . . . , Fz} are maximized either collectively in weighting or individually in a Pareto sense within a given time frame.
+
+For smaller scale cloud resource scheduling problems, you can use exhaustive scheduling algorithms that convert the problem to a combinatorial optimization problem such as Linear Programming, Integer Programming, Integer Linear Programming, or constraint solving.
+
+> 
+
+ However, being an NP-hard problem, cloud scheduling can break down exhaustive or enumerative approaches with an increase in dimensionality or in the number of variables to be optimized.
+
+Therefore, we need to turn to heuristic methods. "Among all heuristic methods, the most powerful of all are the population-based EC algorithms, which effectively exchange search information among team members. As the problem of cloud resource scheduling is seen [to be] NP-hard, its intractability is best tackled by an EC algorithm." And what are these 'EC' algorithms? Not Eventually Consistency for once, in this context it refers to 'Evolutionary Computation' - the nature-inspired algorithms that we've been looking at over the last couple of weeks. Most referred to in this survey are Genetic Algorithms, Particle Swarm Optimization, and Ant Colony Optimization, though I have a hunch that the Flower Pollination Algorithm might do very well here too.
+
+I should say at this point that today's paper is in the ACM Computing Surveys series, which provides concise summaries of research in a variety of topic areas, and the surveys are great 'jumping off points' for getting a quick overview and then diving deeper. Therefore much of this paper actually consists of of a categorisation and cataloguing of a large body of work applying EC algorithms to cloud resource scheduling problems. It's eye-opening just how much work has been done in this area!
+
+> 
+
+ When taking a ﬁtness evaluation as the elementary operation, all EC algorithms have the same time complexity of O(uG) if there is no exceptional circumstance, as the program overhead is relatively negligible.
+
+Here u is the population size, and G is the number of generations.
+
+> 
+
+ If we consider the solution construction and update processes, the time complexity varies slightly. For PSO, as each dimension has to be updated, the time complexity would be O(MuG), M being the number of tasks to be scheduled (also the length of the solution). For ACO, as the ant has to select one resource among the N resources for all the M tasks, the time complexity is O(MNuG). Therefore, with the same population size and number of generations allowed, the running time of ACO is longer than that of PSO, which in turn is longer than that of a GA. Nevertheless, they are in the same order, and EC algorithms are more linear for scalability than traditional approaches such as IP, LP, or dynamic programming.
+
+For the many and diverse ways these algorithms have been applied I refer you to the full paper. Here I can just give a flavour...
+
+Consider the case of optimising for user quality of service. Zhao et al. address this using a GA where a chromosone has the same length as the number of tasks to be scheduled, and each gene is an integer coding for the resource the task is to be scheduled on. The general strategy with ACO is to have each ant walk an M-step path (M is the number of tasks to be scheduled), using pheromone and heuristic information to choose a suitable resource at each step.
+
+> 
+
+ The pheromone update scheme was modiﬁed according to different time slots of cloud service in Banerjee et al. [2009] and the heuristic information based on the user’s QoS on user cost, system reliability, response, or security was used to guide the ant to select the optimal resource in Liu et al. [2011]. Zhu et al. [2012] also used an ACO-based approach to schedule cloud resource by considering makespan, user cost, network bandwidth, and system reliability. The tasks were ﬁrst classiﬁed into different categories according to different QoS metrics, and then tasks in different categories were bound to the cloud resources via the ACO optimization.
+
+PSO is also used because it generally has faster convergence than GA and ACO:
+
+> 
+
+ In order to make PSO suitable for the cloud resource scheduling model, which is a discrete optimization problem, Wu et al. [2010] and Chen and Zhang [2012] extended the continuous PSO to discrete PSO. Their methods are similar in that the set-based mechanism is used. The particle position consists of a set of pairs. Moreover, the velocity and position updating are modiﬁed accordingly to match the code scheme. For the optimization objective, Wu et al. [2010] optimized the user cost by combining the data transmission cost and computational cost, while Chen and Zhang [2012] optimized the user QoS such as makespan, user cost, and reliability separately.
+
+Further on in the paper, there is a nice example of using ACO to manage the 'negotiation' between a user's SLO and the cloud provider's own objectives:
+
+> 
+
+ When making a negotiation in ACO, another strategy is to guide the search by considering the negotiation between the cloud user and the provider. Li et al. [2011] proposed scheduling the cloud resource oriented by the objectives of minimizing the makespan of the tasks set (for the cloud users) and optimizing the load balance of the entire system (for the cloud provider). Therefore, in their ACO algorithm, the ant chooses the VM for each task step by step similar to the process [previously described] but the pheromone for selecting VM is the combination of the VM computing capacity and its current load.
+
+After very many such examples, the paper concludes with research challenges and emerging directions for the application of EC algorithms to cloud resource scheduling.
+
+> 
+
+ The promising performance of EC algorithms in scheduling optimization has attracted increasing attention in cloud resource scheduling recently. While much work has been undertaken and studies have been surveyed in the previous sections, it is found that research in this area is still challenging. Many issues remain unexplored and could develop into emerging research directions. In this section, we shall discuss these issues and highlight several potential directions...
+
+After so much excitement, the first challenge comes as something of a reality check : most of the existing EC works use a centralized approach that consider the optimization problem as a whole and compute a solution offline (that's a serious drawback in a real-world setting!) :
+
+> 
+
+ So far, real-time optimization is still a challenge to EC algorithms because of the population- and iteration-based characteristics of EC algorithms, despite efforts made on real-time algorithm design [Roberge et al. 2013]. One way to tackle such a challenge is to adapt to an online micro EC algorithm with a tiny population size or to augment with local learning on top of an ofﬂine solution. However, as cloud scheduling can face challenges of a high volume, velocity, and variety of data arriving during the runtime, a more efﬁcient use of search information and problem information during the evolutionary process should be explored.
+
+The second challenge is that the scheduling requirements themselves (i.e., the optimization objectives) may change over time. "Moreover, the uncertain characteristics of cloud tasks and the addition or removal of some cloud resources often make the scheduling environment change." Adaptive control of the EC algorithm according to the enviroment is therefore a key research issue in developing EC algorithms for complex scheduling in cloud computing. (I note that nature has to deal with changing environments too!).
+
+The third challenge is scale. "With the rapid progress of cloud computing, the scales of resources, users, tasks, and workﬂows have continuously grown. In the future, more and more tasks will be processed in the cloud environment andmore andmore cloud resources need to be managed and scheduled in the Internet-pervasive environment."
+
+> 
+
+ Fortunately, EC is a promising paradigm for large-scale scheduling, because it offers acceptable solutions in (nondeterministic) polynomial time, although how to design a time-efﬁcient large-scale EC algorithm is still an open problem in the EC community. In future research, designing efﬁcient partition strategies to divide large-scale resources into smaller ones and scheduling these small-scale problems with coevolution [Yusoh and Tang 2010b; Zhang et al. 2011c] could be a promising way forward.
+
+The fourth challenge is multi-objective optimisation - dealing with the competing needs of multiple stakeholders:
+
+> 
+
+ It is fortunate that the EC paradigm has proved to be one of the most signiﬁcant and promising tools for multiobjective optimization [Zhan et al. 2013; Mukhopadhyay et al. 2014].We believe that in the near future, modeling cloud resources scheduling as a multiobjective problem will naturally become a trend and the use of EC algorithms to solve such a multiobjective problem will accelerate.
+
+The authors also call for distributed EC algorithms.
+
+Lots of promise, and lots still to be done...
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Scheduling 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousMisbehavior in Bitcoin: A Study of Double-Spending and AccountabilityNext &rsaquo;IPFS - Content Addressed, Versioned, P2P File System
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

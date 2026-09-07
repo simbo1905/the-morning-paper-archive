@@ -1,0 +1,37 @@
+{
+  "date": "20181123",
+  "file_name": "20181123",
+  "slug": "uncertainty-propagation-in-data-processing-systems",
+  "blog_url": "https://blog.acolyer.org/2018/11/23/uncertainty-propagation-in-data-processing-systems/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the importance of accounting for uncertainty in data processing systems, as errors can compound quickly when uncertain values are treated as precise. The paper introduces the UP (Uncertainty Propagation) framework, which propagates uncertainty through dataflow computations with high accuracy and low overheads. The framework is implemented in UP-MapReduce, demonstrating its effectiveness across ten applications, including AI/ML, image processing, and trend analysis. The key insight is the use of statistical methods (Differential Analysis and Monte Carlo simulation) to approximate uncertainty propagation in large-scale dataflows, addressing challenges like handling covariances and discontinuities in functions.",
+  "paper_title": "Uncertainty propagation in data processing systems",
+  "paper_authors": [
+    "Manousakis et al."
+  ],
+  "paper_year": 2018,
+  "paper_venue": "SoCC'18",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3267833",
+  "paper_abstract": "1 We are seeing an explosion of uncertain data—i.e., data that is more properly represented by probability distributions or estimated values with error bounds rather than exact values—from sensors in IoT, sampling-based approximate computations and machine learning algorithms. In many cases, performing computations on uncertain data as if it were exact leads to incorrect results. Unfortunately, developing applications for processing uncertain data is a major challenge from both the mathematical and performance perspectives. This paper proposes and evaluates an approach for tackling this challenge in DAG-based data processing systems. We present a framework for uncertainty propagation (UP) that allows developers to modify precise implementations of DAG nodes to process uncertain inputs with modest effort. We implement this framework in a system called UP-MapReduce, and use it to modify ten applications, including AI/ML, image processing and trend analysis applications to process uncertain data. Our evaluation shows that UP-MapReduce propagates uncertainties with high accuracy and, in many cases, low performance overheads. For example, a social network trend analysis application that combines data sampling with UP can reduce execution time by 2.3x when the user can tolerate a maximum relative error of 5% in the final answer. These results demonstrate that our UP framework presents a compelling approach for handling uncertain data in DAG processing. Data is being produced and collected at a tremendous pace. The need to process this vast amount of data has led to the design and deployment of data processing systems such as MapReduce, Spark and Scope [7, 32, 37]. These frameworks typically allow data processing applications to be expressed as directed acyclic graphs (DAGs) of side-effect free computation nodes, with data flowing through the edges for processing. The frameworks then run applications on clusters of servers, transparently handling issues such as task schedu...",
+  "paper_file": "papers/2018/11/23/uncertainty-propagation-in-data-processing-systems.pdf",
+  "topics": [
+    "data-engineering"
+  ],
+  "tags": [
+    "uncertainty-propagation",
+    "dataflow",
+    "probabilistic-values",
+    "differential-analysis",
+    "monte-carlo-simulation",
+    "mapreduce"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "DAG application example",
+      "caption": "(a) A DAG application with two logical nodes; (b) a possible set of outputs (blue line with error bars) from the first node; (c) the output from the second node should be a probabilistic quantity rather than a precise value."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

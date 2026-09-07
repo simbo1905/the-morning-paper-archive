@@ -1,0 +1,36 @@
+{
+  "date": "20150902",
+  "file_name": "20150902",
+  "slug": "the-potential-dangers-of-causal-consistency-and-an-explicit-solution",
+  "blog_url": "https://blog.acolyer.org/2015/09/02/the-potential-dangers-of-causal-consistency-and-an-explicit-solution/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the paper's exploration of causal consistency in distributed systems, noting its benefits like low latency and partition tolerance but also identifying critical scalability challenges. The key trade-off is between write throughput and visibility latency, where global causal+ consistency requires all-to-all replication across datacenters, limiting aggregate throughput to the weakest datacenter's capacity. The paper introduces 'explicit causality' as a solution, where applications specify only the dependencies that matter, rather than tracking all potential causal relationships. This reduces dependency graph size, metadata overhead, and enables parallel write application, significantly improving throughput and lowering visibility latency. The authors demonstrate through case studies (Twitter, Facebook) that explicit causality chains are orders of magnitude smaller than potential causality chains, making it a practical approach for real-world systems.",
+  "paper_title": "The Potential Dangers of Causal Consistency and an Explicit Solution",
+  "paper_authors": [
+    "Peter Bailis",
+    "Ali Ghodsi",
+    "Joseph M. Hellerstein",
+    "Ion Stoica"
+  ],
+  "paper_year": 2012,
+  "paper_venue": "SOCC '12 (ACM Symposium on Cloud Computing)",
+  "paper_url": "http://db.cs.berkeley.edu/papers/socc12-explicit.pdf",
+  "paper_abstract": "Causal consistency is the strongest consistency model that is available in the presence of partitions and provides useful semantics for human-facing distributed services. Here, we expose its serious and inherent scalability limitations due to write propagation requirements and traditional dependency tracking mechanisms. As an alternative to classic potential causality, we advocate the use of explicit causality, or applicationdefined happens-before relations. Explicit causality, a subset of potential causality, tracks only relevant dependencies and reduces several of the potential dangers of causal consistency.",
+  "paper_file": "papers/2015/09/02/the-potential-dangers-of-causal-consistency-and-an-explicit-solution.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "causal-consistency",
+    "explicit-causality",
+    "visibility-latency",
+    "throughput",
+    "dependency-graphs",
+    "all-to-all-replication",
+    "convergent-consistency"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

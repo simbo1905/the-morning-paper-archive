@@ -1,0 +1,356 @@
+URL: https://blog.acolyer.org/2014/11/27/swiftcloud-fault-tolerant-geo-replication-integrated-all-the-way-to-the-client/
+Title: SwiftCloud: Fault-tolerant geo-replication integrated all the way to the&nbsp;client
+---
+
+SwiftCloud: Fault-tolerant geo-replication integrated all the way to the client machine - Zawirski et al. 2013
+
+Data is stored in the cloud, presentation is on mobile devices, and application processing is increasingly split between the two. As mobile devices get more and more capable, we would like to exploit more and more of that capability. In many cases this both provides a better user experience, and costs less in terms of the cloud resources you need to rent to support your application.
+
+It seems fairly straightforward to put together a first-pass mbaas data store: put a REST API in front of a distributed key-value store or document store and you're done! Especially if each key belongs to a single user (i.e. users partition the data, and each user only accesses their own data). You'll quickly find there are more considerations to be taken into account though, for example:
+
+- we want to support disconnected usage, so we add an on-device store or cache
+
+- on-device updates (which may be made while offline) need to be sychronized back to the server
+
+- we're shifting from multi-user computing devices to multi-device users, which forces replication of server-side changes back to clients even in the 'store-per-user' case
+
+- this means we have to have a mechanism for handling concurrent updates and conflicts
+
+- we want communication between device and cloud to be as battery efficient as possible 
+
+- we may want to use transparent push notifications to update on-device state
+
+- and so on...
+
+Today's paper choice describes a system called SwiftCloud which provides a transactional, geo-replicated, fault tolerant approach to managing data across devices and the cloud, that lets you do more on the device. Two other things you might want to know right up front:
+
+- they use CRDTs, and the paper contains a nice summary of applying CRDTs in mobile app design. (Past experience suggests anything mentioning CRDTs seems to be of high interest to #themorningpaper readership ;) )
+
+- they claim an improvement in throughput and latency of up to an order of magnitude compared to traditional geo-replication techniques.
+
+> 
+
+ We present a principled approach to integrate client- and server-side storage. We support mergeable and strongly consistent transactions that target either client or server replicas and provide access to causally-consistent snapshots efficiently. In the presence of infrastructure faults, a client-assisted failover solution allows client execution to resume immediately and seamlessly access consistent snapshots without waiting. We implement this approach in SwiftCloud, the first transactional system to bring geo-replication all the way to the client machine.
+
+SwiftCloud provides a transactional 'key-object' API. A SwiftCloud system consists of a set of SwiftCloud Data Centers (DCs) that replicate every object. Client nodes cache (and operate on) a subset of the objects. Clients can perform local sequences of read and update operations demarcated by transactions, and also request execution of server-side transactions.
+
+> 
+
+ We expect that common operations will execute asynchronously in the client cache, and that stored (server-side) transactions and strongly consistent transactions will be rare.
+
+The transaction model is described as 'Transactional Causal+ Consistency' :
+
+> 
+
+ it offers the following guarantees: every transaction reads a causally consistent snapshot; updates of a transaction are atomic (all-or-nothing) and isolated (no concurrent transaction observes an intermediate state); and concurrently committed updates do not conflict.
+
+Taking causal consistency all the way to the client is an interesting challenge because a typical approach is to use vector clocks, which grow in size proportional to the number of replicas. When each client device has a replica, that's not going to be good...
+
+> 
+
+ Although extending geo-replication to the client machine seems natural, it raises two big challenges. The first one is to provide programming guarantees for applications running on client machines, at a reasonable cost at scale and under churn. Recent DC-centric storage systems provide transactions, and combine support for causal consistency with mergeable objects. Extending these guarantees to the clients is problematic for a number of reasons: standard approaches to support causality in client nodes require vector clocks entries proportional to the number of replicas; seamless access to client and server replicas require careful maintenance of object versions; fast execution in the client requires asynchronous commit. We developed protocols that efficiently address these issues despite failures, by combining a set of novel techniques...
+
+The system differentiates between two different types of transactions: mergeable transactions and classic transactions.
+
+> 
+
+ Mergeable transaction can update only objects with commutative operations and always commit; Classic, non-mergeable transaction can perform non-commutative operations, but among concurrent transactions with conflicting updates at most one can successfully commit.
+
+...
+
+> 
+
+ The focus of this paper is the efficient and fault-tolerant support of mergeable transactions, i.e., transactions with updates that commute with all other updates. Mergeable transactions commute with each other and with non-mergeable transactions, which allows to execute them immediately in the cache, commit asynchronously in the background, and remain available in failure scenarios.
+
+Mergeable transactions operate on mergeable objects: last-writer-wins registers, multi-value registers, Counting-Sets (C-Sets), and Conflict Free Replicated Datatypes (CRDTs).
+
+> 
+
+ CRDTs encapsulate common concurrency and replication complexity and allow to solve them at the system level once for all. However, real applications require either complex custom objects or using multiple objects. The former is impractical, whereas the latter raises new issues, lacking cross-object guarantees. Our transactional model introduces simple cross-object ordering guarantees and allows composition of multiple objects in applications. Examples in Section 5 suggest that for many applications mergeable transactions can express the dominant part of the workload. For stronger guarantees, non-mergeable transactions can be used.
+
+Transactions end up with two identifiers: an orgin (on device) transaction identifier (OTID), and a Global Transaction Identifier (GTID) when a transaction is committed to a data center. This mechanism is used to help keep vector clocks small:
+
+> 
+
+ A globally-committed mergeable transaction (and the object versions that it generates) is identifiable by both its OTID and GTID. The OTID ensures uniqueness, and the GTID allows to refer to a transaction efficiently in a dependence vector. In some failure cases, a transaction may be assigned multiple GTIDs, but as explained in the next section, they are treated equivalently. Our protocol encodes the causal status of a whole node (DC or scout) with a vector clock. The scout-DC topology, the small and static number of DCs, and the assumption that transaction processing in a DC is linearisable, all contribute to keeping these vectors small. This very compact data structure summarises the whole past history, i.e., the transitive closure of the current transaction's dependence.
+
+(for scout in the above quote, read 'device or server-side agent'.)
+
+There follows a nice discussion of causal consistency considerations when a client switches the data center it is connecting to. Space precludes me from capturing it here, but the solution ultimately involves collaboration between client and DC to recover any missing causal dependencies.
+
+The team built three applications to evaluate their approach - a social network application, a collaborative document editing application, and an implementation of the TPC-W benchmark simulating an online book store. These were deployed in a configuration with three DCs and clients spread across 96 machines geographically near those DCs. The applications were tested in FT, geo-replication mode, and in a non-fault-tolerant version with synchronous updates to a single DC and asynchronuous propagation from there to the others.
+
+> 
+
+ We evaluate our protocols experimentally, and compare them with a classical geo-replication approach. The experiment involves three data centres in two continents, and hundreds of remote clients. Under sufficient access locality, SwiftCloud enjoys order-of-magnitude improvements in both response time and throughput over the classical approach. This is because, not only reads (if they hit in the cache), but also updates commit at the client side without delay; servers only need to store and forward updates asynchronously. Although our fault tolerance approach delays propagation, the proportion of stale reads remains under 1%.
+
+It's also interesting to note that CRDTs were able to model large parts of these applications, with only a small minority of functions needing non-mergeable transactions.
+
+> 
+
+ The SwiftCloud approach is designed to fit best applications with sufficient locality to run in a small cache even if the total database size is large, and that use mergeable transactions mostly. We demonstrate the applicability of our application and consistency model by implementing a range of applications that meet these characteristics.
+
+In the authors' own words, the contributions of this paper are the following:
+
+- The design of a cloud storage system providing geo-replication up to the client nodes.
+
+- The design of scalable, efficient protocols that implement the Transactional Causal+ Consistency model, in a system that includes replicas in the client nodes and in the servers.
+
+- Fault-tolerant techniques for ensuring Transactional Causal+ Consistency guarantees,without adding latency to operations.
+
+- An application study that shows the approach is useful in practice, and reveals where it falls short.
+
+- An experimental evaluation of the system, with different applications and scenarios.
+
+A promising direction with a lot of obvious benefits. As an application designer, it's also interesting to explore the notion of splitting work into mergeable and non-mergeable transactions - that's an idea you can apply independently of the rest of the solution.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ ConsistencyDistributed Systemsmobile 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousThe Log-Structured Merge-Tree (LSM Tree)Next &rsaquo;The Semantic Elegance of Applicative Languages
+ 
+ 
+
+ 
+ 
+## 
+ 5 thoughts on &ldquo;SwiftCloud: Fault-tolerant geo-replication integrated all the way to the client&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Putting Consistency Back into Eventual Consistency | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Out of the Fire Swamp - Part II, Peering into the mist | the morning paper 
+ 
+ 
+- 
+ 
+ 
+ 
+ Marc Shapiro says: 
+
+ 
+ February 8, 2016 at 10:05 am 
+
+ 
+
+ 
+ 
+Note that an improved version of this paper was presented at Middleware 2015: http://dx.doi.org/10.1145/2814576.2814733
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Transactional data structure libraries | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Diamond: Automating data management and storage for wide-area, reactive applications | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

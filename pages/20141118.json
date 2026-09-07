@@ -1,0 +1,47 @@
+{
+  "date": "20141118",
+  "file_name": "20141118",
+  "slug": "one-vm-to-rule-them-all",
+  "blog_url": "https://blog.acolyer.org/2014/11/18/one-vm-to-rule-them-all/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the paper's approach to simplifying the creation of high-performance virtual machines (VMs) for languages that traditionally have lower-performance implementations (e.g., PHP, Python, Ruby). The authors propose a framework called Truffle and a compilation infrastructure called Graal, both part of OpenJDK, which allow language developers to implement guest languages as AST interpreters in Java. The framework provides reusable host services like dynamic compilation, memory management, and synchronization, while the combination of node rewriting, optimizing compilation, and deoptimization delivers high performance without requiring a language-specific compiler. The paper demonstrates the framework's suitability for languages like JavaScript, Ruby, Python, J, R, and functional languages, and mentions potential GPU acceleration via Graal. The key insight is achieving high performance through AST-based interpretation and automatic partial evaluation, avoiding the complexity of traditional language-specific compilers.",
+  "paper_title": "One VM to Rule Them All",
+  "paper_authors": [
+    "Thomas Würthinger",
+    "Christian Wimmer",
+    "Andreas Wöß",
+    "Lukas Stadler",
+    "Gilles Duboscq",
+    "Doug Simon",
+    "Matthias Grimmer"
+  ],
+  "paper_year": 2013,
+  "paper_venue": "Onward! 2013",
+  "paper_url": "http://lafo.ssw.uni-linz.ac.at/papers/2013_Onward_OneVMToRuleThemAll.pdf",
+  "paper_abstract": "Building high-performance virtual machines is a complex and expensive undertaking; many popular languages still have low-performance implementations. We describe a new approach to virtual machine (VM) construction that amortizes much of the effort in initial construction by allowing new languages to be implemented with modest additional effort. The approach relies on abstract syntax tree (AST) interpretation where a node can rewrite itself to a more specialized or more general node, together with an optimizing compiler that exploits the structure of the interpreter. The compiler uses speculative assumptions and deoptimization in order to produce efﬁcient machine code. Our initial experience suggests that high performance is attainable while preserving a modular and layered architecture, and that new highperformance language implementations can be obtained by writing little more than a stylized interpreter.",
+  "paper_file": "papers/2014/11/18/one-vm-to-rule-them-all.pdf",
+  "topics": [
+    "programming-languages",
+    "compilers",
+    "operating-systems"
+  ],
+  "tags": [
+    "virtual-machines",
+    "AST-interpretation",
+    "dynamic-compilation",
+    "type-specialization",
+    "partial-evaluation",
+    "deoptimization",
+    "Truffle",
+    "Graal"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "System structure of a guest language implementation",
+      "caption": "System structure of a guest language implementation utilizing host services to build a high-performance VM for the guest language."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

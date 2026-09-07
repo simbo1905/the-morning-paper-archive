@@ -1,0 +1,44 @@
+{
+  "date": "20170608",
+  "file_name": "20170608",
+  "slug": "syncperf-categorizing-detecting-and-diagnosing-synchronization-performance-bugs",
+  "blog_url": "https://blog.acolyer.org/2017/06/08/syncperf-categorizing-detecting-and-diagnosing-synchronization-performance-bugs/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights SyncPerf, a tool designed to detect and diagnose synchronization-related performance issues in concurrent systems. The paper introduces two tools: a lightweight detection tool with an average overhead of 2.3% and a diagnostic tool with higher overhead (3.5x-9.9x) but still significantly lower than similar tools. SyncPerf identifies previously unknown performance bugs, with fixes yielding performance gains ranging from 2.5% to 42%. The work emphasizes that synchronization performance issues can occur outside traditional hotspots of highly contended locks, introducing a four-quadrant model to categorize such issues. The paper also identifies five classes of performance problems, including improper use of synchronization primitives, improper granularity, over-synchronization, asymmetric contention, and load imbalance. SyncPerf's effectiveness is demonstrated through evaluations on benchmarks and real-world applications like Apache, MySQL, and Memcached, uncovering several previously unknown bugs.",
+  "paper_title": "SyncPerf: Categorizing, detecting, and diagnosing synchronization performance bugs",
+  "paper_authors": [
+    "Mejbah ul Alam",
+    "Other Authors (not explicitly listed in the blog post)"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "EuroSys'17",
+  "paper_url": "http://www.cs.utsa.edu/~muzahid/pdfs/eurosys17.pdf",
+  "paper_abstract": "830 void recv_sys_init() { 831 ... 846 recv_n_pool_free_frames = buf_pool_get_n_pages() / 3; 847 Diagnosing performance issues is often difficult, especially when they occur only during some program executions. Profilers can help with performance debugging, but are ineffective when the most costly functions are not the root causes of performance issues. To address this problem, we introduce a new profiling methodology, value-assisted cost profiling, and a tool vProf. Our insight is that capturing the values of variables can greatly help diagnose performance issues. vProf continuously records values while profiling normal and buggy program executions. It identifies anomalies in the values and the functions where they occur to pinpoint the real root causes of performance issues. Using a set of 15 real-world performance bugs in four widely used applications, we show that vProf is effective at diagnosing all of the issues while other stateof-the-art tools diagnose only a few of them. We further use vProf to diagnose longstanding performance issues in these applications that have been unresolved for over four years. 3192 bool recv_scan_log_recs(ulint available_mem, ...) { 3203 bool finished = false; 3348 if (recv_parse_log_recs(checkpoint_lsn, 3349 store_to_hash, available_mem, apply)) { 3355 finished = true; 3356 goto func_exit; 3357 } 3376 } 3388 bool recv_group_scan_log_recs(lsn_t ckpt_lsn, ...) { 3417 ulint available_mem = srv_page_size * 3418 (buf_pool_get_n_pages() 3419 (recv_n_pool_free_frames * srv_buf_pool_ins)); 3424 do { function has more than 200 LOC 3431 recv_apply_hashed_log_recs(false); 3439 log.read_log_seg(&end_lsn, start_lsn + RSCAN_SIZE); 3440 } while (end_lsn != start_lsn && 3441 !recv_scan_log_recs(available_mem, ... Figure 1. A real performance issue in MariaDB (MDEV-21826). these issues, numerous profilers [4, 18, 20, 22, 26] have been designed. Unfortunately, in practice, even with mature profilers, it often takes a developer a long time to figure...",
+  "paper_file": "papers/2017/06/08/syncperf-categorizing-detecting-and-diagnosing-synchronization-performance-bugs.pdf",
+  "topics": [
+    "operating-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "synchronization",
+    "performance-bugs",
+    "concurrency",
+    "locks",
+    "spin-locks",
+    "read-write-locks",
+    "mutex",
+    "load-imbalance",
+    "contention",
+    "diagnostic-tools",
+    "benchmarking"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "A real performance issue in MariaDB",
+      "caption": "A real performance issue [9] in the widely used MariaDB as an example. Based on user-provided logs, developers suspected that the user's database caused an out-of-memory error. Existing profilers report that the function recv_apply_hashed_log_recs consumes most of the execution time, but this is not the root cause."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

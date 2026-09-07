@@ -1,0 +1,48 @@
+{
+  "date": "20160614",
+  "file_name": "20160614",
+  "slug": "arrakis-the-operating-system-is-the-control-plane",
+  "blog_url": "https://blog.acolyer.org/2016/06/14/arrakis-the-operating-system-is-the-control-plane/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Arrakis as a groundbreaking approach to data-center OS design, moving away from the traditional Unix model to a system where applications use protected software containers with direct hardware access via scalable library invocations. The paper removes the kernel from the I/O data path for nearly all operations while retaining OS protections, achieving significant performance gains: 2-5x latency improvement and 9x throughput improvement for Redis workloads. Colyer emphasizes that modern hardware trends, such as high-speed Ethernet and low-latency persistent memory, exacerbate kernel overheads, making Arrakis' approach increasingly attractive. The key insight is leveraging hardware virtualization (SR-IOV, IOMMU) to enable direct user-space I/O, eliminating kernel mediation, scheduling overheads, and data copying, thus bridging a 20-year-old idea (U-Net) with contemporary hardware capabilities.",
+  "paper_title": "Arrakis: The Operating System is the Control Plane",
+  "paper_authors": [
+    "Simon Peter",
+    "Jialin Li",
+    "Irene Zhang",
+    "Dan R. K. Ports",
+    "Douglas B. Terry",
+    "Thomas Anderson",
+    "Mark Oskin"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/conference/osdi14/technical-sessions/presentation/peter",
+  "paper_abstract": "into user space [19, 22, 54]. Although commercially unsuccessful at the time, the virtualization market has now led hardware vendors to revive the idea [6, 38, 48], and also extend it to disks [52, 53]. This paper explores the OS implications of removing the kernel from the data path for nearly all I/O operations. We argue that doing this must provide applications with the same security model as traditional designs; it is easy to get good performance by extending the trusted computing base to include application code, e.g., by allowing applications unfiltered direct access to the network/disk. We demonstrate that operating system protection is not contradictory with high performance. For our prototype implementation, a client request to the Redis persistent NoSQL store has 2× better read latency, 5× better write latency, and 9× better write throughput compared to Linux. We make three specific contributions: Recent device hardware trends enable a new approach to the design of network server operating systems. In a traditional operating system, the kernel mediates access to device hardware by server applications, to enforce process isolation as well as network and disk security. We have designed and implemented a new operating system, Arrakis, that splits the traditional role of the kernel in two. Applications have direct access to virtualized I/O devices, allowing most I/O operations to skip the kernel entirely, while the kernel is re-engineered to provide network and disk protection without kernel mediation of every operation. We describe the hardware and software changes needed to take advantage of this new abstraction, and we illustrate its power by showing improvements of 2-5× in latency and 9× in throughput for a popular persistent NoSQL store relative to a well-tuned Linux implementation. 1 • We give an architecture for the division of labor between the device hardware, kernel, and runtime for direct network and disk I/O by unprivileged processes, and we show h...",
+  "paper_file": "papers/2016/06/14/arrakis-the-operating-system-is-the-control-plane.pdf",
+  "topics": [
+    "operating-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "I/O-virtualization",
+    "kernel-bypass",
+    "SR-IOV",
+    "IOMMU",
+    "user-level-I/O",
+    "storage-stack",
+    "network-stack",
+    "POSIX",
+    "hardware-offload",
+    "performance-optimization"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Packet processing workflow in Linux",
+      "caption": "Figure 1: Typical workflow for a UDP echo server application in Linux. The workflow shows the path of a packet through the kernel, including copying, scheduling, and kernel crossings, highlighting the overheads involved in traditional OS packet processing."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

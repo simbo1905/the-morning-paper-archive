@@ -1,0 +1,50 @@
+{
+  "date": "20151021",
+  "file_name": "20151021",
+  "slug": "building-consistent-transactions-with-inconsistent-replication",
+  "blog_url": "https://blog.acolyer.org/2015/10/21/building-consistent-transactions-with-inconsistent-replication/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a novel approach by Zhang et al. that challenges the conventional wisdom that distributed transactions necessarily incur high performance costs. The paper introduces TAPIR, a Transactional Application Protocol layered atop an Inconsistent Replication protocol (IR), demonstrating that strong consistency (linearizable transactions) can be achieved without sacrificing performance. The key insight is that traditional systems redundantly coordinate both replication and transaction layers, but TAPIR eliminates this redundancy by leveraging IR's weak consistency guarantees to efficiently distribute transactions. The blog post emphasizes that TAPIR-KV, a key-value store built with TAPIR, achieves competitive latency and throughput compared to eventual consistency systems like MongoDB, Cassandra, and Redis, while providing strong consistency guarantees. This suggests that simpler programming models for developers need not come at a heavy performance cost.",
+  "paper_title": "Building Consistent Transactions with Inconsistent Replication",
+  "paper_authors": [
+    "Irene Zhang",
+    "Naveen Kr. Sharma",
+    "Arvind Krishnamurthy",
+    "Mark Oskin"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SIGOPS Operating Systems Review",
+  "paper_url": "https://homes.cs.washington.edu/~arvind/papers/tapir.pdf",
+  "paper_abstract": "trend, notably Google’s Spanner system [13], which guarantees linearizable transaction ordering.1 For application programmers, distributed transactional storage with strong consistency comes at a price. These systems commonly use replication for fault-tolerance, and replication protocols with strong consistency, like Paxos, impose a high performance cost, while more efﬁcient, weak consistency protocols fail to provide strong system guarantees. Signiﬁcant prior work has addressed improving the performance of transactional storage systems – including systems that optimize for read-only transactions [4, 13], more restrictive transaction models [2, 14, 22], or weaker consistency guarantees [3, 33, 42]. However, none of these systems have addressed both latency and throughput for general-purpose, replicated, read-write transactions with strong consistency. In this paper, we use a new approach to reduce the cost of replicated, read-write transactions and make transactional storage more affordable for programmers. Our key insight is that existing transactional storage systems waste work and performance by incorporating a distributed transaction protocol and a replication protocol that both enforce strong consistency. Instead, we show that it is possible to provide distributed transactions with better performance and the same transaction and consistency model using replication with no consistency. To demonstrate our approach, we designed TAPIR – the Transactional Application Protocol for Inconsistent Replication. TAPIR uses a new replication technique, called inconsistent replication (IR), that provides fault tolerance without consistency. Rather than an ordered operation log, IR presents an unordered operation set to applications. Successful operations execute at a majority of the replicas and survive failures, but replicas can execute them in any order. Thus, IR needs no cross-replica coordination or designated leader for operation processing. However, unlike eventual con...",
+  "paper_file": "papers/2015/10/21/building-consistent-transactions-with-inconsistent-replication.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "distributed-transactions",
+    "consistency",
+    "replication",
+    "linearizability",
+    "transaction-protocols",
+    "inconsistent-replication",
+    "TAPIR",
+    "IR-protocol",
+    "serializability",
+    "fault-tolerance"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Common architecture for distributed transactional storage systems",
+      "caption": "A common architecture for distributed transactional storage systems today. The distributed transaction protocol consists of an atomic commitment protocol, commonly Two-Phase Commit (2PC), and a concurrency control (CC) mechanism. This runs atop a replication (R) protocol, like Paxos."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Example read-write transaction using two-phase commit",
+      "caption": "Example read-write transaction using two-phase commit, viewstamped replication and strict two-phase locking. Availability zones represent either a cluster, datacenter or geographic region. Each shard holds a partition of the data stored in the system and has replicas in each zone for fault tolerance. The red, dashed lines represent redundant coordination in the replication layer."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

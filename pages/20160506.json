@@ -1,0 +1,40 @@
+{
+  "date": "20160506",
+  "file_name": "20160506",
+  "slug": "nova-a-log-structured-file-system-for-hybrid-volatilenon-volatile-main-memories",
+  "blog_url": "https://blog.acolyer.org/2016/05/06/nova-a-log-structured-file-system-for-hybrid-volatilenon-volatile-main-memories/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights NOVA, a log-structured file system designed for hybrid volatile/non-volatile main memory (DRAM/NVMM) systems. He emphasizes the paper's excellent discussion on the unique challenges of hybrid memory systems, including realizing hardware performance potential, handling write reordering and consistency, and providing atomicity for operations. Colyer notes that NOVA adapts traditional log-structured techniques to exploit fast random access in NVMM, enabling massive concurrency, reduced log size, and minimized garbage collection costs while maintaining strong consistency. The paper demonstrates NOVA's significant performance gains, outperforming existing file systems by 3.1x to 13.5x in write-intensive workloads. The author also praises the detailed implementation insights and the paper's clear articulation of design principles tailored for hybrid memory systems.",
+  "paper_title": "NOVA: A Log-structured file system for hybrid volatile/non-volatile main memories",
+  "paper_authors": [
+    "Yongbin Xu",
+    "Steven Swanson"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "FAST",
+  "paper_url": "http://cseweb.ucsd.edu/~swanson/papers/FAST2016NOVA.pdf",
+  "paper_abstract": "Fast non-volatile memories (NVMs) will soon appear on the processor memory bus alongside DRAM. The resulting hybrid memory systems will provide software with submicrosecond, high-bandwidth access to persistent data, but managing, accessing, and maintaining consistency for data stored in NVM raises a host of challenges. Existing file systems built for spinning or solid-state disks introduce software overheads that would obscure the performance that NVMs should provide, but proposed file systems for NVMs either incur similar overheads or fail to provide the strong consistency guarantees that applications require. We present NOVA, a file system designed to maximize performance on hybrid memory systems while providing strong consistency guarantees. NOVA adapts conventional log-structured file system techniques to exploit the fast random access that NVMs provide. In particular, it maintains separate logs for each inode to improve concurrency, and stores file data outside the log to minimize log size and reduce garbage collection costs. NOVA’s logs provide metadata, data, and mmap atomicity and focus on simplicity and reliability, keeping complex metadata structures in DRAM to accelerate lookup operations. Experimental results show that in write-intensive workloads, NOVA provides 22% to 216× throughput improvement compared to state-of-the-art file systems, and 3.1× to 13.5× improvement compared to file systems that provide equally strong data consistency guarantees.",
+  "paper_file": "papers/2016/05/06/nova-a-log-structured-file-system-for-hybrid-volatilenon-volatile-main-memories.pdf",
+  "topics": [
+    "storage-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "log-structured-file-systems",
+    "NVMM",
+    "DRAM",
+    "hybrid-memory",
+    "consistency",
+    "atomicity",
+    "write-reordering",
+    "DAX",
+    "journaling",
+    "shadow-paging",
+    "copy-on-write",
+    "radix-trees",
+    "POSIX"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,366 @@
+URL: https://blog.acolyer.org/2019/10/02/in-toto/
+Title: In-toto: providing farm-to-table guarantees for bits and&nbsp;bytes
+---
+
+in-toto: providing farm-to-table guarantees for bits and bytes Torres-Arias et al., USENIX Security Symposium 2019
+
+Small world with high risks did a great job of highlighting the absurd risks we’re currently carrying in many software supply chains. There are glimmers of hope though. This paper describes in-toto, and end-to-end system for ensuring the integrity of a software supply chain. To be a little more precise, in-toto secures the end-to-end delivery pipeline for one product or package. But it’s only a small step from there to imagine using in-toto to also verify the provenance of every third-party dependency included in the build, and suddenly you’ve got something that starts to look very interesting indeed.
+
+In-toto is much more than just a research project, it’s already deployed and integrated into a number of different projects and ecosystems, quietly protecting artefacts used by millions of people daily. You can find the in-toto website at https://in-toto.io.
+
+> 
+In-toto has about a dozen different integrations that protect software supply chains for millions of end-users.
+
+- If you install a Debian package using apt, in-toto is protecting it.
+
+- If you use kubesec to analyze your Kubenetes configurations, in-toto is protecting it
+
+- If you use the Datadog agent and its integrations, in-toto is protecting it.
+
+In-toto is paired alongside techniques such as reproducible builds and The Update Framework in these instances to give a level of protection and assurance that npm users can only dream of! It’s similar in spirit to CHAINIAC that we looked at a couple of years ago.
+
+## Why do we need in-toto?
+
+There are multiple steps in the build-and-release pipeline for a software artefact. In the terminology of in-toto, this is called its supply chain (not to be confused with the third-party dependencies that the artefact may consume). If an attacker can control any step in the pipeline they may be able to modify the output of the process for malicious purposes.
+
+> 
+Hence, attacks on the software supply chain are an impactful mechanism for an attacker to affect many users at once. Moreover, attacks against steps of the software supply chain are difficult to identify, as they misuse processes that are normally trusted. Unfortunately, such attacks are common occurrences, have high impact, and have experienced a spike in recent years.
+
+(Check out the long list of attack references in §1 of the paper!).
+
+There are a number of initiatives and strategies aimed at securing individual steps in a pipeline (for example, reproducible builds), but that doesn’t help if MiTM attacks are possible between steps.
+
+> ...piecemeal measures by themselves can not stop malicious actors because there is no mechanism to verify that 1) the correct steps were followed and 2) that tampering did not occur between steps.
+
+In-toto enforces the integrity of a software supply chain by gathering cryptographically verifiable evidence about the chain itself.
+
+## Security goals
+
+In-toto aims to protect against adversaries under the following attack scenarios, retaining the maximum amount of security possible even in the face of partial compromise.
+
+- Interposition between two existing steps of a supply change to change the input to a step (MiTM).
+
+- Acting as a step (in place of the legitimate step implementation)
+
+- Providing a delivered product for which some steps have been omitted
+
+- Included outdated or vulnerable elements in the supply chain
+
+- Providing a counterfeited version of the delivered product to users.
+
+To achieve this in-toto provides supply chain layout integrity (the pipeline is executed as specified, with no steps added, removed, or reordered), artifact flow integrity (no artefacts are altered in-between steps), and step authentication (only authorised parties can actually perform the steps).
+
+## How in-toto works
+
+In-toto is based on public key cryptography, with the public keys of the project owners and step participants known to all. The project defines the build and release pipeline as a series of steps in a layout. The layout is cryptographically signed by the project owner. Each step in the layout is associated with a set of intended parties with permission to execute the step, identified by their public keys. A step can have associated constraints specifying what it is and is not allowed to do (e.g. a localisation step can only change certain files).
+
+More precisely, a step can define the materials it expects to receive as inputs, the products it creates as outputs, the command it is expected to execute, a threshold for the number of pieces of signed data required to verify the step (i.e., how many parties independently carry it out), and the public keys of ids that can be used to sign the metadata for the step execution.
+
+The final part of a layout is a set of inspections, defining checks to be performed by a client verifier to ensure the correctness of the delivered artefact.
+
+As the pipeline is executed, link metadata is gathered and signed with with the private key corresponding to the party that carried out the step.
+
+> 
+When all the link metadata has been collected, and the supply chain has been properly defined, the supply chain layout and all the links can be shipped, along with the delivered product, to the end user for verification.
+
+There’s a web-based tool to help with the authoring of layout files.
+
+During verification the client checks that sufficient signed link metadata exists for each step in the layout, that all of the input and output rules for each step have been obeyed, and all inspections pass.
+
+## In-toto in action
+
+Section 5 in the paper contains an analysis of in-toto’s security properties, which you’ll definitely want to read if you’re interested in digging deeper. For this write-up I’m going to focus on how in-toto is being used by Debian and Datadog.
+
+Debian combines reproducible builds with in-toto’s step thresholding to ensure enough verified parties have independently built a package and produced attestation of the build using in-toto link metadata.
+
+> 
+This way, it is possible to cryptographically assert that a Debian package has been reproducibly built by a set of k out of n rebuilders. By using the in-toto verifiable transport, users can make sure no package was tampered with unless an attacker is also able to compromise at least k rebuilders and the Debian build farm.
+
+The apt-transport for in-toto verifies the trusted rebuilder metadata when any Debain package is installed.
+
+Datadog use in-toto to secure the supply chain for their agent software, including all of the integrations (plugins) that work with the agent.
+
+In-toto provides the end-to-end verification of the pipeline, and Datadog also make use of The Update Framework as a compromise resilient mechanism for distributing, revoking and rotating public keys. TUF bootstraps the root of trust for the pipeline system.
+
+> 
+Through the Datadog deployment we learned how to use other last-mile systems like TUF to provide not only compromise-resilience, but also replay-protection, freshness guarantees, and mix-and-match protection for in-toto metadata.
+
+## In-toto in context
+
+The authors analysed 30 different major supply chain breaches and incidents reported between January 2010 and January 2019. 23 out of the 30 attacks would have failed outright with in-toto in place. The other 7 all involved a key compromise somewhere along the chain. Integration with a secure update system such as TUF, as done by Datadog, would have detected all of these attacks also. The set-up used by Debian would have detected four of these seven.
+
+> 
+We have shown that protecting the entirety of the supply chain is possible, and that it can be done automatically by in-toto. Further, we showed that, in a number of practical applications, in-toto is a practical solution to many contemporary supply chain compromises. ..We expect that, through continued interaction with the industry and elaborating on the framework, we can provide strong security guarantees for future software users.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousSmall world with high risks: a study of security threats in the npm ecosystemNext &rsaquo;Detecting and characterizing lateral phishing at scale
+ 
+ 
+
+ 
+ 
+## 
+ 9 thoughts on &ldquo;In-toto: providing farm-to-table guarantees for bits and bytes&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ trishankatdatadog says: 
+
+ 
+ October 2, 2019 at 5:41 pm 
+
+ 
+
+ 
+ 
+Thanks for the shout-out, Adrian! I'm the security engineer at Datadog who designed and implemented the TUF + in-toto deployment for Agent integrations. More details can be found here [1]. Please let me know if anyone has questions!
+
+[1] https://www.datadoghq.com/blog/engineering/secure-publication-of-datadog-agent-integrations-with-tuf-and-in-toto/
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: In-toto: providing farm-to-table guarantees for bits and bytes - Outside The Know 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: In-toto: providing farm-to-table guarantees for bits and bytes - World Best News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: In-toto: providing farm-to-table guarantees for bits and bytes - Latest news 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: In-toto: providing farm-to-table guarantees for bits and bytes - Golden News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: In-toto: providing farm-to-table guarantees for bits and bytes - protipsss 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: In-toto: providing farm-to-table guarantees for bits and bytes - Hckr News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: In-toto: providing farm-to-table guarantees for bits and bytes - News about world 
+ 
+ 
+- 
+ 
+ Pingback: In-toto: providing farm-to-table guarantees for bits and bytes - INDIA NEWS 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

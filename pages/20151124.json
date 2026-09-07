@@ -1,0 +1,34 @@
+{
+  "date": "20151124",
+  "file_name": "20151124",
+  "slug": "gd-wheel",
+  "blog_url": "https://blog.acolyer.org/2015/11/24/gd-wheel/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the GD-Wheel paper, which introduces a cost-aware replacement policy for key-value stores. Adrian Colyer highlights the paper's key insight: traditional LRU cache eviction policies are suboptimal when the cost of recomputing or re-fetching cached items varies significantly. The authors propose GD-Wheel, which combines the Greedy-Dual algorithm with Hierarchical Cost Wheels (a variation of Hierarchical Timing Wheels) to integrate both recency and recomputation cost into eviction decisions. The paper demonstrates that GD-Wheel, when integrated with memcached and evaluated using the Yahoo! Cloud Serving Benchmark, significantly reduces recomputation costs and read access latencies compared to LRU. The blog also emphasizes the importance of literature search in solving problems and how ideas can be repurposed across different domains.",
+  "paper_title": "GD-Wheel: A Cost-Aware Replacement Policy for Key-Value Stores",
+  "paper_authors": [
+    "Li",
+    "Cox"
+  ],
+  "paper_year": 2013,
+  "paper_venue": "LADIS 2013",
+  "paper_url": "http://2013.ladisworkshop.org/papers/ladis2013_submission_34.pdf",
+  "paper_abstract": "Memory-based key-value stores, such as Memcached and Redis, are often used to speed up web applications. Specifically, they are used to cache the results of computations, such as database queries and dynamically generated web pages, so that a future request to the web application may not have to repeat the same computation. Currently, when memorybased key-value stores reach their capacity limits, they use replacement policies, like LRU and random, that are oblivious to differences among the cached results in their recomputation costs. However, this paper shows that if the costs of recomputing cached results vary significantly, as in the RUBiS and TPC-W benchmarks, then a cost-aware replacement policy will not only reduce the web application’s total recomputation cost but also reduce its average response time. To this end, this paper introduces GD-Wheel, which is an amortized constant-time implementation of the GreedyDual replacement algorithm that supports a limited range of costs. In effect, GD-Wheel integrates recency of access and cost of recomputation in an efficient manner. Moreover, this paper describes an implementation of GD-Wheel in Memcached, including the modifications to Memcached’s interface so that web applications can include cost information with each key-value pair, and a new cost-aware slab rebalancing policy for Memcached’s slab-based memory allocator. An evaluation of this implementation using the Yahoo! Cloud Serving Benchmark shows that GD-Wheel, when compared to LRU, reduces the total recomputation cost by as much as 90%. Moreover, GD-Wheel reduces the web application’s average",
+  "paper_file": "papers/2015/11/24/gd-wheel.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "cache-eviction",
+    "key-value-stores",
+    "greedy-dual",
+    "hierarchical-cost-wheels",
+    "memcached",
+    "recomputation-cost",
+    "LRU"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

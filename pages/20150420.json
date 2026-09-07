@@ -1,0 +1,38 @@
+{
+  "date": "20150420",
+  "file_name": "20150420",
+  "slug": "making-sense-of-performance-in-data-analytics-frameworks",
+  "blog_url": "https://blog.acolyer.org/2015/04/20/making-sense-of-performance-in-data-analytics-frameworks/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights that the conventional wisdom about performance bottlenecks in big data analytics frameworks (network I/O, disk I/O, and straggler tasks) is often incorrect. Through a detailed study of Spark workloads using 'blocked task analysis,' the authors found that network optimization offers minimal median improvement (2%), disk I/O optimizations provide moderate gains (19%), and straggler task elimination yields 10% median improvement. Surprisingly, many workloads are CPU-bound due to deserialization and compression overheads, challenging the assumption that analytics tasks are I/O-bound. The paper emphasizes the importance of instrumentation and performance understandability in system design, noting that bottlenecks evolve with framework advancements. The authors provide open-source tools and benchmark traces to facilitate further research.",
+  "paper_title": "Making Sense of Performance in Data Analytics Frameworks",
+  "paper_authors": [
+    "Kay Ousterhout",
+    "Patrick Wendell",
+    "Matei Zaharia",
+    "Ion Stoica"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "NSDI'15",
+  "paper_url": "https://www.eecs.berkeley.edu/~keo/publications/nsdi15-final147.pdf",
+  "paper_abstract": "This paper makes two contributions towards a more comprehensive understanding of performance. First, we develop a methodology for analyzing end-to-end performance of data analytics frameworks; and second, we use our methodology to study performance of two SQL benchmarks and one production workload. Our results run counter to all three of the aforementioned mantras. The first contribution of this paper is blocked time analysis, a methodology for quantifying performance bottlenecks. Identifying bottlenecks is challenging for data analytics frameworks because of pervasive parallelism: jobs are composed of many parallel tasks, and each task uses pipelining to parallelize the use of network, disk, and CPU. One task may be bottlenecked on different resources at different points in execution, and at any given time, tasks for the same job may be bottlenecked on different resources. Blocked time analysis uses extensive white-box logging to measure how long each task spends blocked on a given resource. Taken alone, these per-task measurements allow us to understand straggler causes by correlating slow tasks with long blocked times. Taken together, the per-task measurements for a particular job allow us to simulate how long the job would have taken to complete if the disk or network were infinitely fast, which provides an upper bound on the benefit of optimizing network or disk performance. The second contribution of this paper is using blocked time analysis to understand Spark’s performance on two industry benchmarks and one production workload. In studying the applicability of the three aforementioned claims to these workloads, we find: There has been much research devoted to improving the performance of data analytics frameworks, but comparatively little effort has been spent systematically identifying the performance bottlenecks of these systems. In this paper, we develop blocked time analysis, a methodology for quantifying performance bottlenecks in distributed computatio...",
+  "paper_file": "papers/2015/04/20/making-sense-of-performance-in-data-analytics-frameworks.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "performance-analysis",
+    "spark",
+    "data-analytics",
+    "blocked-time-analysis",
+    "cpu-bound",
+    "deserialization",
+    "compression",
+    "stragglers",
+    "benchmarking"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

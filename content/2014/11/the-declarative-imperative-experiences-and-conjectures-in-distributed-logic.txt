@@ -1,0 +1,335 @@
+URL: https://blog.acolyer.org/2014/11/13/the-declarative-imperative-experiences-and-conjectures-in-distributed-logic/
+Title: The Declarative Imperative: Experiences and Conjectures in Distributed&nbsp;Logic
+---
+
+The Declarative Imperative: Experiences and Conjectures in Distributed Logic - Hellerstein 2010.
+
+This paper is an extended version of an invited talk that Joe Hellerstein gave to the ACM PODS conference in 2010. The primary audience is therefore database researchers, but there's some good food for thought for the rest of us in there too. This is the paper that introduced the CALM conjecture.
+
+It also contains a wonderful alternative to 'eating your own dogfood' (Paul Maritz), 'sipping your own champagne' ;).
+
+> 
+
+...there is more interest in data-centric programming languages than at any time in computing history, in part because these languages parallelize naturally.
+
+We're all quite familiar with the 'no free lunch' argument these days:
+
+> 
+
+Moore's Law no longer predicts the clock speed of a chip, but rather its offered degree of parallelism. And as a result, traditional sequential programs will get no faster over time. [...] At the same time, cloud computing potential will go untapped unless developers can write programs that harness parallelism, while managing the heterogeneity and component failures endemic to very large clusters of distributed computers.
+
+Does the venerable Datalog have something to offer us?
+
+> 
+
+We have demonstrated full-featured datalog-style implementations of distributed systems that are orders of magnitude more compact than popular imperatively implemented systems, with competitive performance and significantly accelerated software evolution. Evidence is mounting that Datalog can serve as the rootstock of a much simpler family of languages for programming serious parallel and distributed software.
+
+This work is the roots of the Bloom language developed by the Berkeley Orders of Magnitute (BOOM) project. Datalog is a logic programming language similar in spirit to Prolog. Dedalus, which underpins Bloom, extends Datalog:
+
+> 
+... in the last twelve months we have settled on a Datalog variant that cleanly captures what we see as the salient semantic issues for parallel and distributed computing. We call the language Dedalus, and its key contribution is the use of time as an organizing principle for distributed systems, rather than distance in physical space.
+
+Critical web infrastructure for managing large graphs is still written in imperative languages. 
+
+> 
+Our work on declarative programming began in reaction to the Web, with its emphasis on large graphs and networks... As expected, Datalog was an excellent language for expressing transitive closures and graph traversals, and these tasks [a web crawler, p2p network crawler, network routing protocols, distributed Bayesian belief propagation algorithms] were almost trivial to code.
+
+The Pipelined Semi-Naive evaluation strategy for Datalog (see reference in the paper) makes monotonic logic embarassingly parallel. 
+
+> 
+This statement is significant: a large class of recursive programs - all of basic Datalog - can be parallelized without any need for coordination. As a side note, this insight appears to have eluded the MapReduce community, where join is necessarily a blocking operator....
+
+This insight leads to the CALM conjecture:
+
+> 
+Consistent and Logical Monotonicity (CALM). A program has an eventually consistent, coordination-free execution strategy if and only if it is expressible in (monotonic) Datalog.
+
+The 'coordination-free' property is key.Furthermore, Vardi showed that (monotonic) Datalog can be implemented in time polynomial in the size of the database.
+
+We also have the less well-know CRON conjecture:
+
+> 
+Causality Required Only for Non-monotonicity (CRON). Program semantics require causal message ordering if and only if the messages participate in non-monotonic derivations.
+
+Monotonicity means that we only add information, never negate or take away.
+
+The full paper is hard to follow critically at points (for me at least), but hints at advances yet to reach the mainstream, as the conclusion to the paper says:
+
+> 
+"Data folk" seem to have one of the best sources of light: we have years of success parallelizing SQL, we have the common culture of MapReduce as a bridge to colleagues, and we have the well-tended garden of declarative logic languages to transplant into practice.
+
+Now, if only we could combine Functional and Logic programming we would have FLOG, mix in a bit of Reactive programming and we get FlogR. It sounds perfect for any dead-horse problems you may be struggling with. 
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ ConsistencyDatastores 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousAn Evaluation of Amazon S3's Consistency BehaviorNext &rsaquo;End-to-End Arguments in System Design
+ 
+ 
+
+ 
+ 
+## 
+ 13 thoughts on &ldquo;The Declarative Imperative: Experiences and Conjectures in Distributed Logic&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Tachyon: Reliable, Memory Speed Storage for Cluster Computing | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Predicate Logic as Programming Language | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Consistency analysis in Bloom: a CALM and collected approach | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Out of the Tar Pit | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Lineage-driven Fault Injection | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Declarative Interaction Design for Data Visualization | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Pregelix: Big(ger) Graph Analytics on a Dataflow Engine | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 9 June 2015 - O'Reilly Radar 
+ 
+ 
+- 
+ 
+ Pingback: Fixed it for you: protocol repair using lineage graphs | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Keeping CALM: when distributed consistency is easy | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Keeping CALM: when distributed consistency is easy 
+ 
+ 
+- 
+ 
+ Pingback: Keeping CALM: when distributed consistency is easy - NewsUcan2Use 
+ 
+ 
+- 
+ 
+ Pingback: Keeping CALM: when distributed consistency is easy - SkyFoxMail News 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

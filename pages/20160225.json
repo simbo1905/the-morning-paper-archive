@@ -1,0 +1,38 @@
+{
+  "date": "20160225",
+  "file_name": "20160225",
+  "slug": "generalized-isolation-level-definitions",
+  "blog_url": "https://blog.acolyer.org/2016/02/25/generalized-isolation-level-definitions/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer reviews the 2000 paper 'Generalized Isolation Level Definitions' by Adya et al., which critiques the ANSI SQL isolation levels for being overly restrictive to locking-based implementations. The paper proposes a more inclusive framework by defining generalized phenomena (G0, G1, G2) that are independent of implementation strategies like locking or multi-version concurrency control (MVCC). The authors introduce portable isolation level definitions (PL-1, PL-2, PL-2.99, PL-3) based on these phenomena, using a Direct Serialization Graph (DSG) to model transaction dependencies (read, write, anti-dependencies). The key insight is that traditional isolation levels (e.g., Read Uncommitted, Read Committed, Repeatable Read, Serializable) can be redefined in a way that accommodates optimistic and MVCC systems, avoiding the pitfalls of single-object constraints. The paper also explores mixing isolation levels in a single system using a Mixed Serialization Graph (MSG).",
+  "paper_title": "Generalized Isolation Level Definitions",
+  "paper_authors": [
+    "Atul Adya",
+    "Barbara Liskov",
+    "Patrick O'Neil"
+  ],
+  "paper_year": 2000,
+  "paper_venue": "ICDE",
+  "paper_url": "http://bnrg.cs.berkeley.edu/~adj/cs262/papers/icde00.pdf",
+  "paper_abstract": "in [13] and some refinements suggested by [11] set the stage for the ANSI/ISO SQL-92 definitions for isolation levels [6], where the goal was to develop a standard that was implementation-independent. However, a subsequent paper [8] showed that the definitions provided in [6] were ambiguous. That paper proposed different definitions that avoided the ambiguity problems, but, as stated in [8], these definitions were simply “disguised versions of locking” and therefore disallow optimistic and multi-version mechanisms. Thus, these definitions fail to meet the goals of ANSI-SQL with respect to implementation-independence. Thus, we have a problem: the standard is intended to be implementation-independent, but lacks a precise definition that meets this goal. Implementation-independence is important since it provides flexibility to implementors, which can lead to better performance. Optimism can outperform locking in some environments, such as large scale, widearea distributed systems [2, 15]; optimistic mechanisms are the schemes of choice for mobile environments; and Gemstone [22] and Oracle [24] provide serializability and Snapshot Isolation, respectively, using multi-version optimistic implementations. It is undesirable for the ANSI standard to rule out these implementations. For example, Gemstone provides serializability even though it does not meet the locking-based rules given in [8]. This paper presents new implementation-independent specifications that correct the problems with the existing definitions. Our definitions cover the weaker isolation levels that are in everyday use: Most database vendors and database programmers take advantage of levels below serializability levels to achieve better performance; in fact, READ COMMITTED is the default for some database products and database vendors recommend using this level instead of serializability if high performance is desired. Our definitions also enable database vendors to develop innovative implementations of the...",
+  "paper_file": "papers/2016/02/25/generalized-isolation-level-definitions.pdf",
+  "topics": [
+    "data-engineering"
+  ],
+  "tags": [
+    "isolation-levels",
+    "concurrency-control",
+    "multi-version-concurrency-control",
+    "serializability",
+    "transaction-processing",
+    "direct-serialization-graph",
+    "ANSI-SQL",
+    "read-uncommitted",
+    "read-committed",
+    "repeatable-read",
+    "serializable"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,435 @@
+URL: https://blog.acolyer.org/2020/10/05/understanding-operational-5g/
+Title: Understanding operational 5G: a first measurement study on its coverage, performance and energy&nbsp;consumption
+---
+
+Understanding operational 5G: a first measurement study on its coverage, performance and energy consumption, Xu et al., SIGCOMM’20
+
+> 
+
+We are standing on the eve of the 5G era… 5G, as a monumental shift in cellular communication technology, holds tremendous potential for spurring innovations across many vertical industries, with its promised multi-Gbps speed, sub-10 ms low latency, and massive connectivity.
+
+There are high hopes for 5G, for example unlocking new applications in UHD streaming and VR, and machine-to-machine communication in IoT. The first 5G networks are now deployed and operational. In today’s paper choice, the authors investigate whether 5G as deployed in practice can live up to the hype. The short answer is no. It’s a great analysis that taught me a lot about the realities of 5G, and the challenges ahead if we are to eventually get there.
+
+The study is based on one of the world’s first commercial 5G network deployments (launched in April 2019), a 0.5 x 0.92 km university campus. As is expected to be common during the roll-out and transition phase of 5G, this network adopts the NSA (Non-Standalone Access) deployment model whereby the 5G radio is used for the data plane, but the control plane relies on existing 4G. Three different 5G phones are used, including a ZTE Axon10 Pro with powerful communication (SDX 50 5G modem) and compute (Qualcomm Snapdragon TM855) capabilities together with 256GB of storage. The study investigates four key questions:
+
+- What is the coverage like compared to 4G? (The 5G network is operating at 3.5GHz)
+
+- What is the end-to-end throughput and latency, and where are the bottlenecks?
+
+- Does 5G improve the end-user experience for applications (web browsing, and 4K+ video streaming)?
+
+- What does 5G do to your battery life (i.e., energy consumption)
+
+> 
+
+Our analysis suggests that the wireline paths, upper-layer protocols, computing and radio hardward architecture need to co-evolve with 5G to form an ecosystem, in order to fully unleash its potential.
+
+Let’s jump in!
+
+## 5G Coverage
+
+Coverage is assessed with a walk-test (4-5km/h) over all road segments on the campus, monitoring the physical-layer information from both 5G and 4G at each location. There are 6 5G base stations on the campus, at a density comparable to urban deployments. The signal strength at different locations is indicated on the following map. The clusters of red triangles are the base stations, and each triangle is a cell.
+
+> 
+
+Despite the high deployment density, many coverage holes still exist as marked by the pink dots… These are areas with the lowest level of RSRP [-140, -105] dBm, unable to initiated communication services.
+
+At the same deployment density, 8.07% of locations have a 5G coverage hole, compared to only 3.84% with 4G coverage holes. 5G deployment will need to be highly redundant to fix all the coverage holes.
+
+Focusing in on one specific cell, it’s possible to see a contour map of signal strength and how it is affected by the environment. Ideally you’d want to see circular/sector based contour lines, but buildings, foliage, and other features get in the way.
+
+Walking from cell 72 (on the LHS of the figure) towards point A, 5G becomes disconnected on reaching A, 230m from the cell. On the same campus, 4G link distance is around 520m.
+
+5G also suffers a big drop-off if you go inside a building – on average the authors found that bit-rate halved on average. Compared to 5Gs 50% drop-off, the equivalent number for 4G is around 20%. This suggests the need for micro-cells deployed inside buildings to enable seamless connectivity.
+
+Another coverage-related feature is the hand-off between cells as you move around. Here the first finding was that the current strategy for determining when to hand-off has a 25% probability of worsening your link performance after handover. But more significant is that handovers are slow – 108ms on average compared to 30ms on 4G. This is a feature of the NSA architecture which requires dropping off of 5G onto 4G, doing a handover on 4G, and then upgrading to 5G again. Future 5G Standalone Architecture (SA) deployments with a native 5G control plane will not have this problem.
+
+## Throughput and latency
+
+The maximum physical layer bit-rate for the 5G network is 1200.98 Mbps. For UDP, the authors achieved 880 Mbps dowload and 130 Mbps upload speeds. On 4G the comparable daytime numbers were 130 Mbps download and 50 Mbps upload (4G does better at night when the network is less congested, with 200/100 upload/download Mbps).
+
+With TCP the story is less compelling, with common congestion control algorithms not suiting 5G characteristics
+
+> 
+
+Traditional loss/delay based TPC algorithms suffer from extremely low bandwidth utilization – only 21.1%, 31.9%, 12.1%, 14.3% for Reno, Cubic, Vegas, and Veno, respectively!
+
+Only being able to use 20% of the bandwidth is clearly not good (on 4G the same algorithms achieve 50-70%). BBR does much better with 5G, achieving 82.5% utilization. An investigation reveals the problem to be caused by buffer sizes. In the radio portion of the network, 5G buffer sizes are 5x 4G, but within the wired portion of the network only about 2.5x (this is with a 1000 Mbps provisioned cloud server). At the sametime the download capacity of 5G is about 5x greater: "i.e., the capacity growth is incommensurate with the buffer size expansion in the wireline network." Doubling the wireline buffer size would alleviate the problem. BBR does better because it is less sensitive to packet loss/delay.
+
+The long handoffs that we saw earlier also hurt throughput, with an 80% throughput degradation during handover.
+
+When it comes to latency the authors measured RTTs for four 5G base stations spread across the city, and 20 other Internet servers nationwide. 5G network paths achieve an average latency of 21.8ms, a 32% reduction on the comparable 4G times. However, it’s still 2x slower than the target transmission delay of 10ms of real-time applications like VR. The shorter the path, the more the advantages of 5G show:
+
+> 
+
+To unleash the full potential of 5G applications, the legacy wireline networks also need to be retrofitted, so as to effectively reduce the end-to-end latency. Emerging architectures that shorten the path length, e.g. edge caching and computing, may also confine the latency.
+
+## Application performance
+
+In a web browsing test, 5G only reduced page loading times (PLT) by about 5% compared to 4G. This is because most of the time goes into rendering, i.e., is compute-bound. Even if we just compare download times, 5G only shows a 20.68% improvement over 4G. This is due to the slow-start phase of TCP, which lasts about 6 seconds before converging to high network bandwidth. Most web pages have already finished downloading before this happens. Better web browsing is not going to be a killer app for 5G!
+
+What about UHD video? The authors tested a mobile UHD panoramic video telephony app. They found that 5G could cope well at 4K, but wasn’t always up to 5.7K that sometimes saturated bandwidth leading to frame freezing. If you’re streaming movies throughput is king, but for real-time telephony applications latency is also a key part of the experience.
+
+Latency of around 460ms is required for a smooth real-time telephony experience. At 4K, 4G networks can’t get near that. 5G does much better, but frame latencies are still around 950ms, about 2x the target. The bulk of this latency comes from on-device frame processing, not network transmission delay.
+
+> 
+
+…the delay spent on smartphone’s local processing remains as a prohibitive latency bottleneck, ruining the user experiences in real-time interactive. Thus, it is imperative to improve the smartphone’s processing capacities in order to support 5G’s niche applications, such as immersing interactive video telephony which demands both high bandwidth and low end-to-end latency.
+
+## Energy Consumption
+
+The sections above hint at what it make take to find the killer-app for 5G and make it work in practice. The analysis of 5G energy consumption though looks like a killer feature of the less desirable kind – for the time being at least, 5G could dramatically reduce your battery life.
+
+Running an example suite of 4 applications on Android, 5G dominated the energy cost, even far exceeding the energy demands of the screen. It accounted for 55.18% of the total energy budget of the phone! Unsurprisingly, the more network traffic and hence the more you’re using the radio, the more power 5G consumes.
+
+It doesn’t have to be this way, in fact 5G can theoretically require only 25% of the energy-per-bit that 4G does. So 5G has the potential to be much more energy efficicient than 4G in the future, so long as upper layer protocols can fully utilise the available bit rate, and power management schemes only activite the radio when necessary. The authors investigate a dynamic power management scheme that uses 4G while it can, and switches to 5G when it looks like the 4G capacity will be exceeded. This saved 24.8% of the energy used by the 5G only baseline.
+
+## Where do we go from here?
+
+> 
+
+Some of these problems (e.g. surprisingly low bandwidth utilization) can be solved through proper network resource provisioning or more intelligent protocol adaptation, but others (e.g. long latency and high power consumption) entail long-term co-evolution of 5G with the legacy Internet infrastructure and radio/computing hardware.
+
+I’m intrigued by the potential for 5G to drive increasing use of edge computing platforms, getting the compute and data as close to the 5G network as possible in order to reduce the impact of lower bandwidth and higher latency from the edge to centralised cloud services. Applications that can’t easily take advantage of this architecture look like they’re going to have to wait for improvements in the back-end as well before they can realise the full promise of 5G.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousToward an API for the real numbersNext &rsaquo;Orbital edge computing: nano satellite constellations as a new class of computer system
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Loading Comments...
+ 
+ 
+ 
+ 
+
+ 
+ 
+ Write a Comment...
+ 
+ 
+ 
+ 
+ Email (Required)
+ 
+ 
+ 
+ Name (Required)
+ 
+ 
+ 
+ Website
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,44 @@
+{
+  "date": "20151012",
+  "file_name": "20151012",
+  "slug": "failure-sketching-a-technique-for-automated-root-cause-diagnosis-of-in-production-failures",
+  "blog_url": "https://blog.acolyer.org/2015/10/12/failure-sketching-a-technique-for-automated-root-cause-diagnosis-of-in-production-failures/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights 'Failure Sketching' by Kasikci et al. as an innovative technique for automated root cause diagnosis of production system failures. The paper introduces a method that combines static analysis with dynamic instrumentation to produce high-level execution traces (failure sketches) that accurately pinpoint the root causes of bugs. The authors leverage Intel Processor Trace (PT) to achieve low-overhead tracing (~0.5 bits per instruction) while avoiding the pitfalls of software-based perturbation that can mask bugs. The Gist prototype demonstrates high accuracy (96% average) in diagnosing failures across diverse programs like Apache, SQLite, and Memcached, with minimal performance overhead (3.74% average). The key insight is that failure sketches, which highlight differences between failing and successful executions, can effectively guide developers to the root causes of hard-to-reproduce bugs, including concurrency issues and production-only failures.",
+  "paper_title": "Failure Sketching: A Technique for Automated Root Cause Diagnosis of In-Production Failures",
+  "paper_authors": [
+    "Kaan Onarlioglu",
+    "Collin Mulliner",
+    "William Robertson",
+    "Engin Kirda"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "ACM Symposium on Operating Systems Principles (SOSP)",
+  "paper_url": "http://sigops.org/sosp/sosp15/current/2015-Monterey/printable/103-kasikci.pdf",
+  "paper_abstract": "Developers spend a lot of time searching for the root causes of software failures. For this, they traditionally try to reproduce those failures, but unfortunately many failures are so hard to reproduce in a test environment that developers spend days or weeks as ad-hoc detectives. The shortcomings of many solutions proposed for this problem prevent their use in practice. We propose failure sketching, an automated debugging technique that provides developers with an explanation (“failure sketch”) of the root cause of a failure that occurred in production. A failure sketch only contains program statements that lead to the failure, and it clearly shows the differences between failing and successful runs; these differences guide developers to the root cause. Our approach combines static program analysis with a cooperative and adaptive form of dynamic program analysis. We built Gist, a prototype for failure sketching that relies on hardware watchpoints and a new hardware feature for extracting control flow traces (Intel Processor Trace). We show that Gist can build failure sketches with low overhead for failures in systems like Apache, SQLite, and Memcached.",
+  "paper_file": "papers/2015/10/12/failure-sketching-a-technique-for-automated-root-cause-diagnosis-of-in-production-failures.pdf",
+  "topics": [
+    "operating-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "root-cause-analysis",
+    "failure-diagnosis",
+    "concurrency-bugs",
+    "hardware-tracing",
+    "Intel-Processor-Trace",
+    "static-analysis",
+    "dynamic-instrumentation",
+    "production-systems",
+    "crash-consistency"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Failure Sketch for Pbzip2 bug #1",
+      "caption": "Fig. 1 shows an example failure sketch for a bug in Pbzip2, a multithreaded compression tool [16]. Time flows downward, and execution steps are enumerated along the flow of time. The failure sketch shows the statements (in this case statements from two threads) that affect the failure and their order of execution with respect to the enumerated steps (i.e., the control flow). The arrow between the two statements in dotted rectangles indicates the difference between failing executions and successful ones. In particular, in failing executions, the statement f->mut from T1 is executed before the statement mutex_unlock(f->mut) in T2. In non-failing executions, cons returns before main sets f->mut to NULL. The failure sketch also shows the value of the variable f->mut (i.e., the data flow) in a dotted rectangle in step 7, indicating that this value is 0 in step 7 only in failing runs. A developer can use the failure sketch to fix the bug by introducing proper synchronization that eliminates the offending thread schedule. This is exactly how pbzip2 developers fixed this bug, albeit four months after it was reported [16]."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

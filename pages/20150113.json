@@ -1,0 +1,52 @@
+{
+  "date": "20150113",
+  "file_name": "20150113",
+  "slug": "unikernels-library-operating-systems-for-the-cloud",
+  "blog_url": "https://blog.acolyer.org/2015/01/13/unikernels-library-operating-systems-for-the-cloud/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the Mirage project's approach to optimizing operating systems for cloud environments by introducing unikernels—library operating systems compiled into a single-purpose VM image. Adrian Colyer highlights the key insight that hypervisors provide a scalable virtual hardware abstraction, enabling library OSs to break up monolithic OS designs. The post emphasizes the benefits of Mirage's extreme specialization, including significant performance improvements, enhanced security, and drastically reduced binary sizes (e.g., a Mirage DNS server image of just 200KB compared to 400MB for BIND). The author notes the trade-offs, such as sacrificing backward compatibility and requiring OCaml for application development, but argues that the gains in security (via sealing and compile-time address space randomization) and performance justify the approach. Mirage's fast boot times (under 50ms) and competitive networking performance are also highlighted as notable achievements.",
+  "paper_title": "Unikernels: Library Operating Systems for the Cloud",
+  "paper_authors": [
+    "Anil Madhavapeddy",
+    "Richard Mortier",
+    "Charalampos Rotsos",
+    "David J. Scott",
+    "Balraj Singh",
+    "Steven Hand",
+    "Jon Crowcroft",
+    "Ian Leslie"
+  ],
+  "paper_year": 2013,
+  "paper_venue": "ASPLOS '13",
+  "paper_url": "http://anil.recoil.org/papers/2013-asplos-mirage.pdf",
+  "paper_abstract": "Conﬁguration Files We present unikernels, a new approach to deploying cloud services via applications written in high-level source code. Unikernels are single-purpose appliances that are compile-time specialised into standalone kernels, and sealed against modification when deployed to a cloud platform. In return they offer significant reduction in image sizes, improved efficiency and security, and should reduce operational costs. Our Mirage prototype compiles OCaml code into unikernels that run on commodity clouds and offer an order of magnitude reduction in code size without significant performance penalty. The architecture combines static type-safety with a single address-space layout that can be made immutable via a hypervisor extension. Mirage contributes a suite of type-safe protocol libraries, and our results demonstrate that the hypervisor is a platform that overcomes the hardware compatibility issues that have made past library operating systems impractical to deploy in the real-world.",
+  "paper_file": "papers/2015/01/13/unikernels-library-operating-systems-for-the-cloud.pdf",
+  "topics": [
+    "operating-systems",
+    "cloud-computing",
+    "storage-systems"
+  ],
+  "tags": [
+    "unikernels",
+    "library-operating-systems",
+    "compile-time-specialization",
+    "security",
+    "performance",
+    "OCaml",
+    "Xen",
+    "zero-copy-I/O",
+    "sealing",
+    "address-space-randomization",
+    "fast-boot",
+    "microservices"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Contrasting software layers in existing VM appliances vs. unikernel's standalone kernel compilation approach",
+      "caption": "Figure 1: Contrasting software layers in existing VM appliances vs. unikernel’s standalone kernel compilation approach."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

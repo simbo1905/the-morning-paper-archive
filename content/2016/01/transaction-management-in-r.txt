@@ -1,0 +1,531 @@
+URL: https://blog.acolyer.org/2016/01/11/transaction-management-in-r/
+Title: Transaction Management in the R* Distributed Database Management System &#8211; Part&nbsp;I
+---
+
+Transaction Management in the R* Distributed Database Management System - Mohan et al. 1986
+
+Update: fixed rocerd -> record typo.
+
+This is part 6 of a series of 7 posts based on the papers from chapter 3, 'Techniques Everyone Should Know,' of the Redbook. It contains an exposition of two-phase commit (2PC), and introduces the Presumed Abort and Presumed Commit optimisations. Let's look at the core 2PC protocol today, and then I'll address the optimisations tomorrow.
+
+> 
+
+ In a distributed database system, the actions of a transaction (an atomic unit of consistency and recovery) may occur at more than one site... A distributed transaction commit protocol is required in order to ensure that either all the effects of the transaction persist, or that none of the effects persist, despite intermittent site or communication link failures.
+
+It is assumed that each participating process uses a log to recoverably record the state of changes, and that the log is kept in stable storage. An ideal commit protocol would:
+
+- Always guarantee transaction atomicity
+
+- Enable 'forgetting' of outcomes from commit processing after a short period of time
+
+- Have minimal overhead in terms of log writes and message traffic
+
+- Optimise performance in the no-failure case
+
+- Exploit completely or partially read-only transactions
+
+- Maximize the ability to perform unilateral aborts
+
+> 
+
+ This paper concentrates on the performance aspects of commit protocols, especially the logging and communication performance during no-failure situations.
+
+## The base Two-Phase Commit Protocol
+
+> 
+
+ In 2P, the model of a distributed transaction execution is such that there is one process, called the coordinator, that is connected to the user application and a set of other processes, called the subordinates. During the execution of the commit protocol the subordinates communicate only with the coordinator, not among themselves.
+
+Let us first consider how the protocol operates in the absence of failures, and then we can return to examine failure cases. The 'two phases' of 2PC are the prepare phase and the commit phase. When the user application decides to commit a transaction, the coordinator receives a commit transaction command and initiates the prepare phase.
+
+## Prepare
+
+From the coordinator's perspective, the prepare phase proceeds as follows:
+
+- The coordinator sends PREPARE messages in parallel to each of the subordinates
+
+- The coordinator waits until either at least one NO VOTE has been received from a subordinate, or all subordinates have returned a YES VOTE. The fulfilment of either of these conditions begins the commit phase.
+
+From the subordinate's perspective, the prepare phase proceeds as follows:
+
+- The subordinate receives a PREPARE message from the coordinator
+
+- If the subordinate is willing to commit the transaction then
+
+i. It force-writes a prepare log record
+
+ii. Sends a YES VOTE to the coordinator
+
+iii. Enters the prepared state and waits for the final decision from the coordinator
+
+- If instead the subordinate wants to abort the transaction then
+
+i. It force-writes an abort log record
+
+ii. Sends a NO VOTE to the coordinator
+
+iii. Aborts the transaction locally, releases all locks, and 'forgets' it.
+
+When a subordinate is voting to abort a transaction it is safe to immediately proceed with local abort processing since no other decision (i.e. a commit decision) can be forthcoming from the coordinator given that the subordinate has voted NO.
+
+## Commit
+
+In the commit phase, the coordinator proceeds as follows. If at least on NO VOTE was received then:
+
+- The coordinator force-writes an abort record
+
+- The coordinator sends ABORT messages to all subordinates that are in the prepared state or from which the coordinator has not yet heard a respond to the PREPARE.
+
+- The coordinator waits to receive an ACK from every participant sent a message in step 2.
+
+- The coordinator writes an end record and 'forgets' the transaction
+
+If all subordinates sent a YES VOTE then:
+
+- The coordinator force-writes a commit record. The transaction has now reached its commit-point and the user can be told that the transaction has committed.
+
+- The coordinator sends COMMIT messages to all subordinates.
+
+- The coordinator waits to receive an ACK from every participant sent a message in step 2.
+
+- The coordinator writes an end record and 'forgets' the transaction
+
+> 
+
+ By requiring the subordinates to send ACKs, the coordinator ensures that all the subordinates are aware of the final outcome.
+
+Only subordinates that sent a YES VOTE participate in the commit phase. They proceed as follows:
+
+On receiving a COMMIT message a subordinate:
+
+- Force-writes a commit record
+
+- Sends an ACK message to the coordinator
+
+- Commits the transaction and 'forgets' it
+
+On receiving an ABORT message a subordinate:
+
+- Force-writes an abort record
+
+- Sends an ACK message to the coordinator
+
+- Aborts the transaction and 'forgets' it
+
+> 
+
+ By forcing their commit/abort records before sending the ACKs, the subordinates make sure that they will never be required (while recovering from a processor failure) to ask the coordinator about the final outcome after having acknowledged a COMMIT/ABORT. The general principle on which the protocols described in this paper are based is that if a subordinate acknowledges the receipt of any particular message, then it should make sure (by forcing a log record with the information in that message before sending the ACK) that it will never ask the coordinator about that piece of information. If this principle is not adhered to, transaction atomicity may not be guaranteed.
+
+For the hopefully majority case of a committing transaction a coordinator sends two (rounds of) messages - PREPARE and COMMIT - and writes two log records (commit and end), one of which is forced and one is not. A subordinate sends two messages - YES VOTE and ACK - and writes two forced log messages (prepare and commit).
+
+## Handling Failures
+
+> 
+
+ We assume that at each active site a recovery process exists and that it processes all messages from recovery processes at other sites and handles all the transactions that were executing the commit protocol at the time of the last failure of the site...
+
+For each transaction executing at the time of the failure, the recovery process determines whether:
+
+- There are no 2PC protocol records of any kind, or
+
+- The transaction is in either a commiting or aborting state, or 
+
+- The transaction is in the prepared state (waiting for an outcome decision)
+
+If the recovery process finds a transaction that was executing at the time of the transaction but for which there are no 2PC protocol log records of any kind then it aborts the transaction by undoing its actions using the UNDO log records, writing an abort record, and forgetting about it.
+
+If the recovery process finds a transaction in the commiting or aborting (at the coordinator), it periodically tries to send COMMIT (ABORT) messages to all the subordinates that have not acknowledged and awaits their ACKs. Once all ACKs are received, the recovery process writes the end record and 'forgets' the transaction.
+
+Let us now consider the 'prepared' scenario:
+
+> 
+
+ When the recovery process finds that it is in the prepared state for a particular transaction, it periodically tries to contact the coordinator site to find out how the transaction should be resolved. When the coordinator site resolves a transaction and lets this site know the final outcome, the recovery process takes the steps outlined before for a subordinate when it receives an ABORT/COMMIT.
+
+When a recovery process receives an inquiry message from a prepared subordinate site it looks to see what information it has about that transaction. If the transaction is known to be in the aborting or commiting state then it sends the appropriate response.
+
+> 
+
+ The natural question that arises is what action should be taken if no information
+
+ is found in virtual storage about the transaction. Let us see when such a situation could arise. Since both COMMITS and ABORTS are being acknowledged, the fact that the inquiry is being made means that the inquirer had not received and processed a COMMIT/ABORT before the inquiree “forgot” the transaction. Such a situation comes about when (1) the inquiree sends out PREPARES, (2) it crashes before receiving all the votes and deciding to commit/abort, and (3) on restart, it aborts the transaction and does not inform any of the subordinates. As mentioned before, on restart, the recipient of an inquiry cannot tell whether it is a coordinator or subordinate, if no commit protocol log records exist for the transaction. Given this fact, the correct response to an inquiry in the no information case is an ABORT.
+
+If we have some kind of failure detector then coordinators may notice the failure of a subordinate or vice-versa.
+
+- If a coordinator process notices the failure of a subordinate while waiting for it to send a vate, then the coordinator follows the abort transactions steps. If the failure occurs while the coordinator is waiting for an ACK, then the coordinator hands the transaction over to the recovery process.
+
+- If a subordinate notices the failure of the coordinator before the it has sent its YES VOTE (if it was going to vote NO it can proceed unilaterally anyway) then it aborts the transaction (unilateral abort). If the failure is detected after the subordinate has moved into the prepared state, then the subordinate hands the transaction over to the recovery process. 
+
+## Blocking Behaviour
+
+> 
+
+ It should be pointed out that our commit protocols are blocking, in that they require a prepared process that has noticed the failure of its coordinator to wait until it can reestablish communication with its coordinator's site to determine the final outcome (commit or abort) of the commit processing for that transaction.
+
+These are the notorious 'in-doubt' transactions that cause so many operator headaches.
+
+> 
+
+ To handle the rare situation in which a blocked process holds up too many other transactions.... we have provided an interface that allows the operator to find out the identities of the prepared processes and to forcibly commit or abort them. Of course, the misuse of this facility could lead to inconsistencies caused by parts of a transaction being committed while the rest of the transaction is aborted.
+
+That doesn't sound ideal of course, but there is a solution, called a 'telephone.'
+
+> 
+
+ In cases where a link failure is the cause of blocking, the operator at the blocked site could use the telephone to find out the coordinator site's decision and force the same decision at his or her site.
+
+## Hierarchical Two-Phase Commit
+
+Simple 2PC can't be used in situations where multilevel (> 2) trees of processes can occur, but there is a simple extension to support this case.
+
+> 
+
+ In the hierarchical version of 2P, the root process that is connected to the user/application acts only as a coordinator, the leaf processes act only as subordinates, and the non-leaf, non-root processes act as both coordinators (for their child processes) and subordinates (for their parent processs).
+
+Root and leaf processes act as in regular 2PC. An intermediate node must propagate PREPAREs to its subordinates and only after receiving all of their votes does it send its combined (i.e. subtree) vote to its coordinator. It can vote YES only if all of its subordinates vote YES. In a similar manner, on receiving an ABORT or COMMIT an intermediate node must force-write its own commit (abort) record, send an ACK to the coordinator, and then propagate the decision to its subordinates.
+
+## Coming Up Next
+
+In part two, we'll look at the read-only, presumed abort, and presumed commit optimisations to the standard 2PC protocol as described here.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Transaction processing 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousARIES: A Transaction Recovery Method Supporting Fine-Granularity Locking and Partial RollbacksNext &rsaquo;Transaction Management in the R* Distributed Database Management System - Part II
+ 
+ 
+
+ 
+ 
+## 
+ 8 thoughts on &ldquo;Transaction Management in the R* Distributed Database Management System - Part I&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Zteve says: 
+
+ 
+ January 11, 2016 at 10:58 am 
+
+ 
+
+ 
+ 
+Of course, you knew I'd love this. It brings back many fond memories. I'd love to comment on the 'in-doubt' resolution schemes we adopted, and the reason why the 'telephone' is an inadequate resolution instrument in most cases. It is also worth pointing out that the protocol's sensible handling of 'presumed abort' has the consequence that aborted transactions are undetectable: it is not possible to distinguish, in general, between a transaction that aborted and one that never wert.
+
+Love this stuff; keep 'em coming.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ simbo1905 says: 
+
+ 
+ January 11, 2016 at 8:46 pm 
+
+ 
+
+ 
+ 
+typo "end rocerd"
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ January 12, 2016 at 7:20 am 
+
+ 
+
+ 
+ 
+Fixed it now, thanks!
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ Pingback: Transaction Management in the R* Distributed Database Management System - Part II | the morning paper 
+ 
+ 
+- 
+ 
+ 
+ 
+ Zteve says: 
+
+ 
+ January 12, 2016 at 9:11 am 
+
+ 
+
+ 
+ 
+Two more typographical slips (my brackets): 
+
+"If at least [on] NO VOTE was received" should be "If at least [one] NO VOTE was received".
+
+"If a subordinate notices the failure of the coordinator before [the ]it has sent its YES VOTE" should be "If a subordinate notices the failure of the coordinator before []it has sent its YES VOTE".
+
+And another comment: it is important that the 'tree' in the 'Hierarchical Two-phase Commit' section *is* a tree. If it is a DAG, intentionally or not, then the protocol can stall, or else continually abort at the commit point. For us this was dubbed the "diamond problem".
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ January 12, 2016 at 9:13 am 
+
+ 
+
+ 
+ 
+Thanks Zteve. I'll fix the typos when I get to my desk later on today. Ever thought about writing up some of the lessons learned from those CICS days? I'm sure lots of people would be interested to read that!
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ Pingback: Consensus on Transaction Commit | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: (Database) Techiques Everyone Should Know | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,350 @@
+URL: https://blog.acolyer.org/2018/03/20/designing-secure-ethereum-smart-contracts-a-finite-state-machine-approach/
+Title: Designing secure Ethereum smart contracts: a finite state machine&nbsp;approach
+---
+
+Designing secure Ethereum smart contracts: a finite state machine based approach Mavridou & Laszka, FC’18
+
+You could be forgiven for thinking I’m down on smart contracts, but I actually think they’re a very exciting development that opens up a whole new world of possibilities. That’s why I’m so keen to see better ways of developing and verifying them. I’m watching the work to enable web assembly (WASM) enabled smart contracts with interest. At a higher level, Trent McConaghy’s series on Token Engineering (part I, part II, part III) also appeals greatly. Today’s paper choice, ‘Designing secure Ethereum smart contracts’ is about embedding a collection of lower-level smart contract design patterns into a contract generation tool, helping developers avoid some of the more fundamental errors. If you’re still coming up to speed on why such a tool might be a good idea, the Zeus paper provides some good background, which I won’t retread here.
+
+> 
+
+ Prior work focused on addressing these issues (vulnerabilities) in existing contracts by providing tools for verifying correctness and for identifying common vulnerabilities. In this paper, we explore a different avenue by proposing and implementing FSolidM, a novel framework for creating secure smart contracts.
+
+FSolidM is based on a formal finite-state machine model of smart contracts, with Ethereum Solidity as the current generation target. Users develop contracts using a combination of a graphical editor and a code editor. The base tool captures the contract states, transitions, and guards. Plugins can then be used to embellish the contracts with additional desirable properties (to my eye, they look awfully like aspects. YMMV).
+
+If you want to play with FSolidM for yourself, there’s a hosted version available at https://cps-vo.org/group/SmartContracts and the source is in GitHub at https://github.com/anmavrid/smart-contracts.
+
+## Smart contracts as finite state machines
+
+The running example in the paper is a blind auction smart contract. In this auction bidders send only hashed versions of their bids (i.e., they do not reveal the actual amount of the bid), and at the same time are required to make a deposit greater than or equal to the amount of the bid. The deposit ensures that the winner of the auction actually pays up.
+
+The contract has four main states. Initially the contract is AcceptingBlindedBids (ABB). Once the auction is closed the contract moves to the RevealingBids (RB) state in which bidders reveal their bids. At the finish of the auction the contract moves to the Finished (F) state: the highest bid wins, and all bidders may withdraw their deposits — apart from the winner who may only withdraw the difference between their deposit and bid amount. Before it is finished, an auction may also be cancelled, in which case the contract moves to the Cancelled (C) state.
+
+Here’s the corresponding FSM:
+
+Every state has an associated set of transitions corresponding to actions that a user can perform during a blind auction. Actions may be guarded (checked pre-conditions) — guard clauses are denoted using square brackets. Guards and actions interact with variables which can be of the following types:
+
+- contract data, stored within the contract
+
+- input data received as a transition input
+
+- output data returned as transition output
+
+To specify a smart contract, the developer provides the following information:
+
+The full generated contract for the blind auction example can be found in appendix C of this arVix version of the paper.
+
+(This example code has the locking and transition counter security extension plugins enabled, we’ll look at those next). It would be interesting to run this code through Zeus!
+
+## Patterns and plugins
+
+So far then, we have generator which can build the basic skeleton of a contract. By enabling additional plugins, extra functionality can be added to the contract. The plugins fall into two main categories: protection against common vulnerabilities, and support for low-level contract design patterns.
+
+## Locking
+
+The locking plugin is designed to prevent reentrancy vulnerabilities. It introduces a private boolean variable, locked, and then uses the equivalent of around advice to wrap every transition using this simple pattern:
+
+ modifier locking {
+ require(!locked);
+ locked = true;
+ ** your code here **
+ locked = false;
+ }
+
+The locking plugin is always the outermost instrumentation on any transition.
+
+## Transition counter
+
+If the behaviour of a transaction depends on the state of a contract, then it’s possible that state may change between a transaction being submitted and the transaction actually executing (transaction-ordering dependence). This can lead to security issues if care is not taken.
+
+> 
+
+ We provide a plugin that can prevent unpredictable-state vulnerabilities by enforcing a strict ordering on function executions. The plugin expects a transition number in every function as a parameter (i.e., a transition input variable) and ensure that the number is incremented by one for each function execution.
+
+(c.f. optimistic transactions).
+
+ modifier transitionCounting(uint nextTransitionNumber) { 
+ require(nextTransitionNumber == transitionCounter);
+ transitionCounter += 1;
+ ** your code here **
+ }
+
+## Automatic timed transitions
+
+The automatic timed transitions plugins supports time-constraint based patterns — for example, an auction timing out after a certain period. The plugin is implemented as a modifier applied to every function that checks whether any timed transitions must be executed before the invoked transition is executed. The main benefit is avoiding accidentally missing a transition when attempting to implement the same function manually.
+
+The timer support is fairly limited though. You can specify multiple timed transitions, but each timer is specified as a number of seconds since the creation of the contract. If you wanted any other pattern, you’re out of luck.
+
+## Access control
+
+The access control plugin manages a list of administrators at runtime (identified by their addresses) and enables developers to forbid non-administrators from accessing certain functions.
+
+The code sketch looks like this:
+
+## Events
+
+The events plugin can be used to notify users of transition executions. When the plugin is enabled, transitions tagged with event emit a Solidity event after they are executed. Ethereum clients can listen to such events.
+
+## A promising start
+
+It’s all actually fairly simple stuff, but it’s a promising start, and the outlined directions for future work mean this might be an interesting tool to keep an eye on:
+
+- Additional security plugins addressing more of the known vulnerability types for smart contracts, and plugins implementing the most popular design patterns surveyed in ‘An empirical analysis of smart contracts: platforms, applications, and design patterns.’ 
+
+- Integration of verification tools and correctness-by-design techniques into the framework.
+
+- Support of modelling and verifying multiple interacting contracts as a set of interaction finite state machines.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ BlockchainSecurity 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousA quantitive analysis of the impact of arbitrary blockchain content on BitcoinNext &rsaquo;On purpose and by necessity: compliance under the GDPR
+ 
+ 
+
+ 
+ 
+## 
+ 2 thoughts on &ldquo;Designing secure Ethereum smart contracts: a finite state machine approach&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ mark Rosario says: 
+
+ 
+ April 26, 2018 at 2:43 pm 
+
+ 
+
+ 
+ 
+Can you post more about ICO and XYO networks of Crypto.This one is great.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ ampsitesshamlatech says: 
+
+ 
+ April 26, 2018 at 2:45 pm 
+
+ 
+
+ 
+ 
+Can you post more about ICO and XYO networks of Crypto.This one is great post..
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ %d

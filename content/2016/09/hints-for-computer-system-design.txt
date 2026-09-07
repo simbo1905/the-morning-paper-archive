@@ -1,0 +1,426 @@
+URL: https://blog.acolyer.org/2016/09/16/hints-for-computer-system-design/
+Title: Hints for computer system&nbsp;design
+---
+
+Hints for Computer System Design Butler Lampson, 1983
+
+If there's been an unifying theme for The Morning Paper posts over the last couple of weeks, it's probably this: learning from the hard-won expertise of some of the greats in our field. So it seems fitting to end this run of papers with Butler Lampson's "Hints for Computer System Design," with thanks to Victor Yodaiken (@vyodaiken) for pointing me at this paper via Twitter.
+
+It may have been written in 1983, but the fundamental challenges in building computer systems that Lampson outlines still ring very true today:
+
+> 
+
+ Designing a computer system is very different from designing an algorithm: the external interface (that is the requirement) is less precisely defined, more complex, and more subject to change; the system has much more internal structure, and hence many more internal interfaces; the measure of success is much less clear.
+
+The paper consists of a collections of hints for system designers, summarized in the table below. For each, Lampson gives examples from real systems.
+
+Many of the hints help us to think about the trade-offs between simplicity, consistency, correctness, and completeness.
+
+## Interfaces
+
+My favourite section of the paper is the advice on designing interfaces.
+
+> 
+
+   Defining interfaces is the most important part of system design. Usually it is also the most difficult, since the interface design must satisfy three conflicting requirements: an interface should be simple, it should be complete, and it should admit a sufficiently small and fast implementation.
+
+How then should we think about the trade-offs between these requirements? Firstly, beware of rushing to create fancy high-level abstractions:
+
+> 
+
+ An interface should capture the minimum essentials of an abstraction. Don't generalize; generalizations are generally wrong.
+
+If an interface tries to do too much, it's prone to having a large, slow, and complicated implementation. The client of your interface should not be surprised by unpredictable behaviour:
+
+> 
+
+ ...the service must have a fairly predictable cost, and the interface must not promise more than the implementor knows how to deliver. Especially, it should not promise features needed by only a few clients, unless the implementer knows how to provide them without penalizing others.
+
+For some interfaces, the-right-thing is the right thing. Which interfaces?
+
+> 
+
+ At times, however, it's worth a lot of work to make a fast implementation of a clean and powerful interface. If the interface is used widely enough, the effort put into designing and tuning the implementation can pay off many times over. But do this only for an interface whose importance is already known from existing uses. And be sure that you know how to make it fast.
+
+A fast, basic interface beats a cumbersome higher level one:
+
+> 
+
+   Make it fast, rather than general or powerful. If it’s fast, the client can program the function it wants, and another client can program some other function. It is much better to have basic operations executed quickly than more powerful ones that are slower (of course, a fast, powerful operation is best, if you know how to get it). The trouble with slow, powerful operations is that the client who doesn’t want the power pays more for the basic function. Usually it turns out that the powerful operation is not the right one.
+
+If you do provide higher level abstractions, don't bury the low level power inside something more general:
+
+> 
+
+ The purpose of abstractions is to conceal undesirable properties; desirable ones should not be hidden.
+
+Use information hiding between modules (Lampson actually includes this under this implementation hints section, but it's really more about interfaces imho!):
+
+> 
+
+ ...the interface defines the things that cannot change (without simultaneous changes to both the implementation and client). Obviously, it is easier to program and modify a system if its parts make fewer assumptions about each other. On the other hand, the system may not be easier to design - it's hard to design a good interface. And there is tension with the desire not to hide power.
+
+One way to combine simplicity, flexibility, and high performance is to focus only on solving one problem, and leaving the rest up to the client. Lampson gives the example of parsers that do context-free recognition but call out to client-supplied semantic routines to record the results of the parse. This idea of using "procedure arguments" (functions) can help to provide flexibility in an interface, often eliminating a jumble of parameters.
+
+As the system evolves over time,
+
+> 
+
+ ...there is a constant tension between the desire to improve a design and the need for stability or continuity.
+
+For basic interfaces shared by many parts of the system, stability is highly desirable. If you do have to change interfaces, provide a compatibility layer implementing the old interface on top of the new system.
+
+## Implementation
+
+- Plan to throw one away
+
+- Break big problems down into several easier ones (divide and conquer). This also applies to processing when resources are limited: "bite off as much as will fit, leaving the rest for another iteration."
+
+- It can be better to reuse a good idea, creating a new specialized implementation of it for the task at hand, than to generalize an existing implementation/interface.
+
+> 
+
+ Handle normal and worst cases separately as a rule, because the requirements for the two are quite different: the normal case must be fast; the worst case must make some progress.
+
+## Performance
+
+Sometimes it's better to avoid the overheads of sharing:
+
+> 
+
+   Split resources in a fixed way if in doubt, rather than sharing them. It is usually faster to allocate dedicated resources, it is often faster to access them, and the behavior of the allocator is more predictable. The obvious disadvantage is that more total resources are needed, ignoring multiplexing overheads, than if all come from a common pool.
+
+Bear in mind when allocating resources that its better to strive to avoid disaster than to attain an optimum. Pushing towards maximum utilisation can drastically degrade services. Here's Lampson's rule-of-thumb:
+
+> 
+
+ A system cannot be expected to function well if the demand for any resource exceeds two-thirds of the capacity, unless the load can be characterized extremely well.
+
+Shed load to control demand, rather than allowing the system to become overloaded.
+
+- Use background processing when possible
+
+- Cache answers to expensive computations
+
+- Static analysis and dynamic translation (JIT) can both improve performance for certain classes of programs and inputs
+
+- Use batch processing if possible:
+
+> 
+
+ Doing things incrementally almost always costs more... Also, batch processing permits much simpler error recovery.
+
+## Fault-tolerance
+
+It's not that hard (!) says Lampson, but you'd better think about it upfront in your design:
+
+> 
+
+ Making a system reliable is not really hard, if you know how to go about it. But retrofitting reliability to an existing design is very difficult.
+
+The only true reliability is end-to-end, though relying on this exclusively can hide severe performance defects that only appear when the system is under heavy load.
+
+> 
+
+ Error recovery at the application level is absolutely necessary for a reliable system and any other error detection or recovery is not logically necessary but is strictly for performance.
+
+Lampson's advice for designing reliable systems has a lot in common with the ideas in event sourcing:
+
+- Use an append-only log to record the truth about the state of an object.
+
+- Log entries capture operations and their arguments:
+
+> 
+
+ To use the technique, record every update to an object as a log entry consisting of the name of the update procedure and its arguments. The procedure must be functional; when applied to the same arguments it must always have the same effect... By induction this means that a sequence of log entries can be re-executed, starting with the same objects, and produce the same objects that were produced in the original execution.
+
+For this to work, operations must also be idempotent, the arguments must be values (which can include references to immutable objects).
+
+- Make actions atomic or restartable.
+
+## Regrets, I've had a few...
+
+I'll leave the last word to Lampson himself:
+
+> 
+
+ Such a collection of good advice and anecdotes is rather tiresome to read; perhaps it is best taken in small doses at bedtime. In extenuation I can only plead that I have ignored most of these rules at least once, and nearly always regretted it.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Software Engineering 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousThe Rise of Worse is BetterNext &rsaquo;Deep neural networks for YouTube recommendations
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;Hints for computer system design&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Tom gilb says: 
+
+ 
+ September 18, 2016 at 8:10 pm 
+
+ 
+
+ 
+ 
+A bit dated and overgeneralised.
+
+My take on systems design for various qualities. Leanpub.com/valueplanning. First 100 pages free.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ system design says: 
+
+ 
+ September 19, 2017 at 3:55 am 
+
+ 
+
+ 
+ 
+Great post!
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ foo says: 
+
+ 
+ November 7, 2019 at 2:11 pm 
+
+ 
+
+ 
+ 
+Butler Lampson recently published an update of this classic paper:
+
+http://bwlampson.site/87-HintsAndPrinciples/HintsAndPrinciplesAbstract.htm
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

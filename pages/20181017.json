@@ -1,0 +1,39 @@
+{
+  "date": "20181017",
+  "file_name": "20181017",
+  "slug": "rept-reverse-debugging-of-failures-in-deployed-software",
+  "blog_url": "https://blog.acolyer.org/2018/10/17/rept-reverse-debugging-of-failures-in-deployed-software/",
+  "blog_title": "",
+  "blog_summary": "REPT, a system that enables reverse debugging of failures in deployed software (particularly Windows binaries) using memory dumps, won a best paper award at OSDI'18. The key innovation is combining low-overhead hardware tracing (Intel PT) with a novel binary analysis technique to recover data flow information, avoiding the high overheads (up to 200%) of traditional record/replay systems. Evaluated on 16 real-world bugs across software like Chrome, Apache, PHP, and Python, REPT successfully enabled reverse debugging for 14 of them, including 2 concurrency bugs. The system integrates with WinDbg and enhances the Windows Error Reporting service (WER) to support Intel PT-enriched memory dumps, allowing developers to request and analyze enriched crash reports. Anecdotal evidence from Microsoft developers highlights REPT's ability to resolve long-standing bugs (e.g., a 2-year-old crash fixed in minutes) by reconstructing execution history and enabling step-through debugging of reconstructed traces. The paper emphasizes REPT's practicality through low runtime overhead (<2% with Intel PT), accuracy in recovering execution history, and applicability to unmodified binaries and diverse bug classes, including concurrency issues.",
+  "paper_title": "REPT: Reverse Debugging of Failures in Deployed Software",
+  "paper_authors": [
+    "Chengbin Pang",
+    "Weidong Cui",
+    "Arie Gurfinkel",
+    "Tao Wei",
+    "Gang Tan"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "OSDI'18",
+  "paper_url": "https://www.usenix.org/conference/osdi18/presentation/weidong",
+  "paper_abstract": "Debugging software failures in deployed systems is important because they impact real users and customers. However, debugging such failures is notoriously hard in practice because developers have to rely on limited information such as memory dumps. The execution history is usually unavailable because high-fidelity program tracing is not affordable in deployed systems. In this paper, we present REPT, a practical system that enables reverse debugging of software failures in deployed systems. REPT reconstructs the execution history with high fidelity by combining online lightweight hardware tracing of a program’s control flow with offline binary analysis that recovers its data flow. It is seemingly impossible to recover data values thousands of instructions before the failure due to information loss and concurrent execution. REPT tackles these challenges by constructing a partial execution order based on timestamps logged by hardware and iteratively performing forward and backward execution with error correction. We design and implement REPT, deploy it on Microsoft Windows, and integrate it into WinDbg. We evaluate REPT on 16 real-world bugs and show that it can recover data values accurately (92% on average) and efficiently (in less than 20 seconds) for these bugs. We also show that it enables effective reverse debugging for 14 bugs.",
+  "paper_file": "papers/2018/10/17/rept-reverse-debugging-of-failures-in-deployed-software.pdf",
+  "topics": [
+    "operating-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "reverse-debugging",
+    "memory-dumps",
+    "Intel-PT",
+    "binary-analysis",
+    "data-flow-recovery",
+    "concurrency-bugs",
+    "crash-consistency",
+    "hardware-tracing",
+    "Windows-debugging"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

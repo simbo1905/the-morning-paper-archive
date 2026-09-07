@@ -1,0 +1,464 @@
+URL: https://blog.acolyer.org/2017/11/21/algorand-scaling-byzantine-agreements-for-cryptocurrencies/
+Title: Algorand: scaling Byzantine agreements for cryptocurrencies
+---
+
+Algorand: scaling Byzantine agreements for cryptocurrencies Gilad et al., SOSP 17
+
+The figurehead for Algorand is Silvio Micali, winner of the 2012 ACM Turing Award. Micali has the perfect background for cryptocurrency and blockchain advances: he was instrumental in the development of many of the cryptography building blocks, has published works on game theory and byzantine agreement, and even launched a micro-payments startup (acquired in 2007). When Micali saw Bitcoin, he thought it could be improved — Algorand is the result of that quest. I found Micali’s recent ACM lecture on Algorand (available on YouTube) very helpful as background to this paper.
+
+Algorand can confirm transactions on the order of one minute — whereas Bitcoin takes on the order of one hour — has negligible probability of forking, and achieves 125x the transaction throughput of Bitcoin. The core of Algorand is a new Byzantine agreement protocol called BA★. Participants in BA★ are randomly selected based on a proof-of-stake mechanism that relies on cryptographic sortition.
+
+## The big picture
+
+> 
+
+ Algorand allows users to agree on an ordered log of transactions, and achieves two goals with respect to the log: (i) safety — with overwhelming probability, all users agree on the same transactions... (ii) liveness — in addition to safety, Algorand also makes progress (i.e, allows new transactions to be added to the log) under additional assumptions about network reachability.
+
+The safety guarantee says that if one honest user accepts transaction A, then any future transactions accepted by other honest users will appear in a log that already contains A. For liveness, Algorand makes the assumption that most honest users (e.g., 95%) can send messages that will be received by most other honest users (e.g., 95%) within a known time bound. I.e., an adversary cannot manipulate the network at large scale. If an adversary does gain full control of the network, safety is still guaranteed so long as the period of adversary control is bounded (e.g., at most one day or one week), and following this period the network is strongly synchronous again for a reasonably long time (a few hours).
+
+There is no distinction between miners and users, all Algorand users are created equally and communicate through a gossip protocol. Messages are signed using the private key of the sender, and peer selection is weighted based on how much money a peer has. The gossip protocol is used by users to submit new transactions, and every user collects a block of pending transactions that they hear about.
+
+In each round a set of users are chosen at random (in a fully decentralised way using cryptographic sortition) to propose a block. The sortition process provides lottery winners with a priority (comparable between users) and a proof of that priority — priority is used to determine which of several proposed blocks everyone should adopt. Selected users propose their block together with their priority and proof using the gossip protocol. To reach consensus on a proposed block, Algorand uses the BA★ agreement protocol.
+
+> 
+
+ BA★ executes in steps, communicates over the same gossip protocol, and produces a new agreed-upon block. BA★ can produce two kinds of consensus: final consensus and tentative consensus. If one user reaches final consensus, this means that any other user that reaches final or tentative consensus in the same round must agree on the same block value.
+
+Tentative consensus can be produced in one of two cases:
+
+- When the network is strongly synchronous, an adversary may with small probability be able to cause BA★ to reach tentative consensus on a block. In a few rounds Algorand will reach final consensus on a successor, with overwhelming probability, and thus confirm earlier transactions.
+
+- If the network was weakly synchronous (e.g., controlled by an adversary) then BA★ can reach tentative consensus on two different blocks, creating a fork. Algorand automatically repairs these by periodically running BA★ to reach consensus on which fork to use going forward. 
+
+## Sortition and proof-of-stake
+
+> 
+
+ Algorand assigns weights to users proportionally to the monetary value they have in the system, inspired by proof-of-stake approaches, suggested as an alternative or enhancement to proof-of-work.
+
+Unlike many proof-of-stake schemes though, malicious leaders cannot create forks in the network. The weights are only there to ensure an attacker cannot amplify their power by using pseudonyms — so long as an attacker controls less than 1/3 of the monetary value Algorand can guarantee that the probability for forks is negligible.
+
+> 
+
+ Cryptographic sortition is an algorithm for choosing a random subset of users according to per-user weights; that is, given a set of weights and the weight of all users , the probability that user is selected is proportional to . The randomness in the sortition algorithm comes from a publicly known random seed.
+
+The seed for the genesis block is decided using distributed random number generation. The seed for a subsequent round is determined using verifiable random functions (VRFs) in round and included in the proposed block. There’s a back-up procedure to derive a seed from the seed of the previous round that can be used in the event that a proposed block is rejected.
+
+The neat thing about sortition is that it requires no central coordination. Each user can run the sortition algorithm locally to determine whether or not they are a winner in this round. In turns this means there is no opportunity for an attacker to influence proposers before they propose - because they are unknown to the rest of the network until that point.
+
+Each user has a public/private key-pair .
+
+> 
+
+ Sortition is implemented using VRFs. Informally, on any input string , returns two values: a hash and a proof. The hash is a hashlen-bit-long value that is uniquely determined by and , but is indistinguishable from random to anyone that does not know . The proof enables anyone that knows to check that the hash indeed corresponds to , without having to know .
+
+In addition to the main blockchain rounds, each execution of the BA★ protocol also proceeds in a series of steps. The participants are selected at random for each of these steps using sortition. The expected number of users that sortition selects for the committee in each step is same () for each step but the last, when we require a higher number, .
+
+## The BA★ protocol
+
+> 
+
+ The execution of BA★ consists of two phases. In the first phase, BA★ reduces the problem of agreeing on a block to agreement on one of two options. In the second phase, BA★ reaches agreement on one of these options: either agreeing on a proposed block, or agreeing on an empty block.
+
+Each phase consists of several interactive steps; the first phase always takes two steps, but the second phase takes between 2 and 11 steps (Micali cites 9 steps in the ACM video referenced at the start of this post). The 11-step worst case occurs when a malicious highest-priority proposer colludes with a large fraction of committee participants (those chosen by sortition) at every step.
+
+The inputs to BA★ are a context capturing the current state of the ledger (sortition seed, user weights, and the last agreed-upon block), the round number, and a new proposed block from the highest priority block proposer. As its output, if the highest-priority block proposer was honest, BA★ reaches final consensus, otherwise it may declare tentative consensus.
+
+Here’s the high-level procedure for BA★ as a whole:
+
+The four main procedures in this algorithm: Reduction, _Binary_BA★, CountVotes, and BlockOfHash are described next.
+
+## Reduction
+
+Reduction converts the problem of reaching consensus on an arbitrary value (the hash of a block) to reaching consensus on one of two values: either a specific proposed block hash, or the hash of an empty block. In the first step, each committee member gossips their vote for the hash of the block passed to reduction by BA★. In the second step, committee members vote for the hash that received at least votes in the first step, or the hash of the default empty block if no hash received enough votes. As we saw previously, is the expected number of users in the committee. is the fraction of the expected committee size () that defines the voting threshold.
+
+## BinaryBA★
+
+Binary agreement reaches consensus on either the hash that was passed to it, or the empty block. It looks like this:
+
+In the common case, it reaches consensus in the first step. In the interests of space, I’ll refer you to section 7.4 in the paper for the details.
+
+## CountVotes
+
+CountVotes stores incoming votes in a buffer indexed by round and step. As soon as one value has more that votes, that value is returned.
+
+## BlockOfHash
+
+> 
+
+ For efficiency, BA★ votes for hashes of blocks, instead of entire block contents. At the end of the BA★ algorithm, we use the BlockOfHash() function to indicate that, if BA★ has not yet received the pre-image of the agreed-upon hash, it must obtain it from other users (and, since the block was agreed upon, many of the honest users must have received it during block proposal).
+
+## Implementation and evaluation
+
+An Algorand prototype was implemented in 5000 lines of C++ and deployed on EC2 using 1000 m4.2xlarge VMs, each with 8 cores and up to 1 Gbps network throughput. Experiments show that Algorand can confirm transactions in well under a minute, and scales well up to 500K users (the maximum in the test, not the limit of scalability). At its lowest latency and a 2MB block size, Algorand can commit around 327MB of transactions per hour (vs Bitcoins 6MB per hour). With 10MB blocks, Algorand commits around 750MB of transactions per hour, 125x the throughput of Bitcoin. CPU and network overheads are minimal (c.f., proof of work!), with each Algorand process using about 6.5% of a core. Block storage can be sharded across users.
+
+In July of this year TodaCorp announced a partnership with Silvio Micali to develop Toda-Algorand, a joint venture combining the Toda protocol with Algorand. (Is there a paper describing the Toda protocol anywhere??).
+
+## The question of incentives
+
+The question of (lack of) incentives in Algorand has been a subject of debate. The paper references this in the future work section:
+
+> 
+
+ In order to encourage Algorand users to participate, i.e., be online when selected and pay the network cost of operating Algorand, the system may need to include incentives, possible in the form of a reward mechanism. Designing and analyzing an incentive mechanism includes many challenges, such as ensuring that users do not have perverse incentives (e.g., to withhold votes), and that malicious users cannot “game the system” to obtain more rewards than users who follow the protocol (e.g., by influencing seed selection).
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ BlockchainDistributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousDéjàVu: a map of code duplicates on GitHubNext &rsaquo;Canopy: an end-to-end performance tracing and analysis system
+ 
+ 
+
+ 
+ 
+## 
+ 10 thoughts on &ldquo;Algorand: scaling Byzantine agreements for cryptocurrencies&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Scott Rotondo says: 
+
+ 
+ November 21, 2017 at 7:37 pm 
+
+ 
+
+ 
+ 
+I just discovered this blog about a week ago, and I've been a daily visitor ever since. Thanks for providing such a valuable service.
+
+I wanted to point out that today's posting has some problems with the math markup in the paragraph describing the Reduction function. I imagine they are easy to fix.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ November 21, 2017 at 9:10 pm 
+
+ 
+
+ 
+ 
+Fixed, thank you!
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Scott Rotondo says: 
+
+ 
+ November 22, 2017 at 12:31 am 
+
+ 
+
+ 
+ 
+Sorry to pick at minor nits, but I think there is still one place in this paragraph and another under CountVotes where T+.+\tau should be T+\cdot+\tau instead.
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ 
+ 
+ Oren Tirosh says: 
+
+ 
+ November 22, 2017 at 10:32 am 
+
+ 
+
+ 
+ 
+In a proof-of-stake system there is some kind of inherent incentive for participants with high stakes to maintain network availability. The value of their stake will inevitably drop if the network on which it lives is perceived as unreliable.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ hexdigit says: 
+
+ 
+ November 22, 2017 at 9:26 pm 
+
+ 
+
+ 
+ 
+A minor correction - Verifiable Random Function should abbreviate to VRF (as in the paper), not VFR.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ November 23, 2017 at 6:54 am 
+
+ 
+
+ 
+ 
+Fixed, thank you! My fingers were quite persistent in that mistake :).
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ Pingback: Технический обзор платформы ArcBlock (whitepaper Arcblock ICO на русском) -- Arcblock -- Blockchain 3.0 
+ 
+ 
+- 
+ 
+ Pingback: Технический обзор платформы ArcBlock (whitepaper Arcblock ICO на русском) - Arcblock - Blockchain 3.0 
+ 
+ 
+- 
+ 
+ Pingback: OmniLedger: a secure, scale-out decentralized ledger via sharding | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: SoK: Consensus in the age of blockchains | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

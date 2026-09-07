@@ -1,0 +1,42 @@
+{
+  "date": "20150204",
+  "file_name": "20150204",
+  "slug": "liquid-unifying-nearline-and-offline-big-data-integration",
+  "blog_url": "https://blog.acolyer.org/2015/02/04/liquid-unifying-nearline-and-offline-big-data-integration/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses 'Liquid', a new nearline data integration stack developed at LinkedIn to address the limitations of legacy MapReduce/(H)DFS models for handling high-volume append-only data. Adrian Colyer highlights Liquid's ability to support low-latency, incremental processing with resource isolation, contrasting it with traditional batch-oriented systems like MapReduce. The key insight is the need for a unified architecture that bridges online, nearline, and offline processing while avoiding the pitfalls of Lambda and Kappa architectures. Liquid achieves this through a two-layer design: a Kafka-based messaging layer for high-availability storage and rewindability, and a Samza-based processing layer for stateful stream processing with guaranteed service levels. The system's scalability, fault tolerance, and operational robustness are emphasized, along with its real-world use cases at LinkedIn.",
+  "paper_title": "Liquid: Unifying Nearline and Offline Big Data Integration",
+  "paper_authors": [
+    "Fernandez et al."
+  ],
+  "paper_year": 2015,
+  "paper_venue": "CIDR 2015",
+  "paper_url": "http://www.cidrdb.org/cidr2015/Papers/CIDR15_Paper25u.pdf",
+  "paper_abstract": "With more sophisticated data-parallel processing systems, the new bottleneck in data-intensive companies shifts from the back-end data systems to the data integration stack, which is responsible for the pre-processing of data for back-end applications. The use of back-end data systems with different access latencies and data integration requirements poses new challenges that current data integration stacks based on distributed file systems—proposed a decade ago for batch-oriented processing—cannot address. In this paper, we describe Liquid, a data integration stack that provides low latency data access to support near real-time in addition to batch applications. It supports incremental processing, and is cost-efficient and highly available. Liquid has two layers: a processing layer based on a stateful stream processing model, and a messaging layer with a highly-available publish/subscribe system. We report our experience of a Liquid deployment with backend data systems at LinkedIn, a data-intensive company with over 300 million users.",
+  "paper_file": "papers/2015/02/04/liquid-unifying-nearline-and-offline-big-data-integration.pdf",
+  "topics": [
+    "distributed-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "data-integration",
+    "stream-processing",
+    "kafka",
+    "samza",
+    "lambda-architecture",
+    "kappa-architecture",
+    "incremental-processing",
+    "resource-isolation",
+    "commit-logs",
+    "publish-subscribe"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Data integration with Liquid",
+      "caption": "Comparison between legacy MR/DFS data integration stack (left) and Liquid stack (right), showing the flow of user activity, operational data, metrics, business metrics, and logs through different systems."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

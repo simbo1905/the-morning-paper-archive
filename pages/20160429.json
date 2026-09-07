@@ -1,0 +1,40 @@
+{
+  "date": "20160429",
+  "file_name": "20160429",
+  "slug": "optimizing-distributed-actor-systems-for-dynamic-interactive-services",
+  "blog_url": "https://blog.acolyer.org/2016/04/29/optimizing-distributed-actor-systems-for-dynamic-interactive-services/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes the paper 'Optimizing Distributed Actor Systems for Dynamic Interactive Services' by Newell et al. (2016), which examines the Orleans distributed actor system used in Microsoft's Halo game. The blog highlights Orleans' scalability strengths, such as dynamic actor instantiation and transparent load balancing, but notes its high latency issues due to fine-grained actor placement and excessive remote messaging (≈90% of messages are remote). The author emphasizes that while Orleans scales well, it fails to meet low-latency requirements for interactive services like Halo Presence. The key insight is that optimizing actor locality (migrating frequently communicating actors to the same server) and dynamically adjusting thread allocation in the SEDA architecture are both necessary to reduce latency. The paper proposes a distributed graph partitioning algorithm for actor placement and a thread allocation optimization, showing that combining both yields the greatest latency improvements. The authors' techniques are noted to be broadly applicable beyond Orleans.",
+  "paper_title": "Optimizing Distributed Actor Systems for Dynamic Interactive Services",
+  "paper_authors": [
+    "Andrew Newell",
+    "Sriram Rao",
+    "Lu Zhang",
+    "Yanqi Zhang",
+    "Jitu Padhye",
+    "Paramvir Bahl"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "EuroSys'16",
+  "paper_url": "http://research.microsoft.com/pubs/263907/eurosys16loca_camera_ready.pdf",
+  "paper_abstract": "realistic workloads show latency improvements of up to 75% for the 99th percentile, up to 63% for the mean, with up to 2× increase in peak system throughput. Distributed actor systems are widely used for developing interactive scalable cloud services, such as social networks and on-line games. By modeling an application as a dynamic set of lightweight communicating “actors”, developers can easily build complex distributed applications, while the underlying runtime system deals with low-level complexities of a distributed environment. We present ActOp — a data-driven, application-independent runtime mechanism for optimizing end-to-end service latency of actor-based distributed applications. ActOp targets the two dominant factors affecting latency: the overhead of remote inter-actor communications across servers, and the intra-server queuing delay. ActOp automatically identifies frequently communicating actors and migrates them to the same server transparently to the running application. The migration decisions are driven by a novel scalable distributed graph partitioning algorithm which does not rely on a single server to store the whole communication graph, thereby enabling efficient actor placement even for applications with rapidly changing graphs (e.g., chat services). Further, each server autonomously reduces the queuing delay by learning an internal queuing model and configuring threads according to instantaneous request rate and application demands. We prototype ActOp by integrating it with Orleans – a popular open-source actor system [4, 13]. Experiments with",
+  "paper_file": "papers/2016/04/29/optimizing-distributed-actor-systems-for-dynamic-interactive-services.pdf",
+  "topics": [
+    "distributed-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "actor-model",
+    "distributed-actor-systems",
+    "actor-locality",
+    "graph-partitioning",
+    "thread-allocation",
+    "SEDA",
+    "latency-optimization",
+    "dynamic-scaling",
+    "Orleans"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,231 @@
+URL: https://blog.acolyer.org/2014/11/11/the-power-of-interoperability-why-objects-are-inevitable/
+Title: The Power of Interoperability: why objects are&nbsp;inevitable
+---
+
+The power of interoperability: why objects are inevitable - Aldrich 2013
+
+This is a thought-provoking essay from 2013 in defence of objects and OOP.
+
+> 
+To many, the reason for objects' success is not obvious. Indeed, objects have been strongly criticised. ... While there has unquestionably been some hype about objects over the years, I have too much respect for the many brilliant developers I have met in industry to believe that they have been hoodwinked, for decades now, by a fad. The question therefore arises: might there be genuine advantages of object oriented programming that could explain its success? 
+
+Aldrich's central argument is as follows:
+
+> 
+Object-oriented programming is successful in part because its key technical characteristic - dynamic dispatch - is essential to supporting independent, interoperation extensions; and because interoperable extension is in turn essential to the reuse of architectural code (as in frameworks), and more broadly to the design of modern software ecosystems.
+
+Aldrich argues this is because objects naturally support service abstractions. A service abstraction is an interface that can be implemented independently, allowing different implementations to be used inter-changeably and together. He doesn't use the word 'protocol' in this sense anywhere in the paper, but for me this is very reminiscent of the 'object protocol' terminology - the set of messages that an object sends and receives.
+
+These independent, interoperable protocol implementations are needed to support frameworks. Frameworks in turn support a higher level of resuse - that of an architecture / design, with customisations and extensions plugged in.
+
+> 
+While libraries typically provide reusable primitives such as functions and data structures, frameworks provide architectural reuse: reuse of the overall design of an application, along with code that realizes that design. This reused code may include architecturally important abstractions (typically interfaces), default implementations of those abstractions, and glue code that ties the abstractions together and allows them to communicate. The architectural reuse provided by frameworks is inherently higher-order in nature, because the framework code invokes extensions provided by the application.
+
+Interoperability also supports ecosystems, for example, iOS, Android, and AWS. 
+
+> 
+Software ecosystems have enormous economic importance because of network effects... ecosystems may or may not be based on frameworks in the sense that Johnson defines them, but they have similar requirements for extensibility and interoperability.
+
+Aldrich concludes:
+
+> 
+...objects provide a unique form of service abstraction that supports interoperable extensions. This interoperability cannot be duplicated in other programming paradigms without likewise creating service abstractions, thus simulating the essence of objects. Furthermore, service abstractions are not just of academic interest - they are the foundation of software frameworks and ecosystems, which arguably constitute the richest form of software reuse currently known, and the most significant source of value in the software industry, respectfully.
+
+I agree with Aldrich's assessment of the value of service abstractions, and of frameworks and ecosystems. I'm not convinced that OO is the only way of getting there though (unless we allow Aldrich's claim that anything that support service abstractions is in essence OO). The key to me is in the word 'protocol' conspicuouly missing from the paper. Service abstractions depend on well-defined message-based protocols. They could be object protocols within a language & process, or they could be network protocols between processes. 
+
+I offer Erlang OTP as a great example of a successful framework for building distributed applications, and yet I don't think you'd find many people claiming Erlang to be an OO language. It *is* a language that supports message-based protocols very naturally though. Or take snap, a web framework written in Haskell that permits extensions and interoperability.
+
+Applying the same patterns to resuse not just a design, but a distributed system architecture consider first of all web hooks. These support similar mechanisms of extension, but certainly do not tie implementation to an OO paradigm. 
+
+As we move towards micro-services, I fully expect to see frameworks arising that provide architectural reuse, not the architectural reuse of e.g. a Spring framework-based application within a single process, but architectural reuse of a distributed system architecture. At this level of reuse, we often call the frameworks 'platforms', and the key service abstractions should ultimately be defined in terms of network protocols. Instead of plugging in your Java interface implementation, you'll plugin in your micro-service. PaaS today could be viewed as a very early step in this direction. 
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Programming Languages 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousMonads for functional programmingNext &rsaquo;An Evaluation of Amazon S3's Consistency Behavior
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

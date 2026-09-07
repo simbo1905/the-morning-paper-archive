@@ -1,0 +1,38 @@
+{
+  "date": "20181126",
+  "file_name": "20181126",
+  "slug": "beat-asynchronous-bft-made-practical",
+  "blog_url": "https://blog.acolyer.org/2018/11/26/beat-asynchronous-bft-made-practical/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer reviews the BEAT paper, which presents a family of five asynchronous Byzantine Fault Tolerance (BFT) protocols designed to improve upon HoneyBadgerBFT, the best-performing asynchronous BFT protocol to date. The paper highlights BEAT's flexibility, offering protocol instances optimized for different performance metrics like latency, throughput, bandwidth, or scalability. BEAT protocols are divided into two groups: those supporting full state-machine replication (for smart contracts) and those supporting BFT storage (append-only ledgers). Key innovations include improved threshold encryption, direct threshold coin-flipping, and new building blocks like the generalized fingerprinted cross-checksum and asynchronous verifiable information dispersal (AVID) algorithms. The paper also introduces protocol-specific optimizations, such as Bracha’s broadcast for lower latency (BEAT1) and causal ordering (BEAT2), as well as bandwidth-efficient information dispersal schemes (BEAT3 and BEAT4). The evaluation demonstrates significant performance gains over HoneyBadgerBFT, particularly in latency and throughput.",
+  "paper_title": "BEAT: Asynchronous BFT Made Practical",
+  "paper_authors": [
+    "Sisi Duan",
+    "Michael K. Reiter",
+    "Haibin Zhang"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "CCS'18",
+  "paper_url": "https://www.csee.umbc.edu/~hbzhang/files/beat.pdf",
+  "paper_abstract": "Asynchronous BFT protocols [14, 21, 23, 70] are arguably the most appropriate solutions for building high-assurance and intrusiontolerant permissioned blockchains in wide-area (WAN) environments, as these asynchronous protocols are inherently more robust against timing and denial-of-service (DoS) attacks that can be mounted over an unprotected network such as the Internet. Asynchronous BFT ensures liveness of the protocol without depending on any timing assumptions, which is prudent when the network is controlled by an adversary. In contrast, partially synchronous BFT (e.g., PBFT [27]) guarantees liveness only when the network becomes synchronous (i.e., satisfies timing assumptions). For instance, it was shown in [70] that PBFT would achieve zero throughput against an adversarial asynchronous scheduler. Challenges and opportunities in adopting asynchronous permissioned blockchains. While a recent asynchronous BFT protocol, HoneyBadgerBFT [70], significantly improves prior asynchronous BFT protocols [14, 21, 23, 70], there are still significant pain points and challenges that prevent it from being used in practice. Meanwhile, there are also new opportunities for asynchronous BFT with the rise of blockchains. Performance (latency, throughput) issues. Compared to partially synchronous BFT protocols (e.g., PBFT [27]), HoneyBadgerBFT has significantly higher latency and lower throughput, in part due to its use of expensive threshold cryptography (specifically, threshold encryption [10] and threshold signatures [17]). This is particularly visible in cases where each replica has limited computation power. These limitations are further exacerbated by various engineering issues. For example, HoneyBadgerBFT was evaluated at only 80bit security and it will be even slower if implemented with nowstandard 128-bit security. Moreover, due to its use of an erasurecoding library zfec [93], HoneyBadgerBFT can only support ReedSoloman codes (for which better alternatives exist) and at ...",
+  "paper_file": "papers/2018/11/26/beat-asynchronous-bft-made-practical.pdf",
+  "topics": [
+    "distributed-systems",
+    "systems-security"
+  ],
+  "tags": [
+    "byzantine-fault-tolerance",
+    "consensus-protocols",
+    "asynchronous-systems",
+    "threshold-cryptography",
+    "state-machine-replication",
+    "erasure-coding",
+    "information-dispersal",
+    "blockchain",
+    "latency-optimization",
+    "throughput-optimization"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,48 @@
+{
+  "date": "20190528",
+  "file_name": "20190528",
+  "slug": "cheri-abi",
+  "blog_url": "https://blog.acolyer.org/2019/05/28/cheri-abi/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights CHERIABI as an impressive effort to adapt a complete C/C++/assembly software stack (including FreeBSD, PostgreSQL, and hundreds of libraries) to use hardware-enforced capability-based pointers for memory protection. The key insight is whether strong pointer-based protection can be practical for large-scale C codebases with minimal changes and reasonable performance overhead. CHERIABI achieves this with a 6.8% slowdown, far better than tools like Address Sanitizer (50% overhead). The paper introduces the 'principle of intentional use' alongside least privilege, ensuring privileges are explicitly invoked. The implementation extends CHERI capabilities to userspace, system calls, and kernel interactions, eliminating legacy pointer vulnerabilities. Evaluation shows high compatibility (most programs require no changes) and strong memory-safety benefits, detecting nearly all injected safety violations while maintaining performance.",
+  "paper_title": "CHERI ABI: Enforcing Valid Pointer Provenance and Minimizing Pointer Privilege in the POSIX C Run-Time Environment",
+  "paper_authors": [
+    "John Davis",
+    "Alex Richardson",
+    "Alasdair Armstrong",
+    "Brian Campbell",
+    "Jessica Clarke",
+    "Robert N. M. Watson",
+    "Peter G. Neumann",
+    "Simon W. Moore",
+    "Peter Sewell"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "ASPLOS'19",
+  "paper_url": "https://www.cl.cam.ac.uk/research/security/ctsrd/pdfs/201904-asplos-cheriabi.pdf",
+  "paper_abstract": "The CHERI architecture allows pointers to be implemented as capabilities (rather than integer virtual addresses) in a manner that is compatible with, and strengthens, the semantics of the C language. In addition to the spatial protections offered by conventional fat pointers, CHERI capabilities offer strong integrity, enforced provenance validity, and access monotonicity. The stronger guarantees of these architectural capabilities must be reconciled with the real-world Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than the author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org. ASPLOS’19, April 13–17, 2019, Providence, RI, USA © 2019 Copyright held by the owner/author(s). Publication rights licensed to ACM. ACM ISBN ISBN 978-1-4503-6240-5/19/04. . . $15.00 https://doi.org/10.1145/3297858.3304042 behavior of operating systems, run-time environments, and applications. When the process model, user-kernel interactions, dynamic linking, and memory management are all considered, we observe that simple derivation of architectural capabilities is insufficient to describe appropriate access to memory. We bridge this conceptual gap with a notional abstract capability that describes the accesses that should be allowed at a given point in execution, whether in the kernel or userspace. To investigate this notion at scale, we describe the first adaptation of a full C-language operating system (FreeBSD) with an enterprise database (PostgreSQL) for complete spatial and referential memory safety. We show that awarene...",
+  "paper_file": "papers/2019/05/28/cheri-abi.pdf",
+  "topics": [
+    "operating-systems",
+    "systems-security"
+  ],
+  "tags": [
+    "capability-pointers",
+    "memory-safety",
+    "pointer-provenance",
+    "least-privilege",
+    "CHERI",
+    "POSIX",
+    "FreeBSD",
+    "PostgreSQL",
+    "hardware-enforcement",
+    "system-calls",
+    "dynamic-linking",
+    "context-switching",
+    "buffer-overflows",
+    "variadic-arguments"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

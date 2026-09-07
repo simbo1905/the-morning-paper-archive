@@ -1,0 +1,47 @@
+{
+  "date": "20151013",
+  "file_name": "20151013",
+  "slug": "pivot-tracing-dynamic-causal-monitoring-for-distributed-systems",
+  "blog_url": "https://blog.acolyer.org/2015/10/13/pivot-tracing-dynamic-causal-monitoring-for-distributed-systems/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Pivot Tracing as a dynamic monitoring framework for distributed systems that addresses two key challenges: the lack of relevant diagnostic information in logs and the overwhelming volume of irrelevant data. Unlike static logging approaches, Pivot Tracing allows runtime instrumentation, enabling users to capture causality between events across multiple processes and applications without prior knowledge of what to log. The paper introduces a query-based system that models system events as tuples, allowing users to submit relational queries over distributed data streams. Pivot Tracing's design is inspired by AspectJ, using tracepoints, advice, and a 'happens-before' relationship to dynamically weave monitoring logic into running systems. The framework is evaluated in the Hadoop stack, showing minimal performance overhead (0.3% in CPU-bound cases) and demonstrating its utility in diagnosing bugs across multi-tenant, multi-application environments.",
+  "paper_title": "Pivot Tracing: Dynamic Causal Monitoring for Distributed Systems",
+  "paper_authors": [
+    "Jonathan Mace",
+    "Peter Bodik",
+    "Madison Yocum",
+    "Ionel Gog",
+    "Kaushik Veeraraghavan",
+    "Rajesh Balamurali",
+    "Sylvia Ratnasamy",
+    "Scott Shenker"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SOSP'15",
+  "paper_url": "http://sigops.org/sosp/sosp15/current/2015-Monterey/printable/122-mace.pdf",
+  "paper_abstract": "counters, and metrics – have at least two fundamental limitations: what gets recorded is defined a priori, at development or deployment time, and the information is captured in a component- or machine-centric way, making it extremely difficult to correlate events that cross these boundaries. While there has been great progress in using machine learning techniques [60, 74, 76, 95] and static analysis [97, 98] to improve the quality of logs and their use in troubleshooting, they carry an inherent tradeoff between recall and overhead, as what gets logged must be defined a priori. Similarly, with monitoring, performance counters may be too coarse-grained [73]; and if a user requests additional metrics, a cost-benefit tug of war with the developers can ensue [21]. Dynamic instrumentation systems such as Fay [51] and DTrace [38] enable the diagnosis of unanticipated performance problems in production systems [37] by providing the ability to select, at runtime, which of a large number of tracepoints to activate. Both Fay and DTrace, however, are still limited when it comes to correlating events that cross address-space or OS-instance boundaries. This limitation is fundamental, as neither Fay nor DTrace can affect the monitored system to propagate the monitoring context across these boundaries. In this paper we combine dynamic instrumentation with causal tracing techniques [39, 52, 87] to fundamentally increase the power and applicability of either technique. We present Pivot Tracing, a monitoring framework that gives operators and users, at runtime, the ability to obtain an arbitrary metric at one point of the system, while selecting, filtering, and grouping by events meaningful at other parts of the system, even when crossing component or machine boundaries. Like Fay, Pivot Tracing models the monitoring and tracing of a system as high-level queries over a dynamic dataset of distributed events. Pivot Tracing exposes an API for specifying such queries and efficiently evalua...",
+  "paper_file": "papers/2015/10/13/pivot-tracing-dynamic-causal-monitoring-for-distributed-systems.pdf",
+  "topics": [
+    "distributed-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "dynamic-tracing",
+    "causal-monitoring",
+    "distributed-tracing",
+    "query-based-monitoring",
+    "aspect-oriented-programming",
+    "runtime-instrumentation",
+    "hadoop",
+    "baggage-propagation"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Time series of HDFS disk read throughput",
+      "caption": "Time series of HDFS disk read throughput aggregated by each HDFS DataNode, as measured by Pivot Tracing query Q1."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

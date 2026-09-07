@@ -1,0 +1,40 @@
+{
+  "date": "20200921",
+  "file_name": "20200921",
+  "slug": "watchman",
+  "blog_url": "https://blog.acolyer.org/2020/09/21/watchman/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the significant problem of dependency conflicts in the Python ecosystem, particularly due to the prevalence of range constraints in version specifications (92.2% of top Python projects vs. 0.03% in Java). He notes that conflicts often arise from transitive dependencies and pip's eager dependency resolution strategy, which can lead to unexpected version changes. The paper studies 235 real-world dependency conflict issues, categorizing their causes (e.g., overly specific constraints, upper-bound violations) and common developer fixes (e.g., adjusting constraints, coordinating with upstream developers). The authors then introduce Watchman, a tool that builds a full dependency graph for PyPI packages to detect existing conflicts and predict future ones by analyzing version constraints and installation rules. Colyer praises Watchman's effectiveness, noting it detected all conflicts in backtesting and accurately predicted 143 of 156 potential conflicts, with real-world deployment identifying 63 confirmed issues.",
+  "paper_title": "Watchman: monitoring dependency conflicts for Python library ecosystem",
+  "paper_authors": [
+    "Ying Wang",
+    "Yepang Liu",
+    "Shing-Chi Cheung"
+  ],
+  "paper_year": 2020,
+  "paper_venue": "ICSE '20",
+  "paper_url": "https://yepangliu.github.io/files/ICSE2020_Watchman.pdf",
+  "paper_abstract": "CCS CONCEPTS The PyPI ecosystem has indexed millions of Python libraries to allow developers to automatically download and install dependencies of their projects based on the specified version constraints. Despite the convenience brought by automation, version constraints in Python projects can easily conflict, resulting in build failures. We refer to such conflicts as Dependency Conflict (DC) issues. Although DC issues are common in Python projects, developers lack tool support to gain a comprehensive knowledge for diagnosing the root causes of these issues. In this paper, we conducted an empirical study on 235 real-world DC issues. We studied the manifestation patterns and fixing strategies of these issues and found several key factors that can lead to DC issues and their regressions. Based on our findings, we designed and implemented Watchman, a technique to continuously monitor dependency conflicts for the PyPI ecosystem. In our evaluation, Watchman analyzed PyPI snapshots between 11 Jul 2019 and 16 Aug 2019, and found 117 potential DC issues. We reported these issues to the developers of the corresponding projects. So far, 63 issues have been confirmed, 38 of which have been quickly fixed by applying our suggested patches. • Software and its engineering → Software libraries and repositories; ∗ Ming Wen and Yepang Liu are the corresponding authors of this paper. HUST, SUSTech, and HKUST are short for Huazhong University of Science and Technology, Southern University of Science and Technology, and The Hong Kong University of Science and Technology, respectively. Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than ACM must be honored. Abstracting with credit is permitted. To copy ...",
+  "paper_file": "papers/2020/09/21/watchman.pdf",
+  "topics": [
+    "programming-languages",
+    "software-engineering"
+  ],
+  "tags": [
+    "dependency-management",
+    "version-constraints",
+    "transitive-dependencies",
+    "conflict-detection",
+    "Python-ecosystem",
+    "package-managers"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Illustrative examples of dependency conflict issues",
+      "caption": "Figure 1: Illustrative examples of dependency conflict issues"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

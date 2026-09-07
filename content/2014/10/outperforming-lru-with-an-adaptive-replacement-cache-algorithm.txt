@@ -1,0 +1,260 @@
+URL: https://blog.acolyer.org/2014/10/08/outperforming-lru-with-an-adaptive-replacement-cache-algorithm/
+Title: Outperforming LRU with an Adaptive Replacement Cache&nbsp;Algorithm
+---
+
+Outperforming LRU with an Adaptive Replacement Cache Algorithm
+
+Megiddo & Modha, 2004
+
+Ask most people to name a cache management algorithm, and the first thing that springs to their mind is likely to be LRU. But it turns out there is a better (lesser-known) algorithm called ARC (Adaptive Replacement Cache), as used for example by OSv.
+
+> 
+The adaptive replacement cache is a self-tuning, low-overhead algorithm that responds online to changing access patterns. ARC continually balances between the recency and frequency features of the workload, demonstrating that adaptation eliminates the need for the work- load-speciﬁc pretuning that plagued many previous proposals to improve LRU.
+
+Sounds good, but is it really complicated to implement?
+
+> 
+Like LRU, ARC is easy to implement, and its running time per request is essentially independent of the cache size.
+
+And of course what really matters is that:
+
+> 
+ARC leads to substantial performance gains in terms of an improved hit ratio compared with LRU for a large range of cache sizes.
+
+So how does it work?
+
+> 
+ARC maintains two LRU pages lists: L1 maintains pages that have been seen only once, recently, while L2 maintains pages that have been seen at least twice, recently.
+
+L1 captures recency while L2 captures frequency. Strive to keep the two lists roughly the same length...
+
+This approach can even beat alternative algorithms that have been tuned to optimal settings based on historic workloads:
+
+> 
+Surprisingly, ARC, which operates completely online, delivers performance comparable to several state-of-the-art cache-replacement policies, even when, with hindsight, these policies choose the best ﬁxed values for their tuning parameters. ARC matches LRU’s ease of implementation, requiring only two LRU lists.
+
+See the paper for full details and some performance comparison results.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Algorithms 
+ 
+ Algorithms and data structures 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousA storm-drain for "The Morning Paper"Next &rsaquo;Certificate Transparency
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;Outperforming LRU with an Adaptive Replacement Cache Algorithm&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Patience is a virtue | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Tachyon: Reliable, Memory Speed Storage for Cluster Computing | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: RIPQ: Advanced photo caching on flash for Facebook | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

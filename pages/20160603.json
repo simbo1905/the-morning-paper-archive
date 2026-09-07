@@ -1,0 +1,39 @@
+{
+  "date": "20160603",
+  "file_name": "20160603",
+  "slug": "semi-supervised-sequence-learning",
+  "blog_url": "https://blog.acolyer.org/2016/06/03/semi-supervised-sequence-learning/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Dai & Le's paper on semi-supervised sequence learning as a clever and significant contribution to the field of NLP and deep learning. The key insight is the use of a sequence-to-sequence autoencoder to pre-train an LSTM model in an unsupervised manner, which can then be fine-tuned for supervised tasks like document classification. By setting the target sequence identical to the input during unsupervised training, the model learns meaningful sentence representations without labeled data. Colyer emphasizes the practical benefits of this approach, such as improved training stability and the ability to leverage vast amounts of unlabeled data, which is far cheaper than labeled data. The SA-LSTM method achieves competitive or superior results across multiple benchmarks, including sentiment analysis and larger document classification tasks, demonstrating its generality and robustness. The paper stands out for its simplicity in method description, focusing heavily on evaluation and demonstrating the power of semi-supervised learning in deep learning models.",
+  "paper_title": "Semi-Supervised Sequence Learning",
+  "paper_authors": [
+    "Andrew M. Dai",
+    "Quoc V. Le"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "NIPS",
+  "paper_url": "https://papers.nips.cc/paper/5949-semi-supervised-sequence-learning.pdf",
+  "paper_abstract": "We present two approaches to use unlabeled data to improve Sequence Learning with recurrent networks. The first approach is to predict what comes next in a sequence, which is a language model in NLP. The second approach is to use a sequence autoencoder, which reads the input sequence into a vector and predicts the input sequence again. These two algorithms can be used as a “pretraining” algorithm for a later supervised sequence learning algorithm. In other words, the parameters obtained from the pretraining step can then be used as a starting point for other supervised training models. In our experiments, we find that long short term memory recurrent networks after pretrained with the two approaches become more stable to train and generalize better. With pretraining, we were able to achieve strong performance in many classification tasks, such as text classification with IMDB, DBpedia or image recognition in CIFAR-10.",
+  "paper_file": "papers/2016/06/03/semi-supervised-sequence-learning.pdf",
+  "topics": [
+    "machine-learning"
+  ],
+  "tags": [
+    "semi-supervised-learning",
+    "sequence-to-sequence",
+    "LSTM",
+    "autoencoder",
+    "NLP",
+    "sentiment-analysis",
+    "document-classification"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Sequence autoencoder architecture",
+      "caption": "Figure 1: The sequence autoencoder for the sequence “WXYZ”. The sequence autoencoder uses a recurrent network to read the input sequence in to the hidden state, which can then be used to reconstruct the original sequence."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

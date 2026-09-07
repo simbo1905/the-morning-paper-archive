@@ -1,0 +1,33 @@
+{
+  "date": "20150804",
+  "file_name": "20150804",
+  "slug": "the-good-the-bad-and-the-ugly-an-empirical-study-of-implicit-type-conversions-in-javascript",
+  "blog_url": "https://blog.acolyer.org/2015/08/04/the-good-the-bad-and-the-ugly-an-empirical-study-of-implicit-type-conversions-in-javascript/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a study by Pradel and Sen that empirically analyzes implicit type coercions in JavaScript, a language notorious for its confusing and error-prone type conversions. The authors dynamically analyze real-world JavaScript code from top websites and benchmark suites, finding that coercions are widely used (in 80.42% of function executions) but mostly harmless (98.85%). They classify coercions into likely harmless and potentially harmful categories based on their deviation from other languages' semantics or complexity. Key insights include the prevalence of coercions in conditionals, the rarity of explicit type conversions, and the suggestion that future language designs could simplify or restrict harmful coercions. The paper also notes that most coercions do not significantly harm code understandability, though some could be refactored for clarity.",
+  "paper_title": "The Good, the Bad, and the Ugly: An Empirical Study of Implicit Type Conversions in JavaScript",
+  "paper_authors": [
+    "Michael Pradel",
+    "Koushik Sen"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "ECOOP",
+  "paper_url": "http://mp.binaervarianz.de/ecoop2015.pdf",
+  "paper_abstract": "Gradual typing, as adopted by languages like TypeScript, aims to combine the flexibility of dynamic typing with the safety guarantees of static type systems. However, the deployed gradual typing systems are inherently unsound, meaning in practice, type inconsistencies are common and can hide or cause subtle bugs. This problem is particularly concerning for widely used libraries, where type annotations serve as both documentation and contracts for users. A value with a wrong type in such libraries may trigger cascading failures in downstream code, including unintended control-flow transfers. Existing work has explored testing-based approaches to detect type mismatches. However, these methods fall short in adversarial settings where malicious inputs are intentionally crafted to exploit type inconsistencies. This work introduces TypePatrol, the first adversarial testing framework to uncover securityrelevant type mismatches. TypePatrol systematically mutates values in unit tests and observes the runtime types. Our approach focuses on three classes of security-relevant effects: bypassing input sanitization, invoking incorrect methods, and functions returning wrong types. We apply TypePatrol to 30 popular JavaScript and TypeScript libraries, and discover hundreds of relevant type inconsistencies. In seven cases, we propose fixes through ten pull requests, the majority of which were accepted, underscoring the real-world relevance of our approach. Crucially, TypePatrol shows that adversarial testing exposes bugs that slip through conventional testing in even the most popular well-maintained projects. We also discuss cases in which type inconsistencies lead to serious security issues, confirming that these bugs are a serious threat to modern software. 2012 ACM Subject Classification Software and its engineering → Software libraries and repositories",
+  "paper_file": "papers/2015/08/04/the-good-the-bad-and-the-ugly-an-empirical-study-of-implicit-type-conversions-in-javascript.pdf",
+  "topics": [
+    "programming-languages"
+  ],
+  "tags": [
+    "type-coercion",
+    "javascript",
+    "dynamic-analysis",
+    "type-systems",
+    "implicit-conversion",
+    "conditional-coercion",
+    "equality-checks"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

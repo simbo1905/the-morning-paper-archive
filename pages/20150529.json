@@ -1,0 +1,38 @@
+{
+  "date": "20150529",
+  "file_name": "20150529",
+  "slug": "powergraph-distributed-graph-parallel-computation-on-natural-graphs",
+  "blog_url": "https://blog.acolyer.org/2015/05/29/powergraph-distributed-graph-parallel-computation-on-natural-graphs/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights PowerGraph as an innovative solution for handling power-law distributed graphs, which are common in real-world phenomena like social networks and the web. The paper introduces a vertex-cut partitioning strategy that addresses the challenges posed by high-degree vertices in such graphs, including work-imbalance, partitioning difficulties, and single-node storage constraints. The key insight is that vertex-cuts, where edges are partitioned across machines and vertices can span multiple machines, significantly improve load balancing and reduce communication overhead compared to traditional edge-cuts. PowerGraph also proposes the Gather, Apply, and Scatter (GAS) abstraction, which enables parallel execution within vertex computations, allowing a single vertex program to span multiple machines. This abstraction retains the 'think-like-a-vertex' philosophy while distributing computation efficiently across a cluster.",
+  "paper_title": "PowerGraph: Distributed Graph-Parallel Computation on Natural Graphs",
+  "paper_authors": [
+    "Joseph E. Gonzalez",
+    "Yucheng Low",
+    "Haijie Gu",
+    "Danny Bickson",
+    "Carlos Guestrin"
+  ],
+  "paper_year": 2012,
+  "paper_venue": "OSDI'12",
+  "paper_url": "https://www.usenix.org/system/files/conference/osdi12/osdi12-final-167.pdf",
+  "paper_abstract": "in the graph. Graph-parallel abstractions rely on each vertex having a small neighborhood to maximize parallelism and effective partitioning to minimize communication. However, graphs derived from real-world phenomena, like social networks and the web, typically have powerlaw degree distributions, which implies that a small subset of the vertices connects to a large fraction of the graph. Furthermore, power-law graphs are difficult to partition [1, 28] and represent in a distributed environment. To address the challenges of power-law graph computation, we introduce the PowerGraph abstraction which exploits the structure of vertex-programs and explicitly factors computation over edges instead of vertices. As a consequence, PowerGraph exposes substantially greater parallelism, reduces network communication and storage costs, and provides a new highly effective approach to distributed graph placement. We describe the design of our distributed implementation of PowerGraph and evaluate it on a large EC2 deployment using real-world applications. In particular our key contributions are: Large-scale graph-structured computation is central to tasks ranging from targeted advertising to natural language processing and has led to the development of several graph-parallel abstractions including Pregel and GraphLab. However, the natural graphs commonly found in the real-world have highly skewed power-law degree distributions, which challenge the assumptions made by these abstractions, limiting performance and scalability. In this paper, we characterize the challenges of computation on natural graphs in the context of existing graphparallel abstractions. We then introduce the PowerGraph abstraction which exploits the internal structure of graph programs to address these challenges. Leveraging the PowerGraph abstraction we introduce a new approach to distributed graph placement and representation that exploits the structure of power-law graphs. We provide a detailed analysis and ex...",
+  "paper_file": "papers/2015/05/29/powergraph-distributed-graph-parallel-computation-on-natural-graphs.pdf",
+  "topics": [
+    "distributed-systems",
+    "graph-computation"
+  ],
+  "tags": [
+    "graph-parallel",
+    "power-law-graphs",
+    "vertex-cut",
+    "edge-cut",
+    "GAS-model",
+    "partitioning",
+    "graph-algorithms",
+    "distributed-computing"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,41 @@
+{
+  "date": "20180427",
+  "file_name": "20180427",
+  "slug": "smoothoperator-reducing-power-fragmentation-and-improving-power-utilization-in-large-scale-datacenters",
+  "blog_url": "https://blog.acolyer.org/2018/04/27/smoothoperator-reducing-power-fragmentation-and-improving-power-utilization-in-large-scale-datacenters/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Facebook's challenge of power being the major limiting factor in datacenter expansion, despite low overall power budget utilization. The paper by Hsu et al. identifies power fragmentation—where synchronous power demands of co-located services create unbalanced peaks—as a key inefficiency. The authors propose SmoothOperator, a workload-aware placement framework that reshapes power demand by balancing asynchronous power consumption patterns across services (e.g., web clusters peaking during the day, database clusters peaking at night, and Hadoop clusters running constantly). By clustering services with asynchronous power demands and strategically placing them across the multi-level power delivery infrastructure, SmoothOperator reduces peak power demands by up to 13.1% and enables hosting 13% more machines without infrastructure changes. The approach also achieves significant throughput improvements (15% for latency-critical services and 11% for batch services) and reduces energy slack by 44%.",
+  "paper_title": "SmoothOperator: reducing power fragmentation and improving power utilization in large-scale datacenters",
+  "paper_authors": [
+    "Yu-Cheng Hsu",
+    "Gu-Yeon Wei",
+    "David Brooks"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "ASPLOS'18",
+  "paper_url": "https://research.fb.com/publications/smoothoperator-reducing-power-fragmentation-and-improving-power-utilization-in-large-scale-datacenters/",
+  "paper_abstract": "With the ever growing popularity of cloud computing and web services, Internet companies are in need of increased computing capacity to serve the demand. However, power has become a major limiting factor prohibiting the growth in industry: it is often the case that no more servers can be added to datacenters without surpassing the capacity of the existing power infrastructure. In this work, we first investigate the power utilization in Facebook datacenters. We observe that the combination of provisioning for peak power usage, highly fluctuating traffic, and multi-level power delivery infrastructure leads to significant power budget fragmentation problem and inefficiently low power utilization. To address this issue, our insight is that heterogeneity of power consumption patterns among different services provides opportunities to re-shape the power profile of each power node by re-distributing services. By grouping services with asynchronous peak times under the same power node, we can reduce the peak power of each node and thus creating more power head-rooms to allow more servers hosted, achieving higher throughput. Based on this insight, we develop a workload-aware service placement framework to systematically spread the service instances with synchronous power patterns evenly under the power supply tree, greatly reducing the peak power draw at power nodes. We then leverage dynamic power profile reshaping to maximally utilize the headroom unlocked by our placement framework. Our experiments based on real production workload and power traces show that we are able to host up to 13% more machines in production, without changing the underlying power infrastructure. Utilizing the unleashed power headroom with dynamic reshaping, we achieve up to an estimated total of 15% and 11% throughput improvement Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed ...",
+  "paper_file": "papers/2018/04/27/smoothoperator-reducing-power-fragmentation-and-improving-power-utilization-in-large-scale-datacenters.pdf",
+  "topics": [
+    "distributed-systems",
+    "cloud-computing"
+  ],
+  "tags": [
+    "power-management",
+    "datacenter-infrastructure",
+    "workload-placement",
+    "asynchrony-scoring",
+    "peak-power-reduction",
+    "energy-efficiency",
+    "multi-level-power-delivery"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Power budget fragmentation in multi-level power delivery infrastructure",
+      "caption": "Grouping servers with synchronous power consumption patterns together often lead to rapid local peaks, which consume the local power budgets quickly and cause significant power budget fragmentation."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

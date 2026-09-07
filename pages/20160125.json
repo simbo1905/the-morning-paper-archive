@@ -1,0 +1,47 @@
+{
+  "date": "20160125",
+  "file_name": "20160125",
+  "slug": "wavefs",
+  "blog_url": "https://blog.acolyer.org/2016/01/25/wavefs/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the Wave Transactional Filesystem (Wave FS), a distributed filesystem that introduces a transactional model spanning multiple files with reads, writes, and seeks. Adrian Colyer highlights Wave FS's novel file-slicing abstraction, which treats file data as immutable, arbitrarily-sized byte sequences (slices) stored separately from mutable metadata that tracks their arrangement. This design enables strong transactional guarantees and a richer API while maintaining performance comparable to HDFS. The paper demonstrates that a sample application using file slicing outperforms traditional approaches by a factor of four due to reduced I/O costs. The key insight is the separation of immutable data slices from mutable metadata, allowing filesystem-level transactions to be implemented via metadata transactions alone, leveraging HyperDex for atomic operations.",
+  "paper_title": "The Design and Implementation of the Wave Transactional Filesystem",
+  "paper_authors": [
+    "Robert Escriva",
+    "Étienne R. G. R. Sirer"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "",
+  "paper_url": "http://arxiv.org/pdf/1509.07821v1.pdf",
+  "paper_abstract": "current or non-sequential modifications to files. This obviates the need to worry about nuances in filesystem behavior, but fails to support use cases requiring concurrency or random-access writes. Flat Datacenter Storage [29] is only eventually consistent and requires a network with full-bisection bandwidth, which can be cost prohibitive and is not possible in all environments. This paper introduces the Wave Transactional Filesystem (WTF), a new distributed filesystem that contains a transactional model with a new API that provides file slicing operations. A WTF transaction may span multiple files and is fully general; applications can include calls such as read, write, and seek within their transaction. This file slicing API enables applications to efficiently read, write, and rearrange files without rewriting the underlying data. For example, applications may concatenate multiple files without reading them; garbage collect and compress a database without writing the data; and even sort the contents of record-oriented files without rewriting the files’ contents. The key design decision that enables WTF’s advanced feature set is an architecture that represents filesystem data and metadata to ensure that filesystem-level transactions may be performed using, solely, transactional operations on metadata. Custom storage servers hold filesystem data and handle the bulk of I/O requests. These servers retain no information about the structure of the filesystem; instead, they treat all data as opaque, immutable, variable-length arrays of bytes, called slices. WTF stores references to these slices in HyperDex [15] alongside metadata that describes how to combine the slices to reconstruct files’ contents. This structure enables most bookkeeping to be done at the metadata level, within the scope of HyperDex transactions. Supporting this architecture is a custom concurrency control layer that decouples WTF transactions from the underlying HyperDex transactions. This layer ensu...",
+  "paper_file": "papers/2016/01/25/wavefs.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "transactional-filesystem",
+    "file-slicing",
+    "metadata-separation",
+    "immutable-data",
+    "distributed-storage",
+    "hyperdex",
+    "consistency",
+    "POSIX",
+    "crash-consistency"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "WTF distributed architecture",
+      "caption": "WTF employs a distributed architecture consisting of metadata storage, data storage, a replicated coordinator, and the client library."
+    },
+    {
+      "number": "Figure 2",
+      "title": "File slicing example",
+      "caption": "A 4 MB file with five writes that write or overwrite different portions of the file. This figure shows the slices that were written, the resulting file’s content, and the metadata in HyperDex."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

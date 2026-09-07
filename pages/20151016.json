@@ -1,0 +1,37 @@
+{
+  "date": "20151016",
+  "file_name": "20151016",
+  "slug": "holistic-configuration-management-at-facebook",
+  "blog_url": "https://blog.acolyer.org/2015/10/16/holistic-configuration-management-at-facebook/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Facebook's holistic configuration management system as a robust solution to handle thousands of daily configuration changes made by thousands of engineers. The paper describes how configuration is used for everything from feature flags and A/B testing to traffic control, monitoring, and machine learning model updates. The key insight is treating configuration as code, with four layers of safeguards (automated validation, code review, CI testing, and canary deployment) to prevent errors. The system's core, Configerator, ensures scalability, reliability, and availability across hundreds of thousands of servers globally, even in the face of failures. The blog emphasizes the innovative use of Git for configuration storage, automated canary testing driven by configuration, and the Landing Strip mechanism to manage concurrent commits.",
+  "paper_title": "Holistic Configuration Management at Facebook",
+  "paper_authors": [
+    "Tang et al."
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SOSP'15",
+  "paper_url": "http://sigops.org/sosp/sosp15/current/2015-Monterey/printable/008-tang.pdf",
+  "paper_abstract": "the many challenges. This paper presents Facebook’s holistic conﬁguration management solution. Facebook uses Chef [7] to manage OS settings and software deployment [11], which is not the focus of this paper. Instead, we focus on the homegrown tools for managing applications’ dynamic runtime conﬁgurations that may be updated live multiple times a day, without application redeployment or restart. Examples include gating product rollouts, managing application-level trafﬁc, and running A/B testing experiments. Below, we outline the key challenges in conﬁguration management for an Internet service and our solutions. Conﬁguration sprawl. Facebook internally has a large number of systems, including frontend products, backend services, mobile apps, data stores, etc. They impose different requirements on conﬁguration management. Historically, each system could use its own conﬁguration store and distribution mechanism, which makes the site as a whole hard to manage. To curb the conﬁguration sprawl, we use a suite of tools built on top of a uniform foundation to support the diverse use cases. Currently, the tools manage hundreds of thousands of conﬁgs (i.e., conﬁguration ﬁles) from a central location, and distribute them to hundreds of thousands of servers and more than one billion mobile devices. Conﬁguration authoring and version control. A largescale distributed system often has many ﬂexible knobs that can be tuned live. The median size of a conﬁg at Facebook is 1KB, with large ones reaching MBs or GBs. Manually editing these conﬁgs is error prone. Even a minor mistake could potentially cause a site-wide outage. We take a truly conﬁguration-as-code approach to compile and generate conﬁgs from high-level source code. We store the conﬁg programs and the generated conﬁgs in a version control tool. Facebook’s web site and mobile apps are very dynamic. Every day, they undergo thousands of online conﬁguration changes, and execute trillions of conﬁguration checks to personalize th...",
+  "paper_file": "papers/2015/10/16/holistic-configuration-management-at-facebook.pdf",
+  "topics": [
+    "distributed-systems",
+    "operating-systems",
+    "cloud-computing"
+  ],
+  "tags": [
+    "configuration-management",
+    "canary-testing",
+    "feature-flags",
+    "A/B-testing",
+    "git",
+    "consistency",
+    "high-availability",
+    "scalability",
+    "config-as-code",
+    "traffic-control"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,516 @@
+URL: https://blog.acolyer.org/2017/08/28/using-chatbots-against-voicespam-analyzing-lennys-effectiveness/
+Title: Using chatbots against voicespam: analyzing Lenny&#8217;s&nbsp;effectiveness
+---
+
+Using chatbots against voice spam: analyzing Lenny's effectiveness Sahin et al., SOUPS'17
+
+Act I, Scene I. Lenny is at home in his living room. The phone rings.
+
+Lenny: Hello, thi- this is Lenny!
+
+Telemarketer: Lenny, I'm looking for Mr. NameRedacted
+
+Lenny: Uh- sso- sorry, I'b- I can barely hear you there?
+
+Telemarketer: homeowner
+
+Lenny: ye- yes yes yes
+
+Telemarketer: Mr. NameRedacted, we're giving free estimates for any work you need on your house. Were you thinking about having any projects? A little craning driveway, roof work, anything you need done. We'll give you a free estimate.
+
+Lenny: oh good, yes, yes, yes.
+
+Telemarketer: what would you like to have done? What were you thinking about? Anything around the house?
+
+Lenny: uh yes, yes, uh, uh, someone, someone did- did say last week or someone did call last week about the same thing, wa-was that, was that, you?
+
+Telemarketer: No, sir. I've might have been in another company. What was it that you were doing?
+
+Lenny: ye-yes. ss- sorry, what- wa- what was your name again?
+
+Telemarketer: yes. What were you thinking about having done?
+
+Lenny: well, it- it it's funny that you should call, because my third eldest Larissa, uhh, she, she was talking about this. uh, just this last week and you, you know sh- she is- she is very smart I would - I would give her that, because, you know she was the first in the family, to go to the university, and she passed with distinctions, you know we're- we're all quit proud of here yes yes, so uhh, yes she was saying that I should , look, you known, get into the, look into this sort of thing. uhh, so, what more can you tell me about it?
+
+Telemarketer: ...
+
+(The actual conversation keeps going for over 11 minutes - see Appendix A in the paper for the full transcript.)
+
+Even better, you can listen to a whole playlist's worth of Lenny's conversations on YouTube. If you haven't guessed already, Lenny is a bot which plays a set of pre-recorded voice messages to interact with spammers. You might be surprised just how simple Lenny actually is (though a lot of thought has gone into what he says), yet he's proven to be very effective at keeping spammers talking for a long time.
+
+## The problem of unwanted phone calls.
+
+Just in the US alone there were over 5 million complaints about unwanted or fraudulent calls in 2016. About 75% of generic fraud-related complaints cite telephone as the initial method of contact. The people behind unwanted calls may be for example fundraising, telemarketing, or simply scamming. The callers may use robocalls playing pre-recorded messages, or real people in call centres. Having real people do the calling makes campaigns more effective. Among the 5 million 2016 complaints, 64% were robocalls, and hence 36% involved human agents. The cost of employing people becomes the limiting factor for fraudsters.
+
+Callers have a script that they follow. For example, many spam calls begin with the following components:
+
+- greeting (e.g. 'Hello')
+
+- self-identification (name of the call agent)
+
+- company identification (name of the business)
+
+- warm up talk ('how are you today?)
+
+- statement of the reason for the call
+
+- callee identity check (callee's name and attribute)
+
+Through a call, spammers may ask a number of questions. Even if the target does not in the end follow through on the offer, this information can used to enrich datasets for future campaigns. Here's a quick summary of popular spam call types and the sorts of information they may request:
+
+ (Enlarge).
+
+## How Lenny works
+
+> 
+
+ Although there is no indisputable evidence of this chatbot’s origins, some information can be found online. Lenny has been reported to be a recording performed for a specific company who wanted to answer telemarketing calls politely. Later, the recordings were modified to suit residential calls.
+
+Even without any AI or speech recognition mechanism Lenny is able to trick many people and keep conversations going for many minutes, and in one case up to an hour!
+
+Conversations with a hosted version of Lenny are available on a public YouTube channel (conducted in a country and under conditions which make the recordings legal), and it is a selection of 200 calls from this archive which are analysed for this paper. When a phone user identifies a spam call they can transfer the call to the PBX server hosting Lenny, or alternatively have blacklisted spam numbers sent straight to Lenny without even answering.
+
+Lenny simply plays a set of audio recordings one after another to interact with the caller. The same set of prompts is always used in the same order. Lenny is controlled by an IVR script which allows simple scripting and detection of silences.
+
+> 
+
+ The script starts with a simple “Hello, this is Lenny.” and will wait for the caller to take his turn. If he does not respond within 7 seconds, the server switches to a set of “Hello?” playbacks until the caller takes his turn. However, if the caller speaks, the IVR script waits until he finishes his turn. The script detects the end of the caller’s turn by detecting a 1.55 second long silence period, at this point it will play the next recording. When the 16 distinct turns that are available have been played, it returns to the 5th turn (the 4 first prompts are supposed to be introductory adjacency pairs) and continues playing those 12 turns sequentially, forever.
+
+## The secret behind Lenny: conversation analysis
+
+Why does a fixed set of 16 pre-recorded responses work so well?? Lenny's secret is that it's based upon findings from Conversation Analysis - something that might be of use to anyone designing bots in other contexts too!
+
+> 
+
+ Conversation Analysis (CA) is a sociological perspective which aims at studying the organization of natural talk in interactional order to uncover the seen but unnoticed methodical apparatus which speakers and recipients use in order to solve the basic organizational issues they deal with while talking. Trying to show how the participants to a conversational exchange orient themselves on those methods, CA adopts a descriptive stance, deeply rooted into the detailed analysis of recorded conversational exchanges.
+
+Key results from CA date back to the 1970's. There are four main mechanisms in conversations which have been isolated and explained:
+
+- The turn-taking apparatus: methods used to minimise gaps and overlaps while taking turns in a conversation
+
+- Trouble management: how speakers repair any trouble in hearing, understanding, or speaking
+
+- The 'sequential organisations of actions in talk exchanges' which describes how conversationalists assemble their turns in sequences of actions that go together. One common type of sequence is the adjacency pair: for example question -\> answer, greeting exchanges, offers -\> accept/reject and so on. 
+
+> 
+
+ ... adjacency pairs point to the normative expectations that are embedded into the ways we order turns at talk as pairs.
+
+- The last mechanism clarifies how speakers use membership categories during talk exchanges (for example, being elderly). 
+
+## Calls with Lenny
+
+The 200 randomly selected calls from the 487 publicly available at the time of the study were sent to a commercial transcription service, and selected fragments were further converted to the 'Jeffersonian transcription notation' required for very fine-grained analysis. Call logs from 19,402 calls to the PBX were also analysed.
+
+Best not to answer your phone if someone calls around 1pm on a Wednesday it seems!
+
+Here's the breakdown of how long Lenny managed to keep spammers talking for conversations on the YouTube channel. Spammers on average spend 10:13 minutes talking to Lenny, and these conversations have an average of 58 turns!
+
+> 
+
+ ...72% of calls contain Lenny's set of scripts repeated more than once. On average, a caller hears 27 turns of Lenny, which corresponds to 1.7x repetition of the whole script... Surprisingly, in only 11 calls (5%), the caller realizes and states that he is talking to a recording or an automated system.
+
+Spammers get frustrated talking to Lenny, but only scammers tend to start cursing!
+
+Here's a reminder of Lenny's first five steps (T1 to T5):
+
+From a CA perspective there are both sequential and turn-constructional features here which help to keep the call going. T1 and T2 are first pair parts from adjacency parts, which project second pair parts. T3 and T4 are designed as second-pair parts of an adjacency pair (i.e., they are designed to follow a question, proposal, request etc.). T4 adds the 'oh' turn-initiated particle, "which has been demonstrably analyzed as a change-of-state token" and works well when followed by an assessment token ('good') and the affirmations (yes, yes, yes). T5 pre-supposes that the reason for the call has been previously introduced by the caller. Almost all turns display self-initiated self-repairs.
+
+> 
+
+ Inspecting Lenny’s turns in isolation is not sufficient enough to understand how Lenny can be so efficient in so many different calls. This efficiency is locally built in each call development. Once embedded into a real call, Lenny’s turns display an understanding of prior turn and brings new material to be understood by his co-participant. This in situ inspection of Lenny’s turn is inevitably made, with more or less care, by the participants, in order to build their own contribution and to fit each new turn into the ongoing conversation. This is what CA calls the “next-turn proof procedure” and what explains the various, flexible ways in which Lenny’s turns can play their part in some calls.
+
+Sadly, we have to wait for another paper for analysis of Lenny's conversation beyond the introduction. (But remember you can check out some of the recorded conversation to hear it for yourself).
+
+## How to design a Lenny-like bot
+
+At the end of the paper, you'll find a set of eight guidelines for developing Lenny-like bots, some of which may also be useful in other contexts!
+
+- Maximise coherence between all the features of the chatbot available at first hearing (e.g., voice, accent, gender, class of age membership etc., must all be congruent).
+
+- The first available recognised identity of the bot should be tied to repeat queries - develop a set of repeat queries e.g., based on hearing issues, connection problems, incidents during the call and so on.
+
+- Design a list of queries checking the identity of the caller, organisation etc.
+
+- Design 3 or 4 multi-turn units. The first unit that begins the turn should signal that it will not be connected to the previous ones with a 'misplacement marker' (e.g. 'By the way...').
+
+- Design an attention checking turn ('hello? Are you still there?) to be activated after a few seconds of silence
+
+- Carefully design the sequential order of the first turns, to get you through the introductory period
+
+- Preserve an equilibrium between initiating and responding turns.
+
+- Have at least 20 turns, to prevent the risk of looping too early. 
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousTowards deploying decommissioned mobile devices as cheap energy-efficient compute nodesNext &rsaquo;Seeing is believing: a client-centric specification of database isolation
+ 
+ 
+
+ 
+ 
+## 
+ 26 thoughts on &ldquo;Using chatbots against voicespam: analyzing Lenny's effectiveness&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 28 August 2017 | Vedalgo 
+ 
+ 
+- 
+ 
+ Pingback: 4 short back links: 28 August 2017 &#124; IBM Spectrum Storage Solutions 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 28 August 2017 | A bunch of data 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Using chatbots against voicespam: analyzing Lenny’s effectiveness - The Internet Yard 
+ 
+ 
+- 
+ 
+ Pingback: Using chatbots against voicespam: analyzing Lenny’s effectiveness | ExtendTree 
+ 
+ 
+- 
+ 
+ Pingback: The use of chatbots against voicespam: analyzing Lenny&#039;s effectiveness | A1A 
+ 
+ 
+- 
+ 
+ Pingback: Clive Thompson 
+ 
+ 
+- 
+ 
+ Pingback: Send scam emails to this chatbot and it’ll waste their time for you | Global Networks 
+ 
+ 
+- 
+ 
+ Pingback: Send scam emails to this chatbot and it’ll waste their time for you - TechPreachers.com 
+ 
+ 
+- 
+ 
+ Pingback: Trick5 - Send scam emails to this chatbot and it’ll waste their time for you - Trick5 | Trick5 Simplify The Technology 
+ 
+ 
+- 
+ 
+ Pingback: Send scam emails to this chatbot and it’ll waste their time for you - Kopitiam Bot 
+ 
+ 
+- 
+ 
+ Pingback: Send scam emails to this chatbot and it’ll waste their time for you - techietricks.com 
+ 
+ 
+- 
+ 
+ Pingback: Send scam emails to this chatbot and it’ll waste their time for you - Techosmo 
+ 
+ 
+- 
+ 
+ Pingback: Send scam emails to this chatbot and it’ll waste their time for you - Technology News, latest technology information, all about technology 
+ 
+ 
+- 
+ 
+ Pingback: Send scam emails to this chatbot and it&#039;ll waste their time for you 
+ 
+ 
+- 
+ 
+ Pingback: Este chatbot responderá todos tus correos electrónicos fraudulentos 
+ 
+ 
+- 
+ 
+ Pingback: Send rip-off emails to this chatbot and it’ll raze their time for you | TMSS Magazine 
+ 
+ 
+- 
+ 
+ Pingback: Send scam emails to this chatbot and it’ll waste their time for you | University of South Wales: Information Security & Privacy 
+ 
+ 
+- 
+ 
+ Pingback: Send scam emails to this chatbot and it’ll waste their time for you - TheStarOne 
+ 
+ 
+- 
+ 
+ Pingback: Revue du web #2 : Geeks, Hacks sociaux, Bots, Trolling positif - Hacking social 
+ 
+ 
+- 
+ 
+ Pingback: A Month In Data, Part I - Data, Tech & Policy 
+ 
+ 
+- 
+ 
+ Pingback: K106.3 FM | Messing With Telemarketers: Meet "Lenny" 
+ 
+ 
+- 
+ 
+ Pingback: 第1089期AI100_机器学习日报(2017-09-11) - 机器研习会 
+ 
+ 
+- 
+ 
+ 
+ 
+ Tom says: 
+
+ 
+ August 1, 2018 at 7:43 am 
+
+ 
+
+ 
+ 
+How can I get a chatbot for incoming scanner calls?
+
+Sorry for hiding my real email
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Comment arnaquer les arnaqueurs sur Internet grâce à l&#039;intelligence artificielle | Beetzer 
+ 
+ 
+- 
+ 
+ 
+ 
+ Residence, Small Business says: 
+
+ 
+ November 20, 2019 at 5:45 am 
+
+ 
+
+ 
+ 
+Tonight I got a call on my small business phone line from someone using Lenny. Understand, to repeat: It was an incoming call to a small business (residence) FROM "Lenny" -- and yes, it was THE Lenny (old man w/near-British accent, seeming to wander in conversation, talking about his child who graduated college... the *exact* script and voice of Lenny). I do not and have never made automated calls out, and am not a telemarketer, etc. I only use the phone to call directly to speak in person to family, friends, and KNOWN associates (in other words, in the 20+ years the number has been mine, my phone has never been used to make 'unwelcome' calls to anyone). After the call, I mentioned the call to family, one of whom is highly conversive with AI and computer science subjects, who recognized it might be Lenny, and he found the script information and audio for me to confirm. WHY would anyone use Lenny to call homes or businesses (and waste business time resources, which is offensive), rather than as a tool to respond to *incoming* scammer phone calls? The only reasons I can suppose -- the caller is using it purposefully to harass, or Lenny is being used to gather response data (or audio), possibly for development of scammer scripts (https://www.npr.org/2019/11/18/779386167/the-language-of-cybercrime).
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,122 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

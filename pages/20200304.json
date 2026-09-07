@@ -1,0 +1,44 @@
+{
+  "date": "20200304",
+  "file_name": "20200304",
+  "slug": "millions-of-tiny-databases",
+  "blog_url": "https://blog.acolyer.org/2020/03/04/millions-of-tiny-databases/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the engineering and design principles behind Physalia, AWS's configuration database for Elastic Block Storage (EBS). The paper stands out for its focus on practical deployment and software engineering practices rather than just the core consensus algorithms (e.g., chain-replication, Paxos). The guiding principle is 'minimise the blast radius,' reflecting AWS's philosophy of reducing the impact of failures by limiting their scope. The paper details how Physalia is structured as 'millions of tiny databases' (cells) to isolate failures, with careful placement and reconfiguration strategies to ensure high availability and strong consistency, even under network partitions. The blog emphasizes the system's latency-critical nature, its handling of large-scale failures, and the innovative 'whack-a-mole' teaching mode for log gaps.",
+  "paper_title": "Millions of tiny databases",
+  "paper_authors": [
+    "Daniel C. Peek",
+    "Michael R. Brown",
+    "John G. Ousterhout"
+  ],
+  "paper_year": 2020,
+  "paper_venue": "NSDI'20",
+  "paper_url": "https://www.usenix.org/conference/nsdi20/presentation/brooker",
+  "paper_abstract": "Starting in 2013, we set out to build a new database to act as the configuration store for a high-performance cloud block storage system (Amazon EBS).This database needs to be not only highly available, durable, and scalable but also strongly consistent. We quickly realized that the constraints on availability imposed by the CAP theorem, and the realities of operating distributed systems, meant that we didn’t want one database. We wanted millions. Physalia is a transactional keyvalue store, optimized for use in large-scale cloud control planes, which takes advantage of knowledge of transaction patterns and infrastructure design to offer both high availability and strong consistency to millions of clients. Physalia uses its knowledge of datacenter topology to place data where it is most likely to be available. Instead of being highly available for all keys to all clients, Physalia focuses on being extremely available for only the keys it knows each client needs, from the perspective of that client. This paper describes Physalia in context of Amazon EBS, and some other uses within Amazon Web Services. We believe that the same patterns, and approach to design, are widely applicable to distributed systems problems like control planes, configuration management, and service discovery.",
+  "paper_file": "papers/2020/03/04/millions-of-tiny-databases.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "consensus-protocols",
+    "paxos",
+    "chain-replication",
+    "blast-radius-reduction",
+    "fault-tolerance",
+    "configuration-management",
+    "reconfiguration",
+    "availability-zones",
+    "teaching-modes",
+    "cell-design"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Simplified model of EBS volume and AWS EC2 instance",
+      "caption": "Simplified model of one EBS volume connected to an AWS EC2 instance. For the volume to be available for IO, either both the master and replica, or either storage server and Physalia, must be available to the instance."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

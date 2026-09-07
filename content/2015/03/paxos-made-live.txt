@@ -1,0 +1,389 @@
+URL: https://blog.acolyer.org/2015/03/05/paxos-made-live/
+Title: Paxos Made Live
+---
+
+Paxos Made Live - An Engineering Perspective - Chandra et. al 2007
+
+This is the fourth paper in a ten-part series on consensus.
+
+Yesterday we looked at Paxos Made Simple, today we hear from the the team at Google that implemented Paxos at the core of Chubby.
+
+The paper reminds of the following Yogi Berra quote: "In theory there is no difference between theory and practice. In practice there is." Despite the existing literature on the subject, building a production Paxos system turned out to be a non-trivial task for a variety of reasons...
+
+> 
+
+ While Paxos can be described with a page of pseudo-code, our complete implementation contains several thousand lines of C++ code. The blow-up is not due simply to the fact that we used C++ instead of pseudo notation, nor because our code style may have been verbose. Converting the algorithm into a practical, production-ready system involved implementing many features and optimizations – some published in the literature and some not.
+
+It's a great read to help temper over-enthusiasm before you leap into creating your own implementation of a consensus algorithm. The authors report their experiences in three categories: algorithmic gaps in the literature, software engineering challenges, and unexpected failures. They also include a brief overview of Paxos and Multi-Paxos. We'll skip those given we've spent the last two days looking at the protocol, but you might find it helpful to read through this part of the paper as the ideas are explained using a slightly different terminology and seeing them through another lens can help parts click into place.
+
+## Algorithmic challenges
+
+> 
+
+ While the core Paxos algorithm is well-described, implementing a fault-tolerant log based on it is a non-trivial endeavor.
+
+## Disk corruption
+
+The first issue the team had to deal with was the possibility of disk corruption (it happened, and will happen again!). "When a replica's disk is corrupted and it loses its persistent state, it may renege on promises it has made to other replicas in the past. This violates a key assumption in the Paxos algorithm." Checksums were introduced to detect changed file contents, and 'marker files' were used in Google's distributed file system GFS to be able to distinguish between a replica's disk becoming completely empty due to a fault, and a brand new replica.
+
+> 
+
+ A replica with a corrupted disk rebuilds its state as follows. It participates in Paxos as a non-voting member; meaning that it uses the catch-up mechanism to catch up but does not respond with promise or acknowledgement messages. It remains in this state until it observes one complete instance of Paxos that was started after the replica started rebuilding its state. By waiting for the extra instance of Paxos, we ensure that this replica could not have reneged on an earlier promise.
+
+## Master leases
+
+> 
+
+ When the basic Paxos algorithm is used to implement a replicated data structure, reads of the data structure require executing an instance of Paxos. This serializes the read with respect to updates and ensures that the current state is read. In particular, read operations cannot be served out of the master’s copy of the data structure because it is possible that other replicas have elected another master and modified the data structure without notifying the old master. In this case, the read operation at the master runs the risk of returning stale data. Since read operations usually comprise a large fraction of all operations, serializing reads through Paxos is expensive.
+
+To solve this, a leasing mechanism is introduced such that when a master has a lease it is guaranteed that other replicas cannot successfully submit to Paxos. This means it can serve a read locally.
+
+The team also introduced a mechanism for boosting the masters sequence number periodically to avoid frequent master swapping with intermittent network outages.
+
+## Epoch numbers
+
+In Google's application, Chubby needed to know when leadership (mastership) was lost and/or re-acquired during the handling of a request. So they introduced a global epoch number with leadership changes demarcating epochs.
+
+## Group Membership
+
+Paxos Made Simple points out that Paxos itself can be used to coordinate group changes.
+
+> 
+
+ While group membership with the core Paxos algorithm is straightforward, the exact details are non-trivial when we introduce Multi-Paxos, disk corruptions, etc. Unfortunately the literature does not spell this out, nor does it contain a proof of correctness for algorithms related to group membership changes using Paxos. We had to fill in these gaps to make group membership work in our system.
+
+## Snapshots
+
+To avoid the problem of an ever growing log, periodic snapshots were introduced with the ability to recover from a snapshot after failure and then replay the rest of the log from there.
+
+> 
+
+ This mechanism appears straightforward at first and is mentioned briefly in the literature. However, it introduces a fair amount of complexity into the system: the persistent state of a replica now comprises a log and a snapshot that have to be maintained consistently. The log is fully under the framework’s control, while the snapshot format is application-specific.
+
+Some of the subtle issues with snapshots include coordinate snapshots and the log, taking a snapshot while the replica's log is still moving forward, failed snapshots, and snapshots that occur during recovery.
+
+## Software Engineering Challenges
+
+> 
+
+ Fault-tolerant algorithms are notoriously hard to express correctly, even as pseudo-code. This problem is worse when the code for such an algorithm is intermingled with all the other code that goes into building a complete system. It becomes harder to see the core algorithm, to reason about it, or to debug it when a bug is present. It also makes it difficult to change the core algorithm in response to a requirement change.
+
+The team solved this issue by create a state machine DSL and compiler to translate the DSL into C++. "The language was designed to be terse so that a full algorithm could be rendered on a single screen."
+
+Extensive run-time self-checking mechanisms were also introduced, including checksum database log comparisons.
+
+The testing harness takes the system through a long sequence of failures and verifies that it still behaves as expected.
+
+> 
+
+ Our tests start in safety mode and inject random failures into the system. After running for a predetermined period of time, we stop injecting failures and give the system time to fully recover. Then we switch the test to liveness mode. The purpose for the liveness test is to verify that the system does not deadlock after a sequence of failures.
+
+Even with the state machine DSL, and extensive run-time checks, the test harness still found bugs:
+
+> 
+
+ This test proved useful in finding various subtle protocol errors, including errors in our group membership implementation, and our modifications to deal with corrupted disks. In order to measure the strength of this test, we left some protocol bugs found during code and design reviews in the system, and verified that our test system detected these bugs. After a number of bug fixes, the test became very stable. In order to improve its bug yield, we started running this test on a farm of several hundred Google machines at a time. We found additional bugs, some of which took weeks of simulated execution time (at extremely high failure rates) to find.
+
+All of which goes to show the lengths you need to be prepared to go to in order to create a fully hardened consensus implementation.
+
+## Unexpected failures
+
+With over 100 machine years of execution in production, the number of failures was impressively low, but still higher than the Google team would like. To 2015 eyes some of the reported failures don't seem so 'unexpected' - problems with rollback and upgrade scripts that weren't fully automated and regularly tested.
+
+> 
+
+ We now rely on carefully written and well-tested scripts to automate rollout and minimize operator involvement. As a result our most recent major release of Chubby was rolled out across hundreds of machines without incident, while serving life traffic.
+
+## In conclusion
+
+> 
+
+ There are significant gaps between the description of the Paxos algorithm and the needs of a real-world system. In order to build a real-world system, an expert needs to use numerous ideas scattered in the literature and make several relatively small protocol extensions. The cumulative effort will be substantial and the final system will be based on an unproven protocol.
+
+We're going to leave our investigation of Paxos here for now, but if you still want to dig deeper, then Paxos Made Moderately Complex - van Resesse 2011 might be of interest. From the abstract:
+
+> 
+
+ For anybody who has ever tried to implement it, Paxos is by no means a simple protocol, even though it is based on relatively simple invariants. This paper provides imperative pseudo-code for the full Paxos (or Multi-Paxos) protocol without shying away from discussing various implementation details.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems 
+ 
+ ConsistencyDistributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousPaxos made simpleNext &rsaquo;Viewstamped Replication Revisited
+ 
+ 
+
+ 
+ 
+## 
+ 10 thoughts on &ldquo;Paxos Made Live&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Viewstamped Replication Revisited | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Can't we all just agree? | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Paxos For Master Leases | slash dev slash null 
+ 
+ 
+- 
+ 
+ Pingback: Distributed consensus and the implications of NVM on database management systems | the morning paper 
+ 
+ 
+- 
+ 
+ 
+ 
+ Nishchay says: 
+
+ 
+ November 30, 2018 at 8:39 pm 
+
+ 
+
+ 
+ 
+This is a great read, but I am curious about a special scenario:
+
+As stated in the paper:
+
+"Checksums were introduced to detect changed file contents, and ‘marker files’ were used in Google’s distributed file system GFS to be able to distinguish between a replica’s disk becoming completely empty due to a fault, and a brand new replica."
+
+It doesn't address what happens if some but not all logs/files are lost/inaccessible? i.e. the replica's disk didn't go completely empty but lost 'Tip of the Log'?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Distributed consensus revised - Part I | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Millions of tiny databases - the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Millions of tiny databases – the morning paper - News Blog 
+ 
+ 
+- 
+ 
+ Pingback: CH Millions of Tiny Databases - CyberHero.TV 
+ 
+ 
+- 
+ 
+ Pingback: Millions Of Tiny Databases - RSSFeedsCloud 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

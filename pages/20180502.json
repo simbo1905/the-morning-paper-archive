@@ -1,0 +1,37 @@
+{
+  "date": "20180502",
+  "file_name": "20180502",
+  "slug": "andromeda-performance-isolation-and-velocity-at-scale-in-cloud-network-virtualization",
+  "blog_url": "https://blog.acolyer.org/2018/05/02/andromeda-performance-isolation-and-velocity-at-scale-in-cloud-network-virtualization/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Google's Andromeda as a high-performance, scalable network virtualization system for Google Cloud Platform, contrasting it with Microsoft Azure's AccelNet. The paper emphasizes Andromeda's software-based architecture, which consumes minimal host resources (a few percent of CPU and memory) while achieving near-hardware performance. Key innovations include a hierarchical control plane with fail-static behavior, a hybrid data plane with fast-path processing (300ns budget), per-VM software coprocessors, and dedicated hoverboard gateways for idle flows. The system avoids hardware-only solutions like SR-IOV to support seamless VM migration and leverages skewed flow distributions to offload most traffic from gateways. Colyer notes the paper's detailed design insights, including hardware offloads (e.g., Intel QuickData DMA), pre-computed middlebox policies, and a scalable control plane architecture that combines on-demand and gateway models.",
+  "paper_title": "Andromeda: performance, isolation, and velocity at scale in cloud network virtualization",
+  "paper_authors": [
+    "Dalton et al."
+  ],
+  "paper_year": 2018,
+  "paper_venue": "NSDI",
+  "paper_url": "https://www.usenix.org/conference/nsdi18/presentation/dalton",
+  "paper_abstract": "This paper presents our design and experience with Andromeda, Google Cloud Platform’s network virtualization stack. Our production deployment poses several challenging requirements, including performance isolation among customer virtual networks, scalability, rapid provisioning of large numbers of virtual hosts, bandwidth and latency largely indistinguishable from the underlying hardware, and high feature velocity combined with high availability. Andromeda is designed around a flexible hierarchy of flow processing paths. Flows are mapped to a programming path dynamically based on feature and performance requirements. We introduce the Hoverboard programming model, which uses gateways for the long tail of low bandwidth flows, and enables the control plane to program network connectivity for tens of thousands of VMs in seconds. The on-host dataplane is based around a highperformance OS bypass software packet processing path. CPU-intensive per packet operations with higher latency targets are executed on coprocessor threads. This architecture allows Andromeda to decouple feature growth from fast path performance, as many features can be implemented solely on the coprocessor path. We demonstrate that the Andromeda datapath achieves performance that is competitive with hardware while maintaining the flexibility and velocity of a software-based architecture.",
+  "paper_file": "papers/2018/05/02/andromeda-performance-isolation-and-velocity-at-scale-in-cloud-network-virtualization.pdf",
+  "topics": [
+    "distributed-systems",
+    "networking",
+    "cloud-computing"
+  ],
+  "tags": [
+    "network-virtualization",
+    "software-defined-networking",
+    "fast-path",
+    "coprocessors",
+    "hoverboards",
+    "fail-static",
+    "SR-IOV",
+    "VM-migration",
+    "middlebox-offloading",
+    "control-plane-scalability"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

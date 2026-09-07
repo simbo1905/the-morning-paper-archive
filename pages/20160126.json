@@ -1,0 +1,51 @@
+{
+  "date": "20160126",
+  "file_name": "20160126",
+  "slug": "arabesque",
+  "blog_url": "https://blog.acolyer.org/2016/01/26/arabesque/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Arabesque as an innovative system for distributed graph mining that introduces a new programming model called 'think like an embedding' (TLE), contrasting it with traditional vertex-centric (TLV) and pattern-centric (TLP) approaches. He praises the paper for its clarity and accessibility, noting that it effectively explains complex graph mining concepts and background. Colyer emphasizes Arabesque's efficiency in handling the exponential explosion of embeddings in graph mining problems, where traditional methods struggle with scalability and duplication. The key insight is Arabesque's ability to systematically explore and filter embeddings in a distributed manner, automating the process while allowing user-defined functions for filtering and processing. The system's BSP-based implementation and support for aggregation across embeddings further enhance its practicality for real-world graph mining tasks.",
+  "paper_title": "Arabesque: A System For Distributed Graph Mining",
+  "paper_authors": [
+    "Rafael G. Teixeira",
+    "Matteo Riondato",
+    "Yasamin Eslahi Kelorazi",
+    "Eli Upfal",
+    "Ugur Cetintemel",
+    "Stanley B. Zdonik"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SOSP'15",
+  "paper_url": "http://sigops.org/sosp/sosp15/current/2015-Monterey/093-teixeira-online.pdf",
+  "paper_abstract": "Distributed data processing platforms such as MapReduce and Pregel have substantially simplified the design and deployment of certain classes of distributed graph analytics algorithms. However, these platforms do not represent a good match for distributed graph mining problems, as for example finding frequent subgraphs in a graph. Given an input graph, these problems require exploring a very large number of subgraphs and finding patterns that match some “interestingness” criteria desired by the user. These algorithms are very important for areas such as social networks, semantic web, and bioinformatics. In this paper, we present Arabesque, the first distributed data processing platform for implementing graph mining algorithms. Arabesque automates the process of exploring a very large number of subgraphs. It defines a high-level filter-process computational model that simplifies the development of scalable graph mining algorithms: Arabesque explores subgraphs and passes them to the application, which must simply compute outputs and decide whether the subgraph should be further extended. We use Arabesque’s API to produce distributed solutions to three fundamental graph mining problems: frequent subgraph mining, counting motifs, and finding cliques. Our implementations require a handful of lines of code, scale to trillions of subgraphs, and represent in some cases the first available distributed solutions.",
+  "paper_file": "papers/2016/01/26/arabesque.pdf",
+  "topics": [
+    "distributed-systems",
+    "algorithms"
+  ],
+  "tags": [
+    "graph-mining",
+    "embedding-centric",
+    "bulk-synchronous-parallel",
+    "distributed-algorithms",
+    "graph-patterns",
+    "clique-mining",
+    "motif-counting",
+    "frequent-subgraph-mining",
+    "giraph-extension"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Exponential growth of the intermediate state in graph mining problems",
+      "caption": "Exponential growth of the intermediate state in graph mining problems (motifs counting, clique finding, FSM: Frequent subgraph mining) on different datasets."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Graph mining concepts: an input graph, an example pattern, and the embeddings of the pattern",
+      "caption": "Graph mining concepts: an input graph, an example pattern, and the embeddings of the pattern. Colors represent labels. Numbers denote vertex ids. Patterns and embeddings are two types of subgraphs. However, a pattern is a template, whereas an embedding is an instance. In this example, the two embeddings are automorphic."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

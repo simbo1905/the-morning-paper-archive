@@ -1,0 +1,39 @@
+{
+  "date": "20180531",
+  "file_name": "20180531",
+  "slug": "zkledger-privacy-preserving-auditing-for-distributed-ledgers",
+  "blog_url": "https://blog.acolyer.org/2018/05/31/zkledger-privacy-preserving-auditing-for-distributed-ledgers/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights zkLedger as a privacy-preserving auditing system for permissioned blockchains, enabling financial institutions to collectively use a blockchain-based settlement ledger while maintaining transaction privacy. The key innovation is providing rich auditing capabilities (e.g., financial leverage, asset illiquidity) without compromising privacy. zkLedger uses cryptographic techniques like Pedersen commitments, Schnorr signatures, and non-interactive zero-knowledge proofs (NIZKs) to hide transaction amounts, participants, and links while ensuring verifiable integrity. The system maintains invariants (no asset creation/destruction, spending bank consent) through proofs of balance and assets, with optimizations to reduce computational overhead. The blog emphasizes zkLedger's practical feasibility and its step beyond existing transparency mechanisms in financial systems.",
+  "paper_title": "zkLedger: Privacy-Preserving Auditing for Distributed Ledgers",
+  "paper_authors": [
+    "Neha Narula",
+    "Emin Gün Sirer",
+    "Ittay Eyal",
+    "Robert van Renesse"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "NSDI",
+  "paper_url": "https://www.usenix.org/conference/nsdi18/presentation/narula",
+  "paper_abstract": "Distributed ledgers (e.g. blockchains) enable financial institutions to efficiently reconcile cross-organization transactions. For example, banks might use a distributed ledger as a settlement log for digital assets. Unfortunately, these ledgers are either entirely public to all participants, revealing sensitive strategy and trading information, or are private but do not support third-party auditing without revealing the contents of transactions to the auditor. Auditing and financial oversight are critical to proving institutions are complying with regulation. This paper presents zkLedger, the first system to protect ledger participants’ privacy and provide fast, provably correct auditing. Banks create digital asset transactions that are visible only to the organizations party to the transaction, but are publicly verifiable. An auditor sends queries to banks, for example “What is the outstanding amount of a certain digital asset on your balance sheet?” and gets a response and cryptographic assurance that the response is correct. zkLedger has two important benefits over previous work. First, zkLedger provides fast, rich auditing with a new proof scheme using Schnorr-type noninteractive zero-knowledge proofs. Unlike zk-SNARKs, our techniques do not require trusted setup and only rely on widely-used cryptographic assumptions. Second, zkLedger provides completeness; it uses a columnar ledger construction so that banks cannot hide transactions from the auditor, and participants can use rolling caches to produce and verify answers quickly. We implement a distributed version of zkLedger that can produce provablycorrect answers to auditor queries on a ledger with a hundred thousand transactions in less than 10 milliseconds.",
+  "paper_file": "papers/2018/05/31/zkledger-privacy-preserving-auditing-for-distributed-ledgers.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems",
+    "cryptography"
+  ],
+  "tags": [
+    "permissioned-blockchain",
+    "zero-knowledge-proofs",
+    "pedersen-commitments",
+    "auditing",
+    "financial-privacy",
+    "homomorphic-encryption",
+    "range-proofs",
+    "consensus",
+    "cryptographic-ledger"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

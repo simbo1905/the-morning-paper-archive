@@ -1,0 +1,39 @@
+{
+  "date": "20191129",
+  "file_name": "20191129",
+  "slug": "tla-model-checking-made-symbolic",
+  "blog_url": "https://blog.acolyer.org/2019/11/29/tla-model-checking-made-symbolic/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses APALACHE, a new symbolic model checker for TLA+ introduced in the paper. Unlike TLC (TLA+'s traditional model checker), APALACHE translates TLA+ specifications into quantifier-free SMT constraints, leveraging the Z3 SMT solver. This approach significantly improves performance for checking inductive invariants, where APALACHE can be orders of magnitude faster than TLC, especially when invariants are violated. The paper highlights APALACHE's ability to avoid timeouts and quickly detect errors, making it more practical for iterative correctness verification. However, the benefits are less pronounced for bounded model checking of safety properties, where TLC's heuristics sometimes outperform APALACHE. The post also notes that both tools struggle with complex Paxos-like algorithms. APALACHE's workflow involves type inference, conversion to a minimalistic intermediate language (KerA+), and translation into SMT constraints.",
+  "paper_title": "TLA+ model checking made symbolic",
+  "paper_authors": [
+    "Igor Konnov",
+    "Jure Kukovec",
+    "Sanja Konnov",
+    "Marius Mikučionis",
+    "Thomas Pani",
+    "Josef Widder"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "OOPSLA'19",
+  "paper_url": "https://forsyte.at/wp-content/uploads/kkt-oopsla19.pdf",
+  "paper_abstract": "reduction system ⌦ A state is e | Ar | ⌫ | ↵ : a TLA+ expression e and arena Ar, a valuation ⌫ : Vars ! Cells [ {?} SMT constraints Reduction rules: simplify the expression, enrich the arena and add constraints Igor Konnov 36 of 47 A reduction sequence {} 2 {{1}} Arena: SMT: c1 2 {{1}} c1 , c1 : USSI c1 2 {{c2 }} c2 , c1 2 {c3 } c1 2 c4 c3 , c4 , c3 ! c2 , c4 ! c3 , c2 : Int c3 : USI c4 : USSI c2 = 1 inhc2 ,c3 i inhc3 ,c4 i c5 c5 c5 $ inhc3 ,c4 i ^ c1 = c3 ... Rewriting a set filter {x 2 { 1 , 2 } : p(x)} {x 2 c3 : p(x)} c4 Corresponding arena c3 : Set[Int] c3 : Set[Int] c1 : Int c1 : Int c4 : Set[Int] (empty) Igor Konnov c2 : Int c2 : Int 38 of 47 SMT constraints for set filter inhc4 ,c1 i , inhc3 ,c1 i ^ c5 = true inhc4 ,c2 i , inhc3 ,c2 i ^ c6 = true Set filtering {x 2 { 1 , 2 } : p(x)} p(1) c5 : Bool c3 : Set[Int] p(2) c6 : Bool",
+  "paper_file": "papers/2019/11/29/tla-model-checking-made-symbolic.pdf",
+  "topics": [
+    "formal-methods",
+    "programming-languages"
+  ],
+  "tags": [
+    "tla-plus",
+    "model-checking",
+    "smt",
+    "z3",
+    "inductive-invariants",
+    "safety-properties",
+    "paxos",
+    "raft"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,37 @@
+{
+  "date": "20210208",
+  "file_name": "20210208",
+  "slug": "the-ants-and-the-pheromones",
+  "blog_url": "https://blog.acolyer.org/2021/02/08/the-ants-and-the-pheromones/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer announces the end of 'The Morning Paper' blog after six and a half years, reflecting on how the COVID-19 lockdowns disrupted his routines and expanded his intellectual interests beyond computer science. He highlights a fascinating analogy from a BBC podcast about ant pheromone trails and how disruption can lead to new solutions, drawing parallels to societal changes post-lockdown. Colyer expresses uncertainty about returning to a computer science-exclusive focus in the future. Before concluding, he points readers to an exciting research project from Berkeley's RISELab, led by Joe Hellerstein, which explores programmable cloud systems as the next evolution beyond serverless computing. The project, including the 'PACT' paper, represents a new chapter in cloud programming research.",
+  "paper_title": "New Directions in Cloud Programming",
+  "paper_authors": [
+    "Cheung",
+    "Hellerstein",
+    "others (as per CIDR 2021)"
+  ],
+  "paper_year": 2021,
+  "paper_venue": "CIDR 2021",
+  "paper_url": "https://www.bbc.co.uk/programmes/p093hcr3",
+  "paper_abstract": "The declarative nature of the relational model and database engines shields users from system implementation complexity, system evolution, data representation details, and enables optimizations across workloads and use cases. However, recent trends in data management introduce significant challenges to declarative interfaces. For instance, these days, the engine might not own the data (e.g., data lakes), might have to deal with different data representations (e.g., CSV, Arrow, Parquet, Iceberg), and needs to support operations beyond relational SQL (e.g., vector databases, machine learning). To complicate matters, in the cloud, many layers of infrastructure — virtual machines (VMs), container schedulers, general-purpose OSes — stand between the engine and the compute/storage/network fabric. Today’s cloud infrastructure exposes only low-level, VMcentric knobs and treats analytics workloads as opaque binaries, leaving the engine with little visibility into data placement, hardware availability, and network congestion. We propose to extend the declarative approach to data management end-to-end. We start from a composite database engine and extend its declarative interfaces (SQL and query plans) down to the cloud execution layer. The database engine exposes each query as a dataflow graph, composed of functions (operators) that each declare their inputs, outputs, and available parallelism to the cloud platform. The cloud platform takes this graph as input and provides a declarative execution substrate responsible for resource scaling, data and operator placement, caching, and isolation mechanism implementation decisions. Our early prototype shows how rethinking the interface between the engine and the cloud platform enables elastic data-dependent parallel execution over data lakes, automatic caching, and opens new research directions for cloud analytics.",
+  "paper_file": "papers/2021/02/08/the-ants-and-the-pheromones.pdf",
+  "topics": [
+    "distributed-systems",
+    "cloud-computing"
+  ],
+  "tags": [
+    "programmable-cloud",
+    "serverless",
+    "PACT"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Evolution of data analytics engine architecture",
+      "caption": "Figure 1: Evolution of data analytics engine architecture from (a) a monolithic engine that owns data on local storage and manages a buffer cache to (b) a composite engine running on cloud VMs that ingests data from disaggregated storage to (c) our proposal of co-designing the engine with declarative cloud infrastructure, enabling data-dependent parallel execution and ingestion from data lakes, elastic caching, and more."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

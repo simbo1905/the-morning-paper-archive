@@ -1,0 +1,250 @@
+URL: https://blog.acolyer.org/2015/06/09/detecting-termination-of-distributed-computations-using-markers/
+Title: Detecting Termination of Distributed Computations Using&nbsp;Markers
+---
+
+Detecting Termination of Distributed Computations Using Markers - Misra 1983
+
+There's an intriguing line in the Distributed GraphLab paper that caught my eye: "Termination is evaluated using distributed consensus algorithm described in [Ref]." Today's choice is the paper by Misra in 1983 that describes this distributed termination detection algorithm. The solution is similar in spirit to the Chandy-Lamport algorithm for distributed snapshots, but predates that work by 2 years.
+
+> 
+
+ A problem of considerable importance in designing computations by process networks, is detection of termination. We propose a very simple algorithm for termination detection in an arbitrary network using a single marker.
+
+This is important in situations where every process in a network is idle (i.e. waiting for messages to arrive), and there are no messages in transit; and in multi-phase algorithms where a phase is to be initiated only on completion of a previous phase. Deadlock detection is of course, fundamentally related to termination detection.
+
+> 
+
+ Francez, Rodeh and Sintzoff suggest that it may be easier to devise a distributed algorithm in two steps: (1) design an algorithm that maintains the desired safety properties and eventually guarantees a terminating global state; (2) superimpose a termination detection algorithm on the basic algorithm.
+
+In the system model, processes are either active or idle. Only active processes can send messages, and an idle process becomes active if it receives a message. Active processes may become idle at any time. Messages sent between processes are received in order. Computation is therefore terminated when every process is idle and can never become active again as there are no more messages in transit.
+
+A marker visits all processes (we'll consider different network topologies shortly). The marker paints a process white when it leaves the process, and a process turns black if it becomes active. If a marker arrives back at a white process, it knows that the process has not become active since its last visit. Since the marker travels along the same communication links as regular process messages, and messages are received in order, the marker can 'flush out' messages in transit.
+
+> 
+
+ ...for the special case of a network in which processes are arranged in the form of a ring (i.e. every process has a unique predecessor from which it can receive messages and a unique successor to which it can send messages), the marker can assert that the computation has terminated if it finds after one round of visits that every process has remained continuously idle since the last visit of the marker to that process.
+
+Next we can consider a strongly connected network:
+
+> 
+
+ In every strongly connected network there exists a cycle c, not necessarily a simple cycle, which includes every edge of the network at least once. Let c denote the length of c. The marker will carry an integer m with it with the meaning that all processes seen during the last m edge traversals have been continuously idle, i.e. each of them was white when the marker arrived at the process. The entire algorithm is defined by the following rules:
+
+- Rule 0: Initially every process is black, and the marker departs from an arbitrary process x along some outgoing edge according to Rule 1...
+
+- Rule 1: A marker departs from process x along the next edge (x,y) of the cycle c, only when x is idle. On departure, m is set to 0 if x is black, and to m+1 if x is white. x is then painted white. If m == c then termination is reported.
+
+- Rule 2: When a message arrives at process x, x paints itself black.
+
+For a graph that is not strongly connected, the algorithm can still be used by applying it successively to each of the maximal strongly connected components of the graph in predecessor order.
+
+Both of these cases require global knowledge of the process graph in order to construct the cycle c. Misra also gives a distributed version of the algorithm in which no global information is available to any process. The marker must traverse all edges of the network, and any standard search strategy may be used (e.g. depth first search).
+
+> 
+
+ A new depth first search (we call it a round) is started when a black process is seen. The root of a round is the (black) process where the depth first search started. The marker carries with it the number of its current round; each process retains the last round number of the marker, when the marker visits the process.
+
+- On arriving at a black process: start a new round (increment the round number), paint the process white, and depart along some edge when the process is idle.
+
+- On arriving at a white process, and the marker has a different (higher) round number than the process: designate the sender of the maker as the father, update the round number and propagate the marker according to rules below.
+
+- On arriving at a white process, and the marker has the same round number as the process: if the marker came from a process other than a son, then return the marker to the last sender, otherwise propagate the marker according to the rules below.
+
+To propagate a marker from a white process:
+
+- If there is an edge that the marker has not been sent upon or received from in the current round, then send the marker along that edge.
+
+- If there is no such edge and there is a father, send the marker to the father
+
+- If there is no father (we are at the root), report termination!
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems 
+ 
+ Algorithms and data structuresDistributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousA Bridging Model for Parallel ComputationNext &rsaquo;A higher order estimate of the optimum checkpoint interval for restart dumps
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

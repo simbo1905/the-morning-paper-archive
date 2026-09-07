@@ -1,0 +1,65 @@
+{
+  "date": "20190610",
+  "file_name": "20190610",
+  "slug": "pytorch-biggraph",
+  "blog_url": "https://blog.acolyer.org/2019/06/10/pytorch-biggraph/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights PyTorch-BigGraph (PBG) as Facebook's scalable solution for learning graph embeddings on massive graphs with billions of nodes and trillions of edges. The paper addresses the challenge of memory constraints and computational complexity by introducing a block decomposition-based partitioning scheme that enables distributed training. PBG supports multi-relation graphs and can train models like RESCAL, DistMult, TransE, and ComplEx by combining appropriate relation operators and similarity measures. The system efficiently handles negative sampling through batched operations and reduces memory overhead by reusing embeddings. Notably, PBG achieved significant speedups and memory reductions when embedding the Freebase knowledge graph, demonstrating its scalability and practical utility. The paper also explores partitioning strategies and distributed execution models to align embeddings across partitions while minimizing communication overheads.",
+  "paper_title": "PyTorch-BigGraph: A Large-Scale Graph Embedding System",
+  "paper_authors": [
+    "Adam Lerer",
+    "Ledell Wu",
+    "Jiajun Shen",
+    "Timothée Lacroix",
+    "Pascal Vincent",
+    "David Belanger",
+    "Andrew McCallum"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "SysML'19",
+  "paper_url": "https://www.sysml.cc/doc/2019/71.pdf",
+  "paper_abstract": "PyTorch-BigGraph: A Large-Scale Graph\nEmbedding System\nAdam Lerer, Ledell Wu, Jiajun Shen, Timothee Lacroix, Luca\nWehrstedt, Abhijit Bose, Alex Peysakhovich [1]\nFacebook AI Research, SysML 2019\n\nPresenter: Derrick Blakely\nMay 13, 2019\nUniversity of Virginia\nhttps://qdata.github.io/deep2Read/\n\n\fTable of contents\n\n1. Introduction\n2. Graph Embedding Model\n3. PBG System\n4. Experiments\n5. Conclusion\n\n1\n\n\fIntroduction\n\n\fRelationship Graphs\n\nFigure 1: A graph with entities (users, songs, etc) connected",
+  "paper_file": "papers/2019/06/10/pytorch-biggraph.pdf",
+  "topics": [
+    "machine-learning",
+    "distributed-systems"
+  ],
+  "tags": [
+    "graph-embeddings",
+    "distributed-training",
+    "multi-relation-graphs",
+    "negative-sampling",
+    "partitioning",
+    "knowledge-graphs",
+    "PyTorch"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Example graph with entities and relations",
+      "caption": "A graph with entities (users, songs, etc) connected by relations (listened to, is friends with, etc)."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Score functions from Complex Embeddings paper",
+      "caption": "Score functions shown in “Complex Embeddings for Simple Link Prediction” [2]"
+    },
+    {
+      "number": "Figure 3",
+      "title": "Supported score functions in PBG",
+      "caption": "Score functions supported by PBG"
+    },
+    {
+      "number": "Figure 4",
+      "title": "Hinge loss visualization",
+      "caption": "If f (e) − f (e 0 ) ≤ −λ, L = 0, if f (e) − f (e 0 ) > −λ, L = f (e) − f (e 0 )"
+    },
+    {
+      "number": "Figure 5",
+      "title": "Negative sample construction",
+      "caption": "Creating a negative sample by replacing source B with either A or D, while leaving the relation unchanged."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

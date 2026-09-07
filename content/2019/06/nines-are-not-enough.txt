@@ -1,0 +1,112 @@
+URL: https://blog.acolyer.org/2019/06/19/nines-are-not-enough/
+Title: Nines are not enough: meaningful metrics for&nbsp;clouds
+---
+
+Nines are not enough: meaningful metrics for clouds Mogul & Wilkes, HotOS'19
+
+It’s hard to define good SLOs, especially when outcomes aren’t fully under the control of any single party. The authors of today’s paper should know a thing or two about that: Jeffrey Mogul and John Wilkes at Google1! John Wilkes was also one of the co-authors of chapter 4 "Service Level Objectives" in the SRE book, which is good background reading for the discussion in this paper.
+
+The opening paragraph of the abstract does a great job of framing the problem:
+
+> 
+
+ Cloud customers want strong, understandable promises (Service Level Objectives, or SLOs) that their applications will run reliably and with adequate performance, but cloud providers don’t want to offer them, because they are technically hard to meet in the face of arbitrary customer behavior and the hidden interactions brought about by statistical multiplexing of shared resources.
+
+When it comes to SLOs, the interests of the customer and the cloud provider are at odds, and so we end up with SLAs (Service Level Agreements) that tie SLOs to contractual agreements.
+
+## What are we talking about
+
+Let’s start out by getting some terms straight: SLIs, SLOs, SLAs, and how they fit together.
+
+- A Service Level Indicator (SLI) is something you can measure (e.g. a rate, average, percentile, yield, or durability). 
+- A Service Level Objective (SLO) is a predicate over a set of SLIs. For example, monthly uptime percentage (the SLI) will be at least 99.99%.
+- A Service Level Agreement (SLA) is "an SLO plus consequences" : a promise made by a provider than, in exchange for payment, it will meet certain customer visible SLOs.
+
+When SLOs are tied to SLAs, they tend to end up defining the worst case behaviour that a customer can possibly tolerate (because anything beyond that triggers the penalty clause). If a provider consistently delivered service right up to the SLO limit however, it’s unlikely that customers would be very happy. There are a set of Service Level Expectations (SLEs) which need to be met in order to keep customers happy, that are stricter than the SLOs defined in an SLA. From a cloud provider perspective, these are likely to be internal SLOs: the targets that the provider strives to meet, but is not contractually obligated to meet.
+
+So there are different kinds of SLOs, which the authors argue are best categorised based on the consequences of failing to meet them:
+
+- Contractual SLOs, connected to SLAs, for which a failure to meet them usually results in financial penalties
+- Customer satisfaction SLOs (SLEs), for which a failure to meet them results in unhappy customers
+- Compositional SLOs are expectations over sets of resources such as "VM failures in two different availability zones are uncorrelated." These are SLOs that inform a customer’s application design, and failure to meet them may result in invalidated design assumptions — which doesn’t generally turn out well! 
+- Control loop SLOs express the active management actions a provider will take, e.g. shedding of low-priority load will occur on over-utilised network links. Failure to meet a control loop SLO usually results in cascading failures and violation of other SLOs.
+
+## Why are SLOs so hard to define?
+
+> 
+
+ Creating an SLA seems simple: deﬁne one or more SLOs as predicates on clearly-deﬁned measurements (Service Level Indicators, or SLIs), then have the business experts and lawyers agree on the consequences, and you have an SLA. Sadly, in our experience, SLOs are insanely hard to specify. Customers want diﬀerent things, and they typically cannot describe what they want in terms that can be measured and in ways that a provider can feasibly commit to promising.
+
+Consider for example "monthly uptime percentage for a VM will be at least 99.99%." How are we measuring uptime? On what granularity (seconds, minutes, calendar months, rolling 30 days,...)? What is ‘up’? The VM is provisioned? The VM is running an OS? The VM is reachable from the Internet? Is a performance brownout an outage? And so on.
+
+For cloud providers things get extra complicated due to multi-tenancy, and the fact that the behaviour of their clients can also impact SLIs. As a simple example, an SLO around network throughput might rely on the customer running software capable of driving the network fast enough. Or a system availability SLO, for availability seen by the end user, may well depend on the user carefully exploiting the available redundancy.
+
+Expressing available SLOs in terms of ‘nines’ also causes some issues: it hides the difference between many short outages and a few long ones, which is something many customers care about. It also treats all outages as equal, whereas an outage on Black Friday for a retailer is much worse than an outage on a quiet day of the year.
+
+## Is there another way of thinking about this?
+
+The big idea in the paper is to draw lessons from statistics by analogy.
+
+> 
+
+ A good statistician will look at what decision needs to be made, define hypotheses to test in order to make the decision, decide how to collect sufficient data without bias, often sampled from the underlying population while staying within a budged, and choose an appropriate method to test the hypotheses against the sample.
+
+In the context of SLAs, the decision is whether or not to invoke the contractual consequences. The problem of measuring SLIs is akin to sample gathering; and choosing a predicate over an SLI is akin to choosing an appropriate method.
+
+> 
+
+ Just as "statistician" and "data scientist" are distinct roles that share many, but not all, skills, "SLOgician" is also a distinct role with its own specific skills.
+
+How would a SLOgician approach defining SLOs?
+
+- List the good outcomes you want, and the bad outcomes to be avoided
+- Agree with business decision makers what the consequences should be
+- Operationalize these outcomes, e.g. deciding on level of network capacity
+- Decide what data you need to collect in order to decide whether you are suffering from a bad outcome, and what kinds of aggregation are possible. (Analogous to ‘power analysis’ in statistics).
+- Decide what predicate on the data tells you whether an outcome has happened
+- Decide how much of the desired data you can collect given your resource budget and check it is enough to actually compute the SLOs
+
+If you don’t have enough data collection budget available you could offer fewer SLOs; accept lower confidence in determining whether SLOs are being met; or dynamically lower measurement rate when an SLO is not at risk of violation.
+
+One thing that a statistical outlook reminds us of is that SLOs are very rarely black-and-white, and we need to be accept a level of uncertainty.
+
+## Whose responsibility is it?
+
+My interpretation of the introduction to section 5 in the paper is "we have a problem because our business model seems to depend on us making promises we can’t keep" ;). Or in more technical terms, there are too many SLOs, poorly defined, and depending on decisions outside of the providers control. Wouldn’t it be nice if...
+
+> 
+
+ ... following our analogy with statistics, we could focus less on SLOs that guarantee outcomes, and instead use SLOs as a tool for providers to provide structured guidance about decisions that create or remove risk.
+
+That is, SLOs given by a provider could focus only on risks entirely under the provider’s control. Returning to the availability example, it would be the cloud provider’s responsibility to provide isolated failure zones, but the customer’s responsibility to use them correctly to achieve a desired level of availability.
+
+> 
+
+ Instead of focusing on outcomes, we should focus on expectations, and make these expectations bilateral: what service level the customer can expect from the provider (an SLE), and what the provider can expect from the customer (Customer Behavior Expectations, or CBEs). An SLE only applies if its related CBEs are met. Our view is that the customer and provider should each bear part of the risk of unpredictability, and use SLEs and CBEs to explicitly manage the sharing of risks.
+
+So far so good, but one set of issues the authors would like to share responsibility for are those caused by resource sharing. Now if customer A violates their own CBEs and this causes desired SLOs not to be met, that’s fair game in my mind. With CBEs in place...
+
+> 
+
+ ...one could limit sharing-dependent SLOs to be only compositional, not contractual - that is, sharing-dependent SOLs are offered as guidance: the provider implicitly promises not to undermine well-accepted SLEs, but makes no enforceable promises (SLAs) about sharing-dependent outcomes.
+
+But in noisy neighbour scenarios, customer B violating their own CBEs (or maybe even staying within them!) can impact customer A’s SLOs. I’m not so comfortable with cloud providers side-stepping responsibility for that. After all, they control the isolation mechanisms, the resource overcommitment levels, and so on, and it’s certainly not something the customer can control.
+
+## About that recent outage...
+
+I know this has been a longer write-up than usual, but I can’t resist quoting this paragraph about risks that are under the cloud provider’s control, to be juxtaposed with the emerging details of the recent Google Cloud Networking Incident #19009.
+
+> 
+
+ If we could ignore resource sharing, we could focus SLOs on various risks that arise from poor engineering or operational practices, such as not repairing control-plane outages; SDN designs that allow short-term control-plane failure to disrupt the data plane; failover mechanisms that do not actually work; operational procedures that create correlated risks, such as simultaneous maintenance on two availability zones in a region; routing network packets along surprisingly long WAN paths.
+
+To be clear though, given how enormously complex these environments are, I think it’s pretty amazing that cloud providers are able to provide the levels of service that they do.
+
+## The last word
+
+> 
+
+ We do not pretend to have a complete solution to the problems of cloud-SLO definition, but we think such a solution could emerge from re-thinking our use of SLOs, and using the combination of SLEs and CBEs to create harmonious cooperation in normal times... Perhaps the most important lesson we can learn from statistics, however, is humility — that the combination of unpredictable workloads, hard-to-model behaviour of complex shared infrastructures, and the infeasibility of collecting all the necessary metrics means that certain kinds of SLOs are beyond our power to deliver, no matter how much we believe we need them.
+
+- 
+Delightfully, at the time I’m writing this if you follow the ‘see my personal page’ link on John Wilkes’ Google profile page, you end up with a 500 Internal Server Error! Looks like a 404 handling misconfiguration. The information you seek can be found at https://john.e-wilkes.com/work.html instead. ↩

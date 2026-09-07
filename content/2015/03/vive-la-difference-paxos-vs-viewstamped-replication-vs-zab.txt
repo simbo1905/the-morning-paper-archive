@@ -1,0 +1,463 @@
+URL: https://blog.acolyer.org/2015/03/11/vive-la-difference-paxos-vs-viewstamped-replication-vs-zab/
+Title: Vive La Différence: Paxos vs Viewstamped Replication vs&nbsp;Zab
+---
+
+Vive La Différence: Paxos vs Viewstamped Replication vs Zab - van Renesse et al. 2014
+
+This is part 8 of a ten part series on consensus and replication.
+
+Perhaps by now you've started to discern some common patterns in the algorithms we've looked at. A leader or primary; two-phases to each goal the group wants to accomplish (some form of prepare, waiting for an ack from a majority of the group, followed by a commit); a reliance on the quorum intersection property to retain knowledge of history within the group; an ever increasing sequence number to distinguish between distinct phases in the group lifecycle; and an agreement to always go with whichever member claims the highest phase (epoch) number.
+
+To what extent are Paxos, Viewstamped Replication, and Zab fundamentally different, vs just using different terminology for essentially the same thing? If you thought deeply understanding any one of these in isolation was bad enough, this is the kind of question that can really set your head in a spin! Fortunately, van Renesse et al have done a lot of the hard work for us in today's paper choice. Using refinement they show us the consensus family tree and shine a light on what really matters. It's a shame that they clearly worked from the original Viewstamped Replication paper (VR) and not Viewstamped Replication Revisited (VRR) as the latter has a clearer specification and terminology, but this doesn't detract from the main results.
+
+> 
+
+ A protocol expressed in terms of a state transition specification Σ refines another specification Σ' if there exists a mapping of the state space of Σ to the state space of Σ' and each state transition in Σ can be mapped to a state transition in Σ' or to a no-op. This mapping between specifications is called refinement [1] or backward simulation [2]. If two protocols refine one another then we might argue that they are alike. But if they don’t, how does one characterize the similarities and differences between two protocols?
+
+More informally, if B refines A, then B can add a level of detail, and add constraints on the set of allowable behaviours.
+
+Here's the family tree. Each arrow represents a refinement relationship.
+
+> 
+
+ Each refinement corresponds to a design decision, and as can be seen in Fig. 1, the same specification is derived by following different paths of such design decisions. There is a qualitative difference between refinements that cross abstraction boundaries in Fig. 1 and those that do not. When crossing an abstraction boundary, a refinement takes an abstract concept and replaces it witha more concrete one. For example, it may take an abstract decision and replace it by a majority of votes. Within the same abstraction, a refinement restricts behaviors. For example, one specification might decide commands out of order whereas a more restricted specification might decide them in order.
+
+Starting from a specification of a linearizable service, we can refine this to produce an active replication model, and then transitively a passive replication model. In active replication each replica implements a deterministic state machine and processes operations, all replicas process operations in the same order. In passive replication only the primary executes operations, and then the resulting state is forwarded to each backup.
+
+> 
+
+ The tricky part of active replication is ensuring that replicas execute operations in the same order, despite replica failures, message loss, and unpredictable delivery and processing delays. A fault-tolerant consensus protocol is typically employed so that replicas will agree on the ith operation for each i. Specifically, each replica proposes an operation that was received from one of the clients in instance i of the consensus protocol. Only one of the proposed operations can be decided. The service remains available provided each instance of consensus eventually terminates.
+
+The desired primary order (or prefix order) property of passive replication is explained with a simple example:
+
+> 
+
+ Consider a replicated integer variable with initial value 3. One client wants to increment the variable, while the other wants to double it. One primary receives both operations and submits state updates 4 followed by 8. Another primary receives the operations in the opposite order and submits updates 6 followed by 7. Without prefix ordering, it may happen that the decided states are 4 followed by 7, not corresponding to any sequential history of the two operations.
+
+(I'm still mulling over this tying together of primary order and passive replication. Cannot primary order equally be a concern with active replication? And could we not have passive replication without a primary order requirement in some circumstances... - for example, if state updates were not incremental? These variants would add a few more branches to the tree, but would not I believe impact the final analysis of the differences between the concrete protocols).
+
+The authors assert that VR and Zab use passive replication, whereas Paxos uses active replication. "However, it is possible to implement one approach on the other." VRR very clearly specifies an active replication model in my view - this is what the 'service up-calls' are concerned with.
+
+Active replication can be refined to produce the Multi-Consensus protocol, which is the most specific common ancestor of Paxos, VR, and Zab.
+
+> 
+
+ Multi-Consensus has two basic building blocks: (1) A static set of n processes called certifiers. A minority of these may crash. So for tolerating at most f faulty processes, we require that n ≥ 2f + 1 must hold; (2) An unbounded number of rounds. In each round, Multi-Consensus assigns to at most one certifier the role of sequencer. The sequencer of a round certifies at most one command for each slot... Once a majority of certifiers certify the command within a round, the command is decided (and because certifications cannot be retracted the command will remain decided thereafter).
+
+Multi-consensus is shown not to refine passive replication (it doesn't preserve the prefix order property).
+
+> 
+
+ One way of implementing prefix ordering would be for the primary to delay proposing a command for a slot until it knows decisions for all prior slots. But that would be slow. A better solution is to refine Multi-Consensus and obtain a specification that also refines Passive Replication as well as satisfying prefix ordering. We call this specification Multi-Consensus-PO. Multi-Consensus-PO guarantees that each decision is the result of an operation applied to the state decided in the prior slot (except for the first slot).
+
+The Multi-Consensus and Multi-Consensus-PO specifications given in the paper specify which transitions may be performed, but not when they should be performed. A final round of refinement shows that Paxos, Zab, and VR can be derived from them. Table 2 on p11 of the paper is the quick-reference version of the key differences uncovered during this process.
+
+At the end of all this, it's reasonable to ask 'so which one should I use?'. The authors conclude:
+
+> 
+
+ Compute-intensive services are better off with a passive replication strategy, such as used in VR and Zab (provided that state updates are of a reasonable size). To achieve predictable low-delay performance for short operations during both normal case execution and recovery, an active replication strategy without designated majorities, such as used in Paxos, is the best option.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems 
+ 
+ ConsistencyDistributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousZooKeeper's Atomic Broadcast Protocol: Theory and PracticeNext &rsaquo;In Search of an Understandable Consensus Algorithm
+ 
+ 
+
+ 
+ 
+## 
+ 5 thoughts on &ldquo;Vive La Différence: Paxos vs Viewstamped Replication vs Zab&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Raft Refloated: Do we have consensus? | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Can't we all just agree? | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: A Year in Papers | the morning paper 
+ 
+ 
+- 
+ 
+ 
+ 
+ simbo1905 says: 
+
+ 
+ January 9, 2016 at 2:35 am 
+
+ 
+
+ 
+ 
+An example of Paxos for Multi-Consensus-PO is the Trex consensus engine over at https://github.com/trex-paxos/trex/tree/master Nothing particularly hard has to be done other than to 'deliver' the values as a callback to the host application in PO order. The write up is at https://wordpress.com/post/simbo1905.wordpress.com/557
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Cluster Replication With Paxos | slash dev slash null 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Loading Comments...
+ 
+ 
+ 
+ 
+
+ 
+ 
+ Write a Comment...
+ 
+ 
+ 
+ 
+ Email (Required)
+ 
+ 
+ 
+ Name (Required)
+ 
+ 
+ 
+ Website
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ %d

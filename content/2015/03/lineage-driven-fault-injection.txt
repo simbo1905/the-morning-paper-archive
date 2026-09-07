@@ -1,0 +1,342 @@
+URL: https://blog.acolyer.org/2015/03/26/lineage-driven-fault-injection/
+Title: Lineage-driven Fault Injection
+---
+
+Lineage-driven Fault Injection - Alvaro et al. 2015
+
+(** fixed broken link to SPL paper review **)
+
+This is the third of three papers looking at techniques that can help us to build more robust distributed systems. First we saw how the Statecall Policy Language can enforce rules on single node of a distributed system and provide input to a model checker as well as generate a runtime safety monitor. Then yesterday we looked at SAMC which is a distributed model checker able to cope with fault injection (which seems pretty important!) and still deliver meaningful results in a realistic timeframe for real systems (Zookeeper, Hadoop, and Cassandra were all explored). SAMC could perhaps be described as a heuristic-driven brute-force approach that uses a small amount of white-box semantic information about the application in order to reduce the search space. Today's paper describes a system, MOLLY, that takes a very different approach. MOLLY doesn't blindly explore a state space, instead MOLLY reasons backwards from a successful outcome (hopefully common!), to figure out what might have caused it to fail, and then probes paths that exercise those potential causes.
+
+> 
+
+ An ideal top-down solution for ensuring that distributed data management systems operate correctly under fault would enrich the fault injection methodology with the best features of formal component verification. In addition to identifying bugs, a principled fault injector should provide assurances. The analysis should be sound: any generated counterexamples should correspond to meaningful fault tolerance bugs. When possible, it should also be complete: when analysis completes without finding counterexamples for a particular input and execution bound, it should guarantee that no bugs exist for that configuration, even if the space of possible executions is enormous.
+
+The notion of data lineage in the database literature connects system outcomes to the data and messages that led to them. Inspired by this, Alvaro et al. introduce Lineage-driven Fault Injection (LDFI). "LDFI uses data lineage to reason backwards (from effects to causes) about whether a given correct outcome could have failed to occur due to some combination of faults."
+
+> 
+
+ Injecting faults in this targeted way allows LDFI to provide completeness guarantees like those achievable with formal methods such as model checking, which have typically been used to verify small protocols in a bottom-up fashion. When bugs are encountered, LDFI’s top-down approach provides—in addition to a counterexample trace— fine-grained data lineage visualizations to help programmers understand the root cause of the bad outcome and consider possible remediation strategies.
+
+MOLLY is an implementation of the LDFI concept, and MOLLY works! :
+
+- MOLLY finds bugs in large-scale, complex distributed systems quickly, in many cases using an order of magnitude fewer executions than a random fault injector. 
+
+- Like formal methods, MOLLY finds all of the bugs that could be triggered by failures: when a MOLLY execution completes without counterexamples it certifies that no fault-tolerance bugs exist for a given configuration.
+
+- In tests, MOLLY quickly identifies 7 critical bugs in 14 fault-tolerant systems; for the remaining 7 systems, it provides a guarantee that no invariant violations exist up to a bounded execution depth, an assurance that state-of-the-art fault injectors cannot provide.
+
+> 
+
+ LDFI takes the sequence of computational steps that led to a good outcome (the outcome’s lineage) and reasons about whether some combination of failures could have prevented all “support” for the outcome. If it finds such a combination, it has discovered a schedule of interest for fault injection: based on the known outcome lineage, under this combination of faults the program might fail to produce the outcome. However, in most fault-tolerant programs multiple independent computations produce the important outcomes; in an alternate execution with failures, a different computation might produce the good outcome in another way. As a result, LDFI alternates between identifying potential counterexamples using lineage and performing concrete executions to confirm whether they correspond to true counterexamples.
+
+MOLLY first runs a forward step of a distributed program given a set of inputs, obtaining an outcome. Then hazard analysis reasons backwards to deduce everything that had to happen to produce that outcome. These conditions are then expressed in conjunctive normal form (CNF), which handily happens to be the preferred input to a highly optimised set of constraint solvers known as SAT solvers (nice move!):
+
+> 
+
+ The SAT solutions—failures that could falsify all derivations of the good outcome—are transformed into program inputs for the next forward step. MOLLY continues to execute the program over these failure inputs until it either witnesses an invariant violation (producing a counterexample) or exhausts the potential counterexamples (hence guaranteeing that none exist for the given input and failure model).
+
+MOLLY will also produce Lamport diagrams and lineage graphs to help the system designer visualize any problematic traces it finds. The MOLLY prototype works over programs written in Dedalus, but the same principles can be used with other languages and frameworks such as Erlang, Java , Akka, and programs written in functional languages. Correctness is determined by whether or not the user-specified system invariants hold in every execution. Invariants are expressed as implications: precondition implies postcondition. Whenever the precondition holds but the post-condition does not, this is an invariant violation.
+
+There's a really lovely part of the paper that follows describing a 'match' between a programmer trying to build a fault-tolerant system, and MOLLY that is trying to break it. I can't do it justice in a summary post, so I'm going to cheat and highly recommend that you watch the 'MOLLY' portion of Peter Alvaro's RICON keynote (starts at 28:20) - actually, I highly recommend you watch the whole talk ;) :
+
+When you've watched that, I'm sure you'll also be motivated to go on and read the full paper - also a very worthwhile investment of your time!
+
+> 
+
+ To play a match, the programmer and the adversary must agree upon a correctness specification, inputs for the program and a failure model (for example, the adversary agrees to crash no more than one node, and to drop messages only up until some fixed time). In each round of the match the programmer submits a distributed program; the adversary, after running and observing the execution, is allowed to choose a collection of faults (from the agreed-upon set) to occur in the next execution. The program is run again under the faults, and both contestants observe the execution. If the correctness specification is violated, the programmer loses the round (but may play again); otherwise, the adversary is allowed to choose another set of failures and the round continues. If the adversary runs out of moves, the programmer wins the round.
+
+The match example in the paper gives great insight into how MOLLY works - looking for 'supports' that contribute to the correct outcome and knocking them out. To beat MOLLY you'll need to have redundancy both in space and in time....
+
+Round 5 exhibits this requirement, and also illustrates why composing a fault-tolerant system out of parts individually known to be fault-tolerant is still fraught with danger.
+
+> 
+
+ For the final round, the programmer submits a well-known reliable broadcast protocol originally specified by Birman et al. : (At a site receiving message m) if message m has not been received already send a copy of m to all other sites then deliver m. This protocol is correct in the fail-stop model, in which processes can fail by crashing but messages are not lost. The programmer has committed a common error: deploying a “correct” component in an environment that does not match the assumptions of its correctness argument. The classic broadcast protocol exhibits redundancy in space but not time; in a failure-free execution, it has infinite behaviors like the protocols submitted in Rounds 2-3, but this redundancy is vulnerable to message loss. The adversary, observing the lineage graph, immediately finds a winning move...
+
+## Evaluation notes
+
+Three commit-protocol variants from the distributed systems literature were implemented in Dedalus, and MOLLY quickly found the known flaws in all of them. Two invariants were specified in all cases:
+
+- Agreement: if an agent decides to commit (respectively, abort) then all agents decide to commit (abort).
+
+- Termination: if a transaction is initiated, then all agents decide either commit or abort for that transaction.
+
+With classic 2PC, MOLLY showed that "If the coordinator process fails after preparing a transaction, the system is left in a state in which the transaction outcome is unknown but all agents are holding locks waiting for the outcome (a violation of the termination property)." This well-known problem is ameliorated by the collaborative termation protocol (CTP) :
+
+> 
+
+ It is well-known, however, that although CTP allows more executions to terminate, it has blocking executions under the same failure assumptions as classic 2PC. MOLLY discovered a counterexample after a single forward/backward execution.
+
+The 3PC solves this, but assumes a connected and synchronous network. As soon as we allow finite message failures, MOLLY easily discovers bad executions.
+
+> 
+
+ We used MOLLY to study other agreement protocols, including Paxos and the bully leader election protocol. As we discuss in Section 7, desirable termination properties of such protocols are difficult to verify due to their sensitivity to asynchrony. Nevertheless we are able to validate their agreement properties by demonstrating that no counterexamples are found for reasonable parameters.
+
+MOLLY was also able to certify that the Flux replica sychronization protocol for streaming dataflow systems is resilient to omission and crash failures up to a significant depth of execution. "To the best of our knowledege, this effort represents the most thorough validation of the Flux protocol to date."
+
+Finally, MOLLY easily identified a known Kafka replication bug.
+
+> 
+
+ Even more compelling than its rapid discovery of counterexamples is MOLLY’s reduction of the search space for bug-free programs. A random strategy may find certain bugs quickly, but to guarantee that no bugs exist (given a particular set of parameters) requires exhaustive enumeration of the space of executions, which is exponential both in EFF and in the number of nodes in the simulation. By contrast, MOLLY’s hazard analysis is guaranteed to discover and explore only those failures that could have invalidated an outcome.
+
+(EFF is a parameter that influences the depth of the search space).
+
+## Concluding remarks
+
+The authors conclude:
+
+> 
+
+ LDFI presents a middle ground between pragmatism and formalism, dictated by the importance of verifying fault tolerance in spite of the complexity of the space of faults. LDFI works with executable code, though it requires that code to be written in a language that meets the requirements outlined in Section 2.2. By walking this middle ground, LDFI and MOLLY offer significant benefits over the state of the art in three dimensions. First, LDFI provides radical improvements in the efficiency of fault injection by narrowing down the choice of relevant faults to inject. Second, LDFI enables MOLLY to provide useful software engineering tools, illustrating tricky fault-tolerance bugs with concrete traces complete with auto-generated visualizations of root causes (lineage diagrams) and communication visualizations (Lamport diagrams). Finally, LDFI makes it possible to formally “bless” code as being correct up to a significant depth of execution, something that is infeasible with traditional fault injection techniques.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems 
+ 
+ Distributed SystemsTesting 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousSAMC: Semantic-aware model checking for fast discovery of deep bugs in cloud systemsNext &rsaquo;Scalable Atomic Visibility with RAMP Transactions
+ 
+ 
+
+ 
+ 
+## 
+ 8 thoughts on &ldquo;Lineage-driven Fault Injection&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: A Year in Papers | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Uncovering bugs in Distributed Storage Systems during Testing (not in production!) | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Data provenance at internet scale: architecture, experiences, and the road ahead | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: An empirical study on the correctness of formally verified distributed systems | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: ACIDRain: concurrency-related attacks on database backed web applications | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Growing a protocol | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: [book]Read Chaos Engineering again - 徒然なるままに ~ my tech diary ~ 
+ 
+ 
+- 
+ 
+ Pingback: Fixed it for you: protocol repair using lineage graphs | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

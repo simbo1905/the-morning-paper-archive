@@ -1,0 +1,46 @@
+{
+  "date": "20180424",
+  "file_name": "20180424",
+  "slug": "watching-for-software-inefficiencies-with-witch",
+  "blog_url": "https://blog.acolyer.org/2018/04/24/watching-for-software-inefficiencies-with-witch/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the significant problem of inefficiencies in complex software systems, particularly those involving memory subsystem misuse such as repeated initialization, register spills, and false sharing. Traditional coarse-grained profilers like gprof are insufficient for detecting these inefficiencies due to their inability to distinguish between efficient and inefficient resource usage, while fine-grained profilers introduce prohibitive overheads (10-80x slowdown). The paper introduces Witch, a low-overhead fine-grained inefficiency detection framework that leverages hardware Performance Monitoring Units (PMUs) to sample memory accesses. Witch is built on the HPCToolkit suite and includes three tools: DeadCraft (detecting dead stores), SilentCraft (identifying redundant stores), and LoadCraft (finding redundant loads). The blog post emphasizes Witch's practical impact, demonstrating substantial performance improvements in real-world applications like the Caffe deep learning framework (up to 2.23x speedup), NWChem computational chemistry package (1.43x speedup), and GNU Binutils (10x speedup). The key insight is that Witch's sampling-based approach, combined with techniques like reservoir sampling and proportional attribution, achieves high accuracy with minimal overhead, making it a practical solution for developers.",
+  "paper_title": "Witch: Watching for Software Inefficiencies",
+  "paper_authors": [
+    "Yudi Zheng",
+    "Lingming Zhang",
+    "Sasa Misailovic",
+    "Maria Garzaran",
+    "Josep Torrellas"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "ASPLOS'18",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3177159",
+  "paper_abstract": "Page-based far memory systems transparently expand an application’s memory capacity beyond a single machine without modifying application code. However, existing systems are tailored to scenarios with low application thread counts, and fail to scale on today’s multi-core machines. This makes them unsuitable for data-intensive applications that both rely on far memory support and scale with increasing thread count. Our analysis reveals that this poor scalability stems from inefficient holistic coordination between page fault-in and eviction operations. As thread count increases, current systems encounter scalability bottlenecks in TLB shootdowns, page accounting, and memory allocation. This paper presents three design principles that address these scalability challenges and enable efficient memory offloading. These principles are always-asynchronous decoupling to handle eviction operations as asynchronously as possible, cross-batch pipelined execution to avoid idle waiting periods, and scalability prioritization to avoid synchronization overheads at high thread counts at the cost of eviction accuracy. We implement these principles in both the Linux kernel and a library OS. Our evaluation shows that this approach increases throughput for batch-processing applications by up to 4.2× and reduces 99th percentile latency for a latency-critical memcached application by 94.5%. 1 MageLib MageLnx 100 90 80 70 60 50 40 30 20 10 0 0 DiLOS Ideal Hermit 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 % far memory Figure 1. Throughput as a function of the percentage of far memory used by different remote memory systems for GapBS (page rank) at 48 threads. This figure serves as a guide for datacenter operators, who can choose a throughput drop compatible with their SLOs, then trade that performance for improved memory utilization. techniques [8, 27, 51, 52, 62, 65] leverage high-bandwidth, low-latency networks to create expanded memory pools that satisfy application requirement...",
+  "paper_file": "papers/2018/04/24/watching-for-software-inefficiencies-with-witch.pdf",
+  "topics": [
+    "programming-languages",
+    "compilers",
+    "performance-analysis"
+  ],
+  "tags": [
+    "memory-subsystem",
+    "inefficiency-detection",
+    "hardware-pmus",
+    "dead-stores",
+    "redundant-stores",
+    "redundant-loads",
+    "sampling",
+    "profiling",
+    "performance-optimization"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Throughput vs. far memory percentage for GapBS",
+      "caption": "Throughput as a function of the percentage of far memory used by different remote memory systems for GapBS (page rank) at 48 threads. This figure serves as a guide for datacenter operators, who can choose a throughput drop compatible with their SLOs, then trade that performance for improved memory utilization."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

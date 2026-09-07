@@ -1,0 +1,445 @@
+URL: https://blog.acolyer.org/2016/06/22/hacking-blind/
+Title: Hacking Blind
+---
+
+Hacking Blind Bittau et al. IEEE Symposium on Security and Privacy, 2014
+
+(With thanks to Chris Swan for pointing this paper out to me a few months ago…)
+
+The ingenuity of attackers continues to amaze. Today’s paper presents an interesting trade-off: security or availability, pick one! (*) The work you put in to make sure that your processes are monitored and restarted on failure is enough for an attacker to exploit them given the existence of a stack buffer overflow vulnerability. “Unfortunately, these are still present today in popular software…” Using a systematic approach, the one bit of information that is leaked when a payload is sent to a server (does it crash or not) is enough to build up a full-blown attack. Restarting processes after a crash (either a server process directly restarting its worker processes, or use of a daemon such as systemd) provides the attacker with the ability to repeatedly probe the system and build up knowledge. The attack requires no prior knowledge of the source code or binary.
+
+Starting from nothing, an automated version of the BROP attack (Blind Return-Oriented Programming) in a tool called Braille can go from a crash to a remote shell in anything from a few minutes to up to 20 minutes. Braille is 2000 lines of Ruby code. For the particular system under attack, the user needs to supply a ‘try exploit’ function which is passed the data the harness wishes to overflow the stack buffer with, and must return either ‘CRASH’, ‘NO_CRASH’, or ‘INF’ (if the socket stays open for longer than a timeout but does not otherwise behave normally). Here’s an example for nginx:
+
+def try_exp(data)
+ s = TCPSocket.new($victim, 80)
+
+ req = "GET / HTTP/1.1\r\n"
+ req << "Host: site.com\r\n"
+ req << "Transfer-Encoding: Chunked\r\n"
+ req << "Connection: Keep-Alive\r\n"
+ req << "\r\n"
+ req << "#{0xdeadbeefdead.to_s(16)}\r\n"
+ req << "#{data}"
+
+ s.write(req)
+
+ if (s.read() == nil
+ return RC_CRASH
+ else 
+ return RC_NO_CRASH
+ end
+end
+
+(nginx was comprised in under a minute, after making 2401 requests).
+
+> 
+
+Hacking without binary knowledge is useful even in the not-completely-blind case (e.g., open-source) because it makes it possible to write generic, robust exploits that work against all distributions and are agnostic to a specific version of the binary. Today, attackers need to gather exact information (e.g., binaries) for all possible combinations of distribution versions and vulnerable software versions, and build an exploit for each. One might assume attackers would only bother with the most popular combinations. An implication of our work is that more obscure distributions offer little protection (through obscurity) against buffer overflows.
+
+(*) Ok, it’s not actually quite that dramatic. The availability (automated restart) of a single server process is what’s needed. If you load balance across several servers the attack isn’t quite so easy as it assumes the same machine and (top-level) process can be hit after each attempt. If you are load balancing, and PIE is used (not widely deployed as of 2014) or canaries cannot be circumvented by other means then BROP will not succeed.
+
+## Defences that BROP must overcome
+
+In the ‘good old days’ exploiting stack buffer overflows was relatively straightforward. The malicious code could be included as part of the overflow payload, and the return address set to the location on on the stack where the instructions had been placed. This simple approached stopped working with the introduction of non-executable memory (NX).
+
+NX can be overcome using a technique called return oriented programming (ROP) that we’ve looked at previously on The Morning Paper. The basic idea is very simple, if very clever. What if the instructions you need for your attack are already present in the binary? By finding appropriate small sequences of instructions (called ‘gadgets’) that end with a return, it is possible to chain these together to achieve the desired goal. Consider the following very common code that restores all saved registers:
+
+pop rbx
+pop rbp
+pop r12
+pop r13
+pop r14
+pop r15
+ret
+
+If you start parsing this code at the beginning (offset 0x0) it does exactly what is intended. But if you jump into it an unintended offset (not aligned with the original instruction boundaries), you find sequences of bytes that do other useful things. At offset 0x7 you get:
+
+pop rsi
+pop r15
+ret
+
+At and offset 0x9 you get:
+
+pop rdi
+ret
+
+This save register code fragment is so useful the authors call it the BROP gadget. If you can find it, the two useful gadgets it contains give you enough to control the first two arguments of any call.
+
+So ROP can overcome NX pages, but there still remain the challenges of address space layout randomization (ASLR) and canaries. ASLR randomizes the location of code and data memory segments in the process address space. This makes it impossible to predict the address locations of code in advance. Fortunately, the BROP attack doesn’t need to do this. Stack canaries are a secret value that is placed just before each saved frame pointer and return address in the stack. When a function returns, the canary value is checked - if it has changed it indicates a stack buffer overflow and the program exits to prevent any exploit. Canaries aren’t perfect as they can sometimes be bypassed, but they are still effective in many cases. Blind ROP is able to determine the canary value so that it can be included in the overflow data at the expected location, avoiding triggering detection.
+
+## One bit at a time, crafting an attack
+
+The high-level attack plan is as follows:
+
+- Using a process the authors call ‘stack reading,’ determine the canary value and a return address that can be used to defeat ASLR
+
+- Find enough gadgets to be able to invoke the write system call and control its arguments (Blind ROP)
+
+- Use write to dump enough of the binary over a socket such that the attacker can find enough gadgets to build a shellcode (known technique) and launch the final exploit.
+
+## Stack reading
+
+Finding the canary value proceeds one byte at a time. The overflow is used to overwrite a single byte of the canary. If the process crashes, the guess was clearly wrong. If the server does not crash, we’ve found one byte of the canary value. Repeat this procedure with the next byte, until all 8 bytes (for 64-bit) are leaked. Then you can keep going to discover the saved instruction pointer on the stack (or any alternate value that also enables the program to keep executing without crashing).
+
+On 64-bit Linux, whereas a brute-force attack requires 227 attempts on average, stack reading can defeat ASLR in 640 attempts on average.
+
+## Gadget finding
+
+The next stage is to find enough gadgets to be able to invoke write. A convenient starting point is to find the BROP gadget we saw earlier (this isn’t necessary for the attack to succeed, it just makes things a bit easier - see the full paper for what to do if the BROP gadget is not found). Gadgets are found by overwriting the saved return address and inspecting the program behaviour (the entire .text segment can be scanned to compile a list of gadgets). The first thing to find is a stop gadget, which is anything that causes the program to block instead of crashing (which we can detect remotely). In fact, any signal that we can detect remotely will do, it doesn’t have to be a blocking (e.g. a sleep) gadget.
+
+> 
+
+For example a server may handle requests in a while-true loop, so returning to that loop may “resume” program execution and another request can be handled. This can be used to signal whether a program crashed or is still alive (i.e., the stop gadget ran). The attacker in this case would populate the stack with the addresses of enough ret instructions to “eat up” enough stack until the next word on the stack is a return address of a previous stack frame that acts as a stop gadget (e.g., returns to the main program loop).
+
+Given a stop gadget we can use gadget chaining to search for another gadget by first trying a candidate return address, and chaining the stop gadget after it. If the stop gadget runs, we found a valid gadget of some kind (i.e., it does something and then returns, without crashing). Suppose the attacker now has three addresses: probe, the address of the gadget being scanned; stop, the address of a stop gadget; and trap the address of any non-executable memory that will cause a crash. By chaining these in different combinations, you can find out information about what the gadget does. For example:
+
+- probe, stop, traps (trap, trap, …) finds gadgets that do not pop the stack like ret or xor rax, rax; ret
+
+- probe, trap, stop, traps finds gadgets that pop exactly one stack work like pop rax; ret or pop rdi; ret
+
+- probe, stop, stop, stop, stop, stop, stop, traps finds gadgets that pop up to six words, for example the BROP gadget.
+
+> 
+
+The BROP gadget has a very unique signature. It pops six items from the stack and landing in other parts of it pops fewer items from the stack so one can verify a candidate by laying out traps and stop gadgets in different combinations and checking behavior. A misaligned parse in the middle yields a pop rsp which will cause a crash and can be used to verify the gadget and further eliminate false positives. The gadget is 11 bytes long so one can skip up to 7 bytes when scanning the .text segment to find it more efficiently, landing somewhere in the middle of it.
+
+For a set of binaries analysed by the authors, it should take on average between 154 and 972 attempts to find a BROP gadget.
+
+## Finding ‘write’ and a way to control rdx
+
+Now that we have a BROP gadget, the next thing is to find write’s entry in the Procedure Linking Table (PLT) and a way to control rdx for the length of the write. pop rdx; ret gadgets are rare, but fortunately calls to strcmp are not - and strcmp sets rdx to the length of the string being compared.
+
+The PLT is relatively easy to find since it has a unique structure with entries 16 bytes apart, and a ‘slow path’ address at an offset of 6 bytes. If a couple of addresses 16 bytes apart do not cause a crash, and the same addresses plus six do not cause a crash, there’s a high probability you’ve found the PLT. The next step is to work out what function calls the various entries correspond to. By exercising the functions with different arguments and seeing what happens it is possible to figure this out. (The first two arguments can be controlled thanks to the BROP gadget). For example, the ‘signature’ of strcmp is:
+
+- strcmp(bad address, bad address): crash
+
+- strcmp(bad, readable): crash
+
+- strcmp(readable, bad): crash
+
+- strcmp(readable, readable): no crash
+
+> 
+
+Once strcmp is found, the attacker can set rdx to a non-zero value by just supplying a pointer to either a PLT entry (non-zero code sequence) or the start of the ELF header (0x400000) which has seven non-zero bytes.
+
+Given the ability to control the first two arguments via the BROP gadget, and rdx indirectly via strcmp, it’s easy to find write: just scan each PLT entry, force a write to the socket, and check whether the write occured. To find the file descriptor for the open socket, searching the first few file descriptors generally works well.
+
+Finding write usually only takes a few additional requests once BROP has been found.
+
+Once the attacker can write to the socket, it’s relatively straightforward to write the entire .text segment from memory to the attacker’s socket (some methods are described in the paper). With this information the attacker can find more gadgets by local analysis of the binary, and complete the exploit.
+
+## Defence against the dark arts
+
+- Using a load balancer with PIE enabled (as described previously)
+
+- Randomizing the canary on a per-user or per-request basis
+
+- Slowing down attacks by delaying restarts after crashes (which of course may not be what you want in the presence of an innocent crash)
+
+- Using techniques such as Control Flow Integrity that defend against ROP attacks.
+
+- Using compiler options to insert runtime bounds checks on buffers (may add up to 2x performance overhead). “One bright spot to make these solutions practical is that Intel has announced a set of instruction extensions to reduce the costs of bounds checking variables.”
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousBlindBox: Deep packet inspection over encrypted trafficNext &rsaquo;AI^2: Training a big data machine to defend
+ 
+ 
+
+ 
+ 
+## 
+ 5 thoughts on &ldquo;Hacking Blind&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Berend de Boer says: 
+
+ 
+ June 23, 2016 at 2:56 am 
+
+ 
+
+ 
+ 
+And where can we download this tool?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ June 23, 2016 at 6:09 am 
+
+ 
+
+ 
+ 
+http://www.scs.stanford.edu/brop/
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Berend de Boer says: 
+
+ 
+ June 24, 2016 at 12:06 am 
+
+ 
+
+ 
+ 
+Thanks for that! I tried it against my local Apache server, but attack immediately aborts after receiving "HTTP/1.1 411 Length Required".
+
+So perhaps nginx specific?
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ Pingback: "On the other side of the screen, it all looks so easy." - Kevin Flynn - Magnus Udbjørg 
+ 
+ 
+- 
+ 
+ 
+ 
+ Virginia says: 
+
+ 
+ June 23, 2019 at 6:31 am 
+
+ 
+
+ 
+ 
+Si llegara. A servir se los agradezco muchísimo
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

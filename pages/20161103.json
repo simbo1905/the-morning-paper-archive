@@ -1,0 +1,33 @@
+{
+  "date": "20161103",
+  "file_name": "20161103",
+  "slug": "algorithmic-improvements-for-fast-concurrent-cuckoo-hashing",
+  "blog_url": "https://blog.acolyer.org/2016/11/03/algorithmic-improvements-for-fast-concurrent-cuckoo-hashing/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses a paper from EuroSys 2014 that extends optimistic cuckoo hashing to support multiple writers and achieve higher throughput. The authors initially aimed to leverage Intel Haswell's hardware transactional memory (HTM), but found that algorithmic and data structure optimizations were more impactful. The paper introduces a design that minimizes critical sections, reduces cuckoo path lengths via breadth-first search, increases set-associativity, and employs fine-grained locking. The result is a hash table achieving ~40M inserts/second on a 16-core machine, outperforming Intel's Thread Building Blocks by 2.5x while using less memory. The author highlights the paper's focus on algorithmic engineering over hardware-specific optimizations, emphasizing the importance of good concurrent design principles.",
+  "paper_title": "Algorithmic improvements for fast concurrent cuckoo hashing",
+  "paper_authors": [
+    "Li et al"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "EuroSys",
+  "paper_url": "http://www.cs.princeton.edu/~xl/Publications_files/cuckoo-eurosys14.pdf",
+  "paper_abstract": "—Cuckoo hashing is widely used for its worst-case constant lookup performance even at very high load. However at high load, collision resolution will involve lots of probes on item relocation and may still fail in the end. To address the problem, we propose an efficient Cuckoo hashing scheme called Multi-copy Cuckoo or McCuckoo. Different from the blind kick-outs of standard Cuckoo hashing during a collision, we can foresee which way to successfully kick items by using multiple copies. Furthermore, with the knowledge of how many copies each item has in the table, we can identify impossible buckets and skip them during a lookup. In order to avoid expensive rehashing during insertion failures, McCuckoo also supports more efficient stash strategy that minimizes stash checking. McCuckoo uses simple logic and simple data structure, so it is suitable for both software and hardware implementation on platforms where intensive access to the slow and bandwidth limited off-chip external memory is the main bottleneck. Keywords—Cuckoo Hashing, Hashing algorithm, Multi-copy I. INTRODUCTION Hash tables [1] are basic data structures that are widely used in various fields such as database, networking, storage, security, etc. When working at low load, hash collisions rarely happen; but when load increases, collisions will happen frequently. Traditional solutions such as chaining methods and linear probing [2] need extra time and resource to resolve the collisions, affecting both insertion and lookup and losing the favorable performance bound. Unlike traditional hash structures that only provide one candidate location for each item, Cuckoo hashing [3] uses d hash functions to provide multiple candidate buckets for each item to choose so as to reduce collision. Most importantly, existing items can be “kicked out” and relocated to another candidate bucket if necessary to make room in search of an overall arrangement for all items to settle down in their own buckets. This flexibility pro...",
+  "paper_file": "papers/2016/11/03/algorithmic-improvements-for-fast-concurrent-cuckoo-hashing.pdf",
+  "topics": [
+    "storage-systems",
+    "algorithms"
+  ],
+  "tags": [
+    "concurrent-hash-tables",
+    "cuckoo-hashing",
+    "fine-grained-locking",
+    "breadth-first-search",
+    "hardware-transactional-memory",
+    "optimistic-locking",
+    "lock-striping"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

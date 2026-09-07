@@ -1,0 +1,46 @@
+{
+  "date": "20190311",
+  "file_name": "20190311",
+  "slug": "efficient-synchronisation-of-state-based-crdts",
+  "blog_url": "https://blog.acolyer.org/2019/03/11/efficient-synchronisation-of-state-based-crdts/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses state-based CRDTs (Conflict-free Replicated Data Types) and their delta-based synchronization, which aims to reduce bandwidth by transmitting only state changes rather than full states. However, the author highlights a key inefficiency: when updates are frequent, delta-propagation performs no better than full-state transmission due to redundant data being sent back and forth between replicas. The paper introduces two optimizations—BP (avoid sending updates back to the replica that sent them) and RR (remove redundant state in received deltas)—which significantly reduce data transmission and CPU overhead. The evaluation shows these optimizations can reduce metadata overhead by up to 75% and CPU overhead by up to 7.9x compared to classic delta-based algorithms. The author concludes that minimal deltas and de-duplication are crucial for practical state-based CRDTs.",
+  "paper_title": "Efficient synchronisation of state-based CRDTs",
+  "paper_authors": [
+    "Enes",
+    "Mahmoud A. Alzahrani",
+    "Alberto Lluch Lafuente"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "",
+  "paper_url": "https://arxiv.org/abs/1803.02750",
+  "paper_abstract": "—To ensure high availability in large scale distributed systems, Conflict-free Replicated Data Types (CRDTs) relax consistency by allowing immediate query and update operations at the local replica, with no need for remote synchronization. State-based CRDTs synchronize replicas by periodically sending their full state to other replicas, which can become extremely costly as the CRDT state grows. Delta-based CRDTs address this problem by producing small incremental states (deltas) to be used in synchronization instead of the full state. However, current synchronization algorithms for delta-based CRDTs induce redundant wasteful delta propagation, performing worse than expected, and surprisingly, no better than state-based. In this paper we: 1) identify two sources of inefficiency in current synchronization algorithms for delta-based CRDTs; 2) bring the concept of join decomposition to state-based CRDTs; 3) exploit join decompositions to obtain optimal deltas and 4) improve the efficiency of synchronization algorithms; and finally, 5) experimentally evaluate the improved algorithms. Index Terms—CRDTs; Optimal Deltas; Join Decomposition; I. I NTRODUCTION Fig. 1: Experiment setup: 15 nodes in a partial mesh topology replicating an always-growing set. The left plot depicts the number of elements being sent throughout the experiment, while the right plot shows the CPU processing time ratio with respect to state-based. Not only does delta-based synchronization not improve state-based in terms of state transmission, it even incurs a substantial processing overhead. Large-scale distributed systems often resort to replication techniques to achieve fault-tolerance and load distribution. These systems have to make a choice between availability and low latency or strong consistency [1]–[4], many times opting for the first [5], [6]. A common approach is to allow replicas of some data type to temporarily diverge, making sure these replicas will eventually converge to the same state ...",
+  "paper_file": "papers/2019/03/11/efficient-synchronisation-of-state-based-crdts.pdf",
+  "topics": [
+    "distributed-systems"
+  ],
+  "tags": [
+    "crdts",
+    "state-based-crdts",
+    "delta-propagation",
+    "consistency",
+    "synchronization",
+    "redundancy-elimination",
+    "bp-optimization",
+    "rr-optimization"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Experiment setup",
+      "caption": "Experiment setup: 15 nodes in a partial mesh topology replicating an always-growing set. The left plot depicts the number of elements being sent throughout the experiment, while the right plot shows the CPU processing time ratio with respect to state-based. Not only does delta-based synchronization not improve state-based in terms of state transmission, it even incurs a substantial processing overhead."
+    },
+    {
+      "number": "Figure 2",
+      "title": "CRDT examples",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

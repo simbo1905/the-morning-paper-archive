@@ -1,0 +1,454 @@
+URL: https://blog.acolyer.org/2019/04/10/dont-trust-the-locals-investigating-the-prevalence-of-persistent-client-side-cross-site-scripting-in-the-wild/
+Title: Don’t trust the locals: investigating the prevalence of persistent client-side cross-site scripting in the&nbsp;wild
+---
+
+Don’t trust the locals: investigating the prevalence of persistent client-side cross-site scripting in the wild Steffens et al., NDSS'19
+
+Does your web application make use of local storage? If so, then like many developers you may well be making the assumption that when you read from local storage, it will only contain the data that you put there. As Steffens et al. show in this paper, that’s a dangerous assumption! The storage aspect of local storage makes possible a particularly nasty form of attack known as a persistent client-side cross-site scripting attack. Such an attack, once it has embedded itself in your browser one time (e.g. that one occasion you quickly had to jump on the coffee shop wifi), continues to work on all subsequent visits to the target site (e.g., once you’re back home on a trusted network).
+
+In an analysis of the top 5000 Alexa domains, 21% of sites that make use of data originating from storage were found to contain vulnerabilities, of which at least 70% were directly exploitable using the models described in this paper.
+
+> 
+Our analysis shows that more than 8% of the top 5,000 domains are potentially susceptible to a Persistent Client-Side XSS vulnerability. Moreover, considering only such domains which make use of tainted data in dangerous sinks, a staggering 21% (418/1,946) are vulnerable. Considering only the top 1,000 domains, we even found that 119 of them contained an unfiltered and unverified flow from cookes or Local Storage to an execution sink... we believe these results are lower bounds on the actual number of potentially vulnerable sites.
+
+## Persistent client-side XSS attacks
+
+There are two basic requirements for a storage-based XSS attack. First, there must be a vulnerable path that permits an attacker to control the data written into local storage. Secondly, the page must use data from local storage in a manner that is exploitable (e.g., no sanitisation) at a sink.
+
+> 
+...when the JavaScript code causing the vulnerable flow from storage to sink is included in every page of a domain, a single injection means that regardless of which URL on the domain is visited, the attack succeeds... Moreover, a single error or misconfiguration on such a domain is sufficient to persist a payload.
+
+## Storing a malicious payload
+
+There are two main routes an attacker can use to persist malicious payloads: an in-network attacker can hijack connections over HTTP, or the attacker can lure the victim to visit a website under the attacker’s control.
+
+HTTP-based network attacks can be prevented by using HTTPS, and by sites setting the HTTTP Strict Transport Security (HSTS) header with the includeSubDomains option. Unfortunately not all users and not all sites take these measures. Say a user connects to the "coffee shop wifi"...
+
+> 
+A security-aware user might refrain from performing any sensitive actions in such an open network, e.g., performing a login or doing online banking. However, using a Persistent Client-Side XSS, the attacker can implant a malicious payload which lies dormant and is used only later to attack a victim. One such scenario is a JavaScript-based keylogger, which is triggered upon visiting the site with infected persistent storage in a seemingly secure environment, e.g., at home.
+
+If the attacker can instead lure a victim to a website the attacker controls (maybe via ads etc.), then for example the victim’s browser can be forced to load a vulnerable page on a third-party site containing a reflected Client-Side Cross-Site Scripting flaw. The payload sent to the vulnerable site triggers a flow which stores attacker-controlled content in local storage.
+
+## Exploits
+
+Once the data is in local storage, then the set of potential exploits is similar to any other scenario in which a web page contains attacker controlled content. Except that it this case, developers seem much less aware of the need to sanitise the input, implicitly trusting the data they pull from local storage. Several sites for example are using local storage to store code / json which they are eval ing. That should probably raise a red flag regardless. Consider the following more benign looking example though:
+
+Here the value retrieved from storage is neither checked nor encoded, so the attacker can break out of the <a> tag and inject any script of their choosing.
+
+## Protecting a malicious payload
+
+Once the payload is in place in local storage, its persistence can be further enhanced by injecting into relevant pages JavaScript code to ignore invocations of Local Storage setItem or removeItem functionality.
+
+## Do these vulnerabilities exist in the wild?
+
+The authors crawled the Alexa top 5000 domains (up to 1000 sub-pages each, maximum depth 2, only public pages - i.e., nothing behind a login). The resulting dataset contained 12.5M documents. The crawling was done with a modified Chromium that reports invocations with tainted data (i.e., controlled by the crawling engine) to numerous sinks.
+
+The following table shows the vulnerable flows found from source to sink, where the source can be an HTTP request, flow from a cookie, or flow from local storage.
+
+> 
+We observe that for HTML and JavaScript sinks, between 71% and 89% of flows from the URL are not encoded... For flows originating from cookies, the fraction of plain flows ranges from 69% to 98%. Most interestingly though, we observe that virtually all flows that originate from a Local Storage source have no encoding applied to them, indicating that this data appears to be trusted by the developers of the JavaScript applications.
+
+From this set, a total of 906 domains have vulnerable cookie flows, and 654 domains have vulnerable Local Storage flows.
+
+For these domains, the authors then tested to see whether stored values appears on a page (i.e., there is an exploitable flow from local storage).
+
+> 
+More than half of the domains that had a flow from Local Storage to a sink could be exploited, indicating that little care is taken in ensuring the integrity and format of such data.
+
+Now it’s just a matter of putting the two parts together: we’re looking for sites with vulnerable flows from an attacker controlled source to local storage, coupled with an exploitable flow from local storage. In total 65 domains had this deadly combination. "Since our crawlers neither log in nor try to cover all available code paths, the number of sites susceptible to such Client-Side XSS flaws is likely higher."
+
+A case study:
+
+> 
+In our study, we found the single sign-on part of a major Chinese website network to be susceptible to both a persistent and a reﬂected Client-Side XSS ﬂaw. While abusing the reﬂected XSS could have been used to exﬁltrate the cookies of the user, these were protected with the HttpOnly ﬂag. Given the fact that the same origin also made insecure use of persisted code from Local Storage, however, rather than trying to steal the cookie, we built a proof of concept that extracted credentials from the login ﬁeld right before the submission of the credentials to the server.
+
+## Defences
+
+When using local storage for unstructured data, always use context-aware sanitisation (i.e., apply the appropriate encoding to prevent escaping) before inserting the data in the DOM.
+
+When using local storage for structured data, use JSON.parse instead of eval. (eval is more liberal in what it accepts, 27 of the domains in the study use data formats resembling JSON that can be parsed with eval, but not by JSON.parse. To which I say, fix your format!).
+
+> 
+The most challenging pattern in our dataset consists of scenarios in which applications use the persistence mechanisms to deliberately store HTML or JavaScript code, e.g., for client-side caching purposes. In this setting, the attacker is able to completely overwrite the contents of the corresponding storage entry with their own code. We could identify in several cases these flaws are actually introduced by third-party libraries, among them CloudFlare and Criteo.
+
+There is no general solution here, and we have to look at individual use cases. CloudFlare’s ‘Rocket Loader’ for example caches external scripts in local storage. A safer alternative would be to use service workers (see section VI.C in the paper for a sketch of the implementation).
+
+When storing HTML only fragments, sanitisers such as DOMPurify can robustly remove all JavaScript.
+
+For sites with a mix of HTML and JavaScript stored in local storage (five sites) from the analysis, "none of the available defensive coding measures can be applied.... hence securing these sites requires removing the insecure feature altogether."
+
+> 
+Several vulnerabilities we discovered were caused by third-party code. We notiﬁed those parties which were responsible for at least three vulnerable domains. As of this writing, the four largest providers have acknowledged the issues and/or deployed ﬁxes for the ﬂawed code.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousHow bad can it git? Characterizing secret leakage in public GitHub repositoriesNext &rsaquo;Master of web puppets: abusing web browsers for persistent and stealthy computation
+ 
+ 
+
+ 
+ 
+## 
+ 21 thoughts on &ldquo;Don’t trust the locals: investigating the prevalence of persistent client-side cross-site scripting in the wild&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Don’t trust the locals: investigating the prevalence of persistent client-side cross-site scripting in the wild | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Don’t trust the locals: investigating prevalence of persistent client-side XSS - Hckr News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Don’t trust the locals: investigating prevalence of persistent client-side XSS - Golden News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Don’t trust the locals: investigating prevalence of persistent client-side XSS - Latest news 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Don’t trust the locals: investigating prevalence of persistent client-side XSS - World Best News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Don’t trust the locals: investigating prevalence of persistent client-side XSS - News about world 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Don’t trust the locals: investigating prevalence of persistent client-side XSS - Outside The Know 
+ 
+ 
+- 
+ 
+ Pingback: Don’t trust the locals: investigating prevalence of persistent client-side XSS - INDIA NEWS 
+ 
+ 
+- 
+ 
+ Pingback: Don’t trust the locals: investigating the prevalence of persistent client-side cross-site scripting in the wild - JNW 
+ 
+ 
+- 
+ 
+ Pingback: Don’t trust the locals: investigating prevalence of persistent client-side XSS | My Tech Blog 
+ 
+ 
+- 
+ 
+ Pingback: Collective #507 - Unsorted 
+ 
+ 
+- 
+ 
+ Pingback: Don’t trust the locals: investigating prevalence of persistent client-side XSS - Hacker News Robot 
+ 
+ 
+- 
+ 
+ Pingback: Collective #507 - Find Right Software 
+ 
+ 
+- 
+ 
+ Pingback: Collective #507 - News 20h 
+ 
+ 
+- 
+ 
+ Pingback: The Prevalence of Persistent XSS - Curated SQL 
+ 
+ 
+- 
+ 
+ Pingback: Inspirational Website of the Week: | Digitallife33 
+ 
+ 
+- 
+ 
+ Pingback: Дайджест свежих материалов из мира фронтенда за последнюю неделю №360 (7 — 14 апреля 2019) -- MAILSGUN.RU 
+ 
+ 
+- 
+ 
+ Pingback: Bug Bytes #14 - Better Exfiltration via HTML Injection by @fransrosen, Dell KACE K1000 RCE by @MrTuxracer & BurpFeed - INTIGRITI 
+ 
+ 
+- 
+ 
+ 
+ 
+ cfjedimaster says: 
+
+ 
+ April 18, 2019 at 3:49 pm 
+
+ 
+
+ 
+ 
+Please forgive me if this comment posts twice - had to reset my WordPress login.
+
+I’m a bit confused about the part discussing injecting the malicious code, specifically: “There are two main routes an attacker can use to persist malicious payloads: an in-network attacker can hijack connections over HTTP, or the attacker can lure the victim to visit a website under the attacker’s control” If the attacker gets you to leave good.com and go to bad.com, any code that writes to LocalStorage would only apply to bad.com. So how does luring a user away impact LocalStorage on the original site?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ hyperman says: 
+
+ 
+ April 19, 2019 at 12:01 pm 
+
+ 
+
+ 
+ 
+Hello,
+
+there is a minor type here: 1 to many T in 
+
+.. HTTTP Strict Transport ...
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Mark Amery says: 
+
+ 
+ May 8, 2019 at 6:13 pm 
+
+ 
+
+ 
+ 
+The potential for attacks like this against localStorage seems overstated to me. Since localStorage for HTTP and HTTPS versions of a site are entirely separate, you can't set a malicious payload for a HTTPS-only site by MITMing an attempt to connect to it over HTTP. That leaves the potential of setting a malicious payload using an XSS vulnerability. Okay, sure, but having an XSS vulnerability in the first place is a big deal, and all that such an attack permits is making the vulnerability persistent. Not really that big or interesting a step up from just having an ordinary XSS vulnerability in the first place.
+
+The idea of using a MITM attack to set a cookie is more interesting, but it's curious that the authors don't explore the most obvious application of this: simply overwriting the user's authentication cookie so that they become logged in as a user you can also access and view the actions of. No need for any vulnerable JavaScript to take advantage of that attack vector.
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

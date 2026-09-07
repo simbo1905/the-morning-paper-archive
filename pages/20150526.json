@@ -1,0 +1,72 @@
+{
+  "date": "20150526",
+  "file_name": "20150526",
+  "slug": "pregel-a-system-for-large-scale-graph-processing",
+  "blog_url": "https://blog.acolyer.org/2015/05/26/pregel-a-system-for-large-scale-graph-processing/",
+  "blog_title": "",
+  "blog_summary": "The blog post introduces Pregel, Google's system for large-scale graph processing, which powers PageRank and inspired Apache Giraph. Adrian Colyer highlights Pregel's 'think like a vertex' programming model, where computations are organized into supersteps—iterations where each vertex processes messages, updates its state, and sends new messages. This model avoids the complexity of chained MapReduce jobs by using message passing, which is both intuitive for graph algorithms and efficient in distributed environments. The post emphasizes Pregel's fault tolerance, scalability, and flexibility in handling graph mutations and global aggregations. Key insights include the synchronicity of supersteps for deadlock-free execution and the use of combiners to reduce message traffic.",
+  "paper_title": "Pregel: A System for Large-Scale Graph Processing",
+  "paper_authors": [
+    "Grzegorz Malewicz",
+    "Matthew H. Austern",
+    "Aart J.C. Bik",
+    "James C. Dehnert",
+    "Ilan Horn",
+    "Naty Leiser",
+    "Grzegorz Czajkowski"
+  ],
+  "paper_year": 2010,
+  "paper_venue": "SIGMOD '10",
+  "paper_url": "http://www.dcs.bbk.ac.uk/~dell/teaching/cc/paper/sigmod10/p135-malewicz.pdf",
+  "paper_abstract": "Pregel: A System for Large-Scale\nGraph Processing\nGrzegorz Malewicz, Matthew H. Austern, Aart J.C. Bik, James C.\nDehnert, Ilan Horn, Naty Leiser, and Grzegorz Czajkowski\n\nPresented by Teodora Reu\n\n\fState of the art and its limitations\nBGL, LEDA, NetworkX, JDSL, Stanford GraphBase, FGL\n• Single-computer graphs => not distributed\n\nParallel BGL, CGMgraph\n• Distributed but do not address fault tolerance\n\nMapReduce\n• Can be used to mine large Graphs but leads to suboptimal performance\n\nSQL\n• Not idea",
+  "paper_file": "papers/2015/05/26/pregel-a-system-for-large-scale-graph-processing.pdf",
+  "topics": [
+    "distributed-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "graph-processing",
+    "bulk-synchronous-parallel",
+    "supersteps",
+    "message-passing",
+    "fault-tolerance",
+    "combiners",
+    "aggregators",
+    "graph-mutations",
+    "pagerank"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Pregel System Overview",
+      "caption": null
+    },
+    {
+      "number": "Figure 2",
+      "title": "Superstep 0 Execution",
+      "caption": null
+    },
+    {
+      "number": "Figure 3",
+      "title": "Superstep 1 Execution",
+      "caption": null
+    },
+    {
+      "number": "Figure 4",
+      "title": "Superstep 2 Execution",
+      "caption": null
+    },
+    {
+      "number": "Figure 5",
+      "title": "Superstep 3 Execution",
+      "caption": null
+    },
+    {
+      "number": "Figure 6",
+      "title": "Edge-Cutting Partitioning",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

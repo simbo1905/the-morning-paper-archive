@@ -1,0 +1,463 @@
+URL: https://blog.acolyer.org/2018/11/28/towards-usable-checksums-automating-the-integrity-verification-of-web-downloads-for-the-masses/
+Title: Towards usable checksums: automating the integrity verification of web downloads for the&nbsp;masses
+---
+
+Towards usable checksums: automating the integrity verification of web downloads for the masses Cherubini et al., CCS'18
+
+If you tackled Monday’s paper on BEAT you deserve something a little easier to digest today, and ‘Towards usable checksums’ fits the bill nicely! There’s some great data-driven product management going on here as the authors set out to quantify current attitudes and behaviours regarding downloading files from the Internet, design a solution to improve security and ease-of-use, and then test their solution to gather feedback and prepare for a more widely deployed beta version.
+
+When I was growing up we were all taught "Don’t talk to strangers", and "Never get in a stranger’s car". As has been well noted by others, so much for that advice! Perhaps the modern equivalent is "Don’t download unknown files from the Internet!" This paper specifically looks at applications made directly available from developer websites (vs downloads made through app stores).
+
+> 
+
+ A popular and convenient way to download programs is to use official app stores such as Apple’s Mac App Store and Microsoft’s Windows Store. Such platforms, however, have several drawbacks for developers, including long review and validation times, technical restrictions (e.g., sandboxing), incompatibility with software licenses, and substantial commissions. Therefore, it is quite common that developers make their programs available directly from their websites. This is the case of popular programs such as VLC media player, OpenOffice, and GIMP.
+
+If you’re reading The Morning Paper, you probably know what a checksum is for and how to use it to verify the integrity of a download. You’re probably also well aware of the importance of doing so. Even so, I wouldn’t be surprised if on at least one occasion it’s been too awkward / you’ve been in too much of a hurry to get some other task done you’re focused on / you rated the risk as low enough, and so on, that you failed to do so. I’ve seen up close the apparent struggles of very bright professional people without IT backgrounds to manage basics such as passwords. I hold out little hope of them navigating checksums— from "What’s a command-line?" on up— even though I know they’re more than capable of understanding if only it seemed sufficiently important to them. Yet checksums are an important line of defence to protect against adversaries tampering files to inject malware etc..
+
+> 
+
+ A popular way for developers to enable users to detect accidental or intentional modifications of their program files hosted on external platforms, such as mirrors and CDNs, is to provide so-called checksums on their websites. This practice is quite common in the open-source community but also for companies such as Google...
+
+For a restricted subset of downloadable assets -chiefly JavaScript and style sheets, included via script and link tags, integrated checksum support is available via the Subresource Integrity (SRI) specification introduced by the W3C in 2016. It’s supported by all major browsers (including Edge, but not IE). If you’re not already using it for externally hosted assets you include in your site then you really should look into it.
+
+Here’s an example of the integrity attribute in action, taken from the MDN site:
+
+<script
+src="https://example.com/example-framework.js"
+integrity="sha384-oqVuAfXRKap7fdgc...."
+crossorigin="anonymous">
+</script>
+
+For anything outside of script and link tags though (e.g. anchor tags), you’re on your own.
+
+## Do Internet users handle checksums correctly?
+
+By Betteridge’s law we know that the answer is no. The authors also conduct a study to quantify the situation in the wild. Starting with the use of checksums by download sites themselves, a survey of twenty popular sites uncovered the following:
+
+- Many host the checksum and the download file on the same server or domain, whereas from a security point of view it is better to host them on different servers to reduce the risk of both checksum and download being tampered with.
+
+- Some serve the checksum and/or the download via http (not https). Why go to all the bother of computing and displaying a checksum and then allow anyone to tamper with it in transit??
+
+- Many use the insecure MD5 and SHA1 schemes
+
+- Only a minority provide any instructions on how to use the checksums to verify download integrity, or even what they are for.
+
+(Enlarge)
+
+> 
+
+ ... due to frequent flaws in the way checksums are currently used (e.g., insecure communication, single server, weak hash function) and the lack of details on their utility and how-to guides, checksums do not achieve their full potential in securing web downloads.
+
+Even if a site does get everything right, the users probably won’t. The authors conduct a survey with 2000 participants.
+
+- 29.4% of respondents claim they never run any program downloaded from the Internet, or do so only through official app stores. (But are they accurately self-reporting??)
+
+- For the 70.6% of respondents that do sometimes download something, 58.6% declared downloading from developer’s websites, and 42.6% use P2P networks at least once a year.
+
+- Only 23.4% of respondents even remembered seeing checksums on websites they had used in the past.
+
+- Only 5.2% of respondents select the correct answer (out of six possible options including ‘not sure’ and ‘other’) when asked what checksums were for.
+
+> 
+
+ These results reveal that the large majority of Internet users are exposed to potential corruption of externally hosted programs... Interestingly, for 18.2% of the respondents, displaying the checksums on the webpage of the app would make them doubt the website and search for something else (!).
+
+A further experiment with a smaller group asked participants to explicitly verify checksums following instructions (they were asked to download and install four different applications having been told the study concerned how people download applications, and the checksum verification was just one step in the instructions). Gaze tracking software was used to observe their focus. Some people carefully checked the full checksum sequence, others ‘sampled’ the sequence at multiple points, and a third group had fewer fixations, typically at the beginning and end.
+
+(Enlarge)
+
+The first two behaviours typically lead to identifying the incorrect checksum in the study, but the third does not. Participants fail to detect a checksum with the same leading digits. Even when explicitly asked to verify, 38% of participants did not detect the checksum mismatch!
+
+## A proposal: extend Subresource integrity to links
+
+If checksums are to be useful, their verification really needs to be automatic. The authors propose extending the use of the SRI integrity attribute so that it can also be used with a, meta, and iframe elements. For example:
+
+<a href="https://github.com/.../Transmission-2.93.dmg"
+integrity="sha256-Yc2bCxUJFj...">
+Download
+</a>
+
+Browsers (user-agents) should then verify the integrity of any such linked resource and e.g. display a warning to the user if it fails to match (much like warnings about insecure sites and certificates today).
+
+To assess how well this might work, the authors built a Chrome extension to simulate the behaviour. It extracts checksums on a page and intercepts click events triggered by hyperlinks for a set of extensions and mime-types (e.g. dmg, exe, pkg etc.).
+
+If the checksum computed for the downloaded resource does not match at least one checksum displayed on the page then the user is warned.
+
+The authors also studied the behaviour of participants when downloading files using the extension.
+
+- 40% of the participants stopped when shown the warning message for the corrupted download. For those that didn’t, most said that they tend to ignore popups.
+
+- For those that did stop, 50% went on to remove the downloaded file, including (37.5%) via the embedded ‘delete’ link in the warning message.
+
+The learnings from this part of the experiment are that the extension is useful, but the warnings could be improved and the deletion of a corrupted file should be automatic.
+
+> 
+
+ We argue that designers should choose defaults to privilege users’ security over preserving user’s choice. In fact, a lack of action from the user does not necessarily mean that she is willing to accept the risk of proceeding but might simply be due to the aforementioned effects &#091;lack of understanding of the purpose of checksums etc.&#093;.
+
+The authors now intend to deploy an improved beta version of the software and conduct a longitudinal study. As well as the Chrome extension for downloaders, the authors also built a WordPress extension to help file hosters automatically generate and include checksums.
+
+> 
+
+ In addition, we intend to promote our proposals to (and collaborate with) the different stakeholders involved, that is the W3C, web browsers (e.g. Google, Mozilla) and CMS (e.g WordPress, Drupal) development teams in order to have a concrete impact on the security of Internet users.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousBEAT: asynchronous BFT made practicalNext &rsaquo;LEMNA: explaining deep learning based security applications
+ 
+ 
+
+ 
+ 
+## 
+ 7 thoughts on &ldquo;Towards usable checksums: automating the integrity verification of web downloads for the masses&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ cxw says: 
+
+ 
+ November 29, 2018 at 3:56 am 
+
+ 
+
+ 
+ 
+I skimmed the paper but didn't see the Chrome Web Store link for the extension. Do you happen to have it, or was I just missing something obvious? Thanks!
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Ted says: 
+
+ 
+ November 29, 2018 at 7:25 am 
+
+ 
+
+ 
+ 
+I don't get it — why do you need this is if you're using HTTPS? Presumably, this would stop any attacker from messing with the traffic?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Umang says: 
+
+ 
+ December 11, 2018 at 2:03 pm 
+
+ 
+
+ 
+ 
+HTTPS would prevent the man in the middle attack but the file could be tampered on the website itself. HTTPS doesn't prevent that.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Ted says: 
+
+ 
+ December 11, 2018 at 9:10 pm 
+
+ 
+
+ 
+ 
+OK, but if you assume the attacker can tamper with the website, can't they change the displayed checksum too?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ December 12, 2018 at 5:29 pm 
+
+ 
+
+ 
+ 
+That’s why another of the recommendations is to host the checksum and the download on separate sites ;)
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Umang says: 
+
+ 
+ December 12, 2018 at 5:29 pm 
+
+ 
+
+ 
+ 
+Definitely. That's why the paper talks about hosting them in different domain.
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ 
+ 
+ meixler says: 
+
+ 
+ February 18, 2020 at 6:54 pm 
+
+ 
+
+ 
+ 
+We’ve come up with an automated solution for verifying the integrity of web downloads, which does not require a browser plug-in. The solution verifies the integrity of the downloadable file using a javascript function, which originates from the same server that the trusted checksum originates from. For more information, see https://www.meixler-tech.com/aivwd/
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ %d

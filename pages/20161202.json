@@ -1,0 +1,43 @@
+{
+  "date": "20161202",
+  "file_name": "20161202",
+  "slug": "slicer-auto-sharding-for-datacenter-applications",
+  "blog_url": "https://blog.acolyer.org/2016/12/02/slicer-auto-sharding-for-datacenter-applications/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Slicer, a general-purpose sharding service from Google that outsources load balancing decisions to a dedicated infrastructure service rather than embedding them in individual applications. The paper introduces a two-plane architecture: a data plane (affinity-aware load balancer) and a control plane (monitoring load and assigning keys to tasks). Colyer emphasizes that sharding is notoriously difficult to implement correctly, with tedious plumbing and brittle results, making Slicer's approach valuable for reducing engineering effort. The key insight is decoupling sharding logic from applications, allowing centralized management of key assignments while scaling to millions of requests per second. The blog also praises Slicer's weighted-move sharding algorithm for its practical design, balancing load imbalance while minimizing key churn, and its eventual/strong consistency modes.",
+  "paper_title": "Slicer: Auto-sharding for Datacenter Applications",
+  "paper_authors": [
+    "Atul Adya",
+    "Alex Balashov",
+    "Gregory Chockler",
+    "Charith Wickramarachchi"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/system/files/conference/osdi16/osdi16-adya.pdf",
+  "paper_abstract": "Slicer: Auto-Sharding for Datacenter Applications\nAtul Adya, Daniel Myers, Jon Howell, Jeremy Elson, Colin Meek, Vishesh Khemani,\nStefan Fulger, Pan Gu, Lakshminath Bhuvanagiri, Jason Hunter, Roberto Peon,\nLarry Kai, Alexander Shraer, and Arif Merchant, Google;\nKfir Lev-Ari, Technion—Israel Institute of Technology\nhttps://www.usenix.org/conference/osdi16/technical-sessions/presentation/adya\n\nThis paper is included in the Proceedings of the\n12th USENIX Symposium on Operating Systems Design\nand Im",
+  "paper_file": "papers/2016/12/02/slicer-auto-sharding-for-datacenter-applications.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "sharding",
+    "load-balancing",
+    "auto-sharding",
+    "consistency-models",
+    "key-assignment",
+    "datacenter-applications",
+    "weighted-move-algorithm",
+    "affinity-aware-routing"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Slicer production traffic distribution",
+      "caption": "Figure 1: Over five-minute intervals in a recent week, Slicer directed a median of 2 Mreq/s of production traffic with peaks exceeding 7 Mreq/s."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,45 @@
+{
+  "date": "20180824",
+  "file_name": "20180824",
+  "slug": "training-classifiers-with-natural-language-explanations",
+  "blog_url": "https://blog.acolyer.org/2018/08/24/training-classifiers-with-natural-language-explanations/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights BabbleLabble, a framework that enables users to train classifiers by providing natural language explanations for labeling decisions, rather than just labels. The key insight is that these explanations can be automatically distilled into programmatic labeling functions, which generate noisy labels for training a classifier. The approach is notable for its efficiency: users spend about twice as long per example as traditional labeling but can train classifiers 5-100x faster with comparable F1 scores. The blog emphasizes the power of combining BabbleLabble with Snorkel's data programming to rapidly create intelligent systems by capturing domain knowledge. The paper also demonstrates that a simple rule-based semantic parser suffices to convert explanations into labeling functions, and that imperfect labeling functions often perform better than perfect ones due to the filtering and data programming stages.",
+  "paper_title": "BabbleLabble: Learning from Natural Language Explanations",
+  "paper_authors": [
+    "J. Hancock",
+    "S. Singh",
+    "C. Ré"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "ACL'18",
+  "paper_url": "https://arxiv.org/abs/1805.03818",
+  "paper_abstract": "Training accurate classifiers requires many labels, but each label provides only limited information (one bit for binary classification). In this work, we propose BabbleLabble, a framework for training classifiers in which an annotator provides a natural language explanation for each labeling decision. A semantic parser converts these explanations into programmatic labeling functions that generate noisy labels for an arbitrary amount of unlabeled data, which is used to train a classifier. On three relation extraction tasks, we find that users are able to train classifiers with comparable F1 scores from 5–100× faster by providing explanations instead of just labels. Furthermore, given the inherent imperfection of labeling functions, we find that a simple rule-based semantic parser suffices.",
+  "paper_file": "papers/2018/08/24/training-classifiers-with-natural-language-explanations.pdf",
+  "topics": [
+    "machine-learning",
+    "natural-language-processing"
+  ],
+  "tags": [
+    "data-programming",
+    "label-engineering",
+    "semantic-parsing",
+    "explainable-ai",
+    "weak-supervision",
+    "classification"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "BabbleLabble framework overview",
+      "caption": "In BabbleLabble, the user provides a natural language explanation for each labeling decision. These explanations are parsed into labeling functions that convert unlabeled data into a large labeled dataset for training a classifier."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Labeling functions generation and filtering process",
+      "caption": "Natural language explanations are parsed into candidate labeling functions (LFs). Many incorrect LFs are filtered out automatically by the filter bank. The remaining functions provide heuristic labels over the unlabeled dataset, which are aggregated into one noisy label per example, yielding a large, noisily-labeled training set for a classifier."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

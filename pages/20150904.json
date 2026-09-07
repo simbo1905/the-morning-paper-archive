@@ -1,0 +1,43 @@
+{
+  "date": "20150904",
+  "file_name": "20150904",
+  "slug": "feral-concurrency-control-an-empirical-investigation-of-modern-application-integrity",
+  "blog_url": "https://blog.acolyer.org/2015/09/04/feral-concurrency-control-an-empirical-investigation-of-modern-application-integrity/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a thorough and insightful empirical study by Bailis et al. that examines how modern ORM frameworks like Ruby on Rails handle concurrency control and data integrity. The paper reveals a stark contrast between traditional database systems and application-level mechanisms, which the authors term 'feral concurrency control.' Rails and similar frameworks often bypass native database concurrency features in favor of application-layer validations and associations, which are more convenient but potentially unsafe. The study analyzes 67 real-world Rails applications, finding that validations and associations are vastly more common than transactions or locks. However, the paper demonstrates that these feral mechanisms are not always sufficient to ensure data integrity, especially under concurrent operations. The authors use invariant confluence analysis to assess the safety of these mechanisms and uncover significant vulnerabilities, such as the inability of uniqueness validations to prevent duplicates under concurrent modifications. The paper also critiques Rails' default settings, which do not address isolation levels or database-backed constraints, leading to potential integrity violations.",
+  "paper_title": "Feral Concurrency Control: An Empirical Investigation of Modern Application Integrity",
+  "paper_authors": [
+    "Peter Bailis",
+    "Aaron Davidson",
+    "Alan Fekete",
+    "Michael J. Franklin",
+    "Ali Ghodsi",
+    "Joseph M. Hellerstein",
+    "Ion Stoica"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SIGMOD '15",
+  "paper_url": "http://www.bailis.org/papers/feral-sigmod2015.pdf",
+  "paper_abstract": "The rise of data-intensive “Web 2.0” Internet services has led to a range of popular new programming frameworks that collectively embody the latest incarnation of the vision of Object-Relational Mapping (ORM) systems, albeit at unprecedented scale. In this work, we empirically investigate modern ORM-backed applications’ use and disuse of database concurrency control mechanisms. Specifically, we focus our study on the common use of feral, or application-level, mechanisms for maintaining database integrity, which, across a range of ORM systems, often take the form of declarative correctness criteria, or invariants. We quantitatively analyze the use of these mechanisms in a range of open source applications written using the Ruby on Rails ORM and find that feral invariants are the most popular means of ensuring integrity (and, by usage, are over 37 times more popular than transactions). We evaluate which of these feral invariants actually ensure integrity (by usage, up to 86.9%) and which—due to concurrency errors and lack of database support—may lead to data corruption (the remainder), which we experimentally quantify. In light of these findings, we present recommendations for database system designers for better supporting these modern ORM programming patterns, thus eliminating their adverse effects on application integrity.",
+  "paper_file": "papers/2015/09/04/feral-concurrency-control-an-empirical-investigation-of-modern-application-integrity.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "concurrency-control",
+    "orm",
+    "rails",
+    "active-record",
+    "data-integrity",
+    "transactions",
+    "validations",
+    "associations",
+    "isolation-levels",
+    "invariant-confluence"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

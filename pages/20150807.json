@@ -1,0 +1,37 @@
+{
+  "date": "20150807",
+  "file_name": "20150807",
+  "slug": "access-rights-analysis-in-the-presence-of-subjects",
+  "blog_url": "https://blog.acolyer.org/2015/08/07/access-rights-analysis-in-the-presence-of-subjects/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights SARA, a novel access rights analysis tool that addresses Subject-based access control (doAs...) in Java and .NET CLR environments. The paper addresses the challenge of configuring access-control policies correctly, balancing the need to grant sufficient permissions to avoid runtime failures while adhering to the Principle of Least Privilege (PLP). SARA stands out by analyzing both code and subject permissions, detecting missing, unnecessary, and redundant permissions, and automatically synthesizing optimal policies. Colyer emphasizes the tool's practical impact, noting that it identified 263 PLP violations and 219 insufficient policies in IBM's WebSphere Application Server (WAS), which were independently verified by developers. The paper also details SARA's technical approach, including call-graph construction, pointer analysis, and handling of permission hierarchies, making it a significant contribution to security analysis in complex systems.",
+  "paper_title": "SARA: Subject-based Access Rights Analysis",
+  "paper_authors": [
+    "Lorenzo Cavallaro",
+    "Marco Centonze",
+    "Stephen Chong"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "International Conference on Software Engineering (ICSE)",
+  "paper_url": "http://drops.dagstuhl.de/opus/volltexte/2015/5224/pdf/14.pdf",
+  "paper_abstract": "Modern software development and run-time environments, such as Java and the Microsoft .NET Common Language Runtime (CLR), have adopted a declarative form of access control. Permissions are granted to code providers, and during execution, the platform verifies compatibility between the permissions required by a security-sensitive operation and those granted to the executing code. While convenient, configuring the access-control policy of a program is not easy. If a code component is not granted sufficient permissions, authorization failures may occur. Thus, security administrators tend to define overly permissive policies, which violate the Principle of Least Privilege (PLP). A considerable body of research has been devoted to building program-analysis tools for computing the optimal policy for a program. However, Java and the CLR also allow executing code under the authority of a subject (user or service), and no program-analysis solution has addressed the challenges of determining the policy of a program in the presence of subjects. This paper introduces Subject Access Rights Analysis (SARA), a novel analysis algorithm for statically computing the permissions required by subjects at run time. We have applied SARA to 348 libraries in IBM WebSphere Application Server – a commercial enterprise application server written in Java that consists of >2 million lines of code and is required to support the Java permission- and subject-based security model. SARA detected 263 PLP violations, 219 cases of policies with missing permissions, and 29 bugs that led code to be unnecessarily executed under the authority of a subject. SARA corrected all these vulnerabilities automatically, and additionally synthesized fresh policies for all the libraries, with a false-positive rate of 5% and an average running time of 103 seconds per library. SARA also implements mechanisms for mitigating the risk of false negatives due to reflection and native code; according to a thorough result eval...",
+  "paper_file": "papers/2015/08/07/access-rights-analysis-in-the-presence-of-subjects.pdf",
+  "topics": [
+    "systems-security",
+    "programming-languages"
+  ],
+  "tags": [
+    "access-control",
+    "subject-based-security",
+    "principle-of-least-privilege",
+    "policy-synthesis",
+    "call-graph-analysis",
+    "pointer-analysis",
+    "stack-inspection",
+    "doAs",
+    "doAsPrivileged"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

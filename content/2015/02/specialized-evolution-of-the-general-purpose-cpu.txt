@@ -1,0 +1,361 @@
+URL: https://blog.acolyer.org/2015/02/06/specialized-evolution-of-the-general-purpose-cpu/
+Title: Specialized Evolution of the General Purpose&nbsp;CPU
+---
+
+Specialized Evolution of the General Purpose CPU - Rajwar et. al. 2015
+
+This is the last in a series of five posts highlighting papers from the recent CIDR'15 conference. Today's choice was the keynote talk. If you like this kind of subject matter, see also the excellent 'What's new in CPUs since the 80s and how does it affect programmers?' by Dan Luu which goes into a lot more depth.
+
+What's happening with (Intel) CPUs these days - and where might things be heading? Rajwar et al. show us that the general purpose CPU increasingly contains specialized hardware support for common tasks, and provide a few pointers as to where things will go next.
+
+> 
+
+ CPUs continuously evolve, incorporating increasingly specialized primitives to keep up with the evolving need of critical workloads. Specialization includes support for floating-point and vectors, compression, encryption, and synchronization and threading. These CPUs now have sufficient specialized support that the term general-purpose can often be misleading. Recent announcements such as a server product with an FPGA integrated with a CPU make the possibilities even more intriguing.
+
+The graphs in the paper show us performance trends up to 2014, it's also interesting to extrapolate them out - to say 2020 - and get an indication of what CPUs may be like in 5 years time. All the guesses for what we may see in 2020 are mine, and should therefore be taken with a pinch of salt!
+
+I'm sure you're familiar with Moore's law (which translates to microprocessor performance doubling every 18 months), and Dennard Scaling which tells us that transistors will switch faster using less power.
+
+> 
+
+ Scaling feature size every generation results in smaller transistors and thus higher performance, lower power, and lower cost per transistor.
+
+There is also of course the perennial question of whether we're coming to the end of Moore' s law:
+
+> 
+
+ Increasingly, the industry faces technical challenges to sustain the historic rates of performance and power improvements. This has led to growing concerns around software’s ability to continue to innovate if the CPUs cannot sustain software-transparent performance growth rates.... However, over the years, these CPUs have already been incorporating specialized hardware capabilities in response to the changing software landscape. These specializations allow the CPU to provide significant domain-specific performance gains while remaining general-purpose. As such, the dichotomy between general-purpose and specialized is misleading.
+
+One very interesting metric is performance-per-watt. This has continuously improved over each generation of transistors (however an individual design chooses to trade-off raw performance against power usage). Each generation gives about a 1.6x improvement, the most recent 14nm generation 2x. On this one metric alone we should conservatively expect to see another 2x by 2020 therefore. So you'll be able to have your battery last twice as long, or process twice as fast for the same battery life.
+
+There is continual investment in improving what you can get out of each individual thread as well.
+
+> 
+
+ Methods to improve performance include improved out-of-order execution, better branch prediction, larger instruction windows, increased memory level parallelism, faster and higher bandwidth cache and memory systems, and improvements in paging and TLB, among others.
+
+From the chart in the paper, this looks to be giving roughly a 10% uplift every 2 years. If that trend continues as it has since 2006, we should see another (1.1^2.5)x improvement in per thread performance by 2020 (about 1.3x). At the high-end, the maximum single socket thread count is also steadily increasing. Extrapolating from the graph, the 36 threads-per-socket of 2014 should be in excess of 72 threads-per-socket by 2020.
+
+## Specializations
+
+Floating-point arithmetic was one of the first parts of a CPU to get specialized support. Now SIMD (Single Instruction Multiple Data) have specialized hardware support too. Floating-point operations per clock stood at 32 in 2013, and by extrapolation should be somewhere around 128 by 2020 (4x).
+
+CPUs have also begun adding specialized support for synchronization in multi-threaded programs.
+
+> 
+
+ These extensions allow software to identify critical sections. Hardware attempts to execute these transactionally without acquiring the lock protecting the critical section. If the hardware succeeds, then the execution completes without the threads acquiring a lock, thus exposing concurrency and removing serialization.
+
+"Such capabilities provide new opportunities for innovation, especially in areas such as in-memory databases with different cost metrics than traditional disk-optimized databases."
+
+When you do need to lock, the latency to perform a cached lock operation is also coming down. By extrapolation, we might expect this latency to halve again by 2020.
+
+The next area to receive dedicated support was virtualization:
+
+> 
+
+ With a virtualized system, a new layer of software, called the Virtual Machine Monitor (VMM), allows multiple operating systems to share the same hardware resources. The VMM arbitrates software accesses from multiple operating systems (called guests) running on the hardware system (called host). However, implementing the VMM required specialized and complex software systems. The commodity CPUs added hardware support for processor virtualization thus enabling simplifications of virtual machine monitor software. The resulting VMMs can support a wider range of legacy and future operating systems while maintaining high performance.
+
+The latency for an Intel Virtualization Technology transition (i.e. virtual instruction -> hardware) round trip has been steadily falling. From the graph in the paper, it looks to be on track to halve again by 2020.
+
+> 
+
+ To reduce operating systems kernel overheads, researchers have been recently investigating decoupling the control and data plane and using virtualization hardware to implement protection.
+
+CPUs also have dedicated support to accelerate the performance of certain cryptographic algorithms. The SHA256 secure hashing algorithm executes about twice as fast as it did 4 years ago for example.
+
+> 
+
+ The throughput of these cryptographic operations has been steadily improving over the years thus lowering the bar for their usage. Intel has not been alone in adding cryptographic operations; for example, the ARMv8-architecture adds a cryptographic extension as an optional feature.
+
+## Where next?
+
+> 
+
+ Increased integration of platform components coupled with CPU specialization provide unique opportunities for software going forward. This may include optimized domain-specific software taking advantage of the CPU’s capabilities, software offloading key algorithms and functions to configurable and fixed-function accelerators, or software taking advantage of specialized support in the CPU. The software requirements influence each point in this spectrum.
+
+Compression is cited as a well understood and standardized process that could be offloaded to hardware. In the future we will also see FPGAs (and maybe ASICs) integrated 'on package.' This "raises interesting opportunities for co-optimization."
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Hardware 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousImpala: a modern, open-source SQL engine for HadoopNext &rsaquo;On the duality of resilience and privacy
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;Specialized Evolution of the General Purpose CPU&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Andrew Shewmaker says: 
+
+ 
+ February 6, 2015 at 5:38 pm 
+
+ 
+
+ 
+ 
+Rather than continuing to invest in floating point hardware, I'm hoping to see support for real math. Floating point isn't guaranteed to give you the same answer if you add numbers in different orders, and there are other corner cases that anyone depending on floating point needs to program around. But there's a new number format proposed by John Gustafson which gets rid of all the tricky stuff about floats, gives better answers for less power and with more inherent parallelism. He's got a Mathematica implementation and many examples in his book http://www.crcpress.com/product/isbn/9781482239867 ... also note that the ideas are not patent encumbered.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ shelldozer says: 
+
+ 
+ June 19, 2017 at 1:46 pm 
+
+ 
+
+ 
+ 
+A chance to re-introduce fixed-point BCD hardware might be worth while.
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ 
+ 
+ Samuel A. Falvo II says: 
+
+ 
+ February 6, 2015 at 9:57 pm 
+
+ 
+
+ 
+ 
+"""To reduce operating systems kernel overheads, researchers have been recently investigating decoupling the control and data plane and using virtualization hardware to implement protection."""
+
+Sooo, just re-inventing the process/kernel separation.
+
+"Control" and "data" plane concepts come from the telecommunications industry, where in the context of layered protocol design, these terms make sense. But, in the context of OS architecture, they're meaningless. What is control "plane" for one layer (e.g., a customer's Linux kernel) is the "data" plane for another (e.g., a datacenter's z/VM deployment). And, for that matter, the lines are blurred even outside of the datacenter, with packages like Docker and BSD Jails.
+
+I really wish people would stop using these terms; they're meaningless and to an extent even self-aggrandizing to anyone who actually knows what they mean. These technologies are not new. They've actually existed for decades now. What perhaps IS new is the level of marketing spin and NIH around them.
+
+Also, I'd like to point out that the CPU's own MMU and their corresponding page tables constitutes "virtualization hardware." This is nothing new; and, hasn't been new since the 1960s. It is literally a solved problem. So much so, that some folks named Popek and Goldberg have distilled the requirements to support full virtualization, and it fits on a single sheet of paper. See http://en.wikipedia.org/wiki/Popek_and_Goldberg_virtualization_requirements . What are these researchers actually researching?
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

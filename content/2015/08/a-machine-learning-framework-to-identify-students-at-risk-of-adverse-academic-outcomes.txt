@@ -1,0 +1,274 @@
+URL: https://blog.acolyer.org/2015/08/24/a-machine-learning-framework-to-identify-students-at-risk-of-adverse-academic-outcomes/
+Title: A Machine Learning Framework to Identify Students at Risk of Adverse Academic&nbsp;Outcomes
+---
+
+A Machine Learning Framework to Identify Students at Risk of Adverse Academic Outcomes - Lakkaraju et al. 2015
+
+This is the first of a series of papers from the Knowledge Discovery and Data Mining (KDD'15) conference that we'll look at this week. Today's paper is all about helping high school students in the US who are at risk of failing to graduate on time - this is bad for the students as it negatively impacts their future career options, and bad for the schools because it costs them money! If we can find (predict) the students most likely to fail, we can give them extra help.
+
+Used as a force for good in the context of helping the high-school students most in need, it seems to be a great idea. I was drawn to the paper though because of the parallels with the Amazon culture stories that have been doing the rounds recently. Here I'm just interested in the extremes of a data-driven culture: what if machine learning is used not to identify the high-school students most in need of help, but the employees most likely to underperform in their jobs? (In true Minority Report style, before they actually begin to show any signs of actual failure). In an employment setting, the top-k results from the paper could also be used to help those employees, or they could be used as an indication to manage them out :(. Using machine learning for early identification of those likely to underperform in the future is by itself neither good nor bad (I think??? though I'd be wary of labelling effects etc.) - it's what a culture chooses to do with the results that matters. Just to be clear, this is all my own speculation - the authors say nothing about the potential for a similar approach in the workforce, and I have no evidence to suggest that any company is actually doing this. It does make for an interesting 'double reading' as you work through the paper though.
+
+> 
+
+ Another important requirement in this setting is for a model to be able to identify students who are at risk of not graduating on time even before the student begins to fail grades and/or drops out. It is ideal to provide interventions to students before either of these undesired outcomes materialize, as opposed to taking a more reactive approach. A student can be categorized as off-track if he or she is retained (or drops out) at the end of a given grade. An ideal algorithm should be able to predict risk even before students go off-track.
+
+(Spoiler alert, the Random Forest approach worked out best for this given the student data sets available).
+
+> 
+
+ Although the work in this paper is limited to predicting students who are likely to not finish high school on time, we believe that the framework (problem formulation, feature extraction process, classifiers, and evaluation criteria) applies and generalizes to other adverse academic outcomes as well, such as not applying to college, or undermatching.
+
+And so to the problem at hand... the success of intervention programs to help students at risk of failing to graduate depends on accurately identifying and prioritizing students who need help.
+
+> 
+
+ As alternatives to manually created rule-based systems, recent research has indicated the potential value of machine learning approaches such as Logistic Regression, Decision Trees, and Random Forests. Trained using traditional academic data, these machine learning approaches can often identify at risk students earlier and more accurately than prior rule-based approaches.
+
+Data for the study was taken from two school districts with a combined enrollment of 200,000 students. As well as identifying students as early as possible (ideally before they start failing or repeating grades), it's important to provide a ranking so that resources can be prioritized, and that educators can understand and interpret how the algorithms are making decisions.
+
+> 
+
+ School districts have limited resources for intervention programs, and their exact allocation can fluctuate over time, directly affecting the number of students that can be enrolled to such programs. For that reason, school officials need the ability to pick the top k% students who are at risk at any given point (where k is a variable).
+
+The authors experimented with Random Forests, Adaboost, Logistic Regression, Support Vector Machines, and Decision Trees. Predicting whether a student will graduate on time is a binary outcome and so standard metrics such as precision, recall, accuracy and AUC (area under curve) for binary classification can be used.
+
+> 
+
+ Educators on the other hand think about the performance of an algorithm in this context slightly differently... After various discussions with our school district partners, we understood that an algorithm that can cater to their needs must provide them with a list of students ranked according to some measure of risk such that students at the top of the list are verifiably at higher risk. Once educators have such ranked list available, they can then simply choose the top k students from it and provide assistance to
+
+ them.
+
+How then to obtain a ranking from the classifiers?
+
+> 
+
+ The challenge associated with ranking students is that the data available to school districts only has binary ground truth labels (i.e., graduated/not-graduated). This effectively means that we are restricted to using binary classification models because other powerful learning to ranking techniques require ground truth that captures the notion of ranking. Fortunately, most of the classification models assign confidence/probability estimates to each of the data points and we can use these estimates to rank students... While Logistic Regression estimates these probabilities as a part of its functional form, all the other algorithms output proxies to these probabilities. We obtain these proxy scores and convert them into probabilities.
+
+The probability of not graduating on time in the Decision Tree is equivalent to the fraction of students assigned to the corresponding leaf node who do not graduate on time. For Random Forests, the probability of not graduating on time for a particular data point is calculated as the mean of the predicted class probabilities of the trees in the forest. A similar technique is used for AdaBoost. "Support Vector Machines estimate the signed distance of a data point from the nearest hyperplane and Platt scaling can be used to convert these distances into probability estimates."
+
+To understand how well these approaches rank students, students are grouped into bins based on the percentiles they fall into when categorised using risk scores.
+
+> 
+
+ For each such bin, we compute the mean empirical risk, which is the fraction of the students from that bin who actually (as per ground truth) failed to graduate on time. We then plot a curve where values on the X-axis denote the upper percentile limit of a bin and values on the Y-axis correspond to the mean empirical risk of the corresponding bins. We call this curve an empirical risk curve. An algorithm is considered to be producing good risk scores and consequently ranking students correctly if and only if the empirical risk curve is monotonically non-decreasing.
+
+The Random Forest model performed the best across both districts on this metric. Instead of providing an overall precision and recall number, the authors then created precision at top K and recall at top K curves to show accuracy at different levels of K. "Again, random forest outperforms all other models at all values of K."
+
+The educators wanted to understand which factors the different algorithms were placing the most emphasis on:
+
+> 
+
+ The approaches that we use to compute feature importances are strictly dependent on the algorithms being used. We compute feature importances using both Gini Index (GI) and Information Gain (IG) for Decision Trees. In the case of Random Forest, we consider feature importance to be the ratio of the number of instances routed to any decision tree in the ensemble that contains that feature, over the total number of instances in the training set. AdaBoost simply averages the feature importances provided by its base-level classifier – CART decision tree with maximum depth of 1 – over all iterations. For our Logistic Regression and SVM models, feature importances were simply considered to be the absolute values of each feature’s coefficient.
+
+To assess how well the algorithms can detect the likelihood of a student going off-track before they actually show any signs of doing so, the authors compute an identification before off-track metric (the 'Minority Report' metric ;) ):
+
+> 
+
+ This metric is a ratio of the number of students who were identified to be at risk before off-track to the total number of students who failed to graduate on time. For instance, if there are 100 students in the entire dataset who failed to graduate on time, and if the algorithm identifies 70 of these students as at-risk before they fail a grade or drop out, then the value of identification before off-track is 0.7. The higher the value of this metric, the better the algorithm at diagnosing risk before any undesirable outcome occurs. Note that we exclude all those students who graduate in a timely manner from this calculation... The findings here match our earlier results in that Random Forest model outperforms all the other models for both districts.
+
+Finally, it is useful for the educators to understand what mistakes a given model is likely to make. The authors give a 5-step process for determining this:
+
+- Identify all frequent patterns in the data using the FP-growth technique. A frequent pattern is a combination of (attribute, relation, value) tuples which occur very frequently in the entire dataset.
+
+- Rank students based on risk score estimates from the classification model. The predicted value of no_grad is 1 for the top K students from this list and 0 for others.
+
+- Create a new field called mistake. Set the value of this field to 1 for those data points where the prediction of the classification model does not match ground truth, otherwise set it to 0.
+
+- For each frequent pattern detected in Step 1, compute the probability of mistake. This can be done by iterating over all the datapoints for which the pattern holds true and computing the fraction of these datapoints where mistake field is set to 1.
+
+- Sort the patterns based on their probability of mistake (high to low) and pick the top R patterns as mistake patterns.
+
+> 
+
+ The above procedure helped us identify several interesting mistake patterns for various algorithms... It can be seen (for Decision Trees and Random Forests) that the models are making mistakes when a student has a high GPA and a high absence rate/tardiness or when a student has a low GPA and low absence rate/tardiness... classification models are prone to making mistakes particularly on those data points where certain aspects of students are positive and others are negative.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Machine Learning 
+ 
+ Machine Learning 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousMillWheel: Fault-Tolerant Stream Processing at Internet ScaleNext &rsaquo;Efficient Algorithms for Public-Private Social Networks
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

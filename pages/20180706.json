@@ -1,0 +1,38 @@
+{
+  "date": "20180706",
+  "file_name": "20180706",
+  "slug": "oblix-an-efficient-oblivious-search-index",
+  "blog_url": "https://blog.acolyer.org/2018/07/06/oblix-an-efficient-oblivious-search-index/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Oblix, a novel search index for encrypted data that achieves obliviousness (hiding access patterns) while supporting dynamic operations like inserts and deletes. The paper builds upon Path ORAM and Oblivious Data Structures (ODS), introducing an Oblivious Sorted Multimap (OSM) for efficient key-value lookups. To address leaks in hardware enclaves (e.g., SGX), the authors propose 'doubly-oblivious' schemes that hide client access patterns in addition to server-side leaks. The work is implemented in Rust and evaluated on real-world use cases like Signal's private contact discovery and Google's Key Transparency. Oblix demonstrates practical performance, scaling to tens of millions of records with sub-13ms latency for top-10 queries in a 16M-record dataset. The paper challenges assumptions about necessary data exposure in applications like location tracking.",
+  "paper_title": "Oblix: an efficient oblivious search index",
+  "paper_authors": [
+    "Pratyay Mishra",
+    "Giuseppe Persiano",
+    "Kevin Yeo"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "IEEE Security & Privacy 2018",
+  "paper_url": "https://people.eecs.berkeley.edu/~raluca/oblix.pdf",
+  "paper_abstract": "Oblivious RAM (ORAM), introduced by Goldreich and Ostrovsky (J. ACM ‘96), is a primitive that allows a client to perform RAM computations on an external database without revealing any information through the access pattern. For a database of size N , well-known lower bounds show that a multiplicative overhead of Ω(log N ) in the number of RAM queries is necessary assuming O(1) client storage. A long sequence of works culminated in the asymptotically optimal construction of Asharov, Komargodski, Lin, and Shi (CRYPTO ‘21) with O(log N ) worst-case overhead and O(1) client storage. However, this optimal ORAM is known to be secure only in the honest-but-curious setting, where an adversary is allowed to observe the access patterns but not modify the contents of the database. In the malicious setting, where an adversary is additionally allowed to tamper with the database, this construction and many others in fact become insecure. In this work, we construct the first maliciously secure ORAM with worst-case O(log N ) overhead and O(1) client storage assuming one-way functions, which are also necessary. By the Ω(log N ) lower bound, our construction is asymptotically optimal. To attain this overhead, we develop techniques to intricately interleave online and offline memory checking for malicious security. Furthermore, we complement our positive result by showing the impossibility of a generic overhead-preserving compiler from honest-but-curious to malicious security, barring a breakthrough in memory checking. ∗ The first author was supported in part by the Siebel Scholars program. The second author is supported in part by NSF fellowship DGE-2141064. This research was supported in part by DARPA under Agreement No. HR00112020023, an NSF grant CNS-2154149, a grant from the MIT-IBM Watson AI, a grant from Analog Devices, a Microsoft Trustworthy AI grant, and a Thornton Family Faculty Research Innovation Fellowship from MIT. Any opinions, findings and conclusions or recommendatio...",
+  "paper_file": "papers/2018/07/06/oblix-an-efficient-oblivious-search-index.pdf",
+  "topics": [
+    "systems-security",
+    "storage-systems"
+  ],
+  "tags": [
+    "oblivious-ram",
+    "path-oram",
+    "hardware-enclaves",
+    "sgx",
+    "encrypted-search",
+    "access-pattern-hiding",
+    "doubly-oblivious",
+    "sorted-multimap",
+    "order-statistic-tree",
+    "rust-implementation"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,315 @@
+URL: https://blog.acolyer.org/2018/03/30/the-surprising-creativity-of-digital-evolution/
+Title: The surprising creativity of digital&nbsp;evolution
+---
+
+The surprising creativity of digital evolution: A collection of anecdotes from the evolutionary computation and artificial life research communities Lehman et al., arXiv 2018
+
+Today’s paper choice could make you the life and soul of the party with a rich supply of anecdotes from the field of evolutionary computation. I hope you get to go to at least some parties where this topic would be considered fascinating anyway ;). Those are the kind of parties I want to be at! It’s a whole lot of fun, but also thought provoking at the same time: when you give a computer system a goal, and freedom in how it achieves that goal, then be prepared for surprises in the strategies it comes up with! Some surprises are pleasant (as in ‘oh that’s clever’), but some surprises show the system going outside the bounds of what you intended (but forgot to specify, because you never realised this could be a possibility...) using any means at its disposal to maximise the given objective. For a related discussion on the implications of this see ‘Concrete problems in AI safety’ that we looked at last year.
+
+> 
+
+ ... the creativity of evolution is not limited to the natural world: artificial organisms evolving in computational environments have also elicited surprise and wonder from the researchers studying them... Indeed, evolution often reveals that researchers actually asked for something far different from what they thought they were asking for, not so different from those stories is which a genie satisfies the letter of a request in an unanticipated way.
+
+## Evolutionary algorithms and the potential for surprises
+
+Evolution requires a means of replication, a source of variation (mutation), and a fitness function (competition). Starting from a seed population, the fittest individuals are bred (replicated with variation) to produce a new generation from which the fittest again go on to reproduce, and so on for eternity (or until the experiment is stopped anyway).
+
+> 
+
+ At first, it may seem counter-intuitive that a class of algorithms can consistently surprise the researchers who wrote them... However, if surprising innovations are a hallmark of biological evolution, the the default expectation ought to be that computer models that instantiate fundamental aspects of the evolutionary process would naturally manifest similarly creative output.
+
+Consider that for many computer programs, the outcome cannot be predicted without actually running it (e.g., the halting problem). And within the field of complex systems it is well known that simple programs can yield complex and surprising results when executed.
+
+There are 27 anecdotes collected in the paper, grouped into four categories: selection gone wild, unintended debugging, exceeding expectations, and convergence with biology. In the sections below, I’ll highlight just a few of these.
+
+## That’s not what I meant! Selection gone wild...
+
+Selection gone wild examples explore the divergence between what an experimenter is asking of evolution, and what they think they are asking. Experimenters often overestimate how accurately their measure (as used by the fitness function) reflects the underlying outcome success they have in mind. "This mistake is known as confusing the map with the territory (e.g., the metric is the map, whereas what the experimenter intends is the actual territory."
+
+> 
+
+ ... it is often functionally simpler for evolution to exploit loopholes in the quantitative measure than it is to achieve the actual desired outcome... digital evolution often acts to fulfill the letter of the law (i.e., the fitness function) while ignoring its spirit.
+
+In a simulation environment, the researchers wanted to evolve locomotion behaviours, hoping for clever limbs or snake-like motions to emerge. The measure that they used was average ground velocity over a lifetime of ten simulated seconds. What happened is that very tall and rigid creatures evolved. During simulation they would fall over, using the initial potential energy to achieve high velocity!
+
+In another experiment the goal was to breed creatures that could jump as high above the ground as possible. The measure was the maximum elevation reached by the center of gravity of the creature. Very tall static creatures emerged that reached high evolution without any movement. In an attempt to correct this, the measure was changed to the furthest distance from the ground to the block that was originally closest to the ground. What happened next is that creatures with blocky ‘heads’ on top of long poles emerged. By falling over and somersaulting its foot, this creatures scored high on the fitness function without ever jumping.
+
+Give a goal of repairing a buggy program, and a measure of passing the tests in a test suite, another evolutionary algorithm gamed the tests for a sorting program, always returning an empty list (the tests just checked all the elements in the list were in order!).
+
+In another experiment, a researcher had a goal of suppressing population members that replicated too fast. The measure was that any mutant replicating faster than its parent was eliminated. What happened is that the organisms evolved to recognise the inputs provided in the test environment, and halt their replication.
+
+> 
+
+ Not only did they not reveal their improved replication rates, but they appeared to not replicate at all, in effect "playing dead" in front of what amounted to a predator.
+
+After randomising the inputs in the test environment to match those in the main environment, the digital organisms evolved again: they made use of random numbers to probabilistically perform the tasks that accelerated their replication!! For example, if they did a task half of the team, they would have a 50% chance fo slipping through the test environment.
+
+Digital organisms that adapt and result all attempts to kill them / switch them off!
+
+## Hey that’s cheating! Unintended debugging...
+
+In one simulation the goal was to evolve swimming strategies. The physics simulator used a simple Euler method for numerical integration which worked well for typical motion. What happened is that creatures learned to quickly twitch small body parts causing integration errors to accumulate and giving them "free energy."
+
+In a tic-tac-toe environment played on an infinite board, one agent had a mechanism for encoding its desired move that allowed for a broad range of coordinate values (by using units with an exponential activation function). A by-product of this it that moves could be requested very, very far away on the board.
+
+> 
+
+ Evolution discovered that making such a move right away led to lot of wins. The reason turned out to be that the other players dynamically expanded the board representation to include the location of the far-away move— and crashed because they ran out of memory, forfeiting the match!
+
+In an experiment to evolve control software for landing an aeroplane, evolution quickly found nearly perfect solutions that very efficiently braked an aircraft, even when simulating heavy bomber aircraft coming in to land. It turned out evolution had discovered a loophole in the force calculation for when the aircraft’s hook attaches to the braking cable. By overflowing the calculation the resulting force was sometimes estimated to be zero, leading to a perfect score because of the low mechanical stress it entails.
+
+> 
+
+ ... evolution had discovered that creating enormous force would break the simulation, although clearly it was an exceeding poor solution to the actual problem.
+
+## Exceeding expectations
+
+An experiment was set up with a goal of finding ways to enable damaged robots to successfully adapt to damage in under two minutes. The base robot had six legs, and evolution had to find a way to walk with broken legs or motors.
+
+> 
+
+ Naturally, the team thought it was impossible for evolution to solve the case where all six feet touched the ground 0% of the time, but to their surprise, it did. Scratching their heads, they viewed the video: it showed a robot that flipped onto its back and happily walked on its elbows, with it’s feet in the air!
+
+In another experiment, robots were equipped with blue lights which they could use as a source of communication, and placed in an environment with rewards for finding food while avoiding poison. The conditions were expected to select for altruistic behaviour.
+
+> 
+
+ In some cases, when robots adapted to understand blue as a signal of food, competing robots evolved to signal blue at poison instead, evoking parallels with dishonest signalling and aggressive mimicry in nature.
+
+## Mimicking nature
+
+In the Tierra artificial life system, complex ecologies emerged on the very first run...
+
+> 
+
+ What emerged was a series of competing adaptations between replicating organisms within the computer, an ongoing co-evolutionary dynamic. The surprisingly large palette of emergent behaviours included parasitism, immunity to parasitism, circumvention of immunity, hyper-parasitism, obligate sociality, cheaters exploiting social cooperation, and primitive forms of sexual recombination.
+
+Another experiment was designed to see if it was possible to evolve organisms that could compute an EQU function to determine equality of 32-bit numbers. It was found that the capability did evolve, but the pathway to its evolution was not always upwards - in several cases the steps involved deleterious mutations, sometimes reducing fitness by half. But these mutations laid the foundation for future success.
+
+> 
+
+ This result sheds light on how complex traits can evolve by traversing rugged fitness landscapes that have fitness valleys that can be crossed to reach fitness peaks.
+
+There are many more examples in all of the categories, so I encourage you to go and look at the full paper if this subject interests you.
+
+## The last word
+
+> 
+
+ Many researchers &#091;in the nascent field of AI safety&#093; are concerned with the potential for perverse outcomes from optimizing reward functions that appear sensible on their surface. The list compiled here provides additional concrete examples of how difficult it is to anticipate the optimal behavior created and encouraged by a particular incentive scheme. Additionally, the narratives from practitioners highlight the iterative refinement of fitness functions often necessary to produce desired results instead of surprising, unintended behaviors.
+
+As Trent McConaghy point outs we may encounter similar unintended consequences of incentive systems when designing token schemes.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Machine Learning 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousAdversarial patchNext &rsaquo;End of Term
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;The surprising creativity of digital evolution&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Distopia: Hackear el sistema de recompensas. El teorema de Lebowski >>Entusiasmado.com 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

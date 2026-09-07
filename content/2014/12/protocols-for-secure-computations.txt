@@ -1,0 +1,293 @@
+URL: https://blog.acolyer.org/2014/12/01/protocols-for-secure-computations/
+Title: Protocols for Secure&nbsp;Computations
+---
+
+Protocols for Secure Computations - Yao 1982.
+
+Alice and Bob both work in retail, but for different retailers. Alice knows how much profit her company made on Black Friday, and Bob knows how much profit his company made. Alice bets Bob her company did better than his. Neither of them can disclose company confidential information to each other, or to a third-party. Can they figure out between them which company did better without revealing either company's numbers?
+
+This is a twist on the millionaires' probem presented in the paper. A very zero-th world problem: two millionaires wish to know who is richer; however, they do not want to find out indavertently any additional information about each other's wealth. How can they carry out such a conversation?
+
+Yao shows that it is possible to solve this problem without either party divulging their secret to the other, and without relying on any trusted or untrusted third-parties. The solution can be generalised to m parties communicating. This paper marks the birth of a field of cryptography known as secure multi-party computation. From wikipedia:
+
+> 
+
+ In a multi-party computation (MPC), a given number of participants p1, p2, ..., pN each have private data, respectively d1, d2, ..., dN. Participants want to compute the value of a public function F on N variables at the point (d1, d2, ..., dN). An MPC protocol is secure, if no participant can learn more from the description of the public function and the result of the global calculation than what he/she can learn from his/her own entry — under particular conditions depending on the model used.
+
+The pdf reference at the top of this post (I hope you've noticed that the first thing in every blog posting is a link to the pdf of the paper under discussion...), is actually an extended abstract. This makes for a very readable summary.
+
+A solution to the millionaires' problem is given, which is an instance of a general approach developed in the full paper. It's fun to follow along with pencil and paper to see how it works, but the important underlying idea is that you can collaboratively compute a function that depends on individual secrets known by each participant, without any party ever revealing their secret.
+
+Let us say that Alice has i millions, and Bob has j millions. And the function we want to compute is for example
+
+F(i,j) = 1, if i greater than or equal to j
+ = 0, otherwise
+
+To simplify things, we also assume that both Alice and Bob are worth between $1M and $10M. Let's compute F:
+
+- Bob chooses an N-bit random number, x. He encrypts x with Alice's public key, Ea(x) yielding a result k.
+
+- 
+
+Bob takes the result k, substracts from it the number of millions he has (j), and adds 1. Bob sends this number (k - j + 1) to Alice.
+
+- 
+
+Alice takes the number n she has received from Bob, and for u in [1..10] she decrypts n-1+u to give an array of values, y. Note that n = k-j+1, and we know that Bob has between $1 and $10M, so when u = j (the jth entry) the result of Alice's decryption will be x. Alice of course has no idea which one of the y's it is that equals x - since x is simply a random number chosen by Bob.
+
+- 
+
+Alice generates a random prime p with N/2 bits. For each y she computes y mod p and stores the result in an array z. The jth entry therefore has value x mod p.
+
+- 
+
+Alice sends Bob p. Alice then sends Bob z[1], z[2], ... up to z[i]. (Indexing starts at 1 in this paper). Recall that i is the number of millions that Alice has. She then sends z[i]+1, z[i+1]+1, ... up to z[10]+1.
+
+- 
+
+Bob computes x mod p, and looks at the jth z value sent by Alice. If this value equals x mod p then Bob knows that i >= j (Alice is worth at least as much as Bob). Otherwise Bob knows that i < j (Alice is worth less than Bob).
+
+- 
+
+Bob tells Alice the result (we trust Bob and Alice to tell each other the truth).
+
+> 
+
+One may have noticed the possibility that some party may cheat in the process, by deviating from the agreed protocol. For example, Bob may lie to Alice in the final step and tell Alice the wrong conclusion. Is there a way of designing a protocol such that the chance of a successful cheating becomes vanishingly small, without revealing the values of i and j? We will show that this is possible...
+
+By changing what the function F to be computed represents, it is possible to model a number of scenarios using secure multi-party computations. For example:
+
+- secret voting whereby a committee can reach a yes-no majority decision without anyone ever knowing the opinion of the other members
+
+- 
+
+private querying of a database - let Alice's function f(i,j) be a query of a database, and Bob's function g(i,j) be a simple constant. If Bob is a database with state j, then Alice can learn the answer to her query without the database ever knowing what the query was!
+
+Finally, given m parties collaborating, if any one of them is honest, then cheating and colluding by any combination of the others can be detected:
+
+> 
+
+ We will show that even the most severe constraint can be met in the following sense: No matter how many participants may collude, any cheating act will be detected and identified by all the honest parties (even if as many as m−1 dishonest guys try to help cover up).
+
+After this paper was published, secure multi-party computation was known to be possible. But it took a long time and many developments before it was made practical.
+
+As an aside, the author of this paper, Yao, won the first ever Knuth prize in 1996 for his fundamental research into computational complexity.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousThe Semantic Elegance of Applicative LanguagesNext &rsaquo;The case for distributed operating systems in the data center
+ 
+ 
+
+ 
+ 
+## 
+ 2 thoughts on &ldquo;Protocols for Secure Computations&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Machine Learning Classification over Encrypted Data | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Pretzel: email encryption and provider-supplied functions are compatible | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

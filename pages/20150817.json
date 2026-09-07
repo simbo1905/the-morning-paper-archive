@@ -1,0 +1,46 @@
+{
+  "date": "20150817",
+  "file_name": "20150817",
+  "slug": "lasp-a-language-for-distributed-coordination-free-programming",
+  "blog_url": "https://blog.acolyer.org/2015/08/17/lasp-a-language-for-distributed-coordination-free-programming/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses 'Lasp', a programming model and Erlang library designed to simplify large-scale distributed programming by leveraging CRDTs (Conflict-Free Replicated Data Types). Adrian Colyer highlights Lasp's ability to deterministically compose CRDTs into higher-order abstractions using functional programming operations, ensuring Strong Eventual Consistency (SEC). The key insight is that Lasp provides a way to compose CRDTs without losing convergence properties, addressing the challenge of composing multiple CRDTs which individually maintain SEC but fail when combined. The post also praises the paper's clear background on OR-Set CRDTs and the novel monotonic read operations that ensure forward progress in distributed systems. The author emphasizes that Lasp allows programmers to reason about applications as if they were centralized, thanks to its strong semantic properties.",
+  "paper_title": "Lasp: A language for distributed, coordination-free programming",
+  "paper_authors": [
+    "Christopher Meiklejohn",
+    "Peter Van Roy"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "PPDP",
+  "paper_url": "http://christophermeiklejohn.com/publications/ppdp-2015-preprint.pdf",
+  "paper_abstract": "the burden is placed on the programmer of these applications to ensure that concurrent operations performed on replicated data have both a deterministic and desirable outcome. For example, consider the case where a user’s gaming profile is replicated between two mobile devices. Concurrent operations, which can be thought of as operations performed during the period where both clients are online but without communication, can modify the same state: the burden is placed on the application developer to write application logic that resolves these conflicting updates. This is true even if the changes commute: for instance, concurrent modifications to the user profile where client A modifies the profile photo and client B modifies the profile’s e-mail address. Recently, a formalism has been proposed by Shapiro et al. for supporting deterministic resolution of individual objects that are acted upon concurrently in a distributed system. These data types, referred to as Conflict-Free Replicated Data Types (CRDTs), provide a property formalized as Strong Eventual Consistency: given all updates to an object are eventually delivered in a distributed system, all copies of that object will converge to the same state. [32, 33] Strong Eventual Consistency (SEC) results in deterministic resolution of concurrent updates to replicated state. This property is highly desirable in a distributed system because it no longer places the resolution logic in the hands of the programmer; programmers are able to use replicated data types that function as if they were their sequential counterparts. However, it has been shown that arbitrary composition of these data types is nontrivial. [6, 13, 15, 26] To achieve this goal, we propose a novel programming model aimed at simplifying correct, large-scale, distributed programming, called Lasp.2 This model provides the ability to use operations from functional programming to deterministically compose CRDTs into larger computations that observe the SEC ...",
+  "paper_file": "papers/2015/08/17/lasp-a-language-for-distributed-coordination-free-programming.pdf",
+  "topics": [
+    "distributed-systems",
+    "programming-languages"
+  ],
+  "tags": [
+    "crdts",
+    "eventual-consistency",
+    "functional-programming",
+    "erlang",
+    "composition",
+    "observed-remove-set",
+    "monotonic-reads",
+    "riak-core"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "CRDT Merge Function Example",
+      "caption": null
+    },
+    {
+      "number": "Figure 2",
+      "title": "CRDT Merge Function Example with Max Operation",
+      "caption": "Figure 2 shows one possible way to define a merge function that is deterministic regardless of ordering of messages: if we take advantage of the order of natural numbers using the max operation, we ensure that all replicas will eventually converge to a correct, equivalent state once they have observed all updates."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

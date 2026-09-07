@@ -1,0 +1,41 @@
+{
+  "date": "20181029",
+  "file_name": "20181029",
+  "slug": "noria-dynamic-partially-stateful-data-flow-for-high-performance-web-applications",
+  "blog_url": "https://blog.acolyer.org/2018/10/29/noria-dynamic-partially-stateful-data-flow-for-high-performance-web-applications/",
+  "blog_title": "",
+  "blog_summary": "Noria presents a novel approach to handling high-performance web applications by combining the familiarity of SQL with the efficiency of data-flow systems. Unlike traditional streaming data-flow engines where SQL is an afterthought, Noria makes SQL the primary interface while leveraging data-flow beneath to maintain semi-materialized views. This allows developers to avoid the complexity of manual cache management and denormalization, as Noria automatically handles derived state and consistency. The system dynamically adapts its data-flow graph to evolving queries and schemas without downtime, simplifying application development while improving performance. Adrian highlights Noria's eventual consistency model, which aligns well with read-heavy web applications, and its ability to outperform traditional stacks (like MySQL/memcached) by 2-10x while reducing code complexity. The paper also introduces 'partially-stateful data-flow,' where operators retain only subsets of state and recompute missing values on demand to mitigate state explosion.",
+  "paper_title": "Noria: dynamic, partially-stateful data-flow for high-performance web applications",
+  "paper_authors": [
+    "Jon Gjengset",
+    "Malte Schwarzkopf"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/conference/osdi18/presentation/gjengset",
+  "paper_abstract": "We introduce partially-stateful data-flow, a new streaming data-flow model that supports eviction and reconstruction of data-flow state on demand. By avoiding state explosion and supporting live changes to the data-flow graph, this model makes data-flow viable for building long-lived, low-latency applications, such as web applications. Our implementation, Noria, simplifies the backend infrastructure for read-heavy web applications while improving their performance. A Noria application supplies a relational schema and a set of parameterized queries, which Noria compiles into a data-flow program that pre-computes results for reads and incrementally applies writes. Noria makes it easy to write high-performance applications without manual performance tuning or complex-to-maintain caching layers. Partial statefulness helps Noria limit its in-memory state without prior data-flow systems’ restriction to windowed state, and helps Noria adapt its data-flow to schema and query changes while on-line. Unlike prior data-flow systems, Noria also shares state and computation across related queries, eliminating duplicate work. On a real web application’s queries, our prototype scales to 5× higher load than a hand-optimized MySQL baseline. Noria also outperforms a typical MySQL/memcached stack and the materialized views of a commercial database. It scales to tens of millions of reads and millions of writes per second over multiple servers, outperforming a state-of-the-art streaming data-flow system.",
+  "paper_file": "papers/2018/10/29/noria-dynamic-partially-stateful-data-flow-for-high-performance-web-applications.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "data-flow",
+    "sql",
+    "materialized-views",
+    "caching",
+    "eventual-consistency",
+    "web-applications",
+    "partial-materialization",
+    "consistency-models"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Comparison of backend architectures",
+      "caption": "Overview of how current website backends and Noria process frontend reads and writes."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

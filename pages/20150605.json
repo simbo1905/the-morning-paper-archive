@@ -1,0 +1,51 @@
+{
+  "date": "20150605",
+  "file_name": "20150605",
+  "slug": "scalability-but-at-what-cost",
+  "blog_url": "https://blog.acolyer.org/2015/06/05/scalability-but-at-what-cost/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Frank McSherry et al.'s paper 'Scalability! But at what COST?' as a critical examination of the misleading nature of scalability metrics in distributed systems. The paper introduces the COST metric, defined as the hardware configuration (number of cores) required for a system to outperform a competent single-threaded implementation. Many published systems exhibit unbounded COST or are orders of magnitude slower even with hundreds of cores, revealing that their scalability often stems from parallelizable overheads rather than genuine performance gains. The blog post emphasizes that scalability alone is insufficient evidence of good systems design, as any system can scale arbitrarily well with poor implementation choices. Through comparisons with single-threaded baselines, the paper demonstrates that systems like GraphLab, GraphX, and Naiad perform poorly relative to optimized single-threaded implementations, with GraphX having an unbounded COST. The authors argue that scalable programming models may lead to suboptimal algorithms (e.g., label propagation for graph connectivity) and advocate for evaluating systems based on COST, learning from performant scalable systems like Galois and Ligra, and adopting appropriate algorithms from parallel computing research.",
+  "paper_title": "Scalability! But at what COST?",
+  "paper_authors": [
+    "Frank McSherry",
+    "Michael Isard",
+    "Derek G. Murray"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "",
+  "paper_url": "http://www.frankmcsherry.org/assets/COST.pdf",
+  "paper_abstract": "50 1000 e st sy 10 1 m A seconds speed-up We offer a new metric for big data platforms, COST, or the Configuration that Outperforms a Single Thread. The COST of a given platform for a given problem is the hardware configuration required before the platform outperforms a competent single-threaded implementation. COST weighs a system’s scalability against the overheads introduced by the system, and indicates the actual performance gains of the system, without rewarding systems that bring substantial but parallelizable overheads. We survey measurements of data-parallel systems recently reported in SOSP and OSDI, and find that many systems have either a surprisingly large COST, often hundreds of cores, or simply underperform one thread for all of their reported configurations. 1 Derek G. Murray Unaffiliated⇤ system B 1 10 cores 100 300 sy ste m A 100 sys t 8 1 em B 10 cores 100 300 Figure 1: Scaling and performance measurements for a data-parallel algorithm, before (system A) and after (system B) a simple performance optimization. The unoptimized implementation “scales” far better, despite (or rather, because of) its poor performance. argue that many published big data systems more closely resemble system A than they resemble system B.",
+  "paper_file": "papers/2015/06/05/scalability-but-at-what-cost.pdf",
+  "topics": [
+    "distributed-systems",
+    "algorithms"
+  ],
+  "tags": [
+    "scalability",
+    "performance-evaluation",
+    "single-threaded-baseline",
+    "graph-processing",
+    "parallel-computing",
+    "algorithm-design",
+    "distributed-systems-overhead"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Scaling and performance measurements for a data-parallel algorithm",
+      "caption": "Scaling and performance measurements for a data-parallel algorithm, before (system A) and after (system B) a simple performance optimization. The unoptimized implementation “scales” far better, despite (or rather, because of) its poor performance. argue that many published big data systems more closely resemble system A than they resemble system B."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Twenty PageRank iterations",
+      "caption": null
+    },
+    {
+      "number": "Figure 3",
+      "title": "Label propagation",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

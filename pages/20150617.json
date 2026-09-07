@@ -1,0 +1,53 @@
+{
+  "date": "20150617",
+  "file_name": "20150617",
+  "slug": "differential-dataflow",
+  "blog_url": "https://blog.acolyer.org/2015/06/17/differential-dataflow/",
+  "blog_title": "",
+  "blog_summary": "The blog post highlights 'Differential Dataflow' by McSherry et al., a system that enables complex, real-time analyses on continuously updated datasets, such as maintaining Twitter's strongly connected component structure with sub-second latency despite constant updates. The author emphasizes the paper's key innovation: a model called 'differential computation,' which generalizes incremental processing to handle iterative computations and nested loops efficiently. By tracking partial orders of collection versions and retaining differences (deltas) rather than merging them, the system avoids redundant recomputation and supports both input updates and iteration simultaneously. The Naiad prototype demonstrates this with impressive performance on real-world graph processing tasks.",
+  "paper_title": "Differential Dataflow",
+  "paper_authors": [
+    "Frank McSherry",
+    "Derek G. Murray",
+    "Michael Isard",
+    "Rebecca Isaacs"
+  ],
+  "paper_year": 2013,
+  "paper_venue": "",
+  "paper_url": "http://research.microsoft.com/pubs/176693/differentialdataflow.pdf",
+  "paper_abstract": "User queries are received Naiad is a distributed system for executing data parallel, cyclic dataflow programs. It offers the high throughput of batch processors, the low latency of stream processors, and the ability to perform iterative and incremental computations. Although existing systems offer some of these features, applications that require all three have relied on multiple platforms, at the expense of efficiency, maintainability, and simplicity. Naiad resolves the complexities of combining these features in one framework. A new computational model, timely dataflow, underlies Naiad and captures opportunities for parallelism across a wide class of algorithms. This model enriches dataflow computation with timestamps that represent logical points in the computation and provide the basis for an efficient, lightweight coordination mechanism. We show that many powerful high-level programming models can be built on Naiad’s low-level primitives, enabling such diverse tasks as streaming data analysis, iterative machine learning, and interactive graph mining. Naiad outperforms specialized systems in their target application domains, and its unique features enable the development of new high-performance applications. Low-latency query responses are delivered Queries are joined with processed data Updates to data arrive Complex processing incrementally reexecutes to reflect changed data Figure 1: A Naiad application that supports realtime queries on continually updated data. The dashed rectangle represents iterative processing that incrementally updates as new data arrive. requirements: the application performs iterative processing on a real-time data stream, and supports interactive queries on a fresh, consistent view of the results. However, no existing system satisfies all three requirements: stream processors can produce low-latency results for non-iterative algorithms [3, 5, 9, 38], batch systems can iterate synchronously at the expense of latency [27, 30, 43, 45], a...",
+  "paper_file": "papers/2015/06/17/differential-dataflow.pdf",
+  "topics": [
+    "data-engineering",
+    "distributed-systems",
+    "algorithms"
+  ],
+  "tags": [
+    "stream-processing",
+    "incremental-computation",
+    "dataflow",
+    "graph-processing",
+    "iterative-computation",
+    "deltas",
+    "real-time-analytics"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Naiad application supporting realtime queries",
+      "caption": "A Naiad application that supports realtime queries on continually updated data. The dashed rectangle represents iterative processing that incrementally updates as new data arrive."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Naiad software stack",
+      "caption": "The Naiad software stack exposes a low-level graph assembly interface, upon which high-level libraries, DSLs, and applications can be built."
+    },
+    {
+      "number": "Figure 3",
+      "title": "Simple timely dataflow graph",
+      "caption": "This simple timely dataflow graph (§2.1) shows how a loop context nests within the top-level streaming context."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

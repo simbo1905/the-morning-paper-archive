@@ -1,0 +1,46 @@
+{
+  "date": "20161214",
+  "file_name": "20161214",
+  "slug": "scone-secure-linux-containers-with-intel-sgx",
+  "blog_url": "https://blog.acolyer.org/2016/12/14/scone-secure-linux-containers-with-intel-sgx/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights SCONE as a solution to protect containerized applications from untrusted cloud providers, including the OS kernel and hypervisor. He emphasizes SCONE's ability to ensure confidentiality and integrity of application data even when running on untrusted infrastructure, leveraging Intel SGX enclaves. The blog praises SCONE's compatibility with existing container platforms like Docker and its minimal performance overhead, achieved through asynchronous system calls and shield libraries for I/O operations. Colyer notes that SCONE addresses key challenges such as adapting containers to run within enclaves, maintaining compatibility, and minimizing trusted computing base (TCB) while ensuring security.",
+  "paper_title": "SCONE: Secure Linux Containers with Intel SGX",
+  "paper_authors": [
+    "Sergei Arnautov",
+    "Christian Priebe",
+    "Markus Peter",
+    "Tobias Reiher",
+    "Ahmad-Reza Sadeghi",
+    "Michael Horsch",
+    "Andreas Langer",
+    "Matthias Schunter",
+    "Thomas Schneider",
+    "Immo Wehrenberg"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/system/files/conference/osdi16/osdi16-arnautov.pdf",
+  "paper_abstract": "In multi-tenant environments, Linux containers managed by Docker or Kubernetes have a lower resource footprint, faster startup times, and higher I/O performance compared to virtual machines (VMs) on hypervisors. Yet their weaker isolation guarantees, enforced through software kernel mechanisms, make it easier for attackers to compromise the confidentiality and integrity of application data within containers. We describe SCONE, a secure container mechanism for Docker that uses the SGX trusted execution support of Intel CPUs to protect container processes from outside attacks. The design of SCONE leads to (i) a small trusted computing base (TCB) and (ii) a low performance overhead: SCONE offers a secure C standard library interface that transparently encrypts/decrypts I/O data; to reduce the performance impact of thread synchronization and system calls within SGX enclaves, SCONE supports user-level threading and asynchronous system calls. Our evaluation shows that it protects unmodified applications with SGX, achieving 0.6✓–1.2✓ of native throughput.",
+  "paper_file": "papers/2016/12/14/scone-secure-linux-containers-with-intel-sgx.pdf",
+  "topics": [
+    "distributed-systems",
+    "systems-security",
+    "operating-systems"
+  ],
+  "tags": [
+    "containers",
+    "intel-sgx",
+    "enclaves",
+    "trusted-computing",
+    "container-security",
+    "docker",
+    "system-calls",
+    "asynchronous-io",
+    "memory-protection",
+    "data-confidentiality"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

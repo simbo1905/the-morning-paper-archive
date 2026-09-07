@@ -1,0 +1,40 @@
+{
+  "date": "20190418",
+  "file_name": "20190418",
+  "slug": "keeping-master-green-at-scale",
+  "blog_url": "https://blog.acolyer.org/2019/04/18/keeping-master-green-at-scale/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Uber's challenge of maintaining a 'green' monorepo mainline with thousands of concurrent engineering changes, where even small numbers of concurrent changes lead to high conflict probabilities. The paper introduces SubmitQueue, a change management system that uses speculative execution, probabilistic modeling, and conflict analysis to keep the mainline green while minimizing commit-to-live latency. Key insights include the use of a speculation engine with a binary decision tree to predict build success, a conflict analyzer to detect independent changes, and a planner that orchestrates parallel builds. The system achieves near-optimal turnaround times (1.2x of an ideal Oracle) and has improved Uber's mainline green rate from 52% to 100%. The authors also trained a logistic regression model with 97% accuracy to predict build success based on historical features.",
+  "paper_title": "Keeping master green at scale",
+  "paper_authors": [
+    "Ranjita Ananthanarayanan",
+    "Aleksey Charapko",
+    "Cheng Hian Goh",
+    "Karthik Gopalakrishnan",
+    "Rakesh Kudva",
+    "Mihai Letitia",
+    "K V Muralidhar",
+    "Kishore Papineni",
+    "Praveen Tammana"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "EuroSys'19",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3303970",
+  "paper_abstract": "Recent studies [27, 38] have shown that the monolithic model of source code management results in simplified dependency management, unified versioning, ease of collaboration, improved code visibility, and development velocity. As shown by Perry et al. [37], concurrently committing code changes by thousands of engineers to a big repository, with millions of lines of code, may lead to a master breakage (e.g., compilation error, unit test failure, integration test failure, and unsignable artifact). Tracking down and rolling back the faulty change is a tedious and error-prone task, which very often needs human intervention. Since developers may potentially develop over a faulty master (mainline hereafter), their productivity may get hampered substantially. Additionally, a breakage in the mainline can cause delays in rolling out new features. For example, prior to the launch of a new version of our mobile application for riders, hundreds of changes were committed in a matter of minutes after passing tests individually. Collectively though, they resulted in substantial performance regression, which considerably delayed shipping the application. Engineers had to spend several hours bisecting the mainline in order to identify a small list of changes that caused performance regressions. New changes further aggravated the problem such that the mainline required blocking while the investigation continued. To prevent the above issues, the monorepo mainline needs to remain green at all times. A mainline is called green if all build steps (e.g., compilation, unit tests, UI tests) can successfully execute for every commit point in the history. Keeping the mainline green allows developers to (i) instantly release new features from any commit point in the mainline, (ii) roll back to any previously committed change, and not necessarily to the last working version, and (iii) always develop against the most recent and healthy version of the monorepo. To guarantee an always green mainli...",
+  "paper_file": "papers/2019/04/18/keeping-master-green-at-scale.pdf",
+  "topics": [
+    "distributed-systems",
+    "software-engineering"
+  ],
+  "tags": [
+    "continuous-integration",
+    "monorepo",
+    "speculative-execution",
+    "build-prediction",
+    "conflict-analysis",
+    "change-management"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

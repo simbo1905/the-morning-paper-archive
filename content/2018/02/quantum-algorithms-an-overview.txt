@@ -1,0 +1,460 @@
+URL: https://blog.acolyer.org/2018/02/06/quantum-algorithms-an-overview/
+Title: Quantum algorithms: an&nbsp;overview
+---
+
+Quantum algorithms: an overview Montanaro,  npj Quantum Information 2016
+
+This is a paper that Preskill cited in his keynote address (see yesterday’s post). It covers some of the same ground that we looked at yesterday, but also has some additional material and perspective of interest — and I’ll focus on those parts today. We’ll touch on Grover’s algorithm, amplitude amplification, and quantum walks among others. The first fun thing to know is that the Quantum Algorithm Zoo maintains a catalog of all known quantum algorithms - and there are a lot of them! For each algorithm you get the name, speedup, and a short description. A great resource. In ‘Quantum algorithms: an overview’, Montanaro offers a broad sweep of potential applications rather than details on how particular applications work. He also introduces us to a couple of complexity classes we haven’t seen before in The Morning Paper, BPP and QMA:
+
+Shor’s algorithm, which we looked at last week, turns out to solve a special case of a mathematical problem known as the hidden subgroup problem (HSP).
+
+For Shor’s algorithm, . But if we use other groups G, the same quantum HSP algorithm can also attack other cryptosystems:
+
+## Grover’s algorithm
+
+Beyond Shor’s algorithm, the best known quantum algorithm must be Grover’s algorithm. It’s a pretty amazing result for the unstructured search problem:
+
+A classical algorithm must evaluate f times in the worst case, but Grover’s quantum algorithm solves the problem using evaluations of f in the worst case. It is a bounded-error algorithm: it fails with probability for some arbitrarily small (but fixed) greater than 0. Grover’s algorithm does not rely on or exploit any internal structure in the function f.
+
+Grover’s algorithm can be applied to any problem in the complexity class NP, since we can efficiently check if we have a solution in polynomial time (i.e., check whether ). In the following, we present a certificate which is a candidate proof of a solution, and the certificate can be verified in polynomial time:
+
+> 
+
+ Given a problem in NP that has a certificate length m, by applying Grover’s algorithm to A (the classical checking algorithm) and searching over all possible certificates, we obtain an algorithm which uses time rather than the used by classical exhaustive search over all certificates. This (nearly) quadratic speedup is less dramatic than the super-polynomial speedup achieved by Shor’s algorithm, but can still be rather substantial.
+
+## Amplitude amplification
+
+The heuristic search problem is related to unstructured search, but starts with a probabilistic guessing algorithm to produce a guess which can then be tested:
+
+The classical solution can find an answer in an average of evaluations of f, simply by repeatedly running A and checking the output each time. A quantum algorithm known as amplitude amplification, due to Brassard et al., can find with only uses of f, and a failure probability arbitrarily close to 0 — a quadratic speedup.
+
+3-SAT is an NP-complete problem that runs in time . Applying amplitude amplification to the problem gives a quantum algorithm with runtime , “illustrating that quantum computers can speed-up non-trivial classical algorithms for NP-complete problems.”
+
+## Combinations...
+
+> 
+
+ Grover’s algorithm and amplitude amplification are powerful subroutines which can be used as part of more complicated quantum algorithms, allowing quantum speedups to be obtained for many other problems.
+
+For example: finding the minimum of an unsorted list of N integers (quantum computers can do this in ); determining graph connectivity, and pattern matching (find a pattern P of length M within a text T of length N).
+
+If we can find the minimum of an unsorted list of N integers in , we can also find the minimum of an arbitrary and initially unknown function with evaluations of f.
+
+## Adiabatic optimisation
+
+> 
+
+ The adiabatic optimisation algorithm can be applied to any constraint satisfaction problem (CSP) where we are given a sequence of constraints applied to some input bits, and are asked to output an assignment to the input bits which maximises the number of satisfied constraints.... Unlike the algorithms described in the rest of this survey, the adiabatic algorithm lacks general, rigorous worst-case upper bounds on its runtime.
+
+The neat thing about the adiabatic algorithm is that we can directly implement it on a physical system whose Hamiltonian can be varied smoothly between the desired initial and final Hamiltonians. This is the approach taken by the D-Wave Systems machines.
+
+## Quantum walks
+
+> 
+
+ In classical computer science the concept of the random walk or Markov chain is a powerful algorithmic tool, and is often applied to search or sampling problems. Quantum walks provide a similarly powerful and general framework for designing fast quantum algorithms... a quantum walk is based on the simulated coherent quantum evolution of a particle moving on a graph.
+
+Quantum walks can outperform classical random walks in two ways:
+
+- faster hitting: the time it takes to find a target vertex from a source vertex (for some graphs, this time can be exponentially less), and
+
+- faster mixing: the time taken to spread out over all vertices after starting from one source vertex. The mixing speedup can be quadratic, but no more than this. 
+
+One application of quantum walks is in fast evaluation of boolean formulae - a formula on N binary inputs can be evaluated in ‘slightly more than’ operations (vs in the worst case for classical algorithms).
+
+> 
+
+ Quantum walks can also be used to obtain a very general speedup over classical algorithms based on Markov chains.
+
+## Why aren’t there more exponential speedups?
+
+There are a number of instances of quadratic speedups, but comparatively fewer exponential speedups. Why is this?
+
+> 
+
+ One reason is that strong lower bounds have been proven on the power of quantum computation in the query complexity model, where one only considers the number of queries to the input as the measure of complexity... in order to achieve an exponential speedup over classical computation in the query complexity model there has to be a promise on the input, i.e., some possible inputs must be disallowed.
+
+(This is the hidden structure that Shor’s algorithm successfully exploits for example).
+
+Another observation is that many quantum algorithms seem to be composed of just a few common building blocks (e.g., quantum walks and the quantum Fourier transform). It turns out (van Dam) that any quantum circuit can be approximated using only Toffoli and Hadamard quantum gates. The first of these is a purely classical gate, the second is equivalent to the Fourier transform over the group .
+
+> 
+
+ Thus any quantum algorithm whatsoever can be expressed as the use of quantum Fourier transforms interspersed with classical processing. (However, the intuition behind the quantum algorithms described above is much more varied than this observation would suggest).
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Algorithms and data structuresquantum 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousQuantum computing in the NISQ era and beyondNext &rsaquo;Blockstack: a global naming and storage system secured by blockchain
+ 
+ 
+
+ 
+ 
+## 
+ 13 thoughts on &ldquo;Quantum algorithms: an overview&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Quantum algorithms: an overview - Tech + Hckr News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Quantum algorithms: an overview - ÇlusterAssets Inc., 
+ 
+ 
+- 
+ 
+ Pingback: Quantum algorithms: an overview - posted at February 06, 2018 at 09:13AM by godelmachine - Startup News 2018 
+ 
+ 
+- 
+ 
+ 
+ 
+ Zteve says: 
+
+ 
+ February 6, 2018 at 8:55 am 
+
+ 
+
+ 
+ 
+> Grover’s quantum algorithm solves the problem using $O(\sqrt{N})$ evaluations of f in the worst case.
+
+Please explain what $N$ is in this expression.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ February 6, 2018 at 9:24 am 
+
+ 
+
+ 
+ 
+Suffering from mixed capitalisation here! N is ‘n’ in the box above, the number of bits in the input.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ wehrdo says: 
+
+ 
+ February 6, 2018 at 6:04 pm 
+
+ 
+
+ 
+ 
+Although I'm not an expert in quantum computing, every other resource I've read says that Grover's Algorithm provides quadratic speedup, not exponential. In other words, N=2^n, and Grover's Algorithm can search n bits in O(sqrt(2^n)) time.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ February 6, 2018 at 6:10 pm 
+
+ 
+
+ 
+ 
+Grover’s is definitely quadratic. If i said exponential that was a mistake! I will check the post and update as needed when I’m back at my desk. Thanks
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ 
+ 
+ ThunderWiring says: 
+
+ 
+ February 6, 2018 at 2:47 pm 
+
+ 
+
+ 
+ 
+interesting article! i will definitely look into this research path
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 8 February 2018 | Vedalgo 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 8 February 2018 - Site Title 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 8 February 2018 - Home Improvement Designs 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 8 February 2018 - DUI Lawyer 
+ 
+ 
+- 
+ 
+ 
+ 
+ ProgrammingKu says: 
+
+ 
+ April 29, 2018 at 9:06 am 
+
+ 
+
+ 
+ 
+That's clearly good explanation👍👍
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

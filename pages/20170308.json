@@ -1,0 +1,38 @@
+{
+  "date": "20170308",
+  "file_name": "20170308",
+  "slug": "redundancy-does-not-imply-fault-tolerance-analysis-of-distributed-storage-reactions-to-single-errors-and-corruptions",
+  "blog_url": "https://blog.acolyer.org/2017/03/08/redundancy-does-not-imply-fault-tolerance-analysis-of-distributed-storage-reactions-to-single-errors-and-corruptions/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a critical but often overlooked vulnerability in distributed storage systems: file system faults and corruptions. While network partitions and delays have been well-studied due to Jepsen.io's work, storage corruptions are equally prevalent and destructive. The paper demonstrates that even a single local file system fault can cause catastrophic outcomes in eight popular distributed storage systems, including data loss, corruption propagation, and unavailability. Despite employing checksums and redundancy, most systems fail to handle such faults gracefully, with even ZooKeeper being affected. The key insight is that local file system errors can undermine global fault tolerance mechanisms, revealing a significant gap in real-world resilience. The authors introduce CORDS, a fault-injection framework using errfs, to systematically test these systems and uncover systemic weaknesses in error handling and data integrity.",
+  "paper_title": "Redundancy does not imply fault tolerance: analysis of distributed storage reactions to single errors and corruptions",
+  "paper_authors": [
+    "Ramnatthan Alagappan",
+    "Aishwarya Ganesan",
+    "Haryadi S. Gunawi",
+    "Andrea C. Arpaci-Dusseau",
+    "Remzi H. Arpaci-Dusseau"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "FAST'17",
+  "paper_url": "https://www.usenix.org/system/files/conference/fast17/fast17-ganesan.pdf",
+  "paper_abstract": "We analyze how modern distributed storage systems behave in the presence of file-system faults such as data corruption and read and write errors. We characterize eight popular distributed storage systems and uncover numerous bugs related to file-system fault tolerance. We find that modern distributed systems do not consistently use redundancy to recover from file-system faults: a single file-system fault can cause catastrophic outcomes such as data loss, corruption, and unavailability. Our results have implications for the design of next generation fault-tolerant distributed and cloud storage systems.",
+  "paper_file": "papers/2017/03/08/redundancy-does-not-imply-fault-tolerance-analysis-of-distributed-storage-reactions-to-single-errors-and-corruptions.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "crash-consistency",
+    "fault-tolerance",
+    "data-corruption",
+    "checksums",
+    "redundancy",
+    "storage-faults",
+    "error-propagation",
+    "Jepsen-tests"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

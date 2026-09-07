@@ -1,0 +1,286 @@
+URL: https://blog.acolyer.org/2015/12/03/fast-and-vulnerable/
+Title: Fast and Vulnerable: A Story of Telematic&nbsp;Failures
+---
+
+Fast and Vulnerable: A Story of Telematic Failures - Foster et al. 2015
+
+Yesterday we saw just how much damage can be done by an adversary that is able to infiltrate the CAN bus of a car. Today's paper shows that it's possible to gain access to the bus remotely...
+
+> 
+
+ Telematic control units (TCU) are the embedded devices that underlie the “connected car” concept. They interconnect existing in-vehicle electronic control units (ECUs) with outside systems to provide new services and features... In prior work we demonstrated vulnerabilities in the former class of such devices, showing that certain OEM provided TCUs allowed both local and remote compromise and subsequent takeover of virtually all automotive systems. More recently, this result was duplicated by Miller and Valasek on the Jeep Cherokee and its UConnect telematics system. However, at least for our own research, working with the associated manufacturers to fix those problems was relatively straightforward. Since the TCUs were tightly coupled into their vehicles, they could be updated during scheduled vehicle service and mitigated through changes in the OEM-operated service. In this paper we have turned our attention to the thornier problem of aftermarket devices, which are typically purchased directly by consumers or through a third-party service offering (e.g., insurance or fleet management), are loosely coupled with the vehicle in which they are installed, and are maintained independent of normal automotive service channels.
+
+One common source of such devices is insurance companies using TCU analytics to offer 'safe driving discounts.' (At least some of their devices are far from 'safe' as we shall see....). This paper studies a device manufactured by Mobile Devices Ingenierie and known to be used for insurance purposes. Foster et al. look at both local (i.e. physical access to the car) and remote attack surfaces.
+
+Locally, the device offers a handy USB port. By plugging into this the authors could discover the device's IP address and subnet, and telnet, web, and SSH services running on it. A stunning amount of information is exposed over the web and telnet servers:
+
+> 
+
+ When contacted, the web and telnet servers both presented a specialized interface for querying and setting device parameters, as well as retrieving status information. This includes privacy-sensitive information such as the device’s current location as indicated by GPS. Additionally, a set of more advanced commands were exposed including an interface to send a SMS message to a specified number. By using this feature, it was straightforward to identify the phone number used in the SIM chip for subsequent SMS-based testing. We also identified an interface for retrieving the version and state for all the TCU’s internal components as well as the log files of the underlying Linux kernel (both of which were helpful in subsequent analysis). Finally, all configuration variables for software modules running were exposed and changeable.
+
+Removing the NAND flash chip and examining its contents revealed a number of public and private cryptographic keys and certificates. Going through this process for each device would be infeasible, but fortunately the manufacturers decided to use one single set of keys for all devices.
+
+> 
+
+ However, upon testing this SSH key on several other TCU devices from the same manufacturer (including in production contexts) we found that the same key was in use. Thus, it appears that the key we obtained is the default (and potentially singular) key for all such devices.
+
+How many times do we have to repeat the advice not to do this!
+
+With the key, it's possible to directly authenticate to the device over SSH and obtain a root shell...
+
+Handily for remote attackers, the web, telnet and SSH services are bound to all of the network interfaces, and not just USB:
+
+> 
+
+ Since this includes an Internet-connected cellular data modem, an outside attacker could simply login to the TCU directly using the previously identified SSH key (assuming the IP address were known). However, the particular devices we tested were indirectly protected from this attack vector as their cellular carriers made pervasive use of network address translation (NAT) and thus we could not directly address them. We note that this implementation is entirely a property of the carrier used, and if the device used a cellular provider allowing direct addressing then this means of access would be effective. Indeed, as we discuss later, we have found well over a thousand such devices that are Internet exposed.
+
+If a carrier is using NAT, not to worry, because there's always the SMS interface! If you know the phone number of a device, you can send it SMS messages. The SMS administration interface was enabled on all devices inspected. Using this, you can send an array of interesting commands including remotely updating the device.
+
+> 
+
+ Such commands include retrieving or setting the same properties exposed in the local debug interfaces, retrieval of sensor status information such as modem, GPS position, and others, initiating a remote update and more. Of these, the remote update capability is the most serious as it potentially provides a mechanism to obtain a reverse shell and thus arbitrary access.
+
+Triggering a remote update seems particularly easy as "there are a number of unfortunate choices in the design."
+
+- Updates are not cryptographically signed
+
+- The device does not authenticate the update server
+
+- An arbitrary update server can be used (saves all the inconvenience of having to set up a man-in-the-middle)
+
+> 
+
+ To verify these limitations we created a rogue update server that serves an update which immediately spawns a reverse shell and SSH tunnel to the victim TCU.
+
+We already know how much damage can be done once an adversary has access to the bus. We also now know how to remotely gain access to the TCU and hence to the bus. The last piece in the puzzle is finding target devices...
+
+> 
+
+ All forms of remote compromise (remote login via ssh, or update via web, telnet console or SMS) require knowledge of the TCU addresses – either its globally reachable IP address or the phone number associated with the SIM card. We found that there were several means of finding this information in the wild.
+
+- If the cellular carrier does not use NAT, devices can be indexed by search engines!
+
+> 
+
+ The online service Shodan collects and indexes a large amount of meta-data based on Internet scans. Since all the TCUs from this manufacturer use the same SSH server key, the server fingerprint presented when connecting is also identical. Searching for this fingerprint yielded the IP addresses of about 1500 potential devices. Searching for the particular welcome message presented at the start of a telnet session found about 3000 unique IP address. The majority of the addresses were from Spanish ISPs. We suspect this is a result of NAT not being deployed by at least one wireless carrier in Spain.
+
+- If the cellular carrier does use NAT, you can search for target phone numbers:
+
+> 
+
+ Since the TCU requires a data connection to send the sensor information to a remote server, the unit typically ships with a cellular connection with a pre-paid data plan. The numbers for these connections were not random. We found evidence that many are sequentially assigned numbers from the 566 area code, which is reserved for “personal communication services”. If the phone number of one of these devices can be determined, the nearby numbers have a high potential to also be TCUs.
+
+- You can validate potential target devices by sending an SMS 'admin' command:
+
+> 
+
+ Moreover, simply sending a SMS administration command, such as “status,” would confirm a TCU’s identity, and makes implementing a “war dialer” for enumerating such devices relatively straightforward.
+
+More good news for attackers is the increasing availability of public CAN 'recipes' making it much quicker and easier to construct attack payloads. The authors put together a demonstration attack using these that allows them to obtain a remote shell - the initial point of entry being an SMS update command. It takes just over a minute (2G networks, ugh!) to gain full control of the car.
+
+> 
+
+ Putting this together, we worked with a volunteer driver (operating at low speed to prevent injury) and demonstrated remote control over both body functions (remotely turning on windshield wipers) and brakes (selectively applying brakes and selectively disabling brakes). While this test was conducted at close distance for safety purposes, it was not limited by proximity and could have been carried out at arbitrary distance.
+
+The authors practised responsible disclosure of their findings...
+
+> 
+
+ We disclosed our understanding of the problems with the C4E class of TCUs to the vendor (Mobile Devices), to Metromile (a customer of theirs using that platform), and to Uber (a customer of Metromile). All were supportive of our work, appreciative that we had informed them in advance, and intimated that the problems would be fixed (indeed, Metromile was concrete in its plans to disable all SMS access on its branded devices, consistent with our recommendation) or had already been fixed. However, we also experienced some of the challenges with this space arising from complex supply chain in which a device is customized for different markets.
+
+There still seem to remain some questions though...
+
+> 
+
+ Yet even if we take these statements at face value, they suggest a disconnect in the interface with customers since we identified these problems in a number of production devices directly (to say nothing of the several thousand we identified online).
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ IoTSecurity 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousExperimental Security Analysis of a Modern AutomobileNext &rsaquo;Prudent Engineering Practice for Cryptographic Protocols
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

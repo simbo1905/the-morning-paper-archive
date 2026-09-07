@@ -1,0 +1,39 @@
+{
+  "date": "20190925",
+  "file_name": "20190925",
+  "slug": "50-ways-to-leak-your-data",
+  "blog_url": "https://blog.acolyer.org/2019/09/25/50-ways-to-leak-your-data/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a comprehensive study by Reardon et al. that uncovers widespread circumvention of Android's permission system by apps leaking sensitive data (identifiers and location information) without proper permissions. The paper identifies covert and side channels used by apps to bypass security restrictions, including writing to shared storage (SD card), using UNIX ioctl calls, reading ARP caches, and exploiting EXIF metadata in images. The authors built a testing environment to detect data leaks, reverse-engineered apps to uncover mechanisms, and created fingerprints to identify prevalent techniques. Notably, they found apps like Baidu's Maps SDK and Unity leaking IMEI and MAC addresses, affecting billions of installations. The study also reveals intentional misuse by some SDKs (e.g., OpenX) to bypass denied permissions. The authors responsibly disclosed findings to Google, leading to fixes in Android Q, though these are limited to newer devices, raising equity concerns.",
+  "paper_title": "50 ways to leak your data: an exploration of apps’ circumvention of the Android permissions system",
+  "paper_authors": [
+    "Reardon",
+    "Julia",
+    "Alastair R. Beresford",
+    "Andrew Rice"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "USENIX Security Symposium",
+  "paper_url": "https://www.usenix.org/conference/usenixsecurity19/presentation/reardon",
+  "paper_abstract": "Modern smartphone platforms implement permission-based models to protect access to sensitive data and system resources. However, apps can circumvent the permission model and gain access to protected data without user consent by using both covert and side channels. Side channels present in the implementation of the permission system allow apps to access protected data and system resources without permission; whereas covert channels enable communication between two colluding apps so that one app can share its permissionprotected data with another app lacking those permissions. Both pose threats to user privacy. In this work, we make use of our infrastructure that runs hundreds of thousands of apps in an instrumented environment. This testing environment includes mechanisms to monitor apps’ runtime behaviour and network traffic. We look for evidence of side and covert channels being used in practice by searching for sensitive data being sent over the network for which the sending app did not have permissions to access it. We then reverse engineer the apps and third-party libraries responsible for this behaviour to determine how the unauthorized access occurred. We also use software fingerprinting methods to measure the static prevalence of the technique that we discover among other apps in our corpus. Using this testing environment and method, we uncovered a number of side and covert channels in active use by hundreds of popular apps and third-party SDKs to obtain unauthorized access to both unique identifiers as well as geolocation data. We have responsibly disclosed our findings to Google and have received a bug bounty for our work.",
+  "paper_file": "papers/2019/09/25/50-ways-to-leak-your-data.pdf",
+  "topics": [
+    "systems-security",
+    "operating-systems"
+  ],
+  "tags": [
+    "android-permissions",
+    "covert-channels",
+    "side-channels",
+    "data-leakage",
+    "privacy-violations",
+    "mobile-security",
+    "sd-card-leakage",
+    "mac-address-leakage",
+    "imei-leakage",
+    "exif-metadata"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

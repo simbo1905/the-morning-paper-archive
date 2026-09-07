@@ -1,0 +1,42 @@
+{
+  "date": "20150306",
+  "file_name": "20150306",
+  "slug": "viewstamped-replication-revisited",
+  "blog_url": "https://blog.acolyer.org/2015/03/06/viewstamped-replication-revisited/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this updated version of Viewstamped Replication (VR) as a significantly clearer and more practical explanation of the protocol compared to the original 1988 paper. The paper introduces several improvements, including support for reconfiguration (adding/removing group members), multiple optimizations, and a clean separation between the VR algorithm and the state-machine-based distributed system built on top. Colyer notes that VR differs from Paxos by being a replication protocol rather than a pure consensus protocol, and it avoids disk I/O during consensus operations. The paper describes four interlocking protocols (normal operation, view-change, recovery, and reconfiguration) and emphasizes VR's reliability guarantees under crash failures with a minimal replica group size of 2f+1. The blog post praises the protocol's simplicity and practicality, making it appealing for implementation.",
+  "paper_title": "Viewstamped Replication Revisited",
+  "paper_authors": [
+    "Barbara Liskov",
+    "James Cowling"
+  ],
+  "paper_year": 2012,
+  "paper_venue": "",
+  "paper_url": "http://pmg.csail.mit.edu/papers/vr-revisited.pdf",
+  "paper_abstract": "change, e.g., to replace a faulty node with a different machine. A reconfiguration can also change the group size so that the number of failures the group can handle can increase or decrease. This paper presents an updated version of Viewstamped Replication, a replication technique that handles failures in which nodes crash. It describes how client requests are handled, how the group reorganizes when a replica fails, and how a failed replica is able to rejoin the group. The paper also describes a number of important optimizations and presents a protocol for handling reconfigurations that can change both the group membership and the number of failures the group is able to handle. 1 • The paper presents the protocol independently of any applications that use VR. The original papers explained the protocol as part of a database [11, 10] or file system [8], which made it difficult to separate the protocol from other details having to do with its use in an application.",
+  "paper_file": "papers/2015/03/06/viewstamped-replication-revisited.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "state-machine-replication",
+    "consensus",
+    "viewstamped-replication",
+    "paxos",
+    "reconfiguration",
+    "crash-failure",
+    "quorum-intersection",
+    "epochs",
+    "views"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "VR Architecture",
+      "caption": "VR Architecture; the figure shows the configuration when f = 1."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

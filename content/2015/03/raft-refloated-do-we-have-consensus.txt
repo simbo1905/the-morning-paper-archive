@@ -1,0 +1,283 @@
+URL: https://blog.acolyer.org/2015/03/13/raft-refloated-do-we-have-consensus/
+Title: Raft Refloated: Do we have&nbsp;consensus?
+---
+
+Raft Refloated: Do we have consenus? - Howard et al. 2015
+
+This is part ten of a ten-part series on consensus and replication.
+
+We're nearing the end of this journey after looking at Viewstamped Replication (and VRR), Paxos, ZooKeeper's atomic broadcast, and Raft. Not that we've exhausted all the literature on these topics - far from it! We did manage to exhaust my brain though :). These are hard papers to read critically, and difficult to provide concise summaries of - every little detail is often crucial to correct operation. Of course one of the main points of Raft is to reduce this cognitive overload, and one of goals of Howard et al. is to reproduce the Raft work and find out if this is really true.
+
+Hopefully you've got a feel for how these algorithms work and the basic ideas they share in common. You can also learn the basic ideas of how an internal combustion engine works. But would you therefore decide it's a good idea to build your own car engine? There's a big gap between the theory of how an internal combustion engine works, and the practice of building a modern car engine. One of the themes that comes out through these papers is that building production quality consensus engines is hard. And those 'obvious' performance optimisations you're tempted to slip in along the way are almost certainly not a good idea (unless you verify them with the same degree of rigour that the original protocols were developed with). Bugs can be very subtle and only occur in deep system traces with multiple levels of failures.
+
+Consensus is at the very core of distributed systems design, and bad things can happen when it goes wrong. In the debate that often rages about whether software engineering can really justify the 'engineering' tag, this is one case where true engineering discipline is required. You really want to be using an algorithm that has been formally modeled, with proofs of its important properties (as Raft was modeled in TLA+). Any subsequent optimisations you're tempted to make need to be validated against this model - it's all too easy to make an 'innocent' change and find out you've broken a subtle assumption somewhere along the line. Model checkers can explore permissible system traces to flush out deep and subtle bugs. And then you need to instrument your actual implementation to ensure that it faithfully follows the modeled system, and to catch any problems that occur in the real world. Alternatively you could use a consensus library that meets all these criteria, and plug in your state machine on top...
+
+In Raft Refloated Howard et al. demonstrate just this kind of rigour. Here we find an independent implementation of Raft to assess how easy it is to understand and how complete the original specification was; a full distributed systems simulator for reproducing performance results and exploring scenarios; and a formal model in Statecall Policy Language (SPL) used to validate over 10,000 traces of the system. The source code is all available under the MIT license too:
+
+> 
+
+ Our source code is available as open-source software under a MIT license at https://github.com/heidi-ann/ocaml-raft with tag v1.0, and can be installed via the OPAM package manager as raft-sim.1.0. The datasets used are also available at: https://github.com/heidi-ann/ocaml-raft-data, also tagged as v1.0.
+
+The paper includes a nice summary of the Raft protocol, but we can skip that having covered Raft yesterday. The project is written in OCaml.
+
+> 
+
+ We chose OCaml as the implementation language for reproduction (as compared to the original implementation’s C++) due to its static typing and powerful module system. The core protocol implementation is pure and does not include any side-effecting code, and uses algebraic data types to restrict the behaviour of the protocol to its own safety criteria. Where the static type system was insufficient, we made liberal use of assertion checks to restrict run-time behaviour.
+
+By modeling Raft's state transitions in SPL it is possible use model checking tools and also to generate OCaml code that acts as a safety monitor at run-time:
+
+> 
+
+ Raft’s state transition models (such as Figure 3) are encoded in Statecall Policy Language (SPL). SPL is a first order imperative language for specifying non-deterministic finite state automata (NFA). We chose to use SPL due to its ability to be compiled to either Promela, for model checking in SPIN, or to OCaml, to act as a safety monitor at run-time. Alternatives to SPL include using systems such as MoDist that model-check protocol implementations directly, or encoding the model directly in Promela, as has been recently done for Paxos.
+
+The simulator is also built in OCaml. In simulation it is possible to have a holistic view of the cluster state to aid in verification.
+
+> 
+
+ In order to evaluate our Raft protocol implementation across a range of diverse network environments, we also built a message-level network simulation framework in OCaml. Beyond evaluating the performance of the protocol, we can also use our simulation traces to catch subtle bugs in our implementation or the protocol specification. Since such issues may only occur very rarely (e.g. once in 10,000 protocol runs), a fast simulator offers the unique opportunity to address them via simulation trace analysis. Furthermore, we can use our simulator’s holistic view of the cluster to ensure that all nodes’ perspectives of the distributed system are consistent with respect to the protocol. To meet these domain-specific requirements, we designed our own simulation framework, instead of opting for traditional event-driven network simulators like ns3 or OMNeT++.
+
+Using the simulator the authors were able to reproduce the performance results from the original Raft paper. "We were then able to use our framework to rapidly prototype optimizations to the protocol by virtue of having calibrated our simulation by replicating the authors’ original experimental setup."
+
+- Instead of having a single timer used for both follower and candidate timeouts, elections proceed faster if two separate timers are used, with the candidate timeout set lower than the follower one. Under simulation of a highly contested environment, this led to leaders being established within 281ms compared to 1330ms without the optimization.
+
+- Binary exponential backoff for candidates rejected by a majority of leaders also improves election times. However, combining this with the lower candidate timer performed slightly worse than just using lower candidate timers in isolation.
+
+- A Tail at Scale effect exists for client command completions, with a small number of outliers (most commonly when a leader fails and a new one is subsequently elected) taking much longer than the normal case. The client commit timeout value is normally set much higher than the RTT to accommodate this. The introduction of a separate ClientCommit acknowledgement would enable the use of two distinct timers to separate the normal and election cases. 
+
+The simulation traces were checked using SPL, and at no point were safety guarantees compromised.
+
+> 
+
+ However, we did observe permanent livelock in some of our simulation traces, caused by the interaction between the extra condition on commitment (detailed in §2.3.3) and our placement of the client request cache. We recommend that if a client request is blocked by the extra condition on commitment, the leader should create a no-op entry in its log and replicate this across the cluster. We refer the reader to our technical report for a detailed analysis of this issue.
+
+(The "extra condition on commitment" refers to the fact that a new leader can only commit entries from a previous term once it has successfully replicated an entry from the current term).
+
+And this brings us to the big question: is Raft really easier to understand than the alternatives?
+
+> 
+
+ In our experience, Raft’s high level ideas were easy to grasp—more so than with Paxos. However, the protocol still has many subtleties, particularly regarding the handling of client requests. The iterative protocol description modularizes and isolates the different aspects of the protocol for understandability by a reader, but this in our experience hinders implementation as it introduces unexpected interaction between components (see previous section). As with Paxos, the brevity of the original paper also leaves many implementation decisions to the reader. Some of these omissions, including detailed documentation of the more subtle aspects of the protocol and an analysis of the authors’ design decisions, are rectified in Ongaro’s PhD thesis on Raft. However, this only became available towards the end of our effort. Despite this, we believe that Raft has achieved its goal of being a “more understandable” consensus algorithm than Paxos.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems 
+ 
+ ConsistencyDistributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousIn Search of an Understandable Consensus AlgorithmNext &rsaquo;Desert Island Papers: Jonas Bonér
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;Raft Refloated: Do we have consensus?&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Can't we all just agree? | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Combining static model checking with dynamic enforcement using the Statecall Policy Language | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Distributed consensus and the implications of NVM on database management systems | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

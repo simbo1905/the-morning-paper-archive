@@ -1,0 +1,314 @@
+URL: https://blog.acolyer.org/2015/09/15/md5-to-be-considered-harmful-someday/
+Title: MD5 To Be Considered Harmful&nbsp;Someday
+---
+
+MD5 To Be Considered Harmful Someday - Kaminsky 2004
+
+A few people have asked if I can cover more security topics in The Morning Paper. It's a subject area that always seems a little daunting to me (as in, "a little knowledge is a dangerous thing"), but it's also a subject area that I feel it's increasingly important to have a working understanding of. So I accept the challenge and plan to cover a few more security related papers in amongst the morning paper mix. Coming from outside of the domain, it's always hard to know where to get started. Fortunately there are experts out there who know far more about the subject area than I do, who have put together suggested reading lists. Some of the sources I've found so far include the EECS 588 Computer Security Reading List, the CS380S Great Papers in Computer Security List, and for those of you that have access to the ACM Digital Library, the ACM TechPack on Security. (If you know of other great resources, please let me know!).
+
+To kick things off, today's choice is 'MD5 To Be Considered Harmful Someday.' Written in 2004, it's a story of collision-based attacks, measures and counter-measures, and how the security of a solution can be gradually eroded in the build-up to a 'phase-change.' And the lessons it teaches are still relevant to ponder today when trusting signed images.
+
+> 
+
+ The point is not that MD5 has collapsed. It hasn’t. The point is that there’s a very clear trend regarding the security level of MD5, and it isn’t good. It is now undeniable that the selection of MD5 matters – the constraint that deployed implementations of the one-way hash primitive be functionally identical has been broken. The failures detected are not merely algorithmic or theoretical, rather new capabilities above and beyond what the primitive specifies are made available by the selection of MD5. It is not expected that this paper will cause a precipitous decline in the use of MD5; that will probably occur when a means of silently introducing single-bit errors in arbitrary (rather than chosen) MD5 payloads is discovered. But in the security community, we tend to complain about the ”phase change” nature of our systems that suddenly collapse from secure to insecure on the discovery of a ”zero day” exploit. The phase change for MD5 isn’t here yet, but it will come, someday. Nobody should be surprised when that day arrives.
+
+(See the follow-up 4 years later, MD5 Considered Harmful Today).
+
+MD5 is a oneway hash. It turns an arbitrary amount of data into a 128 bit fingerprint of the data you feed it. The 'oneway' part means that it's easy to compute the hash given the data to be hashed, but computationally infeasible to go in the opposite direction - that is, given a hash, find some data that would produce it. Thus we can use the hash as a way of trusting that data hasn't been changed or tampered with - if it hashes to the expected value, it must be the expected data.
+
+Given that you are compressing more than 128 bits into a 128 bit representation, it is inevitably the case that there exist multiple source data sets that all hash onto the same value. This is known as a collision. What's important in the trust model is that you can't deliberately engineer a dataset to have a certain hash value. If you can do that, you can trick someone into believing they can trust your changed dataset to be a faithful copy of the original.
+
+Joux and Wang found an attack that lets you introduce small modifications into an input dataset, and still keep the same hash.
+
+> 
+
+ For MD5 (and actually a number of popular hashing algorithms, SHA-1 not among them), it is possible to compute particular classes of input data for which subtle changes can be silently introduced without causing apparent changes in the final MD5 hash. Capacity is not huge – of the two 128 byte roof-of-concept files released by Wang, only six bits differ. But many ”doppelganger” sets can be computed, each of which may be swapped out with the other at no effect to the resultant hash.
+
+Being able to generate colliding 128 bit files doesn't seem like a big danger. Most real world files will be much larger than 128 bits, and pulling off the same trick with a 100MB image file for example must be much harder?
+
+It turns out this 128 bit building block is all you need if you put it at the start of the file, due to the iterative nature of the MD5 algorithm, which starts with a 128 bit seed and then repeatedly 'stirs in' additional 512-bit blocks of data until the end of the dataset is reached.
+
+> 
+
+ Now, amongst the cryptological community there is a well known failure mode to the this particular construction: If at any point in the cascade two different datasets are stirred into equal 128 bit values, arbitrary data can be appended to both datasets and their hashes will remain equal. In mathematical terms, using the ”+” sign to refer to concatenation and assuming length(x) and length(y) both evenly divide into the 64 byte blocksize of MD5, if md5(x) = md5(y), then md5(x+q) = md5(y +q).
+
+So now we can make small alterations to files of arbitrary size, and produce hash collisions. MD5 hashes can no longer be relied on to indicated that a file on the file system has not been changed for example. It's a small chink in the armour, but enough to allow some limited attack vectors. An example is given of smuggling code past auditors:
+
+- take an 'evil payload' and AES encrypt it using as the key the SHA-1 of a 128-bit vector, v
+
+- take v', a doppleganger of v, and create the innocent looking binary v' + the encrypted payload
+
+- obtain an approved signature from auditors for this file (call it 'Ice' since it is harmless)
+
+- before shipping, replace v' with v to produce the shipped file 'v + encrypted payload' this wil lhave the same hash value (call it 'Fire,' since Fire burns)
+
+- out in the wild, it's now possible to decrypt the evil payload by computing the SHA-1 of v and using it as the key. 
+
+Of course, this all requires the cooperation of a program that can do the necessary decryption. The real risk seems very small.
+
+> 
+
+ But failures inside cryptographic primitives, even very small ones, tend to lead to slowly discovered catastrophic failures. MD5 does not seem to be an exception to this rule. We can do much more with the actual multicollision attack. The test vectors collide only when stirred into the default initial state for the MD5 algorithm; the attack itself works against any arbitrary state. The upshot here is that we can not only append arbitrary data but prepend it as well. Presently Fire and Ice required a dedicated external execution harness which could arouse suspicion. With prepending available, a correctly formatted binary executable could be synthesized that would self-analyze and branch appropriately depending on which vector was contained within.
+
+"The multicollision attack against MD5 remains relatively weak, with special circumstances required for an attack to succeed," but the seeds are sown for 'someday, MD5 to be considered harmful'.
+
+The final section of the paper shows how the ability to modify a binary in such a way that MD5s are not changed can be used to support traceability of artefacts:
+
+> 
+
+ Security is a battle between attackers and defenders, and defenders do not necessarily need to cede the ground of cryptographic exploitation to attackers alone. A research path known as ”Strikeback” examines the mechanisms by which a defender under attack can exploit weaknesses in his attackers to defend his systems.
+
+MP3 players, for example, are tolerant of errors and 'junk data' infecting the bitstream. So mp3 files with prepended data still play flawlessly. Now we can produce two mp3 files that have the same md5 hash, play flawlessly, yet contain an extra bit of information - which of the two dopplegangers is prepended.
+
+> 
+
+ A single bit is not useful. But we are not constrained to a single bit. Wang has disclosed that, given an arbitrary MD5 system state, her implementation is capable of finding a multicollision-capable set after approximately one hour of computation with one doppelganger computable every fifteen minutes after that. It is well within the realm of feasiblity to compute 16 sequential multicollision sets, each adapting to the MD5 state emitted by the previous, with 256 (or 28)computed doppelgangers for each set. Now, instead of the single bit of information represented by the choice between vec1 and vec2, we have 8 bits of information per prepended block – and there are 16 blocks. This yields space for a 128 bit signature, and things just got much more interesting...
+
+We can use that, for example, to prepend a unique 128 bit serial number to every copy of a song file that transmits through a P2P network, thus showing where it has come from. The search algorithms and file integrity mechanisms on P2P networks tend to be MD5 based, so nothing will fail - "except perhaps some of the opacity of the network."
+
+A related technique is shown whereby a fingerprint of the computer on which software is packaged can be incorporated into the binary (without changing the md5), as another way of discretely tracking provenance.
+
+## What happened next?
+
+Four years later came the publication of MD5 Considered Harmful Today which exploited the MD5 hash collision weakness to create a rogue Certificate Authority (CA) that was trusted by all browsers.
+
+> 
+
+ ...This certificate allows us to impersonate any website on the Internet, including banking and e-commerce sites secured using the HTTPS protocol. Our attack takes advantage of a weakness in the MD5 cryptographic hash function that allows the construction of different messages with the same MD5 hash. This is known as an MD5 "collision". Previous work on MD5 collisions between 2004 and 2007 showed that the use of this hash function in digital signatures can lead to theoretical attack scenarios. Our current work proves that at least one attack scenario can be exploited in practice, thus exposing the security infrastructure of the web to realistic threats.
+
+When it comes to security, ignoring 'theoretical weaknesses' and failing to keep up to date with the latest recommendations can have serious consequences:
+
+> 
+
+ The infrastructure of Certification Authorities is meant to prevent exactly this type of attack. Our work shows that known weaknesses in the MD5 hash function can be exploited in realistic attack, due to the fact that even after years of warnings about the lack of security of MD5, some root CAs are still using this broken hash function.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Security 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousFast Database Restarts at FacebookNext &rsaquo;Mining your Ps and Qs: Detection of Widespread Weak Keys in Network Devices
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;MD5 To Be Considered Harmful Someday&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ ikolomiets says: 
+
+ 
+ September 15, 2015 at 3:34 pm 
+
+ 
+
+ 
+ 
+This is what happens when you ignore dangers of MD5: http://arstechnica.com/security/2015/09/once-seen-as-bulletproof-11-million-ashley-madison-passwords-already-cracked/
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,244 @@
+URL: https://blog.acolyer.org/2015/09/14/fast-database-restarts-at-facebook/
+Title: Fast Database Restarts at&nbsp;Facebook
+---
+
+Fast Database Restarts at Facebook - Goel et al. 2014
+
+In security, you're only as secure as your weakest link in the chain. When it comes to agility, you're only as fast as your slowest link in the chain. Updating and evolving a stateless middle tier is usually pretty quick, but what if you need to update and evolve a heavily stateful process - for example, the one hosting your database? And what if that database spans 100+ servers?
+
+Facebook's Scuba is a fast distributed in-memory database used by employees. It is the workhorse behind code regression analysis, bug report monitoring, ads revenue monitoring, and performance debugging.
+
+> 
+
+ At Facebook, we are accustomed to the agility that comes with frequent code deployments. New code is rolled out to our web product multiple times each week... We are continually improving the code for Scuba and would like to push new software releases at least once a week. However, restarting a Scuba machine clears its memory. Recovering all of its data from disk — about 120 GB per machine — takes 2.5-3 hours to read and format the data per machine. Even 10 minutes is a long downtime for the critical applications that rely on Scuba, such as detecting user-facing errors. Restarting only 2% of the servers at a time mitigates the amount of unavailable data, but prolongs the restart duration to about 12 hours, during which users see only partial query results and one engineer needs to monitor the servers carefully. We need a faster, less engineer intensive, solution to enable frequent software upgrades.
+
+Keeping redundant copies of the data on different servers was rejected as being too expensive along two dimensions: (i) the hardware costs of hundreds of servers each with 144GB of RAM, and (ii) the engineering costs of replication. Inspired by other systems at Facebook (TAO, memcache) that use shared memory to keep data alive across software upgrades, the team chose a different route.
+
+> 
+
+ We observed that when we shutdown a server for a planned upgrade, we know that the memory state is good (unlike when a server shuts down unexpectedly, which might or might not be due to memory corruption). We decided to decouple the memory’s lifetime from the process’s lifetime. In this paper, we describe how we use shared memory to persist data from one process to the next...
+
+Scuba doesn't use shared memory in normal operation - which would have involved writing a custom allocator. Instead it copies data to shared memory during shutdown, and copies it back to the heap at startup. The shared memory format is similar to, but not identical to, the heap format.
+
+> 
+
+ Copying data between heap and shared memory avoids some of the pitfalls in writing a custom allocator in shared memory, such as fragmentation and problems with thread safety and scalability. It also allows us to modify the in-memory format (in heap memory) and rollover to the new format using shared memory. We describe how to copy all of the data to shared memory and back without increasing
+
+ the memory footprint of the data. Scuba’s new upgrade path is about 2-3 minutes per server, rather than 2-3 hours. The entire cluster upgrade time is now under an hour, rather than lasting 12 hours.
+
+Each Scuba machine runs eight leaf servers (which store data), and one aggregator server.
+
+> 
+
+ For recovery, eight servers mean that we can restart the servers one at a time, while the other seven servers continue to execute queries. We therefore maximize the number of disks in use for recovery while
+
+ limiting the amount of offline data to 2% of the total. For example, suppose there are 100 machines. With one server per machine, we could restart only two servers. With a total of 800 leaf servers, we can restart 16 leaf servers on 16 machines at once and read from 16 disks. The full rollover thus takes much less time to complete. This technique also applies to parallelizing restarts using shared memory, although the critical resource is the memory bandwidth rather than the disk speed.
+
+For crash recovery, disk is still used. Restarting using shared memory has two steps:
+
+- On shutdown, all of the data is copied from heap memory to shared memory and a valid bit is set.
+
+> 
+
+ Even though one leaf server only contains 10-15 GB of data, there is still not enough physical memory free to allocate enough space for it in shared memory, copy it all, and then free it from the heap. Instead, we copy data gradually, allocating enough space for one row block column at a time in shared memory, copying it, and then freeing it from the heap. There are hundreds of tables (and thousands of row block columns, with a maximum size of 2 GB) per leaf servers, so this method keeps the total memory footprint of the leaf nearly unchanged during both shutdown and restart... since all pointers in a row block column are offsets from the start of the row block column, copying a row block column can be done in one call to memcpy. Therefore, copying a table only requires one call per row block column.
+
+- On startup a new server checks the valid bit in shared memory. If it is set, it copies the data from shared memory back to the heap. If it is not set, it reverts to recovering from disk.
+
+The whole process takes 2-3 minutes per server (vs 2-3 hours previously).
+
+> 
+
+ Copying data between heap and shared memory has several advantages. Allocating and freeing heap memory during normal operation remains simple and uses well-tested code paths. The copying code is simple and, even though it is used infrequently, less likely to have bugs. Finally, separating the heap data structures from the shared memory data structures means that we can modify the heap data format and restart using shared memory. Furthermore, this fast rollover path allows us to deploy experimental software builds on a handful of machines, which we could not do if took longer. We can add more logging, test bug fixes, and try new software designs — and then revert the changes if we wish. This use of shared memory rollovers as a software development tool is common in the Memcache and TAO teams at Facebook.
+
+Supporting fast restarts is also an interesting use case for NVMM.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Datastores 
+ 
+ DatastoresFacebook 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousJupiter Rising: A Decade of Clos Topologies and Centralized Control in Google's Datacenter NetworkNext &rsaquo;MD5 To Be Considered Harmful Someday
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

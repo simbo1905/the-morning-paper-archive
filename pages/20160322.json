@@ -1,0 +1,38 @@
+{
+  "date": "20160322",
+  "file_name": "20160322",
+  "slug": "universal-packet-scheduling",
+  "blog_url": "https://blog.acolyer.org/2016/03/22/universal-packet-scheduling/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer discusses the paper 'Universal Packet Scheduling' by Mittal et al., which explores whether a universal scheduling algorithm exists that can emulate any desired schedule by adjusting configuration parameters. The paper proves that no such universal algorithm exists in theory, but introduces Least Slack Time First (LSTF) as a practical alternative that can closely approximate a wide range of scheduling behaviors. The key insight is that LSTF, by carrying slack values in packet headers and scheduling based on remaining slack, can replay most schedules with high accuracy in realistic network settings. Colyer highlights the elegance of LSTF's approach, noting that it eliminates 'wasted waiting' and often achieves better performance than the original schedules it replays. The paper also demonstrates how LSTF can be tuned to achieve common objectives like minimizing mean flow completion time, reducing tail delays, and ensuring fairness.",
+  "paper_title": "Universal Packet Scheduling",
+  "paper_authors": [
+    "Ratul Mahajan",
+    "Nandita Dukkipati",
+    "Srikanth Kandula",
+    "Dina Katabi",
+    "Nick McKeown",
+    "Vyas Sekar"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "NSDI '16",
+  "paper_url": "http://arxiv.org/pdf/1510.03551v1.pdf",
+  "paper_abstract": "that the UPS should match the performance of the best known scheduling algorithm for a given performance objective. The notion of universality for packet scheduling might seem esoteric, but we think it helps clarify some basic questions. If there exists no UPS then we should expect to design new scheduling algorithms as performance objectives evolve. Moreover, this would make a strong argument for switches being equipped with programmable packet schedulers so that such algorithms could be more easily deployed (as argued in [28]; in fact, it was the eloquent argument in this paper that caused us to initially ask the question about universality). However, if there is indeed a UPS, then it changes the lens through which we view the design and evaluation of packet scheduling algorithms: e.g., rather than asking whether a new scheduling algorithm meets a performance objective, we should ask whether it is easier/cheaper to implement/configure than the UPS (which could also meet that performance objective). Taken to the extreme, one might even argue that the existence of a (practical) UPS greatly diminishes the need for programmable scheduling hardware.1 Thus, while the rest of the paper occasionally descends into scheduling minutae, the question we are asking has important practical (and intriguing theoretical) implications. This paper starts from the theoretical perspective, defining a formal model of packet scheduling and our notion of replayability in §2. While we can prove that there is no UPS, we prove that Least Slack Time First (LSTF) [19] comes as close as any scheduling algorithm to achieving universality, and empirically (via simulation) find that LSTF can closely approximate the schedules of many packet scheduling algorithms. We then take a more practical perspective in §3, finding (via simulation) that LSTF is comparable to the state of the art in achieving various performance objectives. We discuss some related work in §4 and end with a discussion of open que...",
+  "paper_file": "papers/2016/03/22/universal-packet-scheduling.pdf",
+  "topics": [
+    "networking",
+    "distributed-systems"
+  ],
+  "tags": [
+    "packet-scheduling",
+    "LSTF",
+    "queueing-theory",
+    "network-performance",
+    "scheduling-algorithms",
+    "replayability",
+    "slack-time"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

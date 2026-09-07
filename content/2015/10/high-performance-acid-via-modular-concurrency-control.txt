@@ -1,0 +1,295 @@
+URL: https://blog.acolyer.org/2015/10/20/high-performance-acid-via-modular-concurrency-control/
+Title: High-Performance ACID via Modular Concurrency&nbsp;Control
+---
+
+High-Performance ACID via Modular Concurrency Control - Xie et al. 2015
+
+In yesterday's paper on Existential Consistency at Facebook the authors postulated that a future direction might be to use different consistency mechanisms for different parts of a system. 'High Performance ACID via Modular Concurrency Control' applies a similar idea within the confines of an ACID database (MySQL Cluster in the implementation/evaluation) to apply different concurrency mechanisms to different transaction groupings within an application. The application still sees full ACID guarantees. Using this approach, the unmodified TPC-C benchmark application ran 8.2x faster on a modified MySQL. It's impressive that after all these years of development, there are still almost order-of-magnitude improvements to be made to the traditional relational model without changing anything about the applications or their semantics!
+
+> 
+
+ Rather than trying to draw performance from weakening the abstraction offered to the programmer, Callas unequivocally adopts the familiar abstraction offered by the ACID paradigm and sets its sight on ﬁnding a more efﬁcient way to implement that abstraction... While ease of programming requests that ACID properties hold uniformly across all transactions, when it comes to the mechanisms used to enforce these properties, uniformity can actually hinder performance: a concurrency control mechanism that must work correctly for all possible pairs of transactions will necessarily have to make conservative assumptions, passing up opportunities for optimization. Callas then decouples the concerns of abstraction and implementation: it offers ACID guarantees uniformly to all transactions, but uses a novel technique, modular concurrency control (MCC), to customize the mechanism through which these guarantees are provided.
+
+The approach is motivated by three main observations:
+
+- No existing programming paradigm approaches the simplicity offered by ACID
+
+- Significant improvements to the performance of ACID are unlikely to come from techniques that hold for all transactions in an application. 
+
+- The potential performance gains to be had by allowing individual transactions to export multiple granularities of abstraction can be substantial. (As demonstrated by Salt).
+
+> 
+
+ MCC partitions transactions in groups and enables the ﬂexibility to assign to each group its own private concurrency control mechanism; being charged with regulating concurrency only for the transactions within their own groups, these mechanisms can be much more aggressive while still upholding safety. Finally, MCC offers a mechanism to properly handle conﬂicts among transactions in different groups.
+
+There are many possible groupings of transactions. The current implementation uses heuristics to identify groupings more likely to increase concurrency. It works in iterations, in each iteration identifying the most prominent source of contention and suggesting a grouping that could alleviate it. Contention is found by increasing the load on the system and looking for operations whose latency increases disproportionately.
+
+Correctness is demonstrated in two stages: first it is necessary to show that each group individually upholds the ACID isolation guarantees; secondly under the assumption that all groups do, that the guarantees also hold globally.
+
+> 
+
+ The theoretical underpinnings that Callas uses to discharge these obligations are found in the general theory for expressing isolation levels introduced by Adya et al...
+
+(Many roads lead back to Adya, definitely a paper we'll have to cover in a future #themorningpaper edition...).
+
+## Enforcing isolation across groups
+
+Callas uses a lock-based approach, though this is a pragmatic choice based on the underlying implementation of MySQL on top of which Callas is built rather than a necessity for MCC.
+
+> 
+
+ At the core of Callas’ inter-group mechanism are nexus locks, a new type of lock whose role is to regulate conﬂicts between transactions that belong to different groups while leaving transactions within each group relatively unconstrained. Nexus locks in Callas are ubiquitous: any transaction, before being allowed to perform a read or write operation on a database row, must acquire the corresponding nexus lock. This demand may seem to run contrary to the requirement of making the inter-group mechanism inconspicuous to the concurrency control mechanisms speciﬁc to each group. The key to resolving this apparent tension lies in the ﬂexibility of nexus locks. When two transactions in different groups try to acquire a nexus lock on a row, the lock functions as an enforcer: unless both transactions are reading the row, one of them will have to wait until the other releases the lock. If the transactions belong to the same group, however, the nexus lock imposes no such constraints: both transactions can acquire the nexus lock simultaneously.
+
+The simple acquisition of nexus locks is not sufficient to prevent circularities in the dependency graph (and thus to prevent certain isolation anomalies). The Nexus Lock Release Order rule prevents such cycles: If transaction T2 depends on transaction T1, and they are from the same group, then T2 cannot release its nexus locks until T1 does.
+
+## Enforcing isolation within groups
+
+> 
+
+ While the inter-group mechanism’s main goal is to do no harm, the key to unlocking the performance potential of MCC is in the group-speciﬁc concurrency control mechanisms that it enables.
+
+Obtaining more concurrency requires transactions to expose more intermediate states... but without violating the ACID abstraction. To achieve this the authors turn "to an elegant theory that increases concurrency by chopping transactions—but in a way guaranteed to maintain serializability."
+
+> 
+
+ [The theory...] uses static analysis to construct an SC-graph, whose vertices are candidate transaction pieces, and whose edges, which are undirected, are of two kinds: S-edges connect the pieces within a transaction; C-edges connect pieces of different transactions that access the same object, when at least one of the accesses is a write. The theory shows that if a candidate chopping gives rise to an SC-cycle, then Circularity might arise during an execution. Hence, a candidate chopping of a set of transactions
+
+ is considered safe (i.e., guarantees serializability) if (i) it is rollback-safe and (ii) it contains no SC-cycles. Unfortunately, in practice these two conditions tend to produce choppings too conservative to result in much additional concurrency. To satisfy rollback safety, the ﬁrst piece of each transaction must be large enough to include all rollback statements, limiting the opportunity for new interleavings.
+
+SC-cycles tend to arise quite commonly among the very performance sensitive transactions that, if they could be chopped, would yield the biggest benefit. To address this, MCC introduces runtime pipelining:
+
+> 
+
+ ...a new in-group mechanism whose aggressive approach to concurrency control proves particularly effective within small groups. Runtime Pipelining relies on two new techniques: it leverages at execution time a reﬁnement of the static analysis approach used by traditional transaction chopping to allow concurrency when SC-cycles would prevent it; and it prevents Aborted Reads and guarantees atomicity while avoiding, whenever possible, the performance downsides of enforcing rollback safety.
+
+Instead of preemptively inhibiting the possibility of circularity, runtime pipelining allows for that possibility but uses runtime techniques to prevent it becoming a reality. Runtime pipelining permits cycles so long as C edges (pieces of different transactions accessing the same object) do not cross, since this can be prevented at runtime. Assume a total ordering of all of the read-write tables accessed by the transactions in a group. Given this, there are two golden rules:
+
+- Operations within a transaction piece are only allowed to access read-write tables of the same rank
+
+- For any pair of pieces p1 and p2 of a given transaction that access read-write tables, if p1 is executed before p2, then p1 must access tables of smaller rank than p2
+
+> 
+
+ Under the aggressive assumption that all operations in a transaction can be safely reordered, there is no constraint on the rank of read-write tables, and ﬁnding the ﬁnest chopping that does not have crossing C-edges is simple... In practice, however, there often exist data or control dependencies that compel the ordering of operations within a transaction and constrain the ranking of tables.
+
+The problem is solved by constructing a table dependency graph and assigning the same rank to all tables in a strongly connected component. Within each transaction, operations that access transactions with the same rank are merged into a single piece.
+
+## The Last Word
+
+> 
+
+ Separating concerns and decoupling abstraction from mechanism are basic tenets of sound system design—and for good reasons. We conﬁrm their beneﬁts yet again, by applying them to the long-standing problem of improving the performance of ACID applications. Our initial experience is encouraging: the ﬂexibility of the modular concurrency control architecture at the core of Callas allows the applications we have tested, to obtain, unmodiﬁed, the kind of performance previously achievable only by manually rewriting all or part of the applications’ code.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems 
+ 
+ Transaction processing 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousExistential Consistency: Measuring and Understanding Consistency at FacebookNext &rsaquo;Building Consistent Transactions with Inconsistent Replication
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;High-Performance ACID via Modular Concurrency Control&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: A Distributed Systems Seminar Reading List... | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,43 @@
+{
+  "date": "20160503",
+  "file_name": "20160503",
+  "slug": "gorilla-a-fast-scalable-in-memory-time-series-database",
+  "blog_url": "https://blog.acolyer.org/2016/05/03/gorilla-a-fast-scalable-in-memory-time-series-database/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Gorilla, Facebook's in-memory time series database, as a highly effective solution for large-scale monitoring at Facebook. The blog emphasizes Gorilla's role in quickly identifying production issues through automated alerts and correlation analysis, demonstrating its practical impact. The paper details Gorilla's design goals, including handling 2 billion unique time series, 700 million data points per minute, and 40,000 queries per second, all with sub-millisecond read latency. The key insight is Gorilla's novel time series compression algorithm, which achieves an average 12x reduction in size, enabling efficient in-memory storage and fast queries. The compression techniques for timestamps and values leverage patterns in time series data, such as fixed intervals and minimal value changes, to minimize storage requirements.",
+  "paper_title": "Gorilla: A Fast, Scalable, In-Memory Time Series Database",
+  "paper_authors": [
+    "Tuomas Pelkonen",
+    "Leonidas Kontothanassis",
+    "Marios Kogias",
+    "Amitabh Tambe",
+    "Radu Stoica",
+    "Robert Soulé"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.vldb.org/pvldb/vol8/p1816-teller.pdf",
+  "paper_abstract": "FB Servers Large-scale internet services aim to remain highly available and responsive in the presence of unexpected failures. Providing this service often requires monitoring and analyzing tens of millions of measurements per second across a large number of systems, and one particularly effective solution is to store and query such measurements in a time series database (TSDB). A key challenge in the design of TSDBs is how to strike the right balance between efficiency, scalability, and reliability. In this paper we introduce Gorilla, Facebook’s inmemory TSDB. Our insight is that users of monitoring systems do not place much emphasis on individual data points but rather on aggregate analysis, and recent data points are of much higher value than older points to quickly detect and diagnose the root cause of an ongoing problem. Gorilla optimizes for remaining highly available for writes and reads, even in the face of failures, at the expense of possibly dropping small amounts of data on the write path. To improve query efficiency, we aggressively leverage compression techniques such as delta-of-delta timestamps and XOR’d floating point values to reduce Gorilla’s storage footprint by 10x. This allows us to store Gorilla’s data in memory, reducing query latency by 73x and improving query throughput by 14x when compared to a traditional database (HBase)backed time series data. This performance improvement has unlocked new monitoring and debugging tools, such as time series correlation search and more dense visualization tools. Gorilla also gracefully handles failures from a single-node to entire regions with little to no operational overhead. 1. Web Tier Gorilla Back-end Services Alarms and automatic remediation Ad-hoc visualizations and dashboards Time Series Correlation Figure 1: High level overview of the ODS monitoring and alerting system, showing Gorilla as a writethrough cache of the most recent 26 hours of time series data.",
+  "paper_file": "papers/2016/05/03/gorilla-a-fast-scalable-in-memory-time-series-database.pdf",
+  "topics": [
+    "storage-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "time-series-database",
+    "in-memory-database",
+    "compression",
+    "monitoring",
+    "horizontal-scalability",
+    "data-structures"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "High level overview of the ODS monitoring and alerting system",
+      "caption": "High level overview of the ODS monitoring and alerting system, showing Gorilla as a write-through cache of the most recent 26 hours of time series data."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

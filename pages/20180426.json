@@ -1,0 +1,47 @@
+{
+  "date": "20180426",
+  "file_name": "20180426",
+  "slug": "skyway-connecting-managed-heaps-in-distributed-big-data-systems",
+  "blog_url": "https://blog.acolyer.org/2018/04/26/skyway-connecting-managed-heaps-in-distributed-big-data-systems/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Skyway as an innovative solution to the inefficiencies in Java-based big data systems like Spark and Flink, where serialization and deserialization overheads account for over 30% of execution time. The paper introduces a novel approach to transfer objects directly between JVM heaps without converting them to a binary format, eliminating the need for costly serialization/deserialization steps. Skyway extends the JVM to enable object graphs to be moved as-is across a cluster, using a GC-like traversal to copy objects into an output buffer, stream them to remote nodes, and reconstruct them in the target heap. The key insight is to bypass traditional serialization entirely, leveraging modern network technology and global type-numbering to reduce overhead. The paper demonstrates significant performance improvements, with Skyway outperforming existing serialization libraries and improving Spark and Flink performance by 16% and 19%, respectively.",
+  "paper_title": "Skyway: connecting managed heaps in distributed big data systems",
+  "paper_authors": [
+    "Thanh Do",
+    "Chengliang Zhang",
+    "Rajesh K. Gupta",
+    "Scott M. Kaplan",
+    "Michael J. Feeley",
+    "Kathryn S. McKinley"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "ASPLOS'18",
+  "paper_url": "https://people.cs.uchicago.edu/~shanlu/paper/asplos18_skyway.pdf",
+  "paper_abstract": "ACM Reference Format: Khanh Nguyen, Lu Fang, Christian Navasca, Guoqing Xu, Brian Demsky, and Shan Lu. 2018. Skyway: Connecting Managed Heaps in Distributed Big Data Systems. In Proceedings of ASPLOS ’18. ACM, New York, NY, USA, 14 pages. https://doi.org/10.1145/3173162. 3173200 Managed languages such as Java and Scala are prevalently used in development of large-scale distributed systems. Under the managed runtime, when performing data transfer across machines, a task frequently conducted in a Big Data system, the system needs to serialize a sea of objects into a byte sequence before sending them over the network. The remote node receiving the bytes then deserializes them back into objects. This process is both performance-inefficient and labor-intensive: (1) object serialization/deserialization makes heavy use of reflection, an expensive runtime operation and/or (2) serialization/deserialization functions need to be hand-written and are error-prone. This paper presents Skyway, a JVM-based technique that can directly connect managed heaps of different (local or remote) JVM processes. Under Skyway, objects in the source heap can be directly written into a remote heap without changing their formats. Skyway provides performance benefits to any JVM-based system by completely eliminating the need (1) of invoking serialization/deserialization functions, thus saving CPU time, and (2) of requiring developers to hand-write serialization functions.",
+  "paper_file": "papers/2018/04/26/skyway-connecting-managed-heaps-in-distributed-big-data-systems.pdf",
+  "topics": [
+    "distributed-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "serialization",
+    "deserialization",
+    "object-transfer",
+    "JVM",
+    "big-data",
+    "Spark",
+    "Flink",
+    "garbage-collection",
+    "type-registration",
+    "heap-management"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Data transfer procedure",
+      "caption": "A graphical illustration of data transfer."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

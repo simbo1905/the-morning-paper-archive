@@ -1,0 +1,388 @@
+URL: https://blog.acolyer.org/2020/01/08/ironies-of-automation/
+Title: Ironies of automation
+---
+
+Ironies of automation, Bainbridge, Automatica, Vol. 19, No. 6, 1983
+
+With thanks to Thomas Depierre for the paper recommendation.
+
+Making predictions is a dangerous game, but as we look forward to the next decade a few things seem certain: increasing automation, increasing system complexity, faster processing, more inter-connectivity, and an even greater human and societal dependence on technology. What could possibly go wrong? Automation is supposed to make our lives easier, but if when it goes wrong it can put us in a very tight spot indeed. Today's paper choice, 'Ironies of Automation' explores these issues. Originally published in this form in 1983, its lessons are just as relevant today as they were then.
+
+The central irony ('combination of circumstances, the result of which is the direct opposite of what might be expected') referred to in this paper is that the more we automate, and the more sophisticated we make that automation, the more we become dependent on a highly skilled human operator.
+
+## Automated systems need highly skilled operators
+
+Why do we automate?
+
+> 
+The designer's view of the human operator may be that the operator is unreliable and inefficient, so should be eliminated from the system.
+
+An automated system doesn't make mistakes in the same way that a human operator might, and it can operate at greater speeds and/or lower costs than a human operator. The paper assumes a world in which every automated task was previously undertaken by humans (the context is industrial control systems), but of course we have many systems today that were born automated. One example I found myself thinking about while reading through the paper does have a human precedence though: self-driving cars.
+
+In an automated system, two roles are left to humans: monitoring that the automated system is operating correctly, and taking over control if it isn't. An operator that doesn't routinely operate the system will have atrophied skills if ever called on to take over.
+
+> 
+Unfortunately, physical skills deteriorate when they are not used, particularly the refinements of gain and timing. This means that a formerly experienced operator who has been monitoring an automated process may now be an inexeperienced one.
+
+Not only are the operator's skills declining, but the situations when the operator will be called upon are by their very nature the most demanding ones where something is deemed to be going wrong. Thus what we really need in such a situation is a more, not a lesser skilled operator! To generate successful strategies for unusual situtations, an operator also needs good understanding of the process under control, and the current state of the system. The former understanding develops most effectively through use and feedback (which the operator may no longer be getting the regular opportunity for), the latter takes some time to assimilate
+
+We've seen that taking over control is problematic, but there are issues with the monitoring that leads up to a decision to take over control too. For example, here's something to consider before relying on a human driver to take over the controls of a self-driving car in an emergency:
+
+> 
+We know from many 'vigilance' studies (Mackworth, 1950) that it is impossible for even a highly motivated human being to maintain effective visual attention towards a source of information on which very little happeens, for more than about half an hour. This means that is is humanely impossible to carry out the basic function of monitoring for unlikely abnormalities, which therefore has to be done by an automatic alarm system connected to sound signals...
+
+But who notices when the alarm system is not working properly? We might need alarms on alarms! Section 2.1 in the paper has a nice section on the challenges of what we would now call 'gray failure' too:
+
+> 
+Unfortunately automatic control can 'camouflage' system failure by controlling against the variable changes, so that trends do not become apparant until they are beyond control. This implies that the automatics should also monitor unusual valiable movement. 'Graceful degradation' of performance is quoted in "Fitt's list" of man-computer qualities as an advantage of man over machine. This is not an aspect of human performance to be aimed for in computers, as it can raise problems with monitoring for failure; automatic systems should fail obviously.
+
+A straight-forward solution when feasible is to shutdown automatically. But many systems, "because of complexity, cost, or other factors" must be stabilised rather than shutdown. If very fast failures are possible, with no warning from prior changes so that an operator's working memory is not up to speed, then reliable automatic response is necessary, and if this is not possible then the process should not be built if the costs of failure are unacceptable.
+
+## What can we do about it?
+
+> 
+One possibility is to allow the operator to use hands-on control for a short period in each shift. If this suggestion is laughable then simulator practice must be provided.
+
+Chaos experiments and game-days are some of the techniques we use today to give operators experience with the system under various scenarios. Simulators can help to train basic skills, but are always going to be limited: 'unknown faults cannot be simulated, and system behaviour may not be known for faults which can be predicted but have not been experienced.'
+
+> 
+No-one can be taught about unknown properties of the system, but they can be taught to practise solving problems with the known information.
+
+One new innovation at the time this paper was written was the possibility of using "soft displays on VDUs" to design task-specific displays. But changing displays bring their own challenges. Bainbridge offers three suggestions:
+
+- There should be at least one source of information permanently available for each type of information that cannot be mapped simply onto others
+
+- Operators should not have to page between displays to obtain information about abnormal states in parts of the process other than the one they are currently thinking about, nor between displays giving information needed within one decision process.
+
+- Research on sophisticated displays should concentrate on the problems of ensuring compatibility between them, rather than finding which independent display is best for one particular function without considering its relation to information for other functions.
+
+It's quite likely in many cases that we end up in a situation where a computer is controlling some aspects of a system, and the human operator others. The key thing here is that the human being must always know what tasks the computer is dealing with and how.
+
+> 
+Perhaps the final irony is that it is the most successful automated systems, with rare need for manual intervention, which may need the greatest investment in human operator training... I hope this paper has made clear both the irony that one is not by automating necessarily removing the difficulties, and also the possibility that resolving them will require even greater technological ingenuity than does classic automation.
+
+This puts me in mind of Kernighan's Law ("Debugging is twice as hard as writing the code in the first place. Therefore, if you write the code as cleverly as possible, you are, by definition, not smart enough to debug it."). If we push ourselves to the limits of our technological abilities in automating a system, how then are we going to be able to manage it?
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousThe Year AheadNext &rsaquo;Ten challenges for making automation a 'team player' in joint human-agent activity
+ 
+ 
+
+ 
+ 
+## 
+ 12 thoughts on &ldquo;Ironies of automation&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Nisarg says: 
+
+ 
+ January 8, 2020 at 6:33 pm 
+
+ 
+
+ 
+ 
+I see this being very relevant in aviation, particularly in cases where pilots are relying on auto-pilot functionality of a aircraft and on a failure, have to discern the cause of the error and take appropriate corrective action (sometimes within seconds). It is simply not feasible to simulate all possible failure scenarios of a complex aircraft in a simulator.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Ten challenges for making automation a 'team player' in joint human-agent activity - the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Diigo Digest 01/10/2020 - ian’s Weblog 
+ 
+ 
+- 
+ 
+ Pingback: Stuff The Internet Says On Scalability For January 10th, 2020 - Amazon Web Services Feed 
+ 
+ 
+- 
+ 
+ Pingback: Ironies of Automation - cafebedouin.org 
+ 
+ 
+- 
+ 
+ Pingback: 架構週報：如何看待國產編程語言“木蘭”問世？ - KKNEWS 
+ 
+ 
+- 
+ 
+ Pingback: Not So Random Software - Week #10 - Alfredo Motta 
+ 
+ 
+- 
+ 
+ Pingback: STELLA: report from the SNAFU-catchers workshop on coping with complexity - the morning paper 
+ 
+ 
+- 
+ 
+ 
+ 
+ Laurent Ciavaglia says: 
+
+ 
+ January 21, 2020 at 8:20 am 
+
+ 
+
+ 
+ 
+Interesting article and thoughts.
+
+This reminds me about work from T. Inagaki, Adaptive Automation: Sharing and Trading of Control, 2003.
+
+The dynamic adaptation of automation (machine or human) can rely on different approaches and decision criterii. There is also a section on "Automation Surprise" which is very relevant to the issues raised on the article write-up.
+
+-Laurent.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Dunno says: 
+
+ 
+ January 21, 2020 at 11:05 am 
+
+ 
+
+ 
+ 
+In IT, at least, those operators themselves are doing the automation, so by definition they already understand what they are automating. In such case the point of "investing into operator" is invalid.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: What the SIEM & SOAR industry could learn from a paper from 1983 
+ 
+ 
+- 
+ 
+ Pingback: An early end of term - the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

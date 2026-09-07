@@ -1,0 +1,40 @@
+{
+  "date": "20150506",
+  "file_name": "20150506",
+  "slug": "blade-a-data-center-garbage-collector",
+  "blog_url": "https://blog.acolyer.org/2015/05/06/blade-a-data-center-garbage-collector/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Blade, a distributed garbage collector designed to mitigate tail latency caused by garbage collection (GC) pauses in data centers. The key insight is a distributed systems approach where nodes collaborate with applications to temporarily offload work from a node about to perform GC, thereby hiding GC pauses. Blade integrates simply with runtimes via callback handlers, allowing nodes to signal GC needs and coordinate with load balancers or consensus leaders (e.g., in Raft-based systems like etcd) to schedule GC during low-traffic periods. The approach is notably effective with high-throughput stop-the-world GC algorithms, which are simple yet often avoided due to latency concerns. Experimental results show dramatic reductions in tail latency (e.g., from 164ms to 7ms in a HTTP service) and improved performance over GC-off baselines in some cases. The paper also contrasts GC schemes, arguing that Blade's coordination enables the use of simpler, higher-throughput stop-the-world collectors instead of complex concurrent or real-time alternatives.",
+  "paper_title": "Blade: A Data Center Garbage Collector",
+  "paper_authors": [
+    "Daniel Terei",
+    "Edward Levy"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "",
+  "paper_url": "http://arxiv.org/pdf/1504.02578.pdf",
+  "paper_abstract": "1.0000 An increasing number of high-performance distributed systems are written in garbage collected languages. This removes a large class of harmful bugs from these systems. However, it also introduces high tail-latency do to garbage collection pause times. We address this problem through a new technique of garbage collection avoidance which we call B LADE. B LADE is an API between the collector and application developer that allows developers to leverage existing failure recovery mechanisms in distributed systems to coordinate collection and bound the latency impact. We describe B LADE and implement it for the Go programming language. We also investigate two different systems that utilize B LADE, a HTTP load-balancer and the Raft consensus algorithm. For the load-balancer, we eliminate any latency introduced by the garbage collector, for Raft, we bound the latency impact to a single network round-trip, (48 µs in our setup). In both cases, latency at the tail using B LADE is up to three orders of magnitude better. 1. GC Status CDF [latency>x] arXiv:1504.02578v1 [cs.DC] 10 Apr 2015 Stanford University {dterei,alevy}@cs.stanford.edu 0.9975 off on 0.9950 0.9925 0.9900 1 10 100 Request Latency (ms) Figure 1: CDF of request latency for a ZooKeeper-like [29] replicated key-value store using the Raft [44] consensus algorithm written in Go. System was configured with 3 nodes and 10 clients generating a total of 250 requests-per-second (3:1 get/set ratio) over 10 minutes. A parallel, stop-the-world (STW) mark-sweep collector was used, with a heap size of 500 MB for a 200 MB working set.",
+  "paper_file": "papers/2015/05/06/blade-a-data-center-garbage-collector.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "garbage-collection",
+    "tail-latency",
+    "stop-the-world-gc",
+    "consensus-protocols",
+    "raft",
+    "load-balancing",
+    "distributed-coordination"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "CDF of request latency for a ZooKeeper-like replicated key-value store",
+      "caption": "CDF of request latency for a ZooKeeper-like [29] replicated key-value store using the Raft [44] consensus algorithm written in Go. System was configured with 3 nodes and 10 clients generating a total of 250 requests-per-second (3:1 get/set ratio) over 10 minutes. A parallel, stop-the-world (STW) mark-sweep collector was used, with a heap size of 500 MB for a 200 MB working set."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

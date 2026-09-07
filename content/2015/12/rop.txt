@@ -1,0 +1,305 @@
+URL: https://blog.acolyer.org/2015/12/01/rop/
+Title: The geometry of innocent flesh on the bone: Return-into-libc without function calls (on&nbsp;x86)
+---
+
+The geometry of innocent flesh on the bone: Return-into-libc without function calls (on x86) - Shacham 2007
+
+Yesterday we saw that Data Execution Prevention W⊕X is one of the widely deployed defenses against code corruption attacks. Today's paper teaches us why that defense isn't as useful as it first appears!
+
+> 
+
+ We present new techniques that allow a return-into-libc attack to be mounted on x86 executables that is every bit as powerful as code injection. We thus demonstrate that the widely deployed “W⊕X” defense, which rules out code injection but allows return-into-libc attacks, is much less useful than previously thought. Attacks using our technique call no functions whatsoever. In fact, the use instruction sequences from libc that weren’t placed there by the assembler. This makes our attack resilient to defenses that remove certain functions from libc or change the assembler’s code generation choices.
+
+We're concerned with the stage in crafting an attack where an attacker has managed to subvert the control-flow of the program, and now must send it somewhere so that it will perform the actions of his or her choice with its credentials. Once W⊕X protection was introduced, attackers had to repurpose existing code for this.
+
+> 
+
+ Since the standard C library, libc, is loaded in nearly every Unix program, and since it contains routines of the sort that are useful for an attacker (e.g., wrappers for system calls), it is libc that is the usual target, and such attacks are therefore known as return-into-libc attacks. But in principle any available code, either from the program’s text segment or from a library it links to, could be used.
+
+Return-into-libc was considered to be a more limited attack than code injection for two reasons:
+
+> 
+
+ (1) in a return-into-libc attack, the attacker can call one libc function after another, but this still allows him to execute only straight-line code, as opposed to the branching and other arbitrary behavior available to him with code injection; (2) the attacker can invoke only those functions available to him in the program’s text segment and loaded libraries, so by removing certain functions from libc it might be possible to restrict his capabilities.
+
+Neither of these reasons turn out to hold! This paper describes new return-into-libc techniques that allow for arbitrary computation.
+
+Consider the English phrase "the address." It also contains 'dress' (as the suffix of address), and 'head' (from the last two characters of 'the', and the first two of 'address'). Intel x86 code is written like English with all the punctuation and spaces taken out. "The processor knows where to start reading and, continuing forward, is able to recover the individual words and make out the sentence,
+
+as it were. At the same time, one can make out more words on the page than were intentionally placed there. "
+
+Here's some example code from libc for the entrypoint to ecb_crypt:
+
+f7 c7 07 00 00 00 test $0x00000007, %edi
+0f 95 45 c3 setnzb -61(%ebp)
+
+If we start 'reading' just one byte later though, the attacker obtains
+
+c7 07 00 00 00 0f movl $0x0f00000, (%edi)
+95 xchg %ebp, %eax
+45 inc %ebp
+c3 ret
+
+> 
+
+ How frequently such things occur depends on the characteristics of the language in question, what we call its geometry. And the x86 ISA is extremely dense, meaning that a random byte stream can be interpreted as a series of valid instructions with high probability. Thus for x86 code it is quite easy to find not just unintended words but entire unintended sequences of words. For a sequence to be potentially useful in our attacks, it need only end in a return instruction, represented by the byte c3.
+
+The central thesis is that it doesn't matter what functions you try to exclude from libc, or other techniques you may use, because "in any sufficiently large body of x86 executable code there will exist sufficiently many useful code sequences that an attacker who controls the stack will be able, by means of the return-into-libc techniques we introduce, to cause the exploited program to undertake arbitrary computation."
+
+By chaining several of these short instruction sequences together the attacker can create gadgets that can perform any desired task.
+
+Useful sequences are found by looking for the 'c3' byte and then working backwards with every possible interpretation of the preceding bytes so long as they are useful. "We say that a sequence of instructions is useful if it could be used in one of our gadgets, that is, if it is a sequence of valid instructions ending in a ret instruction and such that that none of the instructions causes the processor to transfer execution away, not reaching the ret. (It is the ret that causes the processor to continue to the next step in our attack.) "
+
+> 
+
+ In looking backwards from some location, we must ask: Does the single byte immediately preceding our sequence represent a valid one-byte instruction? Do the two bytes immediately preceding our sequence represent a valid two-byte instruction? And so on, up to the maximum length of a valid x86 instruction. Any such question answered “yes” gives a new useful sequence of which our sequence-so-far is a suffix, and which we should explore recursively by means of the same approach. Because of the density of the x86 ISA, more than one of these questions can simultaneously have a "yes" answer.
+
+There are thousands of such sequences in the examined libc for example, more than enough to create interesting gadgets. Section 3 of the paper is a catalog of useful sequences and a tutorial for 'return-oriented programming' using gadgets constructed from them.
+
+> 
+
+ Gadgets are our intermediate organizational unit. Each gadget specifies certain values to be placed on the stack that make use of one or more sequences of instructions from libc. Gadgets perform well-defined operations, such as a load, an xor, or a jump. Return-oriented programming consists in putting gadgets together that will perform the desired operations. The set of gadgets we describe is Turing complete by inspection, so return-oriented programs can do anything possible with x86 code. We stress that the code sequences pointed to by our gadgets are actually contained in libc; they are not injected with the gadgets themselves—this is ruled out by W⊕X. This is the reason that some of the sequences used are weird looking: those were the best sequences available in our testbed libc. Each of our gadgets expects to be entered in the same way: the processor executes a ret with the stack pointer, %esp, pointing to the bottom word of the gadget. This means that, in an exploit, the first gadget should be placed so that its bottom word overwrites some function’s saved return address on the stack. Further gadgets can be placed immediately after the first or, by means of the control flow gadgets given in Section 3.3, in arbitrary locations. (It is helpful for visualizing gadget placement to think of the gadgets as being instructions in a rather strange computer.)
+
+Sample sequences are shown that can be used for loading constants, loading from memory and storing to memory, performing arithmetic and logic, manipulating control flow with unconditional and conditional jumps, and making arbitrary system calls. Section 4 shows how these can easily be chained together to create a compact shellcode.
+
+The libc executable segment that was analysed contained 975,626 bytes and 5,483 c3 bytes. 3,429 of these are legitimate ret instructions ,the rest occur in other contexts. It is possible to imagine a modified compiler that avoids unintended c3 bytes:
+
+> 
+
+ The cost would be a compiler that is less transparent and more complicated, and a certain loss of efficiency in the use of registers on an already register-starved architecture: %ebx is handy as an accumulator because, unlike %eax, %ecx, and %edx, it is callee-saved in the Intel calling convention. We must be clear, however, that while this would eliminate unintended rets, it would not eliminate unintended sequences of instructions that end in a ret.
+
+Moreover, even this wouldn't be good enough because there are also three other instruction in the x86 instruction set that perform a return: c2 imm16 (near return with stack unwind), cb (far return), and ca imm16 (far return with stack unwind). With a little more effort, any of these could be exploited too. Eliminating all four return variants would be difficult as it would mean avoiding four byte values out of 256...
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousSoK: Eternal War in MemoryNext &rsaquo;Experimental Security Analysis of a Modern Automobile
+ 
+ 
+
+ 
+ 
+## 
+ 5 thoughts on &ldquo;The geometry of innocent flesh on the bone: Return-into-libc without function calls (on x86)&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Hacking Blind | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Detecting ROP with statistical learning of program characteristics | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Hardware is the new software | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: The dynamics of innocent flesh on the bone: code reuse ten years later | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Spectre attacks: exploiting speculative execution | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,37 @@
+{
+  "date": "20141219",
+  "file_name": "20141219",
+  "slug": "derflow-distributed-deterministic-dataflow-programming-for-erlang",
+  "blog_url": "https://blog.acolyer.org/2014/12/19/derflow-distributed-deterministic-dataflow-programming-for-erlang/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Derflow as a solution to the notoriously difficult problem of reasoning about correctness in distributed applications by introducing determinism into concurrent programming. The paper proposes a distributed single-assignment data store built on Riak Core, where variables are assigned once and never changed, ensuring that programs with the same inputs always produce the same outputs. Derflow supports streaming data via lists of dataflow variables and includes mechanisms for handling failures deterministically by restarting failed processes without altering outcomes. The blog post notes that while the model is easy to understand and provides strong guarantees, it remains unclear whether the restrictions imposed by determinism would feel limiting in real-world systems. The paper also situates Derflow within the broader context of Kahn Process Networks, which historically struggled to gain mainstream adoption despite their theoretical advantages.",
+  "paper_title": "Derflow: Distributed Deterministic Dataflow programming for Erlang",
+  "paper_authors": [
+    "Luís R. Braga",
+    "Peter Van Roy",
+    "Seif Haridi"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "",
+  "paper_url": "http://www.info.ucl.ac.be/~pvr/erlang14cameraready.pdf",
+  "paper_abstract": "Erlang implements a message-passing execution model in which concurrent processes send each other messages asynchronously. This model is inherently non-deterministic: a process can receive messages sent by any process which knows its process identifier, leading to an exponential number of possible executions based on the number messages received. Concurrent programs in nondeterministic languages are notoriously hard to prove correct and have led to well-known disasters. Furthermore, Erlang natively provides distribution and process clustering. This enables processes to asynchronously communicate between different virtual machines across the network, which increases the potential non-determinism. We propose a new execution model for Erlang, “Deterministic Dataflow Programming”, based on a highly available, scalable single-assignment data store implemented on top of the riak core distributed systems framework. This execution model provides concurrent communication between Erlang processes, yet has no observable non-determinism. Given the same input values, a deterministic dataflow program will always return the same output values, or never return; liveness under failures is sacrificed to ensure safety. Our proposal provides a distributed deterministic dataflow solution that operates transparently over distributed Erlang, providing the ability to have highly-available, fault-tolerant, deterministic computations.",
+  "paper_file": "papers/2014/12/19/derflow-distributed-deterministic-dataflow-programming-for-erlang.pdf",
+  "topics": [
+    "distributed-systems",
+    "programming-languages"
+  ],
+  "tags": [
+    "deterministic-dataflow",
+    "dataflow-variables",
+    "erlang",
+    "single-assignment-store",
+    "riak-core",
+    "kahn-process-networks",
+    "concurrency",
+    "failure-handling",
+    "streaming"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

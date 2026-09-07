@@ -1,0 +1,52 @@
+{
+  "date": "20171102",
+  "file_name": "20171102",
+  "slug": "my-vm-is-lighter-and-safer-than-your-container",
+  "blog_url": "https://blog.acolyer.org/2017/11/02/my-vm-is-lighter-and-safer-than-your-container/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the paper's investigation into achieving VM-like isolation with container-like efficiency using Xen-based virtualization. The authors identify and eliminate bottlenecks in launching lightweight VMs (including unikernels and minimal Linux VMs), resulting in the LightVM system. With minimal unikernel images, LightVM can boot a VM in just 4ms, outperforming Docker containers (150ms) and even process creation (1ms). The paper introduces TinyX, an automated build system for creating minimalistic Linux VM images optimized for single applications. The authors demonstrate that Xen's scalability is limited by VM image size and XenStore overhead, which grows superlinearly. LightVM addresses these issues by redesigning the Xen control plane with a lean driver (noxs) that replaces XenStore and uses pre-prepared VM shells to reduce initialization overhead. The system achieves near-process-level boot times and supports use cases like personalized firewalls, just-in-time service instantiation, TLS termination, and lightweight compute services (e.g., AWS Lambda). The key insight is that lightweight virtualization can simultaneously provide strong isolation and performance comparable to or better than containers.",
+  "paper_title": "LightVM: Lightweight Virtual Machines with Fast Boot and Deployment",
+  "paper_authors": [
+    "Manco",
+    "Gerd",
+    "Kuenzer",
+    "Costin",
+    "Kalra",
+    "Dong",
+    "Egi",
+    "Nelson",
+    "Stoica"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "SOSP'17",
+  "paper_url": "http://cnp.neclab.eu/projects/lightvm/lightvm.pdf",
+  "paper_abstract": "Containers are in great demand because they are lightweight when compared to virtual machines. On the downside, containers o�er weaker isolation than VMs, to the point where people run containers in virtual machines to achieve proper isolation. In this paper, we examine whether there is indeed a strict tradeo� between isolation (VMs) and e�ciency (containers). We �nd that VMs can be as nimble as containers, as long as they are small and the toolstack is fast enough. We achieve lightweight VMs by using unikernels for specialized applications and with Tinyx, a tool that enables creating tailor-made, trimmed-down Linux virtual machines. By themselves, lightweight virtual machines are not enough to ensure good performance since the virtualization control plane (the toolstack) becomes the performance bottleneck. We present LightVM, a new virtualization solution based on Xen that is optimized to o�er fast boot-times regardless of the number of active VMs. LightVM features a complete redesign of Xen’s control plane, transforming its centralized operation to a distributed one where interactions with the hypervisor are reduced to a minimum. LightVM can boot a VM in 2.3ms, comparable to fork/exec on Linux (1ms), and two orders of magnitude faster than Docker. LightVM can pack thousands of LightVM guests on modest hardware with memory and CPU usage comparable to that of processes. Permission to make digital or hard copies of part or all of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for pro�t or commercial advantage and that copies bear this notice and the full citation on the �rst page. Copyrights for thirdparty components of this work must be honored. For all other uses, contact the owner/author(s). SOSP ’17, October 28, 2017, Shanghai, China © 2017 Copyright held by the owner/author(s). ACM ISBN 978-1-4503-5085-3/17/10. https://doi.org/10.1145/3132747.3132763 Florian Schmidt NEC Laboratories Europe �orian.s...",
+  "paper_file": "papers/2017/11/02/my-vm-is-lighter-and-safer-than-your-container.pdf",
+  "topics": [
+    "operating-systems",
+    "cloud-computing"
+  ],
+  "tags": [
+    "virtualization",
+    "xen",
+    "unikernels",
+    "lightvm",
+    "tinyx",
+    "boot-time",
+    "isolation",
+    "containers",
+    "serverless",
+    "edge-computing",
+    "tls-termination",
+    "micropython"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Growth of Linux syscall API over years",
+      "caption": "The unrelenting growth of the Linux syscall API over the years (x86_32) underlines the difficulty of securing containers."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

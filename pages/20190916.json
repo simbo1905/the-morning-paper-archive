@@ -1,0 +1,45 @@
+{
+  "date": "20190916",
+  "file_name": "20190916",
+  "slug": "blockchain-provenance",
+  "blog_url": "https://blog.acolyer.org/2019/09/16/blockchain-provenance/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer reviews 'LineageChain', a VLDB'19 best paper that introduces a system for enabling smart contracts to depend on the provenance (history) of their inputs. The paper addresses two major challenges in current blockchain systems: inefficient offline provenance determination through transaction replay, and the lack of serializability guarantees which can lead to transaction-ordering attacks. Colyer highlights the paper's innovative approach of capturing provenance directly through smart contract read/write sets rather than higher-order operators, while ensuring tamper-evidence in an adversarial environment and maintaining fast query performance to avoid miner verification costs. The system introduces a Merkle DAG structure to securely store provenance information and a Deterministic Append-Only Skip List (DASL) for efficient queries. Colyer raises important questions about the trustworthiness of provenance when developers can customize the provenance capture logic, noting that the paper doesn't adequately address how to prevent malicious provenance declarations.",
+  "paper_title": "Fine-grained, secure and efficient data provenance on blockchain systems",
+  "paper_authors": [
+    "Pingcheng Ruan",
+    "Bingsheng He",
+    "Mingxing Zhang",
+    "Jialin Liu",
+    "Xiaokui Xiao",
+    "Yong Meng Teo"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.vldb.org/pvldb/vol12/p975-ruan.pdf",
+  "paper_abstract": "‡ Beijing Institute of Technology cg@zju.edu.cn ‡ meihui_zhang@bit.edu.cn the previous block via a hash pointer. It was firstly introduced in Bitcoin [27], where Satoshi Nakamoto employs it to batch cryptocurrency transactions. Often referred to as decentralized ledger, the chain ensures integrity of the complete transaction history. It is replicated over a peer-topeer (P2P) network, and a distributed consensus protocol, namely Proof-of-Work (PoW), is used to ensure that honest nodes in the network have the same ledger. More recent blockchains, for instance Ethereum [1] and Hyperledger [2], extend the original design to support applications beyond cryptocurrencies. In particular, they add smart contracts which encode arbitrary, Turing-complete computation on top of the blockchain. A smart contract has its states stored on the blockchain, and the states are modified via transactions that invoke the contract. Blockchains are disrupting many industries, including finance [34, 29], supply chain [24, 35], and healthcare [4]. These industries are exploiting two distinct advantages of blockchains over traditional data management systems. First, a blockchain is decentralized, which allows mutually distrusting parties to manage the data together instead of trusting a single party. Second, the blockchain provides integrity protection (tamper evidence) to all transactions recorded in the ledger. In other words, the complete transaction history is secure. The management of data history, or data provenance, has been extensively studied in databases, and many systems have been designed to support provenance [13, 14, 8, 30, 5, 36]. In the context of blockchain, there is explicit, but only coarse-grained support for data provenance. In particular, the blockchain can be seen as having some states (with known initial values), and every transaction moves the system to new states. The evolution history of the states (or provenance) can be securely and completely reconstructed by replay...",
+  "paper_file": "papers/2019/09/16/blockchain-provenance.pdf",
+  "topics": [
+    "distributed-systems",
+    "blockchain"
+  ],
+  "tags": [
+    "data-provenance",
+    "smart-contracts",
+    "merkle-dag",
+    "serializability",
+    "transaction-ordering-attacks",
+    "skip-list",
+    "tamper-evidence",
+    "hyperledger"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "A smart contract for token management",
+      "caption": "A smart contract that manages for token management."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

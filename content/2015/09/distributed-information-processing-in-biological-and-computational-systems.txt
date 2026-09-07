@@ -1,0 +1,282 @@
+URL: https://blog.acolyer.org/2015/09/29/distributed-information-processing-in-biological-and-computational-systems/
+Title: Distributed Information Processing in Biological and Computational&nbsp;Systems
+---
+
+Distributed Information Processing in Biological and Computational Systems - Navlakah & Bar-Joseph 2015
+
+With thanks to Mark Allen for pointing me at today's paper choice via twitter.
+
+This is the last of the posts in the 'nature-inspired' series for a while, and we're moving on from optimisation problems to look at the way we build networks of distributed processes and communicate between them.
+
+> 
+
+ Most distributed computing models allow for large messages and high communication loads. Algorithms to address problems under such models often focus on speed (rounds), assume fully connected networks, and in many cases are deterministic, breaking symmetry by relying on unique identifiers. In contrast, information processing in biological systems uses much smaller messages (binary or constant), often emphasizes robustness over speed, uses incomplete (sometimes even sparse) networks, and is often stochastic. These constraints, goals, and methods are appropriate to some, but not all (or even most) computational problems.
+
+The methods used in biological systems are especially interesting for sensor and mobile networks that are dynamic in nature and often operate under constraints such as energy conversation, limited transmission power, and reliance on broadcast communication.
+
+> 
+
+ Most biological systems are distributed and must make decisions and respond to stimuli without a centralized coordinator and under severe constraints (energy conservation, limited communication range, limited messaging language, among others)... While the number of proteins that can be secreted, and their levels, can vary greatly, there is recent evidence that most biological communication involves messages whose effective information content is very small (on the order of one bit).
+
+## Communication with limited resources
+
+The beeping model and the stone-age model both explore what can be done with very limited messages and/or processing power. In the beeping model, the only message that can be sent is an anonymous broadcast 'beep' (unary signal). Nodes know nothing about the topology of the network. In any timeslot a node can either beep (in which case it can't listen), or detect whether it can hear a beep (nodes can only distinguish between two states: none of their neighbours beeping, or at least on neighbour beeping).
+
+> 
+
+ Even with such limits on communication, several important distributed problems can be solved. The first problem solved under the beeping model was interval coloring, a variant of vertex coloring. Given a set of resources, the goal of interval coloring is to assign every node a large contiguous fraction of the resources, such that neighboring nodes have disjoint resources. Using beeping, the problem can be solved in O(log n) time with high probability compared to O (√log n) when using unrestricted message sizes. More recently beeping was used to solve an even harder coordination problem: Maximal Independent Set (MIS)... The beeping model leads to an optimal communication load minimizing overall system requirements.
+
+The beeping model was used to study a process in the formation of the fruit-fly brain called Sensory Organ Precursor (SOP) selection, which in turn led to discovery of a novel stochastic feedback process used to determine cell fate that inspired a new distributed algorithm for MIS.
+
+The stone-age model is based on a network of finite state machines (nFSM):
+
+> 
+
+ The nFSM model assumes a richer set of messages coming from a fixed-size language. These messages are asynchronously delivered to a dedicated channel in the receiving node (similar to receptors on interacting cells). However, unlike the beeping model, in nFSM nodes can only count up to a constant number. In other words, when transitioning to a new state, nodes evaluate the set of incoming messages (from all neighbors, though these neighbors are anonymous) according to the one-two-many principle: a node can only count up to some predetermined number and all values beyond this threshold are indistinguishable. As mentioned earlier, such a model corresponds to recent biological findings regarding the limited ability of cells to ‘count’ the levels of incoming proteins.
+
+nFSM can solve the MIS problem in O(log2 n), and can 3-colour an undirected tree in O(log n) - which is the optimal bound for this problem. nFSM can also be applied to model networks of sparking neurons in the brain, which it turns out can carry forth probabilistic inference in a manner similar to Markov Chain Monte Carlo sampling! "Such work has also led to several experimentally testable predictions about the firing dynamics of collections of neurons."
+
+The interactions between individual members of populations have also inspired communication models, and here we are back with flocks of birds and foraging ants - although notably the ants in this example do not secrete pheromone.
+
+> 
+
+ Population protocols are based on direct, asynchronous physical interactions between a pair of agents. Such interaction models are very common in nature and indeed, the development of population protocols has been motivated by a study of sensor networks attached to a flock of birds and was also recently applied to study distributed sensor networks on zebras. The model assumes that in each time slot, interactions occur between a pair of agents, which allows them to directly exchange messages and update their states. Unlike standard networks though, these interactions are either random or scheduled by an adversary, subject to a fairness constraint, which provide weak guarantees about the ability of every pair to interact eventually. Several types of problems can be solved distributively under this model including OR computations, majority, summation, and under some additional assumptions regarding the inputs, leader election, and consensus.
+
+Harvester ants it turns out, implement a version of TCP! Several harvester ants do not leave pheromone trails and interact only by direct contact - yet they are still able to communicate and find efficient paths to food. In TCP, if acks are received quickly the sender assumes bandwidth is available and increases transmission, but if acks are received slowly the sender assumes the network is congested and throttles down transmission.
+
+> 
+
+ Similarly, the important factor for the ants is the rate of antennal contacts (a binary indicator) between ants currently in the nest and successful ants (with food) returning to the nest. If the rate of contact is high, it implies food in the environment is plentiful, and thus outgoing ants also leave the nest at a faster rate.
+
+## Nature tends to favour robustness over speed
+
+> 
+
+ In biological systems, link and node failures are also common; for example, mutation or protein misfolding can result in loss of specific interaction, and genetic mutations can also result in a complete loss of a gene. Targeted attacks on specific nodes are also common, for example, in host-pathogen interactions, where virus proteins attack host proteins in an attempt to infect host cells. Overcoming these types of failures is a key requirement for any self-sustaining biological system.
+
+Most biological systems rely on network topological features to handle failures. For example, instead of failure detectors, they may rely on backup nodes or alternate pathways.
+
+> 
+
+ Several proteins have paralogs, that is, structurally similar proteins that in most cases originated from the same ancestral protein (roughly 40% of yeast and human proteins have at least one paralog). In several cases, when one protein fails or is altered, its paralog can automatically take its place or protect the cell against the mutation. Thus, by preserving backup functionality in the protein interaction network, cells can overcome node failures without explicit use of failure detection mechanisms.
+
+Node failures can occur within cells, but much more common is the need to deal with noisy, unreliable inputs. Noise can spread through a network and infect communication partners in a manner similar to epidemiological virus propagation models:
+
+> 
+
+ To handle such Byzantine-like failures biological systems have optimized the topology of the networks they utilize. For example, dense topologies with clique-like structures are often used in instances where little-to-no noise is expected, whereas sparser topologies are preferred when networks are expected to face more noise. Of course, sparser topologies are also less efficient (in terms of routing distance, for example) which means execution times will be longer for such topologies. Weakly linked modules, on the other hand, can isolate occasional noise into nearly independent modules that each perform efficiently.
+
+## Decision Making
+
+> 
+
+ One of the most widely used strategies in biological systems is stochastic decision-making. Randomness is used by biological processes to break symmetry, to overcome noise, and to ensure the survival of a population under changing environmental conditions. Given the similarities mentioned earlier, it is not surprising that stochasticity has also long been employed within distributed algorithms for very similar purposes.
+
+For example, no deterministic algorithm can solve consensus even if only one node fails, while randomized algorithms can handle such failures.
+
+> 
+
+ Another widely used strategy is feedback, both positive and negative. The use of feedback requires networks that contain several (often quite short) loops. For example, feedback inhibition is an important mechanism used to control the amount or concentration of a substance produced by a biochemical pathway to the appropriate level regardless of its current state or environmental availability.
+
+Feedback can also amplify errors and noise in the system. Biological systems deal with this by adjusting network topology.
+
+> 
+
+ Finally, while several distributed computing algorithms use majority voting to solve coordination problems, biological systems often employ weighted voting schemes. This allows some nodes to have a greater influence on a population based on their own belief. For example, in bacterial swarms, a subgroup may find an undesirable path when foraging and lead the entire population astray. To overcome this, it was found that bacterium can dynamically adjust their decisions based on their own confidence and messages received from other cells. While many of the rules used by these and other weighted-voting systems are yet to be worked out, they will likely be applicable in similar computing scenarios, for example, when programming distributed robot swarms for search-and-rescue operations.
+
+## Control Hierarchies
+
+> 
+
+ ...while the biological systems we discussed all operate without a single centralized controller, there is in fact a continuum in the term “distributed.” For example, hierarchical distributed models, where higher layers “control” lower layers with possible feedback, represent a more structured type of control system than traditional distributed systems without such a hierarchy. Gene regulatory networks and neuronal networks (layered columns) both share such a hierarchical structure, and this structure has been well-conserved across many different species, suggesting their importance to computation. Such models, however, have received less attention in the distributed computing literature.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Distributed SystemsIoTNetworking 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousFlower Pollination Algorithm for Global OptimizationNext &rsaquo;A Pact with the Devil
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

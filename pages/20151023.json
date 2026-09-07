@@ -1,0 +1,42 @@
+{
+  "date": "20151023",
+  "file_name": "20151023",
+  "slug": "vuvuzela-scalable-private-messaging-resistant-to-traffic-analysis",
+  "blog_url": "https://blog.acolyer.org/2015/10/23/vuvuzela-scalable-private-messaging-resistant-to-traffic-analysis/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses Vuvuzela, a system designed to provide scalable private point-to-point messaging resistant to traffic analysis. Adrian Colyer highlights that Vuvuzela protects metadata (who is communicating with whom) even if all but one server in a chain is compromised, using simple cryptographic primitives and cover traffic. The key insight is that differential privacy principles can be applied to minimize the amount of cover traffic needed, making the system practical for millions of users. While not a perfect solution, Vuvuzela represents a significant step forward in privacy-preserving communication, especially in a post-Snowden era where powerful adversaries can observe and tamper with network traffic. The paper also acknowledges limitations, such as vulnerability to denial-of-service attacks and the need for users to remain constantly connected to avoid revealing their presence.",
+  "paper_title": "Vuvuzela: Scalable Private Messaging Resistant to Traffic Analysis",
+  "paper_authors": [
+    "Joël van den Hooff",
+    "David Lazar",
+    "et al."
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SOSP",
+  "paper_url": "http://sigops.org/sosp/sosp15/current/2015-Monterey/printable/136-hooff.pdf",
+  "paper_abstract": "might come under suspicion. Recently, officials at the NSA have even stated that “if you have enough metadata you don’t really need content” [33: ¶7] and that “we kill people based on metadata” [23]. This suggests that protecting metadata in communication is critical to achieving privacy. Unfortunately, state-of-the-art private messaging systems are unable to protect metadata for large numbers of users. Existing work falls into two broad categories. On the one hand are systems that provide strong, provable privacy guarantees, such as Dissent [36] and Riposte [12]. Although these systems can protect metadata, they either rely on broadcasting all messages to all users, or use computationally expensive cryptographic constructions such as Private Information Retrieval (PIR) to trade off computation for bandwidth [34]. As a result, these systems have scaled to just 5,000 users [36] or hundreds of messages per second [12]. On the other hand, scalable systems like Tor [16] and mixnets [9] provide little protection against powerful adversaries that can observe and tamper with network traffic. These systems require a large number of users to provide any degree of privacy, so as to increase the anonymity set for each user, but even then are susceptible to traffic analysis. Adding cover traffic to try to obscure which pairs of users are communicating has been shown to be expensive and to yield only limited protection against a passive adversary over time [14, 26], while adversaries that can actively disrupt traffic (e.g., inject delays) gain even more information [1]. This paper presents Vuvuzela, a system that provides scalable private point-to-point text messaging. Vuvuzela prevents an adversary from learning which pairs of users are communicating, as long as just one out of N servers is not compromised, even for users who continue to use Vuvuzela for years.1 Vuvuzela uses only simple, fast cryptographic primitives, and, using commodity servers, can scale to millions of user...",
+  "paper_file": "papers/2015/10/23/vuvuzela-scalable-private-messaging-resistant-to-traffic-analysis.pdf",
+  "topics": [
+    "distributed-systems",
+    "security"
+  ],
+  "tags": [
+    "private-messaging",
+    "traffic-analysis",
+    "metadata-privacy",
+    "differential-privacy",
+    "cover-traffic",
+    "mixnets",
+    "denial-of-service",
+    "threat-model"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Vuvuzela's overall architecture",
+      "caption": "Vuvuzela’s overall architecture. The Vuvuzela network consists of a chain of servers, at least one of which is assumed to be trustworthy."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

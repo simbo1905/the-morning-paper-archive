@@ -1,0 +1,321 @@
+URL: https://blog.acolyer.org/2015/09/16/mining-your-ps-and-qs-detection-of-widespread-weak-keys-in-network-devices/
+Title: Mining your Ps and Qs: Detection of Widespread Weak Keys in Network&nbsp;Devices
+---
+
+Mining your Ps and Qs: Detection of Widespread Weak Keys in Network Devices - Heninger et al. 2012
+
+This paper definitely wins the 'best pun in a paper title' prize. P and Q here refer to the factors that are multiplied together when generating your public and private key pairs. As for the mining? It turns out that if you collect (mine) public keys available on the internet, and look for certain similarities among them, you can work out what P & Q are for the similar pairs, and thus compute the corresponding private keys. Yikes! This applies to RSA keys, a similar weakness exists in DSA keys.
+
+> 
+
+ The weak key vulnerabilities we describe in this paper can be exploited to compromise two of the most important cryptographic transport protocols used on the Internet, TLS and SSH, both of which commonly use RSA or DSA to authenticate servers to clients.
+
+Written in 2012, the paper contains an important lesson for headless and embedded devices (here's looking at you, IoT) which are at risk of using keys that were generated with insufficient entropy. It wouldn't surprise me if there were plenty of devices still out there today that are vulnerable to this attack.
+
+An RSA public key consists of two integers, an exponent e, and a modulus N, where N is the product of two randomly chosen prime numbers p and q. If you know what p and q are, it's easly to derive the associated private key, d:
+
+d = e-1 mod (p-1)(q-1)
+
+> 
+
+ Fortunately, no-one has been publicly known to factor a well-generated 1024-bit RSA modulus....
+
+A much easier problem though, is to calculate the greatest common divisor (GCD) of two 1024-bit integers. That takes microseconds. Suppose we have two keys with moduli N1 = p1q1 and N2 = p2q2. If they have a prime GCD in common, then p1 = p2 (remember, we can test this in microseconds). Given p, we can easily calculate q1 and q2 and hence obtain the private keys.
+
+Suppose for a moment we had lots of public keys. We could consider each possible pair drawn from this set and look for common prime GCDs. When we get a match, we can crack the corresponding private keys. There are just two problems we have left to solve: (a) where to get lots of public keys, and (b) how to calculate all of the pairwise GCDs efficiently.
+
+Where do we get lots of public keys? The internet of course! The authors scanned all IPv4 addresses looking for open HTTPS (port 443) and SSH (port 22) ports. They then opened a connection and performed a TLS or SSH handshake, and stored the presented certificate chain (containing the public key) or host key in a database. The first phase - finding hosts with port 443 or 22 open, took 25 hours using 25 AWS micro instances (available on the free tier!). Collecting keys from these hosts used a single AWS EC2 Large Instance, and took about 3 hours - not free, sorry. That will cost you about $0.30 - $0.40 at today's prices!
+
+So we have ourselves a large database of public keys in less than 1.5 days for a total cost of < $1. As of 2012, that represented about 12M keys for TLS hosts, and 10M keys for SSH hosts.
+
+> 
+
+ We now describe how we efficiently computed the pairwise GCD of all distinct RSA moduli in our multimillion-key dataset. This allowed us to calculate RSA private keys for 66,540 vulnerable hosts that shared one of their RSA prime factors with another host in our survey.... The naïve way to compute the GCDs of every pair of integers in a large set would be to apply a GCD algorithm to each pair individually. There are 6×1013 distinct pairs of RSA moduli in our data; at 15µs per pair, this calculation would take 30 years. We can do much better by using a more efficient algorithm. To accomplish this, we implemented a quasilinear-time algorithm for factoring a collection of integers into co-primes, due to Bernstein.
+
+Following 5.5 hours of initial processing on a 3.30 Ghz Intel Core i5 processor and 32G RAM, the completion of this stage used sixteen cores on an EC2 Extra Large Instance for 1.3 hours. Total cost about $5.
+
+All in, that's 66,540 private keys cracked in less than 1.5 days and less than $10.
+
+A related finding from the key database was the surprising number of hosts that share public keys.
+
+> 
+
+ We found that 7,770,232 of the TLS hosts (61%) and 6,642,222 of the SSH hosts (65%) served the same key as another host in our scans. To understand why, we clustered certificates and host keys that shared the same public key and manually inspected representatives of the largest clusters. In all but a few cases, the TLS certificate subjects, SSH version strings, or WHOIS information were identical within a cluster, or pointed to a single manufacturer or organization.
+
+Many of these were due to shared hosting, or distinct TLS certificates all belonging to the same organisation. However, there were also many hosts using manufacturer default keys (a bad idea!):
+
+> 
+
+ These are preconfigured in the firmware of many devices, such that every device of a given model shares the same key pair unless the user changes it. The private keys to these devices may be accessible through reverse engineering, and published databases of default keys such as littleblackbox contain private keys for thousands of firmware releases. At least 670,391 (5.23%) of the TLS hosts appeared to serve manufacturer-default certificates or keys. We classified a certificate as a manufacturer default if nearly all the devices of a given model used identical certificates, or if the certificate was labeled as a default certificate.
+
+A final reason why hosts share the same key is caused by low entropy during key generation:
+
+> 
+
+ In these instances, when we investigated a key cluster, we would typically see thousands of hosts across many address ranges, and, when we checked the keys corresponding to other instances of the same model of device, we would see a long-tailed distribution in their frequencies. Intuitively, this type of distribution suggests that the key generation process may be using insufficient entropy, with distinct keys due to relatively rare events.
+
+Devices from 41 manufactures accounted for 99% of the hosts that generated factorable keys:
+
+> 
+
+ The 11,170,883 distinct RSA moduli yielded 2,314 distinct prime divisors, which divided 16,717 distinct public keys. This allowed us to obtain private keys for 23,576 (0.40%) of the TLS certificates in our scan data, which were served on 64,081 (0.50%) of the TLS hosts, and 1,013 (0.02%) of the RSA SSH host keys, which were served on 2,459 (0.027%) of the RSA SSH hosts. The vast majority of the vulnerable keys appeared to be system-generated certificates and SSH host keys used by routers, firewalls, remote administration cards, and other types of headless or embedded network devices.
+
+For DSA signatures, another 26,374 vulnerable hosts were found. (See the full paper for details of the DSA weakness, which is similar in spirit to the RSA one).
+
+The cause for many of the entropy problems was tracked back to insufficient randomness provided by the operating system.
+
+> 
+
+ We experimented with the Linux 2.6.35 kernel to exhaustively determine the sources of entropy used by the RNG. To do this, we traced through the kernel source code and systematically disabled entropy sources until the RNG output was repeatable. All of the entropy sources we found are greatly weakened under certain operating conditions.... The removal of IRQs as an entropy source has likely
+
+ exacerbated RNG problems in headless and embedded devices, which often lack human input devices, disks, and multiple cores. If they do, the only source of entropy—if there are any at all—may be the time of boot.
+
+The authors disabled some sources of entropy in a server to simulate a headless device under cold boot without a working clock. 1000 unattended boots were performed, and 32 bytes read from urandom at the point where ssh normally starts. The output of /dev/urandom was entirely predictable and repeatable.
+
+> 
+
+ The entropy sources we disabled would likely be missing in some headless and embedded systems, particularly on first boot. This means that there is a window of vulnerability—a boot-time entropy hole—during which Linux’s urandom may be entirely predictable, at least for single-core systems.
+
+The team also observed many keys that shared the same first prime factor, p, but different qs:
+
+> 
+
+ Since we observed many keys with one prime factor in common, we can conjecture that multiple systems are starting with urandom and the time in the same state and that the entropy pool states
+
+ diverge due to the addition of time during intermediate steps of the key generation process.
+
+In particular, the first prime p is computed before the clock ticks, if the clock ticks and moves on to the next second before q is computed, then the OpenSSL bnrand() function, which mixes in the current time in seconds, will return different values.
+
+Section 7 of the paper contains a useful set of lessons for the various stakeholders in this process:
+
+- OS developers should provide a PRNG interface that blocks until it has been seeded with a minimum amount of true randomness, and that is continually seeded with fresh entropy collected during operation. An interface should be provided to query the amount of entropy, and the RNG should be thoroughly tested on diverse platforms.
+
+- Library developers should default to the most secure configuration e.g. /dev/random vs /dev/urandom. (It seems the universe does not fully agree on this, see e.g. 'Myths about /dev/urandom'). Use RSA and DSA defensively.
+
+- Application developers should generate keys on first use, not on first install or boot, and heed warnings from lower-level libraries concerning insufficient entropy.
+
+- Device manufacturers should avoid factory default keys or certificates, and consider seeding devices with a truly random seed at the factory. It as also important to ensure that effective entropy sources are present. Hardware random number generators should be used whenever possible.
+
+- Certificate authorities should check for repeated, weak, and factorable keys.
+
+- End users should regenerate default or automatically generated keys, and check for known weak keys.
+
+- Security researchers should not assume the problem of secure randomness is solved!
+
+> 
+
+ The fact that all major operating systems now provide cryptographic RNGs might lead security experts to believe that any entropy problems that still occur are the fault of developers taking foolish shortcuts. Our findings suggest otherwise: entropy-related vulnerabilities can result from complex interaction between hardware, operating systems, applications, and cryptographic primitives. We have yet to develop the engineering practices and principles necessary to make predictably secure use of unpredictable randomness across the diverse variety of systems where it is required.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Security 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousMD5 To Be Considered Harmful SomedayNext &rsaquo;Lessons Learned in Implementing and Deploying Crypto Software
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;Mining your Ps and Qs: Detection of Widespread Weak Keys in Network Devices&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: A Year in Papers | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,50 @@
+{
+  "date": "20151014",
+  "file_name": "20151014",
+  "slug": "coz-finding-code-that-counts-with-causal-profling",
+  "blog_url": "https://blog.acolyer.org/2015/10/14/coz-finding-code-that-counts-with-causal-profling/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Coz as a novel causal profiler that goes beyond traditional profilers by identifying where optimizations will genuinely improve performance, rather than just where the program spends the most time. Traditional profilers like gprof or perf can mislead developers, as optimizing code that doesn't impact overall performance (e.g., a loading animation during a file download) yields no real benefit. Coz addresses this by using 'virtual speedups' to simulate the effect of optimizing specific lines of code, allowing it to predict the true impact of optimizations on throughput and latency. The tool demonstrated remarkable results in case studies, such as improving SQLite performance by 25.6% by optimizing functions accounting for only 0.15% of runtime, and achieving speedups of up to 68% in PARSEC benchmarks. Coz also identifies counterintuitive cases where local optimizations can degrade overall performance due to contention, providing actionable insights for developers.",
+  "paper_title": "Coz: Finding Code that Counts with Causal Profiling",
+  "paper_authors": [
+    "Charlie Curtsinger",
+    "Emery D. Berger"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SOSP'15",
+  "paper_url": "http://www.sigops.org/sosp/sosp15/current/2015-Monterey/printable/090-curtsinger.pdf",
+  "paper_abstract": "tance, they often do not have enough of an impact on performance to meet programmers’ demands [10]. Programmers seeking to increase the throughput or responsiveness of their applications thus must resort to manual performance tuning. Manually inspecting a program to ﬁnd optimization opportunities is impractical, so developers use proﬁlers. Conventional proﬁlers rank code by its contribution to total execution time. Prominent examples include oproﬁle, perf, and gprof [17, 27, 29]. Unfortunately, even when a proﬁler accurately reports where a program spends its time, this information can lead programmers astray. Code that runs for a long time is not necessarily a good choice for optimization. For example, optimizing code that draws a loading animation during a ﬁle download will not make the program run faster, even though this code runs just as long as the download. This phenomenon is not limited to I/O operations. Figure 1 shows a simple program that illustrates the shortcomings of existing proﬁlers, along with its gprof proﬁle in Figure 2a. This program spawns two threads, which invoke functions fa and fb respectively. Most proﬁlers will report that these functions comprise roughly half of the total execution time. Other proﬁlers may report that fa is on the critical path, or that the main thread spends roughly equal time waiting for fa and fb [23]. While accurate, all of this information is potentially misleading. Optimizing fa away entirely will only speed up the program by 4.5% because fb becomes the new critical path. Improving performance is a central concern for software developers. To locate optimization opportunities, developers rely on software proﬁlers. However, these proﬁlers only report where programs spent their time: optimizing that code may have no impact on performance. Past proﬁlers thus both waste developer time and make it difﬁcult for them to uncover signiﬁcant optimization opportunities. This paper introduces causal proﬁling. Unlike past proﬁlin...",
+  "paper_file": "papers/2015/10/14/coz-finding-code-that-counts-with-causal-profling.pdf",
+  "topics": [
+    "operating-systems",
+    "programming-languages"
+  ],
+  "tags": [
+    "profiling",
+    "performance-optimization",
+    "virtual-speedup",
+    "contention",
+    "throughput",
+    "latency",
+    "causal-profiling"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "A simple multithreaded program",
+      "caption": "A simple multithreaded program that illustrates the shortcomings of existing proﬁlers. Optimizing fa will improve performance by no more than 4.5%, while optimizing fb would have no effect on performance."
+    },
+    {
+      "number": "Figure 2",
+      "title": "The gprof and causal proﬁles",
+      "caption": "The gprof and causal proﬁles for the code in Figure 1. In the causal proﬁle, the y-axis shows the program speedup that would be achieved by speeding up each line of code by the percentage on the x-axis. The gray area shows standard error. Gprof reports that fa and fb comprise similar fractions of total runtime, but optimizing fa will improve performance by at most 4.5%, and optimizing fb would have no effect on performance. The causal proﬁle predicts both outcomes within 0.5%."
+    },
+    {
+      "number": "Figure 3",
+      "title": "Equivalence of virtual and actual speedups",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

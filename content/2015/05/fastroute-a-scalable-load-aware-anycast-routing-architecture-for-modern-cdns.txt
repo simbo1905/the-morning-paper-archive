@@ -1,0 +1,415 @@
+URL: https://blog.acolyer.org/2015/05/15/fastroute-a-scalable-load-aware-anycast-routing-architecture-for-modern-cdns/
+Title: FastRoute: A scalable load-aware anycast routing architecture for modern&nbsp;CDNs
+---
+
+FastRoute: A scalable load-aware anycast routing architecture for modern CDNs - Flavel et al. 2015
+
+This is the story of how a team at Microsoft redesigned their CDN that supports 'numerous popular online services.' It's also a great example of mature systems thinking: the team deliberately eschew designs that would give marginally better performance at the cost of significantly increased implementation and operational complexity.
+
+> 
+
+ ... our design goals were two-fold, a) deliver a low-latency routing scheme that performed better than our existing CDN, and b) build an easy-to-operate, scalable and simple system
+
+Central to the quest for simplicity and scalability is the design point that each FastRoute node should operate independently of all others. FastRoute achieves these goals by building on Anycast routing and arranging proxies in layers for offloading traffic under heavy load.
+
+## Anycast Routing
+
+> 
+
+ Anycast is a routing technique historically popular with DNS systems due to its inherent ability to spread DDOS traffic among multiple sites as well as provide low latency lookups. It utilizes the fact that routers running the de-facto standard inter-domain routing protocol in the Internet (BGP), select the shortest (based on policy and the BGP decision process) of multiple routes to reach a destination IP prefix. Consequently, if multiple destinations claim to be a single destination, routers independently examine the characteristics of the multiple available routes and select the shortest one (according to the BGP path selection process). The effect of this is that individual users are routed to the closest location claiming to be the IP prefix.
+
+Latency is not considered in this process, but BGP policy decisions can be tuned to align with latency based routing. The Anycast approach is used by several modern CDNs including EdgeCast and CloudFlare. All proxies respond on the same IP address, and the Internet routing protocols take care of selection. This does mean that it is harder to avoid the overload of a single proxy by changing routes. FastRoute has a solution for this we'll look at shortly.
+
+A FastRoute load balancer spreads user traffic between N instances of a user content proxy, and M instances of a DNS service. Whether or not a FastRoute node receives traffic is controlled by its publication (and withdrawal) of routes:
+
+> 
+
+ When the number of healthy proxy or DNS services drops below a threshold, the anycast BGP prefixes of the DNS and proxy are withdrawn. Equivalently, when the number of healthy proxy and DNS services is higher than a threshold the BGP prefixes are announced. Announcing and withdrawing routes is the mechanism by which a FastRoute node either chooses to receive traffic or not.
+
+The DNS service responds to a query either with the anycast IP address of its own FastRoute node, or a CNAME redirect. The latter is used when managing overload...
+
+## Handling overloaded FastRoute nodes
+
+Each proxy publishes a counter defining load for each type of traffic it is handling. A load management service aggregates these counters across all proxies and based on this publishes the probability with which a DNS server should return a CNAME result. Modifying DNS responses enables the BGP topology to remain unchanged. In addition,
+
+> 
+
+ ... modifying DNS responses will only affect the routing of new users (as users already connected to a proxy will continue their session). Hence, DNS is a less abrupt change to users and a more gradual shift of overall traffic patterns than modifying BGP.
+
+Such decisions affect only the DNS server receiving the request:
+
+> 
+
+ Our hypothesis was that there would be a high correlation between the location of the proxy receiving the user traffic and the authoritative DNS server receiving the DNS request. Given a high correlation, by altering only the decision of the collocated DNS server, we can divert traffic and avoid overloading the proxy. This has a very appealing characteristic that the only communication needed is between the collocated proxy and DNS in a given FastRoute node.
+
+Only collocated proxies and DNS servers are aware of each other, so the only load a DNS server knows of is that of its own FastRoute node. When it comes to redirecting traffic therefore, to where should it redirect? The only it knows for certain is 'not me'. The scheme relies on there being a correlation between the FastRoute node DNS queries land at, and the FastRoute node of the user traffic proxy ultimately selected. An examination of a weeks worth of data showed this to be the case sufficiently often.
+
+All this begs the question, what CNAME should the DNS server return when all it knows is 'not me' ?
+
+> 
+
+ Our approach is one that utilizes anycast layers where each layer has a different anycast IP address for the DNS and proxy services. Each DNS knows only the domain name of its parent layer. Under load, it will start CNAME’ing requests to its parent layer domain name3. By utilizing a CNAME, we force the recursive resolver to fetch the DNS name resolution from a FastRoute node within the parent layer. This mechanism ensures that a parent layer node has control over traffic landing in the parent layer with the parent layer following the same process if it becomes overloaded.
+
+See figure 3 from the paper below:
+
+And won't this in turn just overload the parent layer?
+
+> 
+
+ Higher level layers are not required to be as close to users as lower level layers, consequently, they can be in physical locations where space is relatively cheap and easy to add capacity (e.g. within large data centers with elastic capacity). Hence, bursts of traffic can be handled by over-provisioning. By diverting lower priority traffic from higher layers first we can avoid the perceived user performance impact.
+
+## How well does it work?
+
+> 
+
+ FastRoute’s load management has been in operation for over 2 years. During this time we have seen a number of scenarios resulting in overloaded proxies (usually of the order of few incidents per week) including nearby proxies going down, naturally spiky user traffic patterns and code bugs in the proxy or DNS. FastRoute’s load management scheme has provided the required safety net to handle all scenarios during this time without requiring manual intervention to modify routing policies or alter DNS configurations.
+
+## Parting words:
+
+> 
+
+ By not over-complicating the design to handle rare scenarios — and trading off performance for simplicity to handle such rare scenarios — we were able to quickly adapt to new requirements with minimal development effort. We believe this is the biggest learning from the design, development, deployment and operation of FastRoute.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Networking 
+ 
+ Networking 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousWormhole: Reliable pub-sub to support Geo-Replicated Internet ServicesNext &rsaquo;Practical Byzantine Fault Tolerance
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Loading Comments...
+ 
+ 
+ 
+ 
+
+ 
+ 
+ Write a Comment...
+ 
+ 
+ 
+ 
+ Email (Required)
+ 
+ 
+ 
+ Name (Required)
+ 
+ 
+ 
+ Website
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ %d

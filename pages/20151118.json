@@ -1,0 +1,76 @@
+{
+  "date": "20151118",
+  "file_name": "20151118",
+  "slug": "minimizing-faulty-executions-of-distributed-systems",
+  "blog_url": "https://blog.acolyer.org/2015/11/18/minimizing-faulty-executions-of-distributed-systems/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes Colin Scott et al.'s paper on minimizing faulty executions in distributed systems, highlighting the challenges of debugging complex distributed systems where bugs arise from concurrency, asynchrony, and partial failures. The paper introduces DEMi (Distributed Execution Minimizer), a framework that reduces large execution traces to their minimal necessary components to reproduce bugs, making debugging more efficient. DEMi combines delta debugging for external events, dynamic partial order reduction (DPOR) for internal events, and heuristics like message-fingerprint functions to prune irrelevant schedules. The tool was applied to Akka-raft and Apache Spark, reducing faulty execution traces by up to 97% and outperforming state-of-the-art blackbox minimization techniques. The key insight is that minimizing both external and internal events, along with message payloads, can significantly simplify bug reproduction while preserving fault-triggering properties.",
+  "paper_title": "Minimizing Faulty Executions of Distributed Systems",
+  "paper_authors": [
+    "Colin Scott",
+    "Peter Alvaro",
+    "Aurojit Panda",
+    "Michael D. Ernst",
+    "Shriram Krishnamurthi"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "NSDI'16",
+  "paper_url": "http://eecs.berkeley.edu/~rcs/research/nsdi_draft.pdf",
+  "paper_abstract": "Reliability and availability are essential for cloud services to succeed. Unfortunetaly, building flawless cloud systems is hard due to latent distributed concurrency (DC) bugs. Distributed System Model Checking (dmck) helps developers to systematically and quickly expose DC bugs by testing the implementation code. However, one challenge exists for dmck: path explosion challenge. The state-of-the-art dmcks such as M O D IST, dBug, CrystallBall, and SAMC handle this challenge by implementing reduction algorithms. Although these dmcks have shown some early successes, we found that these dmcks are not scalable enough to handle deep DC bug scenarios. We present AMC, an automated, fast and scalable dmck that focuses on finding deep DC bugs. AMC implements four new path reduction algorithms that are generic and backed up by static analysis: state symmetry, disjoint-updates independence, parallel flips and no zero-crash-impact reordering. As a result, AMC outperforms existing dmcks reduction algorithms by one to two orders of magnitude. AMC is integrated with 5 real-world systems (a mix of open-sourced, production, and proprietary systems) and overall has successfully reproduced 9 bugs and found 7 new bugs. x CHAPTER 1",
+  "paper_file": "papers/2015/11/18/minimizing-faulty-executions-of-distributed-systems.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "distributed-systems",
+    "bug-minimization",
+    "fuzzing",
+    "delta-debugging",
+    "dynamic-partial-order-reduction",
+    "raft",
+    "akka",
+    "execution-traces",
+    "concurrency",
+    "asynchrony"
+  ],
+  "figures": [
+    {
+      "number": "Figure 2.1",
+      "title": "DMCK",
+      "caption": "The figure is explained in Section 2.1."
+    },
+    {
+      "number": "Figure 2.2",
+      "title": "Deep DC bugs in Cassandra and ZooKeeper",
+      "caption": "The bugs are described in §2.2 and in more detail in §10.1."
+    },
+    {
+      "number": "Figure 3.1",
+      "title": "Communication symmetry",
+      "caption": "The figure is explained in the “Problem” part of Section 3.1."
+    },
+    {
+      "number": "Figure 3.2",
+      "title": "State symmetry",
+      "caption": "The figure is explained in the “Intuition” part of Section 3.1."
+    },
+    {
+      "number": "Figure 3.3",
+      "title": "Parallel flips",
+      "caption": "Figures (a) and (b) are explained in the “Problem” segment of §3.3 and figure (c) in the “Reduction algorithm” segment of §3.3."
+    },
+    {
+      "number": "Figure 6.1",
+      "title": "Scalability of dmck reduction algorithms",
+      "caption": "The figure format is explained in §6.1. The x-axis represents the number of remaining steps to hit the bug and the y-axis the number of paths explored to hit the bug (the lower the better). The niDPOR and SAMC lines are discussed in §6.2 and AMC lines in §6.3."
+    },
+    {
+      "number": "Figure 6.2",
+      "title": "Path explosion and reduction",
+      "caption": "The figure is explained in §6.4. The y-axis represents the number of generated (to-be-explored) paths over time. The maximum time in the x-axis is around 3.5 days, after 5000 paths have been explored. AMC reduces the path explosion problem further by two orders of magnitude from niDPOR and SAMC."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

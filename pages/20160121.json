@@ -1,0 +1,36 @@
+{
+  "date": "20160121",
+  "file_name": "20160121",
+  "slug": "blurred-persistence",
+  "blog_url": "https://blog.acolyer.org/2016/01/21/blurred-persistence/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer discusses the paper 'Blurred Persistence: Efficient Transactions in Persistent Memory' which explores the challenges of managing transactions in persistent memory systems. The key issue is the shift from managing the relationship between volatile memory and disk to managing the relationship between the volatile CPU cache and persistent memory. The author highlights the performance overhead caused by frequent I/O halts required for storage consistency in persistent memory, as the CPU cache is hardware-controlled and tracking pages in software is cumbersome. The paper introduces two mechanisms, Execution in Log (XIL) and Volatile Checkpoint with Bulk Persistence (VCBP), to address these challenges. XIL allows transactions to execute in the log area and removes duplicated copies, while VCBP delays the persistence of committed transaction data and uses bulk persistence to improve cache efficiency. The blog post also mentions new hardware instructions like CLFLUSHOPT, CLWB, and PCOMMIT that can help with cache flushing and persistence, but the paper focuses on software solutions that work with existing hardware.",
+  "paper_title": "Blurred Persistence: Efficient Transactions in Persistent Memory",
+  "paper_authors": [
+    "Lu",
+    "Shu",
+    "Sun"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "Storage'15",
+  "paper_url": "http://storageconference.us/2015/Papers/01.Lu.pdf",
+  "paper_abstract": "HiNFS: A Persistent Memory File System with Both\nBuffering and Direct-Access\nYOUMIN CHEN, JIWU SHU, JIAXIN OU, and YOUYOU LU, Tsinghua University\nPersistent memory provides data persistence at main memory with emerging non-volatile main memories\n(NVMMs). Recent persistent memory file systems aggressively use direct access, which directly copy data\nbetween user buffer and the storage layer, to avoid the double-copy overheads through the OS page cache.\nHowever, we observe they all suffer from slow",
+  "paper_file": "papers/2016/01/21/blurred-persistence.pdf",
+  "topics": [
+    "storage-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "persistent-memory",
+    "transactions",
+    "transactional-memory",
+    "cache-management",
+    "storage-consistency",
+    "crash-consistency",
+    "XIL",
+    "VCBP"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

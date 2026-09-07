@@ -1,0 +1,41 @@
+{
+  "date": "20180612",
+  "file_name": "20180612",
+  "slug": "optimus-an-efficient-dynamic-resource-scheduler-for-deep-learning-clusters",
+  "blog_url": "https://blog.acolyer.org/2018/06/12/optimus-an-efficient-dynamic-resource-scheduler-for-deep-learning-clusters/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Optimus, a dynamic resource scheduler for deep learning clusters that aims to reduce training times by optimizing job scheduling rather than improving programming models or dataflow engines. The paper claims a 1.6x reduction in makespan compared to widely used schedulers like Borg and YARN. Optimus dynamically adjusts the number of workers and parameter servers based on runtime factors (e.g., bandwidth) to maximize training speed and resource efficiency. It uses performance models to predict training progress and speed, leveraging the convergence properties of production deep learning models. The scheduler employs a greedy algorithm based on marginal gains to allocate resources efficiently, placing tasks across servers to minimize completion time. The approach is validated through experiments showing significant speedups over static schedulers.",
+  "paper_title": "Optimus: an efficient dynamic resource scheduler for deep learning clusters",
+  "paper_authors": [
+    "Yanghua Peng",
+    "Yong Li",
+    "Yun Liang",
+    "Yunji Chen",
+    "Li Yi",
+    "Yu Wang"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "EuroSys'18",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3190517",
+  "paper_abstract": "Organizations often build separate training and inference clusters for deep learning, and use separate schedulers to manage them. This leads to problems for both: inference clusters have low utilization when the traffic load is low; training jobs often experience long queuing due to a lack of resources. We introduce Lyra, a new cluster scheduler to address these problems. Lyra introduces capacity loaning to loan idle inference servers for training jobs. It further exploits elastic scaling that scales a training job’s resource allocation to better utilize loaned servers. Capacity loaning and elastic scaling create new challenges to cluster management. When the loaned servers need to be returned, we need to minimize job preemptions; when more GPUs become available, we need to allocate them to elastic jobs and minimize the job completion time (JCT). Lyra addresses these combinatorial problems with principled heuristics. It introduces the notion of server preemption cost, which it greedily reduces during server reclaiming. It further relies on the JCT reduction value defined for each additional worker of an elastic job to solve the scheduling problem as a multiple-choice knapsack problem. Prototype implementation on a 64-GPU testbed and large-scale simulation with 15-day traces of over 50,000 production jobs show that Lyra brings 1.53x and 1.48x reductions in average queuing time and JCT, and improves cluster usage by up to 25%.",
+  "paper_file": "papers/2018/06/12/optimus-an-efficient-dynamic-resource-scheduler-for-deep-learning-clusters.pdf",
+  "topics": [
+    "distributed-systems",
+    "machine-learning"
+  ],
+  "tags": [
+    "deep-learning",
+    "resource-scheduling",
+    "parameter-servers",
+    "workers",
+    "makespan",
+    "synchronous-training",
+    "asynchronous-training",
+    "performance-modeling",
+    "greedy-algorithm",
+    "marginal-gains"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

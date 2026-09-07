@@ -1,0 +1,44 @@
+{
+  "date": "20180125",
+  "file_name": "20180125",
+  "slug": "a-static-verification-framework-for-message-passing-in-go-using-behavioural-types",
+  "blog_url": "https://blog.acolyer.org/2018/01/25/a-static-verification-framework-for-message-passing-in-go-using-behavioural-types/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a static verification framework called 'Godel Checker' for message-passing concurrency in Go, addressing a notable gap in Go's ecosystem where existing tools offer minimal support for verifying correctness in concurrent programs. The paper leverages process calculi-based reasoning, translating Go source code into behavioral types that can be model-checked for safety and liveness properties, including global deadlock freedom and partial deadlock detection. The framework uses an SSA intermediate representation to infer behavioral types, which are then analyzed using the mCRL2 model checker and the KiTTeL termination analyzer. The approach is practical, completing analysis in seconds to minutes even for larger codebases, and abstracts away formal complexities from the user. Key insights include the translation of Go's channel-based concurrency into executable behavioral types and the application of formal verification techniques to a mainstream language like Go.",
+  "paper_title": "A static verification framework for message passing in Go using behavioural types",
+  "paper_authors": [
+    "Luca Lange",
+    "Jesper Bengtson",
+    "Alceste Scalas",
+    "Martin Steffen"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "ICSE '18",
+  "paper_url": "http://mrg.doc.ic.ac.uk/publications/a-static-verification-framework-for-message-passing-in-go-using-behavioural-types/",
+  "paper_abstract": "The Go programming language has been heavily adopted in industry as a language that efficiently combines systems programming with concurrency. Go’s concurrency primitives, inspired by process calculi such as CCS and CSP, feature channel-based communication and lightweight threads, providing a distinct means of structuring concurrent software. Despite its popularity, the Go programming ecosystem offers little to no support for guaranteeing the correctness of message-passing concurrent programs. This work proposes a practical verification framework for message passing concurrency in Go by developing a robust static analysis that infers an abstract model of a program’s communication behaviour in the form of a behavioural type, a powerful process calculi typing discipline. We make use of our analysis to deploy a model and termination checking based verification of the inferred behavioural type that is suitable for a range of safety and liveness properties of Go programs, providing several improvements over existing approaches. We evaluate our framework and its implementation on publicly available real-world Go code.",
+  "paper_file": "papers/2018/01/25/a-static-verification-framework-for-message-passing-in-go-using-behavioural-types.pdf",
+  "topics": [
+    "programming-languages",
+    "formal-methods"
+  ],
+  "tags": [
+    "concurrency",
+    "message-passing",
+    "behavioral-types",
+    "model-checking",
+    "deadlock-detection",
+    "liveness",
+    "Go",
+    "SSA",
+    "μ-calculus"
+  ],
+  "figures": [
+    {
+      "number": "Figure 2",
+      "title": "The Godel Checker workflow",
+      "caption": "The Godel Checker [31] workflow."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

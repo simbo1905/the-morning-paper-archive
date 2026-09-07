@@ -1,0 +1,43 @@
+{
+  "date": "20180621",
+  "file_name": "20180621",
+  "slug": "generalized-data-structure-synthesis",
+  "blog_url": "https://blog.acolyer.org/2018/06/21/generalized-data-structure-synthesis/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Cozy, a tool that automates the generation of efficient and correct data structure implementations from high-level specifications. The blog emphasizes Cozy's three key goals: reducing programmer effort, eliminating bugs, and matching handwritten code performance. Colyer notes that Cozy reduces implementation code by an order of magnitude compared to manual efforts, produces bug-free code, and often achieves performance comparable to handwritten versions. The paper demonstrates Cozy's effectiveness through four case studies (ZTopo, Sat4j, Openfire, Lucene), where it generates correct implementations that pass all existing tests. The blog also explains Cozy's algorithm, which involves guided exploration with query synthesis and incrementalization, iteratively improving implementations while maintaining correctness. Colyer praises the tool's ability to simplify specifications, reduce bugs, and serve as documentation, though he notes limitations in cases where domain-specific knowledge (e.g., variable indexing in Sat4j) gives handwritten code an edge.",
+  "paper_title": "Generalized Data Structure Synthesis",
+  "paper_authors": [
+    "Ivan Loncaric",
+    "Konstantin Weitz",
+    "Steven Lyubomirsky",
+    "Michael D. Ernst",
+    "Zachary Tatlock"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "ICSE'18",
+  "paper_url": "https://homes.cs.washington.edu/~mernst/pubs/generalized-synthesis-icse2018.pdf",
+  "paper_abstract": "1 Data structure synthesis is the task of generating data structure implementations from high-level specifications. Recent work in this area has shown potential to save programmer time and reduce the risk of defects. Existing techniques focus on data structures for manipulating subsets of a single collection, but real-world programs often track multiple related collections and aggregate properties such as sums, counts, minimums, and maximums. This paper shows how to synthesize data structures that track subsets and aggregations of multiple related collections. Our technique decomposes the synthesis task into alternating steps of query synthesis and incrementalization. The query synthesis step implements pure operations over the data structure state by leveraging existing enumerative synthesis techniques, specialized to the data structures domain. The incrementalization step implements imperative state modifications by re-framing them as fresh queries that determine what to change, coupled with a small amount of code to apply the change. As an added benefit of this approach over previous work, the synthesized data structure is optimized for not only the queries in the specification but also the required update operations. We have evaluated our approach in four large case studies, demonstrating that these extensions are broadly applicable. Many programming tasks can be framed as data structure problems, especially in domains like user interfaces or web services where software must manage some internal state and also handle asynchronous events. Manually implementing complex applicationspecific data structures can be time-consuming and error-prone. Recent research seeks to automatically synthesize data structure implementations from high-level specifications, thus ensuring correctness and run-time efficiency with minimum programmer effort [11, 12, 16]. Existing techniques can synthesize only a narrow range of data structures—those that retrieve a subset of a single coll...",
+  "paper_file": "papers/2018/06/21/generalized-data-structure-synthesis.pdf",
+  "topics": [
+    "programming-languages",
+    "algorithms"
+  ],
+  "tags": [
+    "data-structure-synthesis",
+    "query-synthesis",
+    "incrementalization",
+    "code-generation",
+    "specification-language",
+    "map-based-representations",
+    "dead-code-elimination"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Architecture of Cozy",
+      "caption": "Architecture of Cozy. Each iteration through the loop performs query synthesis, incrementalization, and dead code elimination. Figure 2a shows example input, and Figures 2b and 3 show the corresponding output."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

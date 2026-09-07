@@ -1,0 +1,301 @@
+URL: https://blog.acolyer.org/2015/06/02/flashgraph-processing-billion-node-graphs-on-an-array-of-commodity-ssds/
+Title: FlashGraph: Processing Billion Node Graphs on an Array of Commodity&nbsp;SSDs
+---
+
+FlashGraph: Processing Billion Node Graphs on an Array of Commodity SSDs - Zheng et al.
+
+The Web Data Commons project is the largest web corpus available to the public. Their hyperlink (page) graph dataset contains 3.4B vertices and 129B edges contained in over 1TB of data, and a graph diameter of 650.
+
+> 
+
+ To the best of our knowledge, the page graph is the largest graph used for evaluating a graph processing engine to date. The closest one is the random graph used by Pregel, which has a billion vertices and 127 billion edges. Pregel processed it on 300 multicore machines.
+
+If you recall from the Pregel paper, it took Google a little over 10 minutes to run the single-source shortest path algorithm on their graph. FlashGraph ran a breadth-first search on the page graph in less than five minutes. That's impressive, but given five years of progress between the results in the Pregel paper (2010) and this paper (2015) perhaps not totally surprising.
+
+Here's the part that should make you sit-up and take notice though:
+
+> 
+
+ In contrast (to Pregel's 300 machines), we process the page graph on a single multicore machine.
+
+Not wanting to brag or anything, but FlashGraph could also go bigger (still on a single machine), one order of magnitude bigger:
+
+> 
+
+ Our solution allows us to process a graph one order of magnitude larger than the page graph on a single commodity machine with half a terabyte of RAM. The maximal graph size that can be processed by FlashGraph is limited by the capacity of RAM and SSDs. Our current hardware configuration allows us to attach 24 1TB SSDs to a machine, which can store a graph with over one trillion edges. Furthermore, the small memory footprint suggests that FlashGraph is able to process a graph with tens of billions of vertices.
+
+For those of you with graphs containing on the order of 100B vertices, regrettably it looks like you're still going to need more than one machine to process them ;).
+
+This all translates into significant cost savings too of course (not just in capital equipment costs, but also in power consumption) :
+
+> 
+
+ FlashGraph results in a more economical solution to process a massive graph. In contrast, it is much more expensive to build a cluster or a supercomputer to process a graph of the same scale. For example, it requires 48 machines with 512GB RAM each to achieve 24TB aggregate RAM capacity, so the cost of building such a cluster is at least 24−48 times higher than our solution.
+
+## How do they do it?
+
+As we've seen so far in this series, graph engines typically keep the full graph in memory....
+
+> 
+
+ Graph processing engines have converged on a design that (i) stores graph partitions in the aggregate memory of a cluster, (ii) encodes algorithms as parallel programs against the vertices of the graph, and (iii) uses either distributed shared memory or message passing to communicate between non-local vertices. Placing data in memory reduces access latency when compared to disk drives. Network performance, required for communication between graph partitions, emerges as the bottleneck and graph engines require fast networks to realize good performance.
+
+There are systems that have tried to reduce costs by processing graphs from disk, however "there is a huge gap between these systems and in-memory processing." Instead, Zheng et al. optimise heavily for SSDs with a design that they call 'semi-external' :
+
+> 
+
+ We present FlashGraph, a semi-external memory graph-processing engine that meets or exceeds the performance of in-memory engines and allows graph problems to scale to the capacity of semi-external memory. Semi-external memory maintains algorithmic vertex state in RAM and edge lists on storage. The semi-external memory model avoids writing data to SSDs. Only using memory for vertices increases the scalability of graph engines in proportion to the ratio of edges to vertices in a graph, more than 35 times for our largest graph of Web page crawls. FlashGraph uses an array of solid-state drives (SSDs) to achieve high throughput and low latency to storage. Unlike magnetic disk-based engines, FlashGraph supports selective access to edge lists.
+
+Vertices are kept in-memory, edges are stored on SSD. Through a series of optimisations, FlashGraph is able to make this combination perform competitively with state-of-the-art in-memory only graph systems. There is a familiar vertex-centric programming model:
+
+> 
+
+ ...a vertex has to explicitly request its own edge list so that a graph application can significantly reduce the amount of data brought to memory. Furthermore, the interface does not constrain the vertices that a vertex can communicate with or the edge lists that a vertex can request from SSDs. This flexibility allows FlashGraph to handle algorithms such as Louvain clustering, in which changes to the topology of the graph occur during computation. It is difficult to express such algorithms with graph frameworks in which vertices can only interact with direct neighbors.
+
+The programming model is given less treatment than in some of the other papers we've looked at so far. It seems to be a more restrictive model closer in spirit to Pregel than to GraphLab/PowerGraph. Of particular note, though not explicitly stated anywhere in the paper, it appears that while edges can have properties these are read-only and cannot be updated as an algorithm progresses. The model is certainly sufficient to implement a variety of graph algorithms though: breadth-first-search, betweenness centrality, PageRank, weakly connected components, triangle counting, and scan statistics algorithms are all implemented as part of the evaluation.
+
+FlashGraph is built on top of the SAFS user-space filesystem for high-speed SSD arrays in a NUMA machine. To get the performance FlashGraph requires, there need to be many parallel I/O requests. SAFS avoids the overhead of buffer allocation and data copying for these asynchronous requests.
+
+> 
+
+ In the SAFS user-task programming interface, an application associates a user-defined task with each I/O request. Upon completion of a request, the associated user task executes inside the filesystem, accessing data in the page cache directly. Therefore, there is no memory allocation and copy for asynchronous I/O.
+
+Vertex communication is via a messaging abstraction. Messages are buffered and then passed to vertices in batches. Multicast is used for the common broadcast pattern:
+
+> 
+
+ FlashGraph supports multicast to avoid unnecessary message duplication. It is common that a vertex needs to send the same message to many other vertices. In this case point-to-point communication causes unnecessary message duplication. With multicast, FlashGraph simply copies the same message once to each thread. We implement vertex activation with multicast since activation messages contain no data and are identical.
+
+With edges stored on SSDs, efficient access to edges is key to good performance:
+
+> 
+
+ FlashGraph merges I/O requests to maximize its performance. During an iteration of most algorithms, there are a large number of vertices that will likely request many edge lists from SSDs. Given this, it is likely that multiple edge lists required are stored nearby on SSDs, giving us the opportunity to merge I/O requests. FlashGraph globally sorts and merges I/O requests issued by all active state vertices for applications where each vertex requests a single edge list within an iteration.
+
+Intelligent scheduling of vertex-programs helps to ensure there is plenty of opportunity for performing such merges:
+
+> 
+
+ In general, FlashGraph favors a large number of running state vertices because it allows FlashGraph to merge more I/O requests to improve performance. In practice, performance improvement is no longer noticeable past 4000 running state vertices per thread. The default scheduler processes vertices ordered by vertex ID. This scheduling maximizes merging I/O requests for most graph algorithms because vertices request their own edge lists in most graph algorithms and edge lists are ordered by vertex ID on SSDs.
+
+To further minimize I/O, and to handle the largest graphs possible, FlashGraph pays great attention to efficient in-memory (for vertices) and on-disk (for edge lists) structures. See sections 3.5 and 3.6 of the paper for details.
+
+FlashGraph uses 2D partitioning. First there is range partitioning by vertex id to divide the vertices into horizontal partitions (edge cutting). This range partitioning helps FlashGraph to improve data locality for disk I/O in many applications. A range can then be vertically partitioned (vertex cutting):
+
+> 
+
+ The vertical partitioning in FlashGraph allows programmers to split large vertices into small parts at runtime. FlashGraph replicates vertex state of vertices that require vertical partitioning and each copy of the vertex state is referred to as a vertex part. A user has complete freedom to perform computation on and request edge lists for a vertex part. In an iteration, the default FlashGraph scheduler executes all active vertex parts in the first vertical partition and then proceeds to the second one and so on. To avoid concurrent data access to vertex state, a vertex part communicates with other vertices through message passing.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems, Machine Learning 
+ 
+ Graph 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousGraphX: Graph Processing in a Distributed Dataflow FrameworkNext &rsaquo;Pregelix: Big(ger) Graph Analytics on a Dataflow Engine
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;FlashGraph: Processing Billion Node Graphs on an Array of Commodity SSDs&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Pregelix: Big(ger) Graph Analytics on a Dataflow Engine | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

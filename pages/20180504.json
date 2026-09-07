@@ -1,0 +1,53 @@
+{
+  "date": "20180504",
+  "file_name": "20180504",
+  "slug": "performance-analysis-of-cloud-applications",
+  "blog_url": "https://blog.acolyer.org/2018/05/04/performance-analysis-of-cloud-applications/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes a Google paper from NSDI'18 that examines how large-scale cloud services like Gmail are analyzed for performance. The paper is divided into two main parts: first, it demonstrates why analyzing production performance requires live systems, as synthetic workloads fail to capture the unpredictability of real-world conditions. The authors highlight the complexity of production load, including diurnal cycles, non-user-visible tasks (e.g., data integrity checks, software updates), and unpredictable one-off events (e.g., datacenter lightning strikes). The second part introduces two techniques Google uses for live performance analysis: coordinated bursty tracing and vertical context injection. Bursty tracing captures temporal context by sampling bursts of events across processes, while vertical context injection tracks operation context to understand how requests flow through multiple layers. The paper emphasizes the importance of large-scale A/A tests (with millions of users) and careful statistical analysis to avoid misleading results due to assumptions about data distributions or independence.",
+  "paper_title": "Performance analysis of cloud applications",
+  "paper_authors": [
+    "Adrian Ardelean",
+    "others not listed in the blog post"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "NSDI",
+  "paper_url": "https://www.usenix.org/conference/nsdi18/presentation/ardelean",
+  "paper_abstract": "Many popular cloud applications are large-scale distributed systems with each request involving tens to thousands of RPCs and large code bases. Because of their scale, performance optimizations without actionable supporting data are likely to be ineffective: they will add complexity to an already complex system often without chance of a benefit. This paper describes the challenges in collecting actionable data for Gmail, a service with more than 1 billion active accounts. Using production data from Gmail we show that both the load and the nature of the load changes continuously. This makes Gmail performance difficult to model with a synthetic test and difficult to analyze in production. We describe two techniques for collecting actionable data from a production system. First, coordinated bursty tracing allows us to capture bursts of events across all layers of our stack simultaneously. Second, vertical context injection enables us combine high-level events with low-level events in a holistic trace without requiring us to explicitly propagate this information across our software stack.",
+  "paper_file": "papers/2018/05/04/performance-analysis-of-cloud-applications.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "performance-analysis",
+    "cloud-applications",
+    "bursty-tracing",
+    "vertical-context-injection",
+    "A/A-testing",
+    "synthetic-workloads",
+    "latency-analysis",
+    "load-patterns",
+    "long-tail-performance",
+    "statistical-methods"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Continuously changing queries per second",
+      "caption": "Continuously changing queries per second"
+    },
+    {
+      "number": "Figure 2",
+      "title": "Continuously changing response size",
+      "caption": "Continuously changing response size"
+    },
+    {
+      "number": "Figure 3",
+      "title": "Continuously changing user behavior",
+      "caption": "Continuously changing user behavior"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

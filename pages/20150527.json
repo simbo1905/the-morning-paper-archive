@@ -1,0 +1,51 @@
+{
+  "date": "20150527",
+  "file_name": "20150527",
+  "slug": "graphlab-a-new-framework-for-parallel-machine-learning",
+  "blog_url": "https://blog.acolyer.org/2015/05/27/graphlab-a-new-framework-for-parallel-machine-learning/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights GraphLab as a novel parallel framework for machine learning (ML) designed to exploit the sparse structure and computational patterns common in ML algorithms. The paper argues that existing abstractions like MapReduce, DAG, and Systolic/Dataflow have limitations: MapReduce struggles with computational dependencies and iterative algorithms, DAGs can't naturally express iteration or dynamic prioritization, and Systolic/Dataflow frameworks like Pregel lack flexibility for varied update schedules (e.g., gradient descent vs. coordinate descent). GraphLab addresses these gaps with a programming model that includes a data graph, update functions operating on neighborhoods, a sync mechanism for global state aggregation, configurable consistency models, and flexible scheduling primitives. The key insight is that GraphLab's abstraction allows ML experts to compose problem-specific computation, dependencies, and scheduling while balancing performance and consistency trade-offs.",
+  "paper_title": "GraphLab: A New Framework for Parallel Machine Learning",
+  "paper_authors": [
+    "Yucheng Low",
+    "Joseph E. Gonzalez",
+    "Aapo Kyrola",
+    "Danny Bickson",
+    "Carlos Guestrin",
+    "Joseph M. Hellerstein"
+  ],
+  "paper_year": 2010,
+  "paper_venue": "UAI 2010",
+  "paper_url": "http://www.select.cs.cmu.edu/publications/paperdir/uai2010-low-gonzalez-kyrola-bickson-guestrin-hellerstein.pdf",
+  "paper_abstract": "With the emergence of big graphs in a variety of real applications like social networks, machine learning based on distributed graph-computing (DGC) frameworks has attracted much attention from big data machine learning community. In DGC frameworks, the graph partitioning (GP) strategy plays a key role to affect the performance, including the workload balance and communication cost. Typically, the degree distributions of natural graphs from real applications follow skewed power laws, which makes GP a challenging task. Recently, many methods have been proposed to solve the GP problem. However, the existing GP methods cannot achieve satisfactory performance for applications with power-law graphs. In this paper, we propose a novel vertex-cut method, called degree-based hashing (DBH), for GP. DBH makes effective use of the skewed degree distributions for GP. We theoretically prove that DBH can achieve lower communication cost than existing methods and can simultaneously guarantee good workload balance. Furthermore, empirical results on several large power-law graphs also show that DBH can outperform the state of the art.",
+  "paper_file": "papers/2015/05/27/graphlab-a-new-framework-for-parallel-machine-learning.pdf",
+  "topics": [
+    "machine-learning",
+    "algorithms"
+  ],
+  "tags": [
+    "parallel-computing",
+    "graph-processing",
+    "machine-learning-frameworks",
+    "consistency-models",
+    "scheduling",
+    "shared-memory-systems",
+    "update-functions",
+    "sync-mechanism",
+    "data-dependencies"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Two strategies for graph partitioning",
+      "caption": "Figure 1: Two strategies for graph partitioning. Shaded vertices are ghosts and mirrors, respectively."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Partition a sample graph with vertex-cut",
+      "caption": "Figure 2: Partition a sample graph with vertex-cut."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

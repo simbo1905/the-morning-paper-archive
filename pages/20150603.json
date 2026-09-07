@@ -1,0 +1,44 @@
+{
+  "date": "20150603",
+  "file_name": "20150603",
+  "slug": "pregelix-bigger-graph-analytics-on-a-dataflow-engine",
+  "blog_url": "https://blog.acolyer.org/2015/06/03/pregelix-bigger-graph-analytics-on-a-dataflow-engine/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Pregelix as an innovative approach that combines the strengths of in-memory graph processing (like FlashGraph) with dataflow engines (like GraphX). The paper demonstrates how to implement the Pregel programming model using a set-oriented iterative dataflow approach, leveraging relational operators such as joins and group-bys to model message passing. This allows Pregelix to run on existing shared-nothing dataflow engines like Hyracks, benefiting from their out-of-core support and query optimization capabilities. Colyer emphasizes the flexibility of Pregelix, which offers multiple physical execution strategies (16 tailored options) for different workloads, and its reduced code complexity compared to specialized graph engines like Giraph. The paper also underscores the broader insight that declarative, logic-based approaches (e.g., Datalog) can parallelize recursive computations efficiently, a lesson that has been underutilized in systems like MapReduce.",
+  "paper_title": "Pregelix: Big(ger) Graph Analytics on a Dataflow Engine",
+  "paper_authors": [
+    "Yingyi Bu",
+    "Semih Salihoglu",
+    "Michael Carey"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "PVLDB (Proceedings of the VLDB Endowment)",
+  "paper_url": "http://www.vldb.org/pvldb/vol8/p161-bu.pdf",
+  "paper_abstract": "1. Michael J. Carey1 work done at the University of California, Irvine. Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. To copy otherwise, to republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Articles from this volume were invited to present their results at The 41st International Conference on Very Large Data Bases, August 31st - September 4th, 2015, Kohala Coast, Hawaii. Proceedings of the VLDB Endowment, Vol. 8, No. 2 Copyright 2015 VLDB Endowment 2150-8097/14/10... $ 10.00. 161 manner on shared-nothing clusters, and provides a rich set of runtime choices. This paper makes the following contributions: master Vertex { id: 2 halt: false value: 2.0 edges: (3,1.0), (4,1.0) } Vertex{ id: 4 halt: false value: 1.0 edges: (1,1.0) } • An analysis of existing Pregel-like systems: We revisit the Pregel programming abstraction and illustrate some shortcomings of typical custom-constructed Pregel-like systems (Section 2). • A new Pregel architecture: We capture the semantics of Pregel in a logical query plan (Section 3), allowing us to execute Pregel as an iterative dataflow. • A system implementation: We first review the relevant building blocks in Hyracks (Section 4). We then present the Pregelix system, elaborating the choices of data storage and physical plans as well as its key implementation details (Section 5). • Case studies: We briefly describe several current use cases of Pregelix from our initial user community (Section 6). • Experimental studies: We experimentally evaluate Pregelix in terms of execution time, scalability, throughput, plan flexibility, and implementation effort (Section 7). 2. <3, 1.0> <4, 3.0> worker-1 <5, 1.0> Vertex { id: 1 halt: false value: 3.0 edges: (3,1.0...",
+  "paper_file": "papers/2015/06/03/pregelix-bigger-graph-analytics-on-a-dataflow-engine.pdf",
+  "topics": [
+    "distributed-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "graph-processing",
+    "pregel",
+    "dataflow-engines",
+    "hyracks",
+    "out-of-core-processing",
+    "recursive-queries",
+    "datalog",
+    "join-operators",
+    "group-by-operators",
+    "semi-naive-evaluation"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Giraph process-centric runtime",
+      "caption": "Figure 1: Giraph process-centric runtime."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

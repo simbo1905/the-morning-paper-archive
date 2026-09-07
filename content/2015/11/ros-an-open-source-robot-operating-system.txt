@@ -1,0 +1,520 @@
+URL: https://blog.acolyer.org/2015/11/02/ros-an-open-source-robot-operating-system/
+Title: ROS: An open-source Robot Operating&nbsp;System
+---
+
+ROS: An open-source Robot Operating System - Quigely et al. 2009
+
+Distributed systems are everywhere. Caitie McAffrey for example does a wonderful job of bridging the distributed systems and gaming communities. But I haven't seen as much cross-pollination between the distributed system and robotics communities. And that's a shame because robotics is a really interesting field, and as you'll see in today's paper, it faces many of the same challenges that we're trying to address with approaches such as microservices and event streams. If nothing else, it's a rich source of examples for demonstrations of your streaming API: 'here's how we do a real-time streaming transformation from a wrist camera on one arm of a robot to the moving tool tip attached to a second arm' sure beats yet-another twitter feed sample :).
+
+Today's paper was written in 2009 to introduce ROS, the Robot Operating System. It has since been cited almost 2000 times. It gives an interesting insight into the challenges in building robotics systems. ROS has since gone from strength to strength - check out the program at the recent ROSCon event held in Germany last month for example. In May of 2015 there were over 8.5M downloads of ROS packages.
+
+> 
+
+ Writing software for robots is difficult, particularly as the scale and scope of robotics continues to grow. Different types of robots can have wildly varying hardware, making code reuse nontrivial. On top of this, the sheer size of the required code can be daunting, as it must contain a deep stack starting from driver-level software and continuing up through perception, abstract reasoning, and beyond. Since the required breadth of expertise is well beyond the capabilities of any single researcher, robotics software architectures must also support large-scale software integration efforts.
+
+ROS is a framework for building robotics software that emphasises large-scale integrative robotics research.
+
+## Robots are distributed systems
+
+> 
+
+ A system built using ROS consists of a number of processes, potentially on a number of different hosts, connected at runtime in a peer-to-peer topology. Although frameworks based on a central server can also realize the benefits of the multi-process and multi-host design, a central data server is problematic if the computers are connected in a heterogenous network.
+
+These processes communicate in a peer-to-peer fashion rather than forcing everything through a central server. Thus, they need to be able to find each other (sound familiar?):
+
+> 
+
+ The peer-to-peer topology requires some sort of lookup mechanism to allow processes to find each other at runtime. We call this the name service, or master, and will describe it in more detail shortly.
+
+We tend to call this a service registry...
+
+## Processes can be written in any language
+
+One of the touted benefits of the microservices approach is that services can be written in the most appropriate language and framework rather than forcing a one-size-fits-all solution. ROS was onto this back in 2009...
+
+> 
+
+ When writing code, many individuals have preferences for some programming languages above others. These preferences are the result of personal tradeoffs between programming time, ease of debugging, syntax, runtime efficiency, and a host of other reasons, both technical and cultural. For these reasons, we have designed ROS to be language-neutral. ROS currently supports four very different languages: C++, Python, Octave, and LISP, with other language ports in various states of completion.
+
+ROS achieves this goal by specifying interaction at the messaging layer, but no deeper. As of 2009, the known ROS-based codebases contained over 400 types of messages transporting data ranging from sensor feeds to object detections to maps.
+
+> 
+
+ The end result is a language-neutral message processing scheme where different languages can be mixed and matched as desired.
+
+## Platform functionality is broken out into independent smaller services
+
+Seems like a good idea :). For ROS, this philosophy is applied not just to the runtime services, but also to the toolchain for working with ROS.
+
+> 
+
+ In an effort to manage the complexity of ROS, we have opted for a microkernel design, where a large number of small tools are used to build and run the various ROS components, rather than constructing a monolithic development and runtime environment. These tools perform various tasks, e.g., navigate the source code tree, get and set configuration parameters, visualize the peer-to-peer connection topology, measure bandwidth utilization, graphically plot message data, auto-generate documentation, and so on. Although we could have implemented core services such as a global clock and a logger inside the master module, we have attempted to push everything into separate modules. We believe the loss in efficiency is more than offset by the gains in stability and complexity management.
+
+To discourage accidental creation of monoliths, ROS advocates a 'thin' approach with small executables.
+
+> 
+
+ To combat this tendency, we encourage all driver and algorithm development to occur in standalone libraries that have no dependencies on ROS. The ROS build system performs modular builds inside the source code tree, and its use of CMake makes it comparatively easy to follow this “thin” ideology. Placing virtually all complexity in libraries, and only creating small executables which expose library functionality to ROS, allows for easier code extraction and reuse beyond its original intent. As an added benefit, unit testing is often far easier when code is factored into libraries, as standalone test programs can be written to exercise various features of the library.
+
+Using messaging to communicate between processes has an interesting advantage when it comes to microservice licensing too:
+
+> 
+
+ ROS is distributed under the terms of the BSD license, which allows the development of both non-commercial and commercial projects. ROS passes data between modules using inter-process communications, and does not require that modules link together in the same executable. As such, systems built around ROS can use fine-grain licensing of their various components: individual modules can incorporate software protected by various licenses ranging from GPL to BSD to proprietary, but license “contamination” ends at the module boundary.
+
+## APIs, Event Streams, and Dataflows
+
+The fundamental elements in a ROS-based system are nodes, messages, topics, and services.
+
+In today's terminology, we'd call a node a microservice.
+
+> 
+
+ Nodes are processes that perform computation. ROS is designed to be modular at a fine-grained scale: a system is typically comprised of many nodes. In this context, the term “node” is interchangeable with “software module.
+
+Nodes primarily communicate by sending messages that are published to topics (generating event streams).
+
+> 
+
+ A node sends a message by publishing it to a given topic, which is simply a string such as “odometry” or “map.” A node that is interested in a certain kind of data will subscribe to the appropriate topic. There may be multiple concurrent publishers and subscribers for a single topic, and a single node may publish and/or subscribe to multiple topics. In general, publishers and subscribers are not aware of each others’ existence.
+
+The examples describe creating 'network graphs' of communicating processes in this manner - dataflows. "The simplest communications are along pipelines, however graphs are usually far more complex often containing cycles and one-to-many or many-to-many connections."
+
+Event streams can be captured and replayed:
+
+> 
+
+ Research in robotic perception is often done most conveniently with logged sensor data, to permit controlled comparisons of various algorithms and to simplify the experimental procedure. ROS supports this approach by providing generic logging and playback functionality. Any ROS message stream can be dumped to disk and later replayed. Importantly, this can all be done at the command line; it requires no modification of the source code of any pieces of software in the graph.
+
+It's interesting that the dataflow / event stream model is primary in ROS, and API-based interactions are secondary. Synchronous request-response is still supported though:
+
+> 
+
+ Although the topic-based publish-subscribe model is a flexible communications paradigm, its “broadcast” routing scheme is not appropriate for synchronous transactions, which can simplify the design of some nodes. In ROS, we call this a service, defined by a string name and a pair of strictly typed messages: one for the request and one for the response. This is analogous to web services, which are defined by URIs and have request and response documents of well-defined types. Note that, unlike topics, only one node can advertise a service of any particular name: there can only be one service called ”classify image”, for example, just as there can only be one web service at any given URI.
+
+## Modular packaging and deployment
+
+It's easy to do deployment of a single service in the context of a running system, and one important use case for this is developer productivity:
+
+> 
+
+ [ROS's] modular structure allows nodes undergoing active development to run alongside pre-existing, well-debugged nodes. Because nodes connect to each other at runtime, the graph can be dynamically modified. In the previous example of vision-based grasping, a graph with perhaps a dozen nodes is required to provide the infrastructure. This “infrastructure” graph can be started and left running during an entire experimental session. Only the node(s) undergoing source code modification need to be periodically restarted, at which time ROS silently handles the graph modifications. This can result in a massive increase in productivity, particularly as the robotic system becomes more complex and interconnected.
+
+The ability to deploy individual services rather than being forced to deploy a complete monolith is central to ROS. We might say that ROS can support continuous deployment...
+
+> 
+
+ The ease of inserting and removing nodes from a running ROS- based system is one of its most powerful and fundamental features.
+
+Beyond individual services, ROS also supports the notion of packaged subsystems.
+
+> 
+
+ Some areas of robotics research, such as indoor robot navigation, have matured to the point where “out of the box” algorithms can work reasonably well. ROS leverages the algorithms implemented in the Player project to provide a navigation system, producing this graph:
+
+> 
+
+ Although each node can be run from the command line, repeatedly typing the commands to launch the processes could get tedious. To allow for “packaged” functionality such as a navigation system, ROS provides a tool called roslaunch, which reads an XML description of a graph and instantiates the graph on the cluster, optionally on specific hosts. The end-user experience of launching the navigation system then boils down to roslaunch navstack.xml and a single Ctrl-C will gracefully close all five processes. This functionality can also significantly aid sharing and reuse of large demonstrations of integrative robotics research, as the set-up and tear-down of large distributed systems can be easily replicated.
+
+docker-compose up ?
+
+ROS goes a little further too, with a mechanism for standing up multiple copies of a subsystem simultaneously in a manner that avoids conflicts between them:
+
+> 
+
+ As previously described, ROS is able to instantiate a cluster of nodes with a single command, once the cluster is described in an XML file. However, sometimes multiple instantiations of a cluster are desired. For example, in multi-robot experiments, a navigation stack will be needed for each robot in the system, and robots with humanoid torsos will likely need to instantiate two identical arm controllers. ROS supports this by allowing nodes and entire roslaunch cluster-description files to be pushed into a child namespace, thus ensuring that there can be no name collisions. Essentially, this prepends a string (the namespace) to all node, topic, and service names, without requiring any modification to the code of the node or cluster.
+
+(We address a similar issue when doing label-based routing).
+
+ROS has its own package management system as well, to support collaborative development across many teams of researchers.
+
+## Logging, Monitoring, Visualization
+
+Figuring out what's going on, unsuprisingly, becomes a key issue for robotics systems just as it is with distributed systems (and microservices architectures) in general.
+
+> 
+
+ While designing and debugging robotics software, it often becomes necessary to observe some state while the system is running. Although printf is a familiar technique for debugging programs on a single machine, this technique can be difficult to extend to large-scale distributed systems, and can become unwieldly for general-purpose monitoring. Instead, ROS can exploit the dynamic nature of the connectivity graph to “tap into” any message stream on system. Furthermore, the decoupling between publishers and subscribers allows for the creation of general-purpose visualizers. Simple programs can be written which subscribe to a particular topic name and plot a particular type of data, such as laser scans or images. However, a more powerful concept is a visualization program which uses a plugin architecture: this is done in the rviz program, which is distributed with ROS.
+
+## Stream processing (the Transformation Framework)
+
+> 
+
+ Robotic systems often need to track spatial relationships for a variety of reasons: between a mobile robot and some fixed frame of reference for localization, between the various sensor frames and manipulator frames, or to place frames on target objects for control purposes. To simplify and unify the treatment of spatial frames, a transformation system has been written for ROS, called tf. The tf system constructs a dynamic transformation tree which relates all frames of reference in the system. As information streams in from the various subsystems of the robot (joint encoders, localization algorithms, etc.), the tf system can produce streams of transformations between nodes on the tree by constructing a path between the desired nodes and performing the necessary calculations.
+
+The examples are more interesting than processing a twitter stream :) :
+
+> 
+
+ For example, the tf system can be used to easily generate point clouds in a stationary “map” frame from laser scans received by a tilting laser scanner on a moving robot. As another example, consider a two-armed robot: the tf system can stream the transformation from a wrist camera on one robotic arm to the moving tool tip of the second arm of the robot. These types of computations can be tedious, error- prone, and difficult to debug when coded by hand, but the tf implementation, combined with the dynamic messaging infrastructure of ROS, allows for an automated, systematic approach.
+
+## ROS today
+
+The home of ROS is http://ros.org. There you'll find an overview of the current core components as well as a collection of testimonials from people building on ROS. There's plenty more good material at ROSCon too.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Robotics 
+ 
+ Robotics 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousSymmetry Reduction Enables Model Checking of More Complex Emerging Behaviours of Swarm Navigation AlgorithmsNext &rsaquo;Human-Robot Teaming for Rescue Missions: Team ViGIR's Approach to the 2013 DARPA Robotics Challenge Trials
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;ROS: An open-source Robot Operating System&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Human-Robot Teaming for Rescue Missions: Team ViGIR's Approach to the 2013 DARPA Robotics Challenge Trials | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Loading Comments...
+ 
+ 
+ 
+ 
+
+ 
+ 
+ Write a Comment...
+ 
+ 
+ 
+ 
+ Email (Required)
+ 
+ 
+ 
+ Name (Required)
+ 
+ 
+ 
+ Website
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ %d

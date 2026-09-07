@@ -1,0 +1,274 @@
+URL: https://blog.acolyer.org/2019/01/30/veritas-shared-verifiable-databases-and-tables-in-the-cloud/
+Title: Veritas: shared verifiable databases and tables in the&nbsp;cloud
+---
+
+Veritas: shared verifiable databases and tables in the cloud Allen et al., CIDR'19
+
+Two (or more) parties want to transact based on the sharing of information (e.g. current offers). In order to have trust in the system and provide a foundation for resolving disputes, we’d like a tamperproof and immutable audit log of all shared data and actions, such that an independent auditor can reconstruct the state of the system at any point in time.
+
+Enter the blockchain?! Not so fast say Allen et al., blockchain technology as we know it today is ‘one step forward, two steps back’ ;).
+
+> 
+
+ Today, for gaining immutability and auditability with new blockchain platforms, we give up decades of research in data management— and hardened, enterprise-ready code that implements these ideas.
+
+We’d still like to be able to use SQL for example. We want transaction throughput much closer to a traditional database, and we want to take advantage of query optimisation and sophisticated query processing engines. We could try adding database like features to blockchain systems, but that looks to be a long road:
+
+> 
+
+ There are now a gazillion start-ups that are adding these basic database features to blockchains, but it will take years if not decades to catch up.
+
+How about trying it the other way round then? Start with a mature database system, and add a sprinkling of blockchain?
+
+> 
+
+ Instead of adding database capabilities to blockchains, we propose to address the problem from the opposite approach: we add trust and auditability to existing database management systems.
+
+The key notions in the paper are verifiable databases and verifiable tables. A verifiable database has all the features of a regular database, but in addition it supports tamper-evident collaboration across mutually untrusted entities.
+
+The idea of a shared verifiable table goes one step further: integrating a special table directly into the existing databases of the transacting parties. The same instance of the table is visible to all parties, and all activities are written to a tamper-proof log. There is an N:1 relationship between shared tables and tamper-proof logs.
+
+Verifiable databases (and tables) provide a set of cryptographic guarantees:
+
+- each party can verify the actions (updates) of all other parties and provide proof of its own actions
+
+- all parties can verify that the state of the shared database (or table) and its responses to queries is consistent with the prior actions of legitimate actors
+
+- unauthorized parties (hackers or operators with administrative privileges) cannot tamper with the state of the verifiable database (table) without being detected by the verification mechanism
+
+So we’re looking at a permissioned system supporting a set of verifiers. The assumption in this work is that verifiers have access to the full log. Confidentiality is an orthogonal concern that could be addressed by frameworks such as Coco, Quorum, Spice, or [Corda](https://www.corda.net/.
+
+## Introducing Veritas*
+
+(* Yes, that’s a very confusing name that I don’t think has anything to do with Veritas the data management company).
+
+If we want to retain database-like throughput and latency then we can’t write everything into a blockchain. So instead we need to use the blockchain as the anchor of trust.
+
+At a high level, we’ll let verifiers verify the log produced by the database and then write their votes into the blockchain. Instead of acknowledging each log record individually, they can further reduce blockchain writes by batching - essentially recording the high-watermark of the log position to which they have verified. With the votes of the verifiers and a copy of the original log all parties can reconcile the history using a protocol called ‘Caesar Consensus’ first devised for Volt.
+
+To avoid the overhead of shipping logs to the verifiers, one interesting option is to run a secure enclave alongside the database that performs verification, and just have all of the verifiers attest to the integrity of the trusted execution environment as it starts up.
+
+In terms of the content of the log itself, Veritas opts for a fine-grained log with the verifier checking every record that is read or created as an intermediary or final query result. This makes the verifier simpler, giving it a lower TCB and footprint.
+
+> 
+
+ The verifier of the Concerto key-value store which is the design we adopted for Veritas, for instance, is composed of two simple AES blocks implemented in an FPGA and provably verifies the effects of a key-value store with hundreds of thousands of lines of code. It is also fully streaming and only keeps a few hashes as internal state.
+
+Veritas also uses deferred verification (that is, transaction commit is not dependent on successful verification). The interesting argument is that online verification would give no stronger guarantees of malicious behaviour detection since even in the online case transaction failure could be forced by other changes outside of the transaction environment - e.g. by an earlier change that causes an integrity constraint to be violated. In this instance just rolling back the transaction in question would not be enough.
+
+So far we’ve been talking about verifiable databases. Verifiable tables are a way to integrate data from a shared, verifiable database into a local database.
+
+> 
+
+ Conceptually, the big difference between verifiable databases and verifiable tables is concurrency control. Concurrency control is centralized in a verifiable database and implemented in the same way as in any traditional database system... In contrast, concurrency control is fundamentally distributed in a system that supports shared, verifiable tables.
+
+The Veritas prototype happens to use a distributed transaction scheme based on a centralised ordering service, but any suitable scheme could be plugged in here.
+
+## Evaluation
+
+The Veritas prototype is ~1,500 lines of C# code. The evaluation is focused on exploring verification overheads as a function of the number of nodes in the system. Experiments use the YCSB benchmark and a single shared table with one million transactions evenly distributed across all nodes. Three different workloads are used. Workload A is an update-heavy workload. Workload B is read-heavy, and workload C is read-only.
+
+The following chart shows throughput for each workload as we vary the number of nodes:
+
+It’s a good news, bad news story:
+
+> 
+
+ ...even for read-only workloads (C), the best case for the optimistic concurrency control scheme currently implemented in Veritas, the overhead is substantial. Nevertheless, Figure 8 (above) also shows that the overhead is not catastrophic; even with the simple scheme currently used in Veritas it is possible to achieve tens of thousands of transactions per second.
+
+When we hold the number of nodes at 4, and vary the database size we can explore the relative impact of concurrency control and verification. (Smaller databases sizes lead to a greater number of conflicts).
+
+> 
+
+ ... verification and distributed concurrency control has a price... but the bottlenecks of a database system that uses verification (and distributed trust) are the same as the bottlenecks of a traditional database system.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ BlockchainDatastores 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousThe case for network-accelerated query processingNext &rsaquo;Fixed it for you: protocol repair using lineage graphs
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,323 @@
+URL: https://blog.acolyer.org/2015/09/11/jupiter-rising-a-decade-of-clos-topologies-and-centralized-control-in-googles-datacenter-network/
+Title: Jupiter Rising: A Decade of Clos Topologies and Centralized Control in Google&#8217;s Datacenter&nbsp;Network
+---
+
+Jupiter Rising: A Decade of Clos Topologies and Centralized Control in Google's Datacenter Network - Singh et. al (Google) 2015
+
+Let's end the week with something completely different: a look at ten years and five generations of networking within Google's datacenters.
+
+Bandwidth demands within the datacenter are doubling every 12-15 months, even faster than the wide-area internet. At Google, these demands are driven by a combination of remote storage access, large-scale data processing, and interactive web services. Even 10 years ago, the cost and complexity of traditional network architectures in Google's datacenters was prohibitive. The high-end commercially available solutions were derivatives of WAN technology with a complex feature set not required within the datacenter.
+
+> 
+
+ Inspired by the community’s ability to scale out computing with parallel arrays of commodity servers, we sought a similar approach for networking. This paper describes our experience with building five generations of custom data center network hardware and software leveraging commodity hardware components, while addressing the control and management requirements introduced by our approach.
+
+The networks were built around three core principles:
+
+- Clos topologies - these can scale to nearly abitrary size and have substantial in-built path diversity and redundancy so that the failure of any individual element results in relatively small capacity reduction. 
+
+- Merchant silicon - commodity priced off-the-shelf switching components rather than commercial switches.
+
+- Centralized control protocols - Clos topologies dramatically increase the number of switching elements, which stresses existing routing and management protocols. Within the datacenter, there is a statically configured topology. Dynamically changing link state relative to this is obtained from a central dynamically elected point in the network. 
+
+> 
+
+ Overall, our software architecture more closely resembles control in large-scale storage and compute platforms than traditional networking protocols. Network protocols typically use soft state based on pair-wise message exchange, emphasizing local autonomy. We were able to use the distinguishing characteristics and needs of our datacenter deployments to simplify control and management protocols...
+
+It's interesting to consider the bifurcation of networking needs here. At the datacenter level, to address the required scale, we need to exploit the fact that the topology is relatively static. Meanwhile, if you look at the applications that are deployed on top (e.g. in a public cloud setting), we have a very dynamic topology with constant change requiring flexible SDN approaches.
+
+At Google, the demand is to run large clusters, which spreads load, improves scheduling, and reduces failure exposure.
+
+> 
+
+ Running storage across a cluster requires both rack and power diversity to avoid correlated failures. Hence, cluster data should be spread across the cluster’s failure domains for resilience. However, such spreading naturally eliminates locality and drives the need for uniform bandwidth across the cluster.
+
+Google's first attempt at building a cluster network, Firehose 1.0, failed to go into production and was a great success! It's a sign of maturity in the organisation that both can be true at the same time:
+
+> 
+
+ ...we consider FH1.0 to be a landmark effort internally. Without it and the associated learning, the efforts that followed would not have been possible.
+
+Whereas Firehose 1.0 used regular servers to house switch chips. Firehose 1.1 switched to custom enclosures and a dedicated Single Board Computer to control the linecards. The 14m length restriction of the copper interconnect cables proved to be a significant challenge in deployment. So Google collaborated with vendors to develop a custom Electrical/Optical/Electrical interconnect cable that could span 100m and was less bulky. Firehose 1.1 made it into production!
+
+The third generation cluster fabric was called Watchtower.
+
+> 
+
+ The key idea was to leverage the next-generation merchant silicon switchchips, 16x10G, to build a traditional switch chassis with a backplane.
+
+The larger bandwidth density of the switching silicon supported larger fabrics with more bandwidth to individual servers, "a necessity as servers were employing an ever increasing number of cores." The cabling complexity was also further reduced in this iteration by using fibre bundling. This had the added benefit of being more cost effective too:
+
+> 
+
+ ... manufacturing fiber in bundles is more cost effective than individual strands. Cable bundling helped reduce fiber cost (capex + opex) by nearly 40% and expedited bringup of Watchtower fabric by multiple weeks
+
+Although Watchtower fabrics were substantially cheaper than anything available for purchase, and could handle greater scale, the absolute cost was still significant. The dominant cost factor was the optics and associated fibre.
+
+> 
+
+ Hence, we enabled Watchtower fabrics to support depopulated deployment, where we initially deployed only 50% of the maximum bisection bandwidth. Importantly, as the bandwidth demands of a depop cluster grew, we could fully populate it to 100% bisection in place.
+
+The fourth generation cluster fabric was Saturn. "The principal goals were to respond to continued increases in server bandwidth demands and to further increase maximum cluster scale. Saturn was
+
+built from 24x10G merchant silicon building blocks."
+
+And so we arrive at Jupiter, which needed to scale to 6x the size of the largest previously deployed fabric.
+
+> 
+
+ As bandwidth requirements per server continued to grow, so did the need for uniform bandwidth across all clusters in the datacenter. With the advent of dense 40G capable merchant silicon, we could consider expanding our Clos fabric across the entire datacenter subsuming the inter-cluster networking layer. This would potentially enable an unprecedented pool of compute and storage for application scheduling. Critically, the unit of maintenance could be kept small enough relative to the size of the fabric that most applications could now be agnostic to network maintenance windows unlike previous generations of the network.
+
+From Watchtower onwards, the cluster fabric was connected directly to the inter-cluster networking layer with Cluster Border Routers (CBRs).
+
+> 
+
+ As a rule of thumb, we allocated 10% of aggregate intra-cluster bandwidth for external connectivity using one to three aggregation blocks. These aggregation blocks were physically and topologically identical to those used for ToR connectivity. However, we reallocated the ports normally employed for ToR connectivity to connect to external fabrics. We configured parallel links between each CBR switch in these blocks and an external switch as Link Aggregation Groups (LAGs) or trunks. We used standard external BGP (eBGP) routing between the CBRs and the inter-cluster networking switches. CBR switches learned the default route via BGP from the external peers and redistributed the route through Firepath, our intra-cluster IGP protocol .
+
+Vendor-based inter-cluster switching was then replaced with Freedome: "we employed the BGP capability we developed in our cluster routers to build two-stage fabrics that could speak BGP at both the inter cluster and intra campus connectivity layers."
+
+Google built their own control plane to manage the network hardware.
+
+> 
+
+ We chose to build our own control plane for a number of reasons. First, and most important, existing routing protocols did not at the time have good support for multipath, equal-cost forwarding. Second, there were no high quality open source routing stacks a decade ago. Further, it was a substantial amount of work to modify our hardware switch stack to tunnel control-protocol packets running inline between hardware line cards to protocol processes. Third, we were concerned about the protocol overhead of running broadcast-based routing protocols across fabrics of the scale we were targeting with hundreds or even thousands of switching elements.
+
+Inspired by the success of the Google File System with its centralized manager, the networking team adopted a similar design, exploiting the fact that the topology was relatively static. This appeared to be "substantially cheaper and more efficient."
+
+> 
+
+ Overall, we treated the datacenter network as a single fabric with tens of thousands of ports rather than a collection of hundreds of autonomous switches that had to dynamically discover information about the fabric.
+
+There's a nice lesson about expecting failure when you do anything at scale here too:
+
+> 
+
+ Building a fabric with thousands of cables invariably leads to multiple cabling errors. Moreover, correctly cabled links may be re-connected incorrectly after maintenance such as linecard replacement. Allowing traffic to use a miscabled link can lead to forwarding loops. Links that fail unidirectionally or develop high packet error rates should also be avoided and scheduled for replacement. To address these issues, we developed Neighbor Discovery (ND), an online liveness and peer correctness checking protocol.
+
+Simplicity and reproducibility of cluster deployments was favoured over flexibility. A configuration system generates all the needed artefacts for a deployment:
+
+> 
+
+ The configuration system is a pipeline that accepts a specification of basic cluster-level parameters such as the size of the spine, base IP prefix of the cluster and the list of ToRs and their rack indexes. It then generates a set of output files for various operations groups: i) a simplified bill of materials for supply chain operations; ii) rack layout details, cable bundling and port mapping for datacenter operations; iii) CPN design and switch addressing details (e.g., DNS) for network operations; iv) updates to network and monitoring databases and systems; v) a common fabric configuration file for the switches; and vi) summary data to feed graphical views to audit the logical topology and cluster specifications.
+
+Switch management was designed to integrate with the existing server management infrastructure, with network switches essentially looking like regular machines to the rest of the fleet.
+
+There are many more details in the paper than I have space to cover here. I will leave you with the authors' conclusions:
+
+> 
+
+ This paper presents a retrospective on ten years and five generations of production datacenter networks. We employed complementary techniques to deliver more bandwidth to larger clusters than would otherwise be possible at any cost. We built multi-stage Clos topologies from bandwidth-dense but feature-limited merchant switch silicon. Existing routing protocols were not easily adapted to Clos topologies. We departed from conventional wisdom to build a centralized route controller that leveraged global configuration of a pre-defined cluster plan pushed to every datacenter switch. This centralized control extended to our management infrastructure, enabling us to eschew complex protocols in favor of best practices from managing the server fleet. Our approach has enabled us to deliver substantial bisection bandwidth for building-scale fabrics, all with significant application benefit.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Networking 
+ 
+ GoogleNetworking 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousOut of the Fire Swamp - Part III, Go with the flow.Next &rsaquo;Fast Database Restarts at Facebook
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;Jupiter Rising: A Decade of Clos Topologies and Centralized Control in Google's Datacenter Network&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Understanding lifecycle management complexity of datacenter topologies | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

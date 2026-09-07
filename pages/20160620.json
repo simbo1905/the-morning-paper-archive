@@ -1,0 +1,42 @@
+{
+  "date": "20160620",
+  "file_name": "20160620",
+  "slug": "multi-context-tls-mctls-enabling-secure-in-network-functionality-in-tls",
+  "blog_url": "https://blog.acolyer.org/2016/06/20/multi-context-tls-mctls-enabling-secure-in-network-functionality-in-tls/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the tension between the growing adoption of HTTPS and the need for middleboxes (e.g., caches, IDS, WAN optimizers) in enterprise networks. Traditional approaches like Split TLS are flawed because they break end-to-end security guarantees, leaving clients unaware of middlebox presence and granting them unrestricted access to decrypted data. The paper proposes mcTLS (Multi-Context TLS) as a principled solution, enabling explicit, secure middlebox integration into TLS sessions. mcTLS divides data into contexts (e.g., headers, body) with granular access controls (no access, read-only, read-write) for middleboxes, ensuring endpoints retain visibility and control. The protocol introduces encryption contexts and contributory keys to authenticate middleboxes and enforce minimal access permissions, upholding TLS security properties while adding middlebox transparency and accountability. Colyer emphasizes mcTLS's pragmatic approach to reconciling end-to-end encryption with real-world network functionality needs.",
+  "paper_title": "Multi-Context TLS (mcTLS): Enabling secure in-network functionality in TLS",
+  "paper_authors": [
+    "David Naylor",
+    "Peter Steenkiste",
+    "Phillipa Gill"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SIGCOMM",
+  "paper_url": "http://conferences.sigcomm.org/sigcomm/2015/pdf/papers/p199.pdf",
+  "paper_abstract": "1. A significant fraction of Internet traffic is now encrypted and HTTPS will likely be the default in HTTP/2. However, Transport Layer Security (TLS), the standard protocol for encryption in the Internet, assumes that all functionality resides at the endpoints, making it impossible to use in-network services that optimize network resource usage, improve user experience, and protect clients and servers from security threats. Re-introducing in-network functionality into TLS sessions today is done through hacks, often weakening overall security. In this paper we introduce multi-context TLS (mcTLS), which extends TLS to support middleboxes. mcTLS breaks the current “all-or-nothing” security model by allowing endpoints and content providers to explicitly introduce middleboxes in secure end-to-end sessions while controlling which parts of the data they can read or write. We evaluate a prototype mcTLS implementation in both controlled and “live” experiments, showing that its benefits come at the cost of minimal overhead. More importantly, we show that mcTLS can be incrementally deployed and requires only small changes to client, server, and middlebox software. The increased personalization of Internet services and rising concern over users’ privacy on the Internet has led to a number of services (e.g., Facebook, Twitter, and Google) offering access solely over HTTPS. HTTPS currently accounts for a significant portion of all Internet traffic (40% in [26], and estimated to grow at 40% every 6 months [27]). Transport Layer Security (TLS), which underlies HTTPS, has become the standard for end-to-end encryption on the web because it ensures (i) entity authentication, (ii) data secrecy, and (iii) data integrity and authentication. Moreover, it will likely be the default transport protocol for HTTP/2. This is good news for privacy. However, TLS makes a fundamental assumption: all functionality must reside at the endpoints. In reality, Internet sessions are augmented by function...",
+  "paper_file": "papers/2016/06/20/multi-context-tls-mctls-enabling-secure-in-network-functionality-in-tls.pdf",
+  "topics": [
+    "networking",
+    "security",
+    "distributed-systems"
+  ],
+  "tags": [
+    "tls",
+    "middleboxes",
+    "encryption-contexts",
+    "end-to-end-security",
+    "network-functionality",
+    "key-distribution",
+    "access-control"
+  ],
+  "figures": [
+    {
+      "number": "Table 1",
+      "title": "Examples of app-layer middleboxes and their permissions",
+      "caption": "Examples of app-layer middleboxes and the permissions they need for HTTP. No middlebox needs read/write access to all of the data."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,40 @@
+{
+  "date": "20160630",
+  "file_name": "20160630",
+  "slug": "incorporating-a-copying-mechanism-in-sequence-to-sequence-learning",
+  "blog_url": "https://blog.acolyer.org/2016/06/30/incorporating-a-copying-mechanism-in-sequence-to-sequence-learning/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the CopyNet paper, which introduces a 'copying mechanism' to improve sequence-to-sequence (Seq2Seq) models, making them more natural by mimicking human conversation where input subsequences are repeated in responses. The key insight is combining a generate mode (standard Seq2Seq) with a copy mode (selectively copying segments from the input) to handle out-of-vocabulary (OOV) words like entity names. CopyNet builds on Bahdanau et al.'s attention mechanism, which addresses the limitation of fixed-length encodings in long sentences by using a bi-directional RNN and adaptive attention over source sequences. The paper demonstrates CopyNet's effectiveness in synthetic tasks, text summarization (where it outperforms competitors), and dialogue systems, particularly in replicating critical input segments and generating coherent responses.",
+  "paper_title": "Incorporating Copying Mechanism in Sequence to Sequence Learning",
+  "paper_authors": [
+    "Yonghui Wu",
+    "Yingce Xia",
+    "Tao Qin",
+    "Tie-Yan Liu"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "ICLR 2016",
+  "paper_url": "https://arxiv.org/pdf/1603.06393v3.pdf",
+  "paper_abstract": "arXiv:1603.06393v3 [cs.CL] 8 Jun 2016 We address an important problem in sequence-to-sequence (Seq2Seq) learning referred to as copying, in which certain segments in the input sequence are selectively replicated in the output sequence. A similar phenomenon is observable in human language communication. For example, humans tend to repeat entity names or even long phrases in conversation. The challenge with regard to copying in Seq2Seq is that new machinery is needed to decide when to perform the operation. In this paper, we incorporate copying into neural networkbased Seq2Seq learning and propose a new model called C OPY N ET with encoderdecoder structure. C OPY N ET can nicely integrate the regular way of word generation in the decoder with the new copying mechanism which can choose subsequences in the input sequence and put them at proper places in the output sequence. Our empirical study on both synthetic data sets and real world data sets demonstrates the efficacy of C OPY N ET. For example, C OPY N ET can outperform regular RNN-based model with remarkable margins on text summarization tasks.",
+  "paper_file": "papers/2016/06/30/incorporating-a-copying-mechanism-in-sequence-to-sequence-learning.pdf",
+  "topics": [
+    "machine-learning"
+  ],
+  "tags": [
+    "sequence-to-sequence",
+    "copying-mechanism",
+    "attention-mechanism",
+    "out-of-vocabulary",
+    "dialogue-systems",
+    "text-summarization"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Model overview of COPYNET",
+      "caption": "COPYNET is an encoder-decoder model with copying mechanism. The encoder is a bi-directional RNN that transforms the source sequence into hidden states (short-term memory M). The decoder generates the target sequence by either generating words from the vocabulary or copying segments from the input sequence."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

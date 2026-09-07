@@ -1,0 +1,40 @@
+{
+  "date": "20180227",
+  "file_name": "20180227",
+  "slug": "protocol-aware-recovery-for-consensus-based-storage",
+  "blog_url": "https://blog.acolyer.org/2018/02/27/protocol-aware-recovery-for-consensus-based-storage/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a critical oversight in the design of consensus-based storage systems like Raft and Paxos: they fail to account for storage faults and data corruptions, leading to data loss and unavailability. The paper demonstrates that most deployed systems lack protocol-aware recovery mechanisms, relying instead on naive strategies like crashing, truncating logs, or deleting data, which can exacerbate the problem. The authors propose CTRL (Corruption-Tolerant Replication), a protocol-aware recovery approach that extends the standard RSM fault model to include storage faults. CTRL ensures safety and high availability by reliably detecting faults locally (via CLStore) and recovering using redundant copies with RSM-specific knowledge. The solution addresses corruption in logs, snapshots, and metainfo, and introduces novel techniques like persistence records and chunked snapshots to disambiguate crashes from corruptions and enable granular recovery.",
+  "paper_title": "Protocol-Aware Recovery for Consensus-Based Storage",
+  "paper_authors": [
+    "Ramnatthan Alagappan",
+    "Aishwarya Ganesan",
+    "Eric Lee",
+    "Andrea C. Arpaci-Dusseau",
+    "Remzi H. Arpaci-Dusseau"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "FAST'18",
+  "paper_url": "https://www.usenix.org/conference/fast18/presentation/alagappan",
+  "paper_abstract": "We introduce protocol-aware recovery (PAR), a new approach that exploits protocol-specific knowledge to correctly recover from storage faults in distributed systems. We demonstrate the efficacy of PAR through the design and implementation of corruption-tolerant replication (C TRL), a PAR mechanism specific to replicated state machine (RSM) systems. We experimentally show that the C TRL versions of two systems, LogCabin and ZooKeeper, safely recover from storage faults and provide high availability, while the unmodified versions can lose data or become unavailable. We also show that the C TRL versions have little performance overhead.",
+  "paper_file": "papers/2018/02/27/protocol-aware-recovery-for-consensus-based-storage.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "consensus-protocols",
+    "raft",
+    "paxos",
+    "replicated-state-machines",
+    "storage-faults",
+    "data-corruption",
+    "recovery",
+    "crash-consistency",
+    "protocol-aware-recovery",
+    "ctr"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

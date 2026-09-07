@@ -1,0 +1,259 @@
+URL: https://blog.acolyer.org/2015/08/28/mining-and-summarizing-customer-reviews/
+Title: Mining and Summarizing Customer&nbsp;Reviews
+---
+
+Mining and Summarizing Customer Reviews - Hu and Liu 2004
+
+This is the third of the three 'test-of-time' award winners from KDD'15. From the awards page:
+
+> 
+
+ The paper introduces the problem of summarizing customer reviews and decomposes the problem into the three steps of (1) mining product features (aspects), (2) identifying opinion sentences and their corresponding feature in each review and (3) summarizing the results. The paper has inspired the new research direction of Aspect-Based Sentiment Analysis/Aspect-Based Opinion Mining, and the proposed framework has been widely adopted in research and applications, as seen from the very large number of citations.
+
+The goal is to mine an existing corpus of product reviews and produce summaries of the form:
+
+Digital Camera XYZ:
+ Feature: Picture Quality
+ Positive: 253
+ "Overall this is a good camera with a really good picture clarity"
+ ... other review sentences
+ Negative: 6
+ "The pictures come out hazy if your hands shake even for a moment
+ during the entire process of taking a picture"
+ ... other review sentences
+ Feature: Size
+ Positive: 134
+ ... review sentences
+ Negative: 10
+ ... review sentences
+
+After crawling reviews, the first step in the process is Part-of-Speech (POS) tagging to indicate whether words are nouns, verbs, adverbs, adjectives and so on. Product features are usually nouns or noun-phrases. Some pre-processing of words (removal of stop words, stemming, and fuzzy matching to deal with word variants and misspellings) is also performed.
+
+Next comes feature extraction from sentences.
+
+> 
+
+ Since our system aims to find what people like and dislike about a given product, how to find the product features that people talk about is the crucial step. However, due to the difficulty of natural language understanding, some types of sentences are hard to deal with.
+
+"The pictures are very clear" is an example of an 'easy' sentence (clearly about pictures), but the sentence "while light, it will not easily fit in pockets" is about the product features of size and weight, but nowhere is 'size' mentioned in the sentence. For the time being, the authors choose to ignore this latter kind of sentence and focus on those where features appear explicitly in nouns and noun phrases.
+
+Association mining is then used to find frequent features - those talked about by many customers.
+
+> 
+
+ The main reason for using association mining is because of the following observation. It is common that a customer review contains many things that are not directly related to product features. Different customers usually have different stories. However, when they comment on product features, the words that they use converge. Thus using association mining to find frequent itemsets is appropriate because those frequent itemsets are likely to be product features. Those noun/noun phrases that are infrequent are likely to be non-product features.
+
+The candidate frequent itemsets are the pruned. Itemsets are simply groups of words that occur together, but order matters so compactness pruning removes candidate features whose words do not appear in a specific order. Redundancy pruning removes redundant features that contain single words:
+
+> 
+
+ To describe the meaning of redundant features, we use the concept of p-support (pure support). p-support of feature ftr is the number of sentences that ftr appears in as a noun or noun phrase, and these sentences must contain no feature phrase that is a superset of ftr. We use a minimum p-support value to prune those redundant features. If a feature has a p-support lower than the minimum p-support (in our system, we set it to 3) and the feature is a subset of another feature phrase (which suggests that the feature alone may not be interesting), it is pruned. For instance, 'life' by itself is not a useful feature while 'battery life' is a meaningful feature phrase.
+
+The next stage is to identify opinion words and their sentiments. From the POS tagging, we know that adjectives are likely to be opinion words. Sentences with one or more product features and one or more opinion words are opinion sentences. For each feature in the sentence, the nearest opinion word is recorded as the effective opinion of the feature in the sentence.
+
+To predict the semantic orientation of adjectives (whether they are positive or negative), the authors use the adjective synonym and antonym sets in WordNet.
+
+> 
+
+ In general, adjectives share the same orientation as their synonyms and opposite orientations as their antonyms. We use this idea to predict the orientation of an adjective. To do this, the synset of the given adjective and the antonym set are searched. If a synonym/antonym has known orientation, then the orientation of the given adjective could be set correspondingly. As the synset of an adjective always contains a sense that links to head synset, the search range is rather large. Given enough seed adjectives with known orientations, we can almost predict the orientations of all the adjective words in the review collection. Thus, our strategy is to use a set of seed adjectives, which we know their orientations and then grow this set by searching in the WordNet. To have a reasonably broad range of adjectives, we first manually come up a set of very common adjectives (in our experiment, we used 30) as the seed list, e.g. positive adjectives: great, fantastic, nice, cool and negative adjectives: bad, dull.
+
+Some sentences may contain opinion words, but no product features identified through the associated mining step. For these sentences, the noun is found and added as an 'infrequent feature.' The number of these ends up being relatively small (about 15-20% of the total feature set).
+
+Given sentences with product feature(s) and opinion word(s) the dominant orientation of the opinion words in the sentence is used to determine the orientation of the sentence.
+
+> 
+
+ In the case where there is the same number of positive and negative opinion words in the sentence, we predict the orientation using the average orientation of effective opinions or the orientation of the previous opinion sentence (recall that effective opinion is the closest opinion word for a feature in an opinion sentence). This is an effective method as our experimental results show.
+
+Now all that remains is to generated the final feature based review summary: for each discovered feature related opinion sentences are put into positive and negative categories, and features are ranked by their frequency of their appearance in the reviews.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Machine Learning 
+ 
+ AI 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousOptimizing Search Engines using Clickthrough DataNext &rsaquo;Probabilistically Bounded Staleness for Practical Partial Quorums
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

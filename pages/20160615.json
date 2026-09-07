@@ -1,0 +1,41 @@
+{
+  "date": "20160615",
+  "file_name": "20160615",
+  "slug": "ix-a-protected-dataplane-operating-system-for-high-throughput-and-low-latency",
+  "blog_url": "https://blog.acolyer.org/2016/06/15/ix-a-protected-dataplane-operating-system-for-high-throughput-and-low-latency/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights IX as a novel operating system design that splits the OS into a control plane and data plane for networking, similar to Arrakis but with a focus on software-controlled network I/O policy enforcement. The paper addresses four key challenges in data center applications: microsecond tail latency, high packet rates under concurrent connections, application isolation, and resource efficiency. IX draws inspiration from middleboxes to achieve microsecond latency and high packet rates, introducing principles like separation of control/data planes, run-to-completion with adaptive batching, zero-copy API, and synchronization-free processing. The design leverages modern virtualization hardware for isolation and uses flow-consistent hashing to avoid synchronization overheads. The evaluation shows IX outperforming Linux and mTCP in throughput, scalability, and latency, achieving line rate on a 10GbE link with fewer cores.",
+  "paper_title": "IX: A Protected Dataplane Operating System for High Throughput and Low Latency",
+  "paper_authors": [
+    "Simon Peter",
+    "Jialin Li",
+    "Sylvia Ratnasamy",
+    "Scott Shenker",
+    "Ion Stoica"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/conference/osdi14/technical-sessions/presentation/belay",
+  "paper_abstract": "The conventional wisdom is that aggressive networking requirements, such as high packet rates for small messages and microsecond-scale tail latency, are best addressed outside the kernel, in a user-level networking stack. We present IX, a dataplane operating system that provides high I/O performance, while maintaining the key advantage of strong protection offered by existing kernels. IX uses hardware virtualization to separate management and scheduling functions of the kernel (control plane) from network processing (dataplane). The dataplane architecture builds upon a native, zero-copy API and optimizes for both bandwidth and latency by dedicating hardware threads and networking queues to dataplane instances, processing bounded batches of packets to completion, and by eliminating coherence traffic and multi-core synchronization. We demonstrate that IX outperforms Linux and state-of-the-art, user-space network stacks significantly in both throughput and end-to-end latency. Moreover, IX improves the throughput of a widely deployed, key-value store by up to 3.6× and reduces tail latency by more than 2×.",
+  "paper_file": "papers/2016/06/15/ix-a-protected-dataplane-operating-system-for-high-throughput-and-low-latency.pdf",
+  "topics": [
+    "operating-systems",
+    "networking"
+  ],
+  "tags": [
+    "dataplane",
+    "control-plane",
+    "zero-copy",
+    "adaptive-batching",
+    "run-to-completion",
+    "flow-consistent-hashing",
+    "network-stack",
+    "isolation",
+    "virtualization",
+    "tail-latency",
+    "high-throughput"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

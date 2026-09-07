@@ -1,0 +1,296 @@
+URL: https://blog.acolyer.org/2016/02/18/ownership-and-reference-counting-based-garbage-collection-in-the-actor-world/
+Title: Ownership and Reference Counting Based Garbage Collection in the Actor&nbsp;World
+---
+
+Ownership and Reference Counting Based Garbage Collection in the Actor World - Clebsch et al. 2015
+
+Yesterday we looked at the reference capability based type system of the Pony language. Pony is a safe (data race free), fast actor language. Today we're looking at another aspect of how Pony achieves its speed and clean programming model: the Pony-ORCA fully concurrent garbage collection algorithm designed explicitly for actors. Pony-ORCA is of course implemented in the Pony language, but the algorithm applies to any actor based language that meets two criteria: (i) actor behaviours are atomic, and (ii) message delivery is causal.
+
+> 
+
+ We employ the locality found in actors, and the implicit synchronisation afforded by the actor messaging system, to develop a fully concurrent garbage collection algorithm. Pony-ORCA allows the fully concurrent garbage collection of objects as well as actors. In particular:
+
+- An actor may perform garbage collection concurrently with other actors while they are executing any kind of behaviour.
+
+- An actor may decide whether to garbage collect an object solely based on its own local state, without consultation with, or inspecting the state of, any other actor.
+
+- No synchronization between actors is required during garbage collection, other than potential message sends.
+
+- An actor may garbage collect between its normal behaviours,i.e. it need not wait until its message queue is empty.
+
+Pony-ORCA contributes to the excellent runtime performance of Pony as benchmarked against Erlang, Scala/Akka, and others as we saw yesterday.
+
+The Pony type system that we looked at yesterday helps to ensure the absence of race conditions during tracing and gc:
+
+> 
+
+ To ensure the absence of race conditions we need to be certain that tracing and garbage collection in one actor cannot interfere with tracing, garbage collection, or normal behaviour in another actor. We guarantee this through the type system of the underlying language, which ensures that whenever an actor has a readable path to an object, no other actor can write to it. Therefore, by creating a different tracing function for each class according to the read capabilities of each of the fields in that class, we ensure that tracing does not interfere with any other actor’s activity. And since garbage collection only removes globally unreachable actors or objects, we also ensure that garbage collection does not interfere with any other actor’s activity.
+
+The overall approach reminds me of the Chandy-Lamport distributed snapshot algorithm considerations - we have to take into account not only the state at each actor (process in C-L), but also what is inflight in messages between actors (processes). At the core of the algorithm of course is a reference counting mechanism. Each actor keeps a reference count for the objects that it owns, and an actor can unilaterally decide to garbage collect an object that it owns if (a) the object is no longer reachable from the owning actor, and (b) the object's local reference count is zero. This all implies that the owners reference count for an object must also take in account references held in other actors or in enqueued messages being sent between actors.
+
+> 
+
+ For this reason, non-owning actors also hold (foreign) reference counts to objects. When an actor sends, receives, or drops a reference to an object it does not own, it sends protocol-specific messages to the owner. These protocol-specific messages result in the owner updating its (local) reference count.
+
+The system comprises a set of actors, each with a local heap, inbound message queue, and reference count table. In the paper notation actors are represent by &alpha;, objects by &omega; and both actors and objects can be uniquely identified by addresses, i. The reference count table (RC) maps addresses to counts. Let the local reference count for an address i be the reference count for i in its owning actor, and let the foreign reference count for i be the sum of all the reference counts for i in other actors. Messages may be application (Pony) level messages (e.g.. behaviour invocations) or Pony-ORCA increment and decrement (INC and DEC) messages. INC and DEC messages for an address i are only ever sent to the owner of i. When an actor receives an INC(i,k) message it increments the local reference count for i by k, and similarly decrements the count by k for a DEC message. The increment-decrement count for i is the sum of the increments and decrements for i in its owner's queue.
+
+There are a number of invariants that must be maintained (called well-formed conditions in the paper):
+
+- Every object is owned by an actor. An actor is owned by itself.
+
+- Reference counts are always &ge; 0.
+
+- If an object &omega; is in the heap of some actor &alpha;, then the owner of &omega;, &alpha;o, is also in the heap of &alpha; 
+
+- If there is a message in a queue containing an address i, then the local reference count for i (at i's owning actor) is > 0.
+
+- If some actor &alpha; can reach an address that it does not own, then both the owners local reference count and the &alpha;'s (foreign) reference count for that address are &ge; 0.
+
+- Let the application message count of i be the number of Pony messages that contain i, or addresses owned by or reachable from i. For all i, local reference count + increment-decrement count = foreign message count + application message count.
+
+- If we take any prefix of some actor's queue, then for all i, the sum of the local reference count of i and the increment-decrement count of i for that prefix, is greater than or equal to the number of application messages containing i in that same prefix of the queue. 
+
+The invariants are maintained as follows:
+
+- When an actor receives an INC(i,k) message it increments its local reference count for i by k
+
+- When an actor receives a DEC(i,k) message it decrements its local reference count for i by k
+
+- When an actor receives a Pony-level message containing i, then if it is the owner of i it decrements its local reference count for i by 1, and if it is not the owner of i then in increments its (foreign) reference count for i by 1.
+
+- When an actor &alpha; wants to send a Pony-level message containing i, then if i is not owned by &alpha; it first checks that its (foreign) reference count for i is > 1. If this is not the case, then the actor chooses some new value k &ge; 1, sets its foreign reference count for i to k+1, and sends an INC(i,k) message to the owner of i. (Choosing a k > 1 enables sending of multiple messages counting i without needing to send an INC message every time). Following this pre-flight check, the actor proceeds to send the Pony-level message. If it is the owner of i it increments its local reference count for i by 1, and if it is not the owner of i then it decrements its (foreign) reference count for i by 1. 
+
+Given a system that maintains the invariants, we can now describe how gc works...
+
+An object is collectable by an actor if three conditions are met:
+
+- The actor owns the object
+
+- The actor has no path leading to the object
+
+- The local reference count for the object is 0
+
+See the full paper for the argument as to why, if the invariants hold, these three conditions are sufficient. Note that this is a purely local decision with no need to consult any other actors or even the owning actors own queues.
+
+An actor is collectable if:
+
+- Its local reference count for itself is zero
+
+- Its queue is empty
+
+It remains to explain how an actor determines whether an object is reachable or not, and for those who have been paying attention, when DEC messages get sent!
+
+- All owned objects are marked unreachable.
+
+- All unowned objects with a foreign reference count greater than zero are marked as unreachable.
+
+- Tracing occurs from the actor’s fields only, marking objects reachable, whether they are owned or not.
+
+- All owned objects with a local reference count greater than zero are marked as reachable.
+
+- Owned objects that are locally unreachable and have a local reference count of zero collected.
+
+- Decrement messages are sent for unowned objects that are unreachable, and their foreign reference count is set to 0.
+
+A few interesting points of note:
+
+> 
+
+ Our approach only runs a GC pass on an actor when that actor is not executing a behaviour. As a result, GC only occurs when there is no stack. This means there is no requirement for a stack map or a stack crawler... The combination of having no stack when garbage collecting and garbage collecting each actor’s heap independently means safepoints are not required. Any actor can GC its own heap without waiting for a safepoint to be reached...
+
+And here's a nice mechanical sympathy detail:
+
+> 
+
+ We use a mark-and-don’t-sweep collector that keeps mark bits, rather than pointers, in the heap data structure. By moving the mark bit out of the object, object contents are never written to during GC, and unreachable objects are never traced. This minimises cache pollution, eliminates page misses on unreachable objects, and reduces the trace phase to O(reachable) rather than O(reachable +unreachable).
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Programming Languages 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousDeny Capabilities for Safe, Fast ActorsNext &rsaquo;Formal Requirements for Virtualizable Third Generation Architectures
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

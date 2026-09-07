@@ -1,0 +1,57 @@
+{
+  "date": "20160127",
+  "file_name": "20160127",
+  "slug": "petuum",
+  "blog_url": "https://blog.acolyer.org/2016/01/27/petuum/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Petuum as a novel distributed machine learning platform designed to handle massive models (billions of parameters) and datasets (terabytes/petabytes) efficiently. The key insight is leveraging the inherent properties of machine learning algorithms—iterative-convergent, error-tolerant, dynamic structure, and non-uniform convergence—to relax synchronization requirements and improve performance. Unlike traditional frameworks like Hadoop, Spark, or GraphLab, which enforce strict consistency (e.g., Bulk Synchronous Parallel), Petuum introduces the Stale Synchronous Parallel (SSP) model, allowing bounded staleness in parameter updates. This reduces communication overhead while maintaining provable correctness, enabling faster convergence and scalability. The blog emphasizes Petuum's ability to exploit ML-specific characteristics, such as dynamic load balancing and model partitioning, to outperform existing systems in both speed and model size.",
+  "paper_title": "Petuum: A New Platform for Distributed Machine Learning on Big Data",
+  "paper_authors": [
+    "Eric P. Xing",
+    "Qirong Ho",
+    "Zhiting Hu",
+    "Mauricio A. Hernandez",
+    "Linhui Sun",
+    "Biswajit Paria",
+    "Seunghak Lee",
+    "Xiaodan Liang",
+    "Donghan Yu",
+    "Yunjiang Jiang",
+    "Barry Liu",
+    "Jianwen Xie",
+    "Eugene Ie",
+    "Di Wang",
+    "Le Song",
+    "Stefan Lee",
+    "Ding Zhou"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "KDD '15",
+  "paper_url": "http://www.cs.cmu.edu/~./seunghak/petuum_kdd15.pdf",
+  "paper_abstract": "General Terms How can one build a distributed framework that allows efficient deployment of a wide spectrum of modern advanced machine learning (ML) programs for industrial-scale problems using Big Models (100s of billions of parameters) on Big Data (terabytes or petabytes)? Contemporary parallelization strategies employ fine-grained operations and scheduling beyond the classic bulk-synchronous processing paradigm popularized by MapReduce, or even specialized operators relying on graphical representations of ML programs. The variety of approaches tends to pull systems and algorithms design in different directions, and it remains difficult to find a universal platform applicable to a wide range of different ML programs at scale. We propose a general-purpose framework that systematically addresses data- and model-parallel challenges in large-scale ML, by leveraging several fundamental properties underlying ML programs that make them different from conventional operation-centric programs: error tolerance, dynamic structure, and nonuniform convergence; all stem from the optimization-centric nature shared in ML programs’ mathematical definitions, and the iterativeconvergent behavior of their algorithmic solutions. These properties present unique opportunities for an integrative system design, built on bounded-latency network synchronization and dynamic load-balancing scheduling, which is efficient, programmable, and enjoys provable correctness guarantees. We demonstrate how such a design in light of MLfirst principles leads to significant performance improvements versus well-known implementations of several ML programs, allowing them to run in much less time and at considerably larger model sizes, on modestly-sized computer clusters. Design, Theory, Algorithms, Experimentation, Performance",
+  "paper_file": "papers/2016/01/27/petuum.pdf",
+  "topics": [
+    "machine-learning",
+    "distributed-systems"
+  ],
+  "tags": [
+    "distributed-ml",
+    "stale-synchronous-parallel",
+    "SSP",
+    "model-parallelism",
+    "data-parallelism",
+    "iterative-convergent-algorithms",
+    "bounded-staleness",
+    "parameter-server",
+    "load-balancing"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "The scale of Big ML efforts in recent literature",
+      "caption": "The scale of Big ML efforts in recent literature. A key goal of Petuum is to enable larger ML models to be run on fewer resources, even relative to highly-specialized implementations."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

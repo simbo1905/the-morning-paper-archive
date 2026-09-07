@@ -1,0 +1,287 @@
+URL: https://blog.acolyer.org/2017/08/18/deep-photo-style-transfer/
+Title: Deep photo style&nbsp;transfer
+---
+
+Deep photo style transfer Luan et al., arXiv 2017
+
+Here's something a little fun for Friday: a collaboration between researchers at Cornell and Adobe, on photographic style transfer. Will we see something like this in a Photoshop of the future?
+
+In 2015 in the Neural Style Transfer paper ('A neural algorithm of artistic style'), Gatys et al. showed how deep networks could be used to generate stylised images from a texture example. And last year we looked at Texture networks, which showed how to achieve the same end with marginally lower quality, but much faster (it's the algorithm behind the Prisma app). For example:
+
+Neural Style Transfer has generated a lot of interest since the original Gatys paper, and in researching for this post I find a nice review paper summarising developments from Jing et al.: 'Neural Style Transfer: A Review.' Here you can find comparative results from a number of algorithms (see below):
+
+(Enlarge).
+
+The resulting images look like artwork (paintings), but they don't look like photographs. Instead of painterly style transfer, Luan et al., give us photographic style transfer.
+
+> 
+
+ Photographic style transfer is a long-standing problem that seeks to transfer the style of a reference style photo onto another input picture. For instance, by appropriately choosing the reference style photo, one can make the input picture look like it has been taken under a different illumination, time of day, or weather, or that it has been artistically retouched with a different intent.
+
+The following example illustrates the difference nicely. Here we see an input photo image, a reference style photo image, and the results of combining them with (a) Gatys et al., (b) CNNMRF, which tries to match patches between the input and the style image to minimise the chances of inaccurate transfer, and (c) Deep photo style transfer (this paper):
+
+(Enlarge so that you can explore the differences more closely).
+
+To obtain photorealistic results, Luan et al., had to overcome two key challenges: structure preservation and semantic accuracy.
+
+For structure preservation the challenge is to transfer style but without distorting edges and regular patterns - windows stay aligned on a grid for example. "Formally, we seek a transformation that can strongly affect image colors while having no geometric effect, i.e., nothing moves or distorts."
+
+Semantic accuracy and transfer faithfulness refers to mapping appropriate parts of the style and input images:
+
+> 
+
+ ...the transfer should respect the semantics of the scene. For instance, in a cityscape, the appearance of buildings should be matched to buildings, and sky to sky; it is not acceptable to make the sky look like a building.
+
+## How it works (high level overview)
+
+Deep photo style transfer takes as input an ordinary photograph (the input image) and a stylized and possibly retouched reference image (the reference style image). The goal is to transfer the style of the reference to the input while keeping the result photorealistic. The core of the approach follows Gatys et al., but with two additions: a photorealism regularisation term is added to the objective function during optimisation, and the style transfer is guided by a semantic segmentation of the inputs.
+
+How do you find a term to penalise images which are not photorealistic? After all, ...
+
+> 
+
+ Characterising the space of photorealistic images is an unsolved problem. Our insight is that we do not need to solve it if we exploit the fact that the input is already photorealistic. Our strategy is to ensure that we do not lose this property during the transfer by adding a term that penalizes image distortions.
+
+If the image transformation is locally affine in colour space then the photorealism property should be preserved. Locally affine means that for each output patch there is an affine function that maps the input RGB values onto their output counterparts.
+
+> 
+
+ Formally, we build upon the Matting Laplacian of Levin et al., who have shown how to express a grayscale matte as a locally affine combination of the input RGB channels.
+
+The semantic segmentation approach builds on 'Semantic image segmentation with deep convolutional nets, atrous convolution, and fully connected crfs' (DilatedNet). Image segmentation masks are generated for the inputs for a set of common labels (sky, buildings, water, and so on), and masks are added to the input image as additional channels. The style loss term is updated to penalise mapping across different segment types.
+
+> 
+
+ To avoid "orphan semantic labels" that are only present in the input image, we constrain the input semantic labels to be chosen among the labels of the reference style image. While this may cause erroneous labels from a semantic standpoint, the selected labels are in general equivalent in our context, e.g. "lake" and "sea".
+
+Code is available at https://github.com/luanfujun/deep-photo-styletransfer.
+
+## Results and comparisons
+
+Here are a series of examples of images generated by Deep Photo Style Transfer, as compared to those produced by the base Neural Style algorithm and CNNMRF on the same input images:
+
+Enlarge.
+
+The following example shows a comparison against related work with non-distorting global style transfer methods.
+
+Enlarge.
+
+And finally, here's a comparison against the time-of-day hallucination method of Shih et al.. "The two results look drastically different because our algorithm directly reproduces the style of the reference style image, whereas Shih's is an analogy-based technique that transfers the color change observed in a time-lapse video." (The Shih approach needs a video as input).
+
+Enlarge.
+
+In user studies, 8 out of 10 users said that Deep Photo Style Transfer produced the most faithful style transfer results while retaining photorealism:
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Deep Learning 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousOn the design of distributed programming modelsNext &rsaquo;Paracloud: bringing application insight into cloud operations
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;Deep photo style transfer&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Unsupervised learning of artistic styles with archetypal style analysis | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

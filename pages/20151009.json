@@ -1,0 +1,41 @@
+{
+  "date": "20151009",
+  "file_name": "20151009",
+  "slug": "app-bisect-autonomous-healing-for-microservices-based-apps",
+  "blog_url": "https://blog.acolyer.org/2015/10/09/app-bisect-autonomous-healing-for-microservices-based-apps/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer discusses 'app-bisect', a system designed to autonomously heal microservices-based applications by reverting to older, better-performing versions when a deployment introduces performance degradation. The key insight is that traditional canary testing and rollback mechanisms are insufficient for complex, event-driven microservices where cause-effect relationships are non-trivial to trace. Instead of attempting to identify the root cause of performance issues, app-bisect focuses on finding a deployment graph (a combination of microservice versions) that restores performance without manual intervention. The system leverages software-defined networking (SDN) to route requests through specific chains of microservice versions, enabling version-aware routing without modifying application-layer code. While the idea is intriguing, Colyer notes that the paper lacks an evaluation section, suggesting it is still in the conceptual or early prototype stage rather than a fully deployed production system. He also highlights challenges such as managing dependencies, handling persistent stores that support downgrades, and the complexity of searching the deployment space efficiently.",
+  "paper_title": "App-Bisect: Autonomous Healing for Microservices-Based Apps",
+  "paper_authors": [
+    "Rajagopalan",
+    "Jamjoon"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "USENIX HotCloud'15",
+  "paper_url": "https://www.usenix.org/system/files/conference/hotcloud15/hotcloud15-rajagopalan.pdf",
+  "paper_abstract": "often a time consuming task. There are many performance profiling tools [1,3–5,10, 16,29–31,37] to help developers identify software issues causing degradation in throughput and response times to the end user. However, they provide only monitoring capabilities. There are also design patterns like circuit breakers [13, 36] that enable distributed applications to prevent transient and component-level errors from cascading. Persistent failures, those stemming from software bugs and under-tested features, continue to require human intervention. Instead of forcing applications to function poorly while waiting for a software update, we argue that an interim measure is possible. Specifically, applications should be automatically reverted to an older version that was known to provide a better end user experience. Inspired by autonomous computing [7,9,11,12,14,17], we present app-bisect1 : an autonomous system service that can identify and heal microservice-based applications deployed in the cloud. By representing the application as a graph of microservices that evolve over time, any update to a microservice can be viewed as a mutation of the graph. Typical of canary testing, app-bisect systematically tests previous mutations by deploying them in production and diverting a portion of user traffic to the various versions. On finding the least destructive combination of versions, one that offers the desired end user experience, app-bisect diverts all user traffic to it until the human operator intervenes. Time traveling through the “changelog” of an application’s persistent state is not a new concept. Chronus [18] helps debug failures caused by configuration errors in single-machine applications, by performing a binary search over previously recorded states of the application, to locate the point in time when the configuration error was made. App-bisect, on the other hand, targets distributed applications, searching through the updates to The microservice and DevOps approach t...",
+  "paper_file": "papers/2015/10/09/app-bisect-autonomous-healing-for-microservices-based-apps.pdf",
+  "topics": [
+    "distributed-systems",
+    "cloud-computing"
+  ],
+  "tags": [
+    "microservices",
+    "autonomous-healing",
+    "canary-testing",
+    "rollback",
+    "software-defined-networking",
+    "version-aware-routing",
+    "deployment-graph",
+    "performance-degradation"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "A simplified view of a microservice-based application deployment",
+      "caption": "A simplified view of a microservice-based application deployment."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

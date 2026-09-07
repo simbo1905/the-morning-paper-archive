@@ -1,0 +1,42 @@
+{
+  "date": "20200129",
+  "file_name": "20200129",
+  "slug": "narrowing-the-gap",
+  "blog_url": "https://blog.acolyer.org/2020/01/29/narrowing-the-gap/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights 'Narrowing the gap between serverless and its state with storage functions' as a runner-up for the SoCC'19 best paper award. The paper introduces Shredder, a novel key-value store that enables function shipping—an old idea revisited—where computation is performed directly within storage nodes. This approach avoids moving large data over the network and reduces remote calls, improving efficiency. Shredder leverages V8 isolates for lightweight, isolated execution of JavaScript or WebAssembly functions, achieving low-latency and high-throughput with minimal overhead (196 ns for V8 context transitions). The paper addresses function isolation challenges but leaves resource isolation and side-channel concerns partially unresolved. The evaluation demonstrates Shredder's scalability (4M invocations/sec) and performance gains (up to 3.5x throughput with CSA), showcasing its potential to bridge the gap between stateless serverless compute and stateful storage by enabling computation near data.",
+  "paper_title": "Narrowing the gap between serverless and its state with storage functions",
+  "paper_authors": [
+    "Zhang",
+    "Dong",
+    "Cheng",
+    "Li",
+    "Zhang",
+    "Zhang",
+    "Wu"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "SoCC",
+  "paper_url": "http://www.cs.utah.edu/~dongx/paper/sandstorm-socc.pdf",
+  "paper_abstract": "1 Serverless computing has gained attention due to its fine-grained provisioning, large-scale multi-tenancy, and on-demand scaling. However, it also forces applications to externalize state in remote storage, adding substantial overheads. To fix this “data shipping problem” we built Shredder, a low-latency multi-tenant cloud store that allows small units of computation to be performed directly within storage nodes. Storage tenants provide Shredder with JavaScript functions (or WebAssembly programs), which can interact directly with data without moving them over the network. The key challenge in Shredder is safely isolating thousands of tenant storage functions while minimizing data interaction costs. Shredder uses a unique approach where its data store and networking paths are implemented in native code to ensure performance, while isolated tenant functions interact with data using a V8-specific intermediate representation that avoids expensive cross-protectiondomain calls and data copying. As a result, Shredder can execute 4 million remotely-invoked tenant functions per second spread over thousands of tenants with median and 99th -percentile response latencies of less than 50 µs and 500 µs, respectively. Our evaluation shows that Shredder achieves a 14% to 78% speedup against conventional remote storage when fetching items with just one to three data dependencies between them. We also demonstrate Shredder’s effectiveness in accelerating data-intensive applications, including a k-hop query on social graphs that shows orders of magnitude gain. Recent trends in cloud applications are improving resource utilization at the expense of efficiency; today, there is a growing gap between cloud applications and their data. This has gap has been widened by serverless computing, which cloud providers and their customers are increasingly embracing. Customers provide short functions to a cloud provider, who takes care of invoking and scaling instances in response to customer even...",
+  "paper_file": "papers/2020/01/29/narrowing-the-gap.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "serverless",
+    "function-shipping",
+    "stored-procedures",
+    "multi-tenancy",
+    "isolation",
+    "V8-isolates",
+    "zero-copy",
+    "CodeStubAssembler",
+    "key-value-store",
+    "resource-isolation"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,44 @@
+{
+  "date": "20191108",
+  "file_name": "20191108",
+  "slug": "the-inflection-point-hypothesis",
+  "blog_url": "https://blog.acolyer.org/2019/11/08/the-inflection-point-hypothesis/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer reviews the paper 'The inflection point hypothesis: a principled debugging approach for locating the root cause of a failure' from SOSP'19, which introduces Kairux, a novel root cause analysis tool for debugging hard-to-pin-down bugs. Unlike traditional approaches that work backward from failures, Kairux works forward from the start of program execution, identifying the 'inflection point' where the failing execution first deviates from successful executions. The key insight is that the root cause is likely the first such deviation point. The paper evaluates Kairux on 10 real-world failures from Hadoop, HBase, and ZooKeeper, accurately locating the root cause in 7 cases, including complex issues like data races. The tool demonstrates impressive efficiency, reducing debugging time from months to under 30 minutes in some cases, though it has limitations, such as requiring a rich unit test suite and struggling with errors stored on disk. Colyer highlights the power of automated root cause analysis while noting that the true root cause may sometimes lie in design decisions rather than the detected code point.",
+  "paper_title": "The inflection point hypothesis: a principled debugging approach for locating the root cause of a failure",
+  "paper_authors": [
+    "Zhang et al."
+  ],
+  "paper_year": 2019,
+  "paper_venue": "SOSP",
+  "paper_url": "https://dl.acm.org/authorize.cfm?key=N695013",
+  "paper_abstract": "1 … … Large-scale LLM training runs on many GPUs for weeks atop rapidly evolving software stacks. Bugs or hardware glitches can silently corrupt the computation and only surface much later. Debugging becomes finding a needle in a haystack across time. Developers often use another training run and compare their loss, gradient norms, etc. But these aggregate signals are noisy and easily diluted across millions of operations, offering little guidance on why the divergence occurs. This paper introduces bitwise alignment as a correctness oracle and debugging primitive for LLM training, and OpGuard, a practical system that realizes it at production scale. OpGuard discovers semantic-stable operator boundaries across heterogeneous training stacks, and wraps them with lightweight fingerprinting. A schedule-tolerant mapper computes the longest prefix where two executions produce bitwise-identical tensors. The first mismatching point becomes a pivot for debugging and is presented with rich context. By carefully controlling benign nondeterminism, OpGuard makes the first mismatch strong evidence of error. OpGuard has been deployed at ByteDance across pre-training and post-training workloads. It diagnosed over twenty production issues, including subtle kernel races and silent data corruptions missed by existing checks, reducing debugging time from days to minutes. … GPU#34 Step 3080 backward … No bug; No diﬀ num_indices<=3072 Yes Buggy Kernel Corrupted Gradient optimizer … A few elements corrupted Wrong Embedding Table … … … Bug triggered; No diﬀ Figure 1. A tiny race in embedding backward affects one GPU’s embedding shard. The next forward step reads the corrupt weight and propagates the error through its TP group and downstream layers. By the time the loss diverges, most GPUs already hold bad tensors. A production incident illustrates the challenge. In one of our thousand-GPU vision-language model training runs, an alert on the gradient-norm curve was raised after over 3,000 st...",
+  "paper_file": "papers/2019/11/08/the-inflection-point-hypothesis.pdf",
+  "topics": [
+    "distributed-systems",
+    "debugging"
+  ],
+  "tags": [
+    "root-cause-analysis",
+    "inflection-point",
+    "debugging-tools",
+    "static-analysis",
+    "dynamic-slicing",
+    "unit-tests",
+    "data-races"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "A tiny race in embedding backward affects one GPU’s embedding shard",
+      "caption": "A tiny race in embedding backward affects one GPU’s embedding shard. The next forward step reads the corrupt weight and propagates the error through its TP group and downstream layers. By the time the loss diverges, most GPUs already hold bad tensors."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Gradient Norm and Training Loss Comparison",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

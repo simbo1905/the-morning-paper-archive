@@ -1,0 +1,344 @@
+URL: https://blog.acolyer.org/2015/12/09/elm/
+Title: Asynchronous Functional Reactive Programming for&nbsp;GUIs
+---
+
+Asynchronous Functional Reactive Programming for GUIs - Czaplicki & Chong 2013
+
+Today's paper choice introduces the Elm language. Elm today is a functional reactive programming language for the browser. If you want to explore more check out the examples and live code editor. You might also like Richard Feldman's Strange Loop talk on "Making the back-end team jealous".
+
+> 
+
+ Elm is a functional reactive programming language that aims to simplify the creation of responsive graphical user interfaces(GUIs), and specifically targets GUIs for web applications. Functional reactive programming (FRP) applies pure functional programming paradigms to time-varying values, known as signals. FRP is a highly promising approach for implementing GUIs, where time-varying values can represent input and output (including user interaction, server requests and responses), and other information about the execution environment. By enforcing a purely functional programming style, programmers can explicitly model complex time-dependent relationships in a high-level declarative way.
+
+Whereas in most FRP languages signals (what we've been calling behaviours so far this week) change continuously, in Elm signals change only when a discrete event occurs. An event is a program input, such as the mouse position. Events require recomputation of the program - if this takes a reasonable amount of time a GUI would become unresponsive, which is unacceptable . Elm therefore allows a programmer to specify when computation can occur asynchronously.
+
+## Some simple examples
+
+## Functional Layout
+
+The first example shows functional graphical layout:
+
+content = flow down [ plainText "Welcome to Elm!"
+ , image 150 50 "flower.jpg"
+ , asText (reverse [1..9]) ]
+
+main = container 180 100 middle content
+
+main is a special variable in Elm, the value of this variable will be displayed on the screen when the program is executed. The program above creates a vertical arrangement of the text 'Welcome to Elm!', underneath which is a picture of a flower, underneath which are the digits 9 down to 1.
+
+flow takes a direction and a list of Elements and produces a composite Element:
+
+flow : Direction -> [Element] -> Element 
+
+Here's an example of flow being used in the live Elm environment (and a variant with images).
+
+## Signals
+
+Now let's see something reactive using the Mouse.position signal:
+
+main = lift asText Mouse.position
+
+> 
+
+ This code relies on signals, which are the key abstraction of FRP. A signal is a value that changes over time. In Elm, a signal that represents a value of type τ changing over time has type Signal τ. For example, a graphical element that changes over time, such as an animation, is a Signal Element. Indeed, variable main typically has type Signal Element, since what to display on the screen changes over time. In the code above, the position of the mouse is represented as a signal of a pair of integers, indicating the coordinates of the mouse.
+
+The lift : (a -> b) -> Signal a -> Signal b lifts a function from a -> b so that it can be applied to signal values. In the current incarnation of Elm, lift is spelt map. The modern version of the mouse position example is:
+
+main = Signal.map show Mouse.position
+
+Here's the mouse position example in the live environment.
+
+## Asynchronous processing
+
+> 
+
+ This example highlights Elm’s ability to perform asynchronous computation over signals. It uses words entered by the user to find and fetch an image from a web service (such as Flickr), which may take significant time. The program simultaneously displays the current position of the mouse, with the position being updated in a timely manner, regardless of how long image fetching takes.
+
+(inputField, tags) = Input.text "Enter a tag"
+
+getImage tags = 
+ lift (fittedImage 300 200) (syncGet (lift requestTag tags))
+
+scene input pos img = 
+ flow down [ input, asText pos, img ]
+
+main = lift3 scene inputField 
+ Mouse.position 
+ (async (getImage tags))
+
+The reactivity here may not be obvious on first reading: Input.text creates a pair of signals - a signal of graphical elements for the input field and a signal of strings for the tags. lift3 generates a signal of Elements by constructing a scene from the input field signal, mouse position signal , and images signal. A new scene is generated each time any one of the three signals produces a new value.
+
+> 
+
+ The async construct can be applied to any signal, and provides a simple, composable way for the programmer to specify when computation over a signal may occur asynchronously, and thus to ensure that long-running computation does not cause the GUI to become unresponsive.
+
+In today's Elm, asynchronous processing can be handled via Tasks. The 'async' construct is not implemented in the current runtime.
+
+## The core of Elm
+
+Elm's syntax and semantics are explained using a stripped-down version of the full language known as Featherweight Elm (FElm).
+
+> 
+
+ FElm combines a simply-typed functional language with a small set of reactive primitives. Programmers have direct access to signals, which can be transformed and combined with the full power of a functional language. A type system restricts the use of reactive primitives to ensure that the program can be executed efficiently. FElm uses a two-stage semantics. In the first stage, functional constructs are evaluated, and signals are left uninterpreted. In the second stage, signals are evaluated: as the external environment generates new values for input signals, the new values are processed as appropriate.
+
+Signals are streams of values - for example a signal representing the width of a window that produces an event whenever the window width is resized; a left-mouse button signal that produces an event whenever the button is pressed or released; a timer signal that produces an event at fixed time intervals.
+
+> 
+
+ An event occurs when an input signal generates a new value. Events may trigger computation. In FElm, every signal always has a “current” value: it is the most recent value generated by the signal, or, for an input signal that has not yet generated a new value, it is an appropriate default value associated with that input signal. Thus, every input signal is required to have a default value, which then induces default values for other signals.
+
+The liftn primitive combines an n-ary function f and n signals, e1..en to produce a composite signal by applying f e1..en. For example:
+
+lift1 (λx: int. x+x) Window.width
+
+creates a signal of integers obtained by doubling the values from the Window.width signal. The composite signal value is recomputed each time an event occurs for any of the input signals. (Reminder, lift is rendered as 'map' in the current Elm implementation as it maps a function over the input signals).
+
+Whereas lift operates on current signal values, foldp combines current and past values of a signal. It acts like an accumulator, or fold, over the historical values of a signal. You specify an initial value and an accumulator function and then each time the input signal produces an event the accumulator function is applied to combine the current value and the new event to give the new accumulator value. Best understood with an example:
+
+foldp (λk: int. λc: int. c+1) 0 Keyboard.lastPressed
+
+creates a signal counting the number of key presses. Keyboard.lastPressed is a signal of key presses (encoded as integers), the initial accumulator value is 0. Every time a key is pressed we apply the anonymous function which increments the counter (and ignores the key value).
+
+Elm's type system rules out programs that use signals of signals:
+
+> 
+
+ Intuitively, if we have signals of signals, then after a program has executed for, say 10 minutes, we might create a signal that (through the use of foldp) depends on the history of an input signal, say Window.width. To compute the current value of this signal, should we use the entire history of Window.width? But that would require saving all history of Window.width from the beginning of execution, even though we do not know whether the history will be needed later. Alternatively, we could compute the current value of the signal just using the cur- rent and new values of Window.width (i.e., ignoring the history). But this would allow the possibility of having two identically de- fined signals that have different values, based on when they were created.We avoid these issues by ruling out signals of signals
+
+The first stage of Elm evalution considers only the functional parts. If a program evaluates to some value v then it does not use signals and is not a reactive program. But if it evaluates to a signal term s then the second stage of evaluation occurs performing computations as signals produce new values.
+
+> 
+
+ A signal term can be visualized as a directed acyclic graph, where nodes are input signals (i ∈ Input), liftn terms, and foldp terms. The definition and use of variables define edges between the nodes. (Asynchronous terms async s are described below.)We refer to these visualizations as signal graphs. Nodes representing input signals have no incoming edges from other signal nodes, a node representing term liftn v s1 ... sn has n incoming edges, and a node representing term foldp v1 v2 s has a single incoming edge. Signal graphs are acyclic since FElm has no way to construct recursive signal terms... We refer to nodes with no incoming edges as source nodes. Source nodes include input signals, and, as we will see below, async s nodes. Source nodes are the source of new values. An event occurs when the signal represented by a source node produces a new value. Input signal events are triggered by the external environment, for example, mouse clicks or key presses. A global event dispatcher is responsible for notifying source nodes when events occur. The global event dispatcher ensures that events are totally ordered and no two events occur at exactly the same time. In signal graphs, we draw dashed lines from the global event dispatcher to all source nodes
+
+The implementation pipelines execution of the signal graph. Each node in the graph conceptually has its own thread of control. When an event occurs, all source nodes are notified by the global dispatcher. The node to which the event is relevent produces the new value, the others generate a special 'noChange' event. In this way every source node produces a value for each event. When a node in graph performs computation, it must take a value from each incoming edges queue (computation at a node is blocked until there are values on all incoming edges). If all incoming values indicate 'noChange' then the node does not perform any new computation and instead propagates 'noChange'.
+
+> 
+
+ The noChange v' values are a form of memoization—allowing nodes to avoid needless recomputation—but in the case of foldp nodes, are also critical to ensure correct execution. For example, a foldp term that counts the number of key presses (as we saw previously) should increment the counter only when a key is actually pressed, not every time any event occurs.
+
+async nodes in the graph have no incoming edges from other signal nodes. They propagate a 'noChange' value whenever an event at an alternate source node occurs, and propagate the events produced by their asynchronously executed signal whenever they occur.
+
+The full semantics of FElm are specified by its translation into Concurrent ML.
+
+## The full Elm language
+
+> 
+
+ Elm extends the FElm core calculus to a full language for building rich interactive GUIs, including libraries for constructing and composing GUI components... Elm has additional base values, including strings, floating point numbers, time, tuples, and graphical values such as Elements and Forms. Elm libraries provide data structures such as options, lists, sets, and dictionaries. Elm provides support for receiving input from mouse, keyboard, and touch devices, for accessing window attributes, and for network communication via HTTP. Elm supports JSON data structures and Markdown (making text creation easier). Elm’s type system allows let-polymorphism and recursive simple types (but not recursive signal types). Elm supports type inference, has extensible records, and has a module system.
+
+Elm as described in the paper embeds an implementation of discrete Arrowized FRP.
+
+> 
+
+ Arrowized FRP is a purely functional way to structure stateful programs. It introduced signal functions which can encapsulate state and safely be switched in and out of a program. A signal function is conceptually equivalent to Elm’s signal nodes: a set of external inputs, internal state, and an output. Although signal functions and signal nodes are equivalent, Elm’s core language does not allow one to work with signal nodes directly. Arrowized FRP allows this, making it possible to dynamically reconfigure a single node. This direct embedding of AFRP gives Elm the flexibility of signal functions without resorting to the use of signals-of-signals.
+
+The Arrowized FRP support is provided via an Automaton library. "An Automaton is defined as a continuation that when given an input a, produces the next continuation and an output b."
+
+data Automaton a b = Step (a -> (Automaton a b, b))
+
+> 
+
+ This allows state to be kept around by continually placing it in the next continuation (the next step). Dynamic collections and dynamic switching are possible because an automaton is a pure data structure with no innate dependencies on inputs (whereas signals depend on an input by definition).
+
+In the current implementation of Elm you can find support for Automatons in the Automaton library, which includes the following documentation:
+
+> 
+
+ This library is for structuring reactive code. The key concepts come directly from Arrowized FRP. It is not yet clear how valuable this is, so it is a great domain for experimentation and iteration to see if we can make it a really useful tool. This library aims to be a simple and minimal API that will help you get started with Arrowized FRP (AFRP), which can be very hard to understand from just the academic papers.
+
+## Implementation
+
+As reported in the paper, "we have implemented an Elm-to-JavaScript compiler, and have a prototype implementation of Elm as an embedded domain-specific language (DSL) in Haskell." For the current implementation, head over to elm-lang.org
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Programming Languages 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousA Survey on Reactive ProgrammingNext &rsaquo;We Have a DREAM: Distributed Reactive Programming with Consistency Guarantees
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

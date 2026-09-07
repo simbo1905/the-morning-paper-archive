@@ -1,0 +1,56 @@
+{
+  "date": "20141216",
+  "file_name": "20141216",
+  "slug": "f4-facebooks-warm-blob-storage-system",
+  "blog_url": "https://blog.acolyer.org/2014/12/16/f4-facebooks-warm-blob-storage-system/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Facebook's f4 as a masterclass in system engineering trade-offs, where data-driven design decisions led to significant storage efficiency gains. The paper describes how Facebook analyzed access patterns to BLOBs (photos, videos, etc.) and identified 'temperature zones'—hot data (frequently accessed) and warm data (rarely accessed). By migrating warm data to a specialized storage system (f4) with reduced replication factors and erasure coding, Facebook achieved a massive reduction in storage overhead (effective replication factor from 3.6 to 2.1) while maintaining acceptable latency and reliability. The system's design emphasizes mechanical sympathy, self-healing mechanisms, and operational simplicity, with lessons learned from real-world deployment at scale. Key insights include the correlation between BLOB age and access patterns, the benefits of erasure coding over full replication, and the importance of co-designing hardware and software.",
+  "paper_title": "f4: Facebook's Warm BLOB Storage System",
+  "paper_authors": [
+    "Muralidhar",
+    "Vinayak",
+    "Borthakur",
+    "Dikran",
+    "Malveaux",
+    "Rajgarhia",
+    "Sharma",
+    "Shrivastava",
+    "Soman",
+    "Tolia"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "OSDI'14",
+  "paper_url": "https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-muralidhar.pdf",
+  "paper_abstract": "from a throughput perspective. Yet, triple replication also provided important fault tolerance guarantees. Our newer f4 BLOB storage system provides the same fault tolerance guarantees as Haystack but at a lower effective-replication-factor. f4 is simple, modular, scalable, and fault tolerant; it handles the request rate of BLOBs we store it in; it responds to requests with sufﬁciently low latency; it is tolerant to disk, host, rack and datacenter failures; and it provides all of this at a low effective-replication-factor. We describe f4 as a warm BLOB storage system because the request rate for its content is lower than that for content in Haystack and thus is not as “hot.” Warm is also in contrast with cold storage systems [20, 40] that reliably store data but may take days or hours to retrieve it, which is unacceptably long for user-facing requests. We also describe BLOBs using temperature, with hot BLOBs receiving many requests and warm BLOBs receiving few. There is a strong correlation between the age of a BLOB and its temperature, as we will demonstrate. Newly created BLOBs are requested at a far higher rate than older BLOBs. For instance, the request rate for week-old BLOBs is an order of magnitude lower than for less-than-a-day old content for eight of nine examined types. In addition, there is a strong correlation between age and the deletion rate. We use these ﬁndings to inform our design: the lower request rate of warm BLOBs enables us to provision a lower maximum throughput for f4 than Haystack, and the low delete rate for warm BLOBs enables us to simplify f4 by not needing to physically reclaim space quickly after deletes. We also use our ﬁnding to identify warm content using the correlation between age and temperature. Facebook’s overall BLOB storage architecture is designed to enable warm storage. It includes a caching stack that signiﬁcantly reduces the load on the storage systems and enables them to be provisioned for fewer requests per BLOB; a tran...",
+  "paper_file": "papers/2014/12/16/f4-facebooks-warm-blob-storage-system.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "blob-storage",
+    "erasure-coding",
+    "replication",
+    "hdfs",
+    "warm-data",
+    "cold-data",
+    "reed-solomon",
+    "self-healing",
+    "mechanical-sympathy",
+    "data-tiering"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "BLOB read and create operations",
+      "caption": "Reading (R1-R4) and creating (C1-C3) BLOBs."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Size distribution for BLOB types",
+      "caption": "Size distribution for five BLOB types."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

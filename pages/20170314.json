@@ -1,0 +1,37 @@
+{
+  "date": "20170314",
+  "file_name": "20170314",
+  "slug": "panoply-low-tcb-linux-applications-with-sgx-enclaves",
+  "blog_url": "https://blog.acolyer.org/2017/03/14/panoply-low-tcb-linux-applications-with-sgx-enclaves/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Panoply, a system that leverages Intel SGX to run trusted applications in untrusted environments by decomposing them into multiple smaller services (microns), each running in its own enclave. The paper addresses the challenge of secure inter-enclave communication, which is vulnerable to attacks by a compromised OS (e.g., message dropping, replay attacks, or impersonation). Panoply introduces a runtime library, shim, and build toolchain to partition applications into microns while maintaining a low Trusted Compute Base (TCB) and supporting rich POSIX abstractions. Key innovations include secure inter-micron communication via authenticated encryption, sequence numbers, and acknowledgments, as well as support for unrestricted threading, forking, and synchronization primitives. The authors demonstrate that Panoply reduces the TCB to about 20Kloc, enabling future automated verification.",
+  "paper_title": "Panoply: Low-TCB Linux applications with SGX enclaves",
+  "paper_authors": [
+    "Shinde",
+    "H. Shacham",
+    "S. Savage"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "NDSS",
+  "paper_url": "https://www.internetsociety.org/sites/default/files/ndss2017_07-5_Shinde_paper.pdf",
+  "paper_abstract": "Intel has introduced a hardware-based trusted execution environment, Intel Software Guard Extensions (SGX), that provides a secure, isolated execution environment, or enclave, for a user program without trusting any underlying software (e.g., an operating system) or firmware. Researchers have demonstrated that SGX is vulnerable to a page-fault-based attack. However, the attack only reveals page-level memory accesses within an enclave. In this paper, we explore a new, yet critical, sidechannel attack, branch shadowing, that reveals finegrained control flows (branch granularity) in an enclave. The root cause of this attack is that SGX does not clear branch history when switching from enclave to nonenclave mode, leaving fine-grained traces for the outside world to observe, which gives rise to a branch-prediction side channel. However, exploiting this channel in practice is challenging because 1) measuring branch execution time is too noisy for distinguishing fine-grained controlflow changes and 2) pausing an enclave right after it has executed the code block we target requires sophisticated control. To overcome these challenges, we develop two novel exploitation techniques: 1) a last branch record (LBR)-based history-inferring technique and 2) an advanced programmable interrupt controller (APIC)-based technique to control the execution of an enclave in a finegrained manner. An evaluation against RSA shows that our attack infers each private key bit with 99.8% accuracy. Finally, we thoroughly study the feasibility of hardwarebased solutions (i.e., branch history flushing) and propose a software-based approach that mitigates the attack.",
+  "paper_file": "papers/2017/03/14/panoply-low-tcb-linux-applications-with-sgx-enclaves.pdf",
+  "topics": [
+    "systems-security"
+  ],
+  "tags": [
+    "intel-sgx",
+    "enclaves",
+    "trusted-compute-base",
+    "inter-enclave-communication",
+    "micro-containers",
+    "attestation",
+    "replay-attacks",
+    "threading",
+    "forking",
+    "synchronization-primitives"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

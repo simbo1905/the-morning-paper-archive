@@ -1,0 +1,274 @@
+URL: https://blog.acolyer.org/2019/09/20/even-more-amazing-papers-at-vldb/
+Title: Even more amazing papers at VLDB 2019 (that I didn’t have space to cover&nbsp;yet)
+---
+
+We’ve been covering papers from VLDB 2019 for the last three weeks, and next week it will be time to mix things up again. There were so many interesting papers at the conference this year though that I haven’t been able to cover nearly as many as I would like. So today’s post is a short summary of things that caught my eye that I haven’t covered so far. A few of these might make it onto The Morning Paper in weeks to come, you never know!
+
+## Industry papers
+
+- Tunable consistency in MongoDB. MongoDB is an important database, and this paper explains the tunable (per-operation) consistency models that MongoDB provides and how they are implemented under the covers. I really do want to cover this one at some point, along with Implementation of cluster-wide logical clock and causal consistency in MongoDB from SIGMOD 2019.
+- We hear a lot from Google and Microsoft about their cloud platforms, but not quite so much from the other key industry players. So it’s great to see some papers from Alibaba and Tencent here. AliGraph covers Alibaba’s distributed graph engine supporting the development of new GNN applications. Their dataset has about 7B edges... Meanwhile, AnalyticDB is Alibaba’s real-time OLAP RDBMS handling 10PB of data (in excess of 100 trillion rows!). And then there’s large-scale n-gram language models at Tencent describing the distributed language models that underpin WeChat’s automated speech recognition, handling 100s of millions of messages per second at peak.
+- Microsoft have a paper describing their new recovery mechanism in Azure SQL Database, the key feature being that it can recovery in constant time. Microsoft have been able to guarantee consistent 3 minute recovery times for 99.999% of recovery cases in production.
+
+## Research papers
+
+(In random order!)
+
+- Autoscaling tiered cloud storage in Anna. The Anna project is one to watch, and we’ve looked at ‘Anna: a KVS for any scale’ earlier on The Morning Paper which should give you some of the background to tackle this one. This VLDB’19 paper describes "how we extended a distributed key-value store called Anna into an autoscaling, multi-tier service for the cloud."
+- Crusher is a Google system for automatically discovering email templates (e.g. for machine generated emails sent to humans). It handles an order of magnitude more throughput than a prototype built on a stream processing engine. What’s their secret???
+- Could it be Analyzing efficient stream processing on modern hardware? I don’t think so in this case, but this paper will take you down into the nitty-gritty of getting the best out of modern processors and networks, with up to two orders of magnitude single node throughput gains to be had.
+- Hyper Dimension Shuffle describes how Microsoft improved the cost of data shuffling, one of the most costly operations, in their petabyte-scale internal big data analytics platform, SCOPE.
+- On one of the themes that captures my imagination, how changing hardware platform influence system design: Rethinking database high availability with RDMA networks. What if the network was no longer the bottleneck? Maybe we should be switching to active-memory replication?
+- And another theme we’ve started to pick up on in The Morning Paper: ML creeping inside our systems. Which makes Neo: a learned query optimizer pretty interesting. Bootstrapping from ‘a simple optimizer like PostgreSQL’, Neo can learn a model giving performance equalling or bettering state-of-the-art commercial optimizers.
+- If everything’s going SQL again, then Block as a value for SQL over NoSQL might come in handy, a new middleware approach to speed up SQL query evaluation over NoSQL underlying systems. The authors claim a two orders-of-magnitude performance improvement. Do we want that? Yes please!
+- Google describe how they achieved a double-digit percentage increase in the throughput of their serving clusters (which must be worth a lot in financial terms) by implementing cache-aware load balancing in their web search backend.
+- BlockchainDB - it’s a blockchain underneath, and a database on top. 
+- DASH introduces Database Shadowing, a new crash recovery technique for SQLite. Implemented on Android it gives a 4x performance improvement over the default journaling mode.
+- Unifying consensus and atomic commit looks at the advantages of combining scalability (consensus) and fault-tolerant mechanisms into one unified protocol. 
+- Embedded functional dependencies looks at the problem of robust schema design to eliminate redundant data values and handle missing data values.
+
+Some cool algorithms:
+
+- Pigeonring speeds up thresholded similarity searches.
+- SWIFT shows how to discover and mine for representative patterns from event streams, giving a four orders of magnitude (you don’t get to say that very often!) speedup over the best performing existing method.
+- NETS gives us extremely fast outlier detection from streaming data, with 5-25x speed-up over the state-of-the-art, making real-time applications possible.
+- Querying shortest paths on time dependent road networks - a new algorithm significantly outperforming existing approaches when it comes to working out what’s the best way to get from A to B right now.
+
+More data science and machine learning related things:
+
+- Cost efficient data acquisition on online data marketplaces helps you figure out which (noisy) dataset available in the market place will give the best bang-for-the-buck in terms of high quality and rich join informativeness. 
+- Optimization for active learning-based interactive database exploration - helping users find high-value content more effectively during exploratory data analysis. Which pairs nicely with DIFF which integrates explanation engines with declarative relational query processing and outperforms state of the art engines by up to an order of magnitude.
+- Exploring change - a new dimension of data analytics propose a model for capturing change (and change volatility) in data and dataset metadata over time, allowing discovery of salient changes.
+
+With apologies to the authors of the many wonderful papers that I didn’t have space to cover even here!
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Datastores 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousUpdating graph databases with CypherNext &rsaquo;The secret-sharer: evaluating and testing unintended memorization in neural networks
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;Even more amazing papers at VLDB 2019 (that I didn’t have space to cover yet)&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Adam Sah says: 
+
+ 
+ September 20, 2019 at 12:10 pm 
+
+ 
+
+ 
+ 
+This is really great and inspiring. Can't wait to see the writeups.
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

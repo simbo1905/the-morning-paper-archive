@@ -1,0 +1,36 @@
+{
+  "date": "20171127",
+  "file_name": "20171127",
+  "slug": "sve-distributed-video-processing-at-facebook-scale",
+  "blog_url": "https://blog.acolyer.org/2017/11/27/sve-distributed-video-processing-at-facebook-scale/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer reviews the SVE (Streaming Video Engine) paper from Facebook, highlighting its production-scale distributed video processing system. He emphasizes the stark contrast between simple cloud-based video pipelines (like AWS Elastic Transcoder) and Facebook's scale (tens of millions of uploads/day), arguing that custom solutions become necessary at such massive scale. The blog post explores Facebook's shift from a monolithic batch-processing system (MES) to SVE, which processes videos in a streaming fashion with parallel chunking (GOPs) and overlapping upload/processing/storage. Colyer notes the 2.3x-9.3x latency reduction in time-to-share as a key achievement, driven by parallelism, dynamic DAG generation, and priority-based scheduling. He also praises the paper's discussion of why existing frameworks (MapReduce, Spark, Storm) were unsuitable, and the system's fault tolerance and overload handling mechanisms.",
+  "paper_title": "SVE: Distributed Video Processing at Facebook Scale",
+  "paper_authors": [
+    "Huang et al."
+  ],
+  "paper_year": 2017,
+  "paper_venue": "SOSP'17",
+  "paper_url": "https://research.fb.com/publications/sve-distributed-video-processing-at-facebook-scale/",
+  "paper_abstract": "Videos are an increasingly utilized part of the experience of the billions of people that use Facebook. These videos must be uploaded and processed before they can be shared and downloaded. Uploading and processing videos at our scale, and across our many applications, brings three key requirements: low latency to support interactive applications; a �exible programming model for application developers that is simple to program, enables e�cient processing, and improves reliability; and robustness to faults and overload. This paper describes the evolution from our initial monolithic encoding script (MES) system to our current Streaming Video Engine (SVE) that overcomes each of the challenges. SVE has been in production since the fall of 2015, provides lower latency than MES, supports many diverse video applications, and has proven to be reliable despite faults and overload.",
+  "paper_file": "papers/2017/11/27/sve-distributed-video-processing-at-facebook-scale.pdf",
+  "topics": [
+    "distributed-systems",
+    "data-engineering",
+    "cloud-computing"
+  ],
+  "tags": [
+    "video-processing",
+    "streaming",
+    "parallelism",
+    "DAG",
+    "scheduling",
+    "fault-tolerance",
+    "time-to-share",
+    "batch-processing",
+    "stream-processing"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

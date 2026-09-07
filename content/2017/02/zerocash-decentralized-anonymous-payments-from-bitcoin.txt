@@ -1,0 +1,329 @@
+URL: https://blog.acolyer.org/2017/02/21/zerocash-decentralized-anonymous-payments-from-bitcoin/
+Title: Zerocash: Decentralized anonymous payments from&nbsp;Bitcoin
+---
+
+Zerocash: Decentralized anonymous payments from Bitcoin Ben-Sasson et al., 2014
+
+Yesterday we saw that de-anonymising techniques can learn a lot about the true identities of participants in Bitcoin transactions. Ben-Sasson et al. point out that given this, Bitcoin could be considered significantly less private than traditional schemes:
+
+> 
+
+ While users may employ many identities (or pseudonyms) to enhance their privacy, an increasing body of research shows that anyone can de-anonymize Bitcoin by using information in the blockchain, such as the structure of the transaction graph as well as the value and dates of transactions. As a result, Bitcoin fails to offer even a modicum of the privacy provided by traditional payment systems, let alone the robust privacy of anonymous e-cash schemes.
+
+(Think about it, once de-anonymised, the complete record of all your transactions - amounts, dates, recipients and so on - becomes public record).
+
+One possible solution is to use mixes (aka laundries or tumblers) that pool and mix coins using a trusted central party. This is not for the average user, the authors claim. Besides, having anonymity depend on a trusted central party seems at odds with a decentralised payment system. So Ben-Sasson et al. set out to design something better, and the result is Zerocash:
+
+> 
+
+ To protect their privacy, users thus need an instant, risk-free, and, most importantly, automatic guarantee that data revealing their spending habits and account balances is not publicly accessible by their neighbors, co-workers, and the merchants with whom they do business. Anonymous transactions also ensure that the market value of a coin is independent of its history, thus ensuring that legitimate users' coins remain fungible.
+
+This is the second of Narayanan and Miller's ACM Queue Research for Practice selections on 'Cryptocurrencies, Blockchains, and Smart Contracts.' Zerocash, they say, is the most radical of the alternative cryptocurrency designs. We also get a warning that "the paper is long and intricate, and the underlying mathematical assumptions are fairly new by cryptographic standards." And long it is, at 56 pages. Thankfully the paper is more approachable than I feared, although many of the cryptographic assertions I just have to take on faith. My goal for today's write-up is simply to give you a high-level sense of how Zerocash works.
+
+## A decentralised anonymous payment (DAP) scheme
+
+There are two nice constructions in the paper that help to tame some of the complexity. Firstly, we get an abstract definition of a decentralised anonymous payment (DAP) scheme (section 3), which allows us to reason about the operations without being burdened by particular cryptographic scheme: the DAP scheme is then instantiated using a particular set of cryptographic primitives to form the foundation for Zerocash. Secondly, we get a 6-step gradual build up (section 1.3) to the full complexity of the scheme that helps to build intuition for the roles of the various pieces.
+
+A DAP is built on top of an underlying append-only ledger-based currency such as Bitcoin, call it the Basecoin. The ledger includes Basecoin transactions, as well as two new types of transactions: mint transactions and pour transactions. Users of the scheme generate (at least one) address key pair with a public key enabling others to direct payments to the user, and a secret key used to send payments. Coins are of course just data objects. A coin c has the following attributes:
+
+- A coin commitment, , which is a string that appears on the ledger once the coin is minted.
+
+- A coin value, , measured in basecoins. This is an integer between 0 and some system maximum.
+
+- A coin serial number, , a unique string associated with the coin used to prevent double spending
+
+- A coin address, , an address public key, representing the owner of c
+
+Coins may have other attributes, but these are implementation details of particular DAP instantiations.
+
+Mint transactions are tuples (where '&#042;' denotes implementation dependent information. A transaction records that a coin with a given commitment and value has been minted.
+
+Pour transactions record the 'pouring' of two old (and now consumed) coins into two new output coins as well a possible public output (removing value from the DAP network). More on these later.
+
+Given this setup, a DAP scheme comprises 6 abstract operations:
+
+- Setup is a one-time operation executed by a trusted party to initialise the system and publish its public parameters. After this setup no trusted party is needed and no global secrets or trapdoors are kept.
+
+- CreateAddress generates a new address key pair
+
+- Mint generates a coin of a given value and a mint transaction
+
+- Pour transfers value from input coins to new output coins, marking the input coins as consumed. "Pouring allows users to subdivide coins into smaller denominations, merge coins, and transfer ownership of anonymous coins, or make public payments.
+
+- VerifyTransaction checks the validity of a transaction: both mint and pour transactions must be verified before being considered well-formed.
+
+- Receive scans the ledger and retrieves unspent coins paid to a particular address. 
+
+A DAP guarantees a number of security properties (see section 3.4) called ledger indistinguishability, transaction non-malleability, and balance. Ledger indistinguishability is the guarantee that the ledger reveals no new information to an adversary beyond what is public in the ledger, non-malleability prevents attackers from modifying other's transactions before they are added to the ledger, and balance guarantees that no adversary can own more money than he or she minted or received via payments from others.
+
+## Instantiating a DAP using zk-SNARKS!
+
+(Here be dragons.)
+
+A SNARK is a Succint Non-interactive ARgument of Knowledge, and a zk-SNARK is a zero-knowledge proof of knowledge. The succint property means that proofs are short and easy to verify. Research on zk-SNARKs goes back as far as 1989.
+
+> 
+
+ There are many zk-SNARK constructions in the literature. We are interested in zk-SNARKs for arithmetic circuit satisfiability, and the most efficient ones for this language are based on quadratic arithmetic programs; such constructions provide a linear-time KeyGen, quasilinear-time Prove, and linear-time Verify.
+
+Let's just take it on faith that such things exist. Informally, they allow Alice to make verifiable statements such as "I own 30 bitcoins" without revealing any information beyond the fact that she knows some secret keys that control 30 coins.
+
+> 
+
+ Crucially, such proofs can be obtained for any statement that can be verified to be true by use of an efficient computation involving auxiliary inputs such as trapdoors and passwords (such statements are called 'NP statements'.
+
+Zerocash is an instantiation of a DAP that makes judicious use of zk-SNARK (since it is a relatively heavy cryptographic construct, we don't want to use it everywhere). zk-SNARK are used to prove/verify Pour transactions. Other parts of the system also make use of collision-resistant hashing and pseudorandom functions based on SHA256, digital signatures (ECDSA), and public-key encryption (Elliptic-Curve Integrated Encryption Scheme, ECIES). The zk-SNARK instantiation itself is also based on SHA256:
+
+> 
+
+ This, along with judicious parameter choices, and a state-of-the-art implementation of a zk-SNARK for arithmetic circuits, results in a zk-SNARK prover running time of a few minutes, and zk-SNARK verifier running time of a few milliseconds. This allows the DAP scheme implementation to be practical for deployment, as our experiments show.
+
+## Building up an intuition
+
+Section 1.3 of the paper does a good job of slowly building up to the full Zerocash solution over six steps. To do it proper justice would double the length of this write-up, but here's a flavour of what's involved:
+
+- The simplest base system provides for user anonymity using fixed value (e.g. 1 BTC) coins. Coins are minted by sampling a random serial number and trapdoor r, and from these computing a coin commitment. This first phase depends on an ever growing ledger of all coin commitments. Coins can be spent by generating zk-SNARK proofs of the form "I know r such that a coin commitment with this serial number sn appears in the ledger." (sn must not already appear on the ledger as part of a past spend transaction, this requirement prevents double spending). 
+
+- Keeping a linear list of all coin commitments is inefficient, instead lets keep the ledger using an efficiently updateable, append-only, collision-resistant hash-based Merkle Tree. This reduces time and space complexity from linear to logarithmic. Using Merkle trees of depth 64, Zerocash can support coins.
+
+- The concept of addresses are introduced to provide for direct anonymous payments. Without this step, every previous owner of a coin can track its future spending because those owners know its serial number (sn). The pour operation is also introduced at this step for spending coins. 
+
+- Sending the new coins generated by a pour to another user requires that the recipient know the secret values for that key. Rather than requiring these to be passed out of band, a key-private encryption scheme is introduced to enable them to be encrypted for the recipient's eyes only. 
+
+- At this juncture we can mint, merge, and split coins, but there is no way to redeem a coin an convert it back into the Basecoin currency (e.g., Bitcoin). The pour operation is modified to include a public output that can be used to specify the destination of redeemed funds (e.g. a Bitcoin wallet public key).
+
+- To prevent embezzlement by re-targeting the public output of a pour transaction, digital signatures are introduced so that any tampering can be detected. 
+
+"This ends the outline of the construction, which is summarized in part in Figure 1 (below)."
+
+## Zerocash today
+
+You can find the Zerocash project online at http://zerocash-project.org. The protocol is now being developed in a full digital currency, called Zcash:
+
+> 
+
+ If Bitcoin is like http for money, Zcash is https - a secure transport layer.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ BlockchainPrivacy 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousA fistful of Bitcoins: Characterizing payments among men with no namesNext &rsaquo;A first look at the usabilty of Bitcoin key management
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;Zerocash: Decentralized anonymous payments from Bitcoin&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Elastico - a new scalable blockchain protocol proposal | The Information Age 
+ 
+ 
+- 
+ 
+ Pingback: The ring of Gyges: investigating the future of criminal smart contracts | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: SoK: Research perspectives and challenges for Bitcoin and cryptocurrency - Part II | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

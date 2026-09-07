@@ -1,0 +1,53 @@
+{
+  "date": "20180525",
+  "file_name": "20180525",
+  "slug": "unsupervised-anomaly-detection-via-variational-auto-encoder-for-seasonal-kpis-in-web-applications",
+  "blog_url": "https://blog.acolyer.org/2018/05/25/unsupervised-anomaly-detection-via-variational-auto-encoder-for-seasonal-kpis-in-web-applications/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes the paper on Donut, an unsupervised anomaly detection algorithm for seasonal KPIs in web applications, developed by researchers at a top global Internet company (likely Alibaba). The paper highlights the challenge of detecting anomalies in time-series data with seasonal patterns and missing values without labeled data. Donut uses a Variational Auto-Encoder (VAE) with three key techniques: Modified ELBO (M-ELBO), missing data injection, and MCMC imputation. Notably, the authors found that training on both normal and abnormal data (contrary to common intuition) significantly improves performance. M-ELBO excludes anomalies and missing data from the loss calculation, missing data injection introduces synthetic missingness to improve robustness, and MCMC imputation handles missing values during anomaly detection. The paper also provides a theoretical interpretation of Donut's behavior, including the origin of its name from the donut-shaped latent space when K=2.",
+  "paper_title": "Unsupervised Anomaly Detection via Variational Auto-Encoder for Seasonal KPIs in Web Applications",
+  "paper_authors": [
+    "Xu",
+    "Juntao Liu",
+    "Yingying Hao",
+    "Ying Li",
+    "Xiang Li",
+    "Yong Li",
+    "Zhenhua Li",
+    "Jia Liu",
+    "Depeng Jin"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "WWW'18",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3185996",
+  "paper_abstract": "—With the popularization of Internet application, online business systems is becoming more and more common. To ensure the normal running of online business systems, IT operations are required to closely monitor various KPIs (Key Performance Indicators), such as network throughput, page views, user’s order status, and discover the anomalies in the KPIs accurately in time. However, due to the diversity and complexity of anomalies, this task is confronted with great challenges, especially without labels. In this paper, we propose an unsupervised anomaly detection algorithm called LOF-VAE, based on LOF (Local Outliers Factor) and VAE (Variational Auto-Encoder). Our experiments using real-world data from large Internet companies show that, LOF-VAE’s best F-scores range from 0.89 to 0.99, and compared to the state-of-art unsupervised approach Donut, LOF-VAE improves the best Fscore by 0.02 to 0.17. Even with low alert latency, LOF-VAE also performs well. Index Terms—Variational Auto-Encoder, Local Outliers Factor, Anomaly Detection, Unsupervised Learning I. I NTRODUCTION With the popularization of Internet application, online business systems is becoming more and more common. To ensure the normal running of online business systems, IT operations are required to closely monitor various KPIs (Key Performance Indicators), such as network throughput, page views, user’s order status, and discover the anomalies in the KPIs accurately in time. However, due to the diversity and complexity of anomalies, the characteristics of anomalies are not obvious (e.g., a spike or dip in a KPI stream). Fig. 1 presents 3day-long fragments of 4 KPI datasets in our datasets (to be introduced in Section IV-A) and anomalies (points in red) doesn’t show obvious different characteristics, which causes difﬁculties for our model to capture anomalies. In order to minimize the cost of failures caused by anomalies, anomalies presented in KPIs must be discovered accurately in time. In this case, high prec...",
+  "paper_file": "papers/2018/05/25/unsupervised-anomaly-detection-via-variational-auto-encoder-for-seasonal-kpis-in-web-applications.pdf",
+  "topics": [
+    "machine-learning",
+    "data-engineering"
+  ],
+  "tags": [
+    "anomaly-detection",
+    "variational-autoencoder",
+    "time-series",
+    "seasonal-patterns",
+    "missing-data-imputation",
+    "unsupervised-learning",
+    "deep-generative-models",
+    "MCMC"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "3-day-long fragments of 4 KPI datasets",
+      "caption": "3-day-long fragments of 4 KPI datasets in this paper, with anomalies in red and missing points in orange. The time interval between two adjacent points in each KPI is 60 seconds. Each KPI has some missing points to some extent and the details of these 4 KPIs are shown in Table I."
+    },
+    {
+      "number": "Figure 2",
+      "title": "The basic structure of VAE",
+      "caption": "The basic structure of VAE as an encoder and decoder. X and X' are input and output respectively, z stands for the hidden variable, and the left side of it is the variational networks (also known as encoder networks), while the right is the generative network (also know as decoder networks)."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

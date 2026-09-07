@@ -1,0 +1,35 @@
+{
+  "date": "20190315",
+  "file_name": "20190315",
+  "slug": "exploiting-commutativity-for-practical-fast-replication",
+  "blog_url": "https://blog.acolyer.org/2019/03/15/exploiting-commutativity-for-practical-fast-replication/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights CURP (Consistent Unordered Replication Protocol) as a practical and impactful enhancement to replication schemes, offering significant performance improvements. The key insight is leveraging commutativity of operations to allow most operations to complete in 1 RTT (round-trip time), compared to the traditional 2 RTT in primary-backup systems. CURP introduces 'witnesses'—additional servers that ensure durability without enforcing ordering—enabling speculative execution and reducing latency. When integrated with RAMCloud, CURP improved write latency by ~2x and throughput by 4x, while maintaining performance in Redis when adding durability and consistency. The protocol is designed to be non-intrusive and compatible with existing systems, making it a strong candidate for real-world adoption.",
+  "paper_title": "Exploiting commutativity for practical fast replication",
+  "paper_authors": [
+    "Park",
+    "Ousterhout"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "NSDI",
+  "paper_url": "https://www.usenix.org/conference/nsdi19/presentation/park",
+  "paper_abstract": "Traditional approaches to replication require client requests to be ordered before making them durable by copying them to replicas. As a result, clients must wait for two round-trip times (RTTs) before updates complete. In this paper, we show that this entanglement of ordering and durability is unnecessary for strong consistency. The Consistent Unordered Replication Protocol (CURP) allows clients to replicate requests that have not yet been ordered, as long as they are commutative. This strategy allows most operations to complete in 1 RTT (the same as an unreplicated system). We implemented CURP in the Redis and RAMCloud storage systems. In RAMCloud, CURP improved write latency by ∼2x (14 µs → 7.1 µs) and write throughput by 4x. Compared to unreplicated RAMCloud, CURP’s latency overhead for 3-way replication is just 1 µs (6.1 µs vs 7.1 µs). CURP transformed a non-durable Redis cache into a consistent and durable storage system with only a small performance overhead.",
+  "paper_file": "papers/2019/03/15/exploiting-commutativity-for-practical-fast-replication.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "replication",
+    "consensus-protocols",
+    "primary-backup",
+    "commutativity",
+    "witnesses",
+    "linearizability",
+    "durability",
+    "latency-optimization"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

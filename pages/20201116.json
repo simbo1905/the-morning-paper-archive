@@ -1,0 +1,35 @@
+{
+  "date": "20201116",
+  "file_name": "20201116",
+  "slug": "pigasus",
+  "blog_url": "https://blog.acolyer.org/2020/11/16/pigasus/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Pigasus as a groundbreaking example of pushing the limits of single-server performance, particularly in the domain of Intrusion Detection/Prevention Systems (IDS/IPS). The paper demonstrates how an FPGA-first design can achieve 100 Gbps throughput on a single server, inverting the traditional CPU-centric approach where accelerators are subordinate. The key insight is that FPGAs, when placed in charge of the primary compute pipeline, can handle stateful packet processing tasks like reassembly and multi-string pattern matching (MSPM) far more efficiently than traditional CPU-based systems. The paper also reveals the trade-offs and design decisions, such as offloading regular expression matching to the CPU to conserve FPGA memory (BRAM) and using a hybrid fast/slow path for reassembly to handle out-of-order packets within tight memory constraints. The architecture leverages a DMA engine to coordinate between the FPGA and CPU, ensuring low latency and high throughput.",
+  "paper_title": "Achieving 100 Gbps Intrusion Prevention on a Single Server",
+  "paper_authors": [
+    "Zhao Zhipeng",
+    "Justine Sherry"
+  ],
+  "paper_year": 2020,
+  "paper_venue": "OSDI'20",
+  "paper_url": "https://www.usenix.org/conference/osdi20/presentation/zhao-zhipeng",
+  "paper_abstract": "Intrusion Detection and Prevention Systems (IDS/IPS) are among the most demanding stateful network functions. Today’s network operators are faced with securing 100Gbps networks with 100K+ concurrent connections by deploying IDS/IPSes to search for 10K+ rules concurrently. In this paper we set an ambitious goal: Can we do all of the above in a single server? Through the Pigasus IDS/IPS, we show that this goal is achievable, perhaps for the first time, by building on recent advances in FPGA-capable SmartNICs. Pigasus’ design takes an FPGA-first approach, where the majority of processing, and all state and control flow are managed on the FPGA. However, doing so requires careful design of algorithms and data structures to ensure fast common-case performance while densely utilizing system memory resources. Our experiments with a variety of traces show that Pigasus can support 100Gbps using an average of 5 cores and 1 FPGA, using 38× less power than a CPU-only approach.",
+  "paper_file": "papers/2020/11/16/pigasus.pdf",
+  "topics": [
+    "networking",
+    "distributed-systems"
+  ],
+  "tags": [
+    "intrusion-prevention",
+    "fpga-acceleration",
+    "network-packet-processing",
+    "tcp-reassembly",
+    "multi-string-pattern-matching",
+    "dma-engine",
+    "stateful-packet-processing",
+    "hardware-software-co-design"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,428 @@
+URL: https://blog.acolyer.org/2016/04/18/deep-learning-in-neural-networks-an-overview/
+Title: Deep Learning in Neural Networks: An&nbsp;Overview
+---
+
+Deep Learning in Neural Networks: An Overview - Schmidhuber 2014
+
+What a wonderful treasure trove this paper is! Schmidhuber provides all the background you need to gain an overview of deep learning (as of 2014) and how we got there through the preceding decades.
+
+> 
+
+ Starting from recent DL results, I tried to trace back the origins of relevant ideas through the past half century and beyond.
+
+The main part of the paper runs to 35 pages, and then there are 53 pages of references. As a rough guess, that's somewhere around 900 referenced works. Now, I know that many of you think I read a lot of papers - just over 200 a year on this blog - but if I did nothing but review these key works in the development of deep learning it would take me about 4.5 years to get through them at that rate! And when I'd finished I'd still be about 6 years behind the then current state of the art! My guess is most of you would like a little more variety in the subject matter than that too :). It's a good reminder of how vast the CS body of knowledge is that we've built up over the last half-century and more.
+
+I shall now attempt to condense a 35-page summary of 900 papers into a single blog post! Needless to say, there's a lot more detail in the full paper and references than I can cover here. We'll look at the following topics: Credit assignment paths and the question of how deep is deep?; Key themes of Deep Learning; Highlights in the development of Supervised and Unsupervised Learning methods, Reinforcement Learning; and a short look at where things might be heading.
+
+## How deep is deep?
+
+We don't know, but '10' is very deep...
+
+> 
+
+ Which modifiable components of a learning system are responsible for its success or failure? What changes to them help improve performance? This has been called the fundamental credit assignment problem (Minsky, 1963).... The present survey will focus on the narrower, but now commercially important, subfield of Deep Learning (DL) in Artificial Neural Networks (NNs)... Learning or credit assignment is about finding weights that make the NN exhibit desired behaviour - such as driving a car. Depending on the problem and how the neurons are connected, such behaviour may require long causal chains of computational stages, where each stage transforms (often in a non-linear way) the aggregate activation of the network. Deep Learning is about accurately assigning credit across many such stages.
+
+Feedforward neural networks (FNNs) are acyclic, recurrent neural networks (RNNs) are cyclic. "In a sense, RNNs are the deepest of all NNs" in principle they can create and process memories of arbitrary sequences of input patterns.
+
+> 
+
+ To measure whether credit assignment in a given NN application is of the deep or shallow type, I introduce the concept of Credit Assignment Paths or CAPs, which are chains of possibly causal links between events... e.g. from input through hidden to output layers in FNNs, or through transformations over time in RNNs.
+
+If a credit assignment path (a path through the graph starting with an input) is of the form (..., k, t, ..., q), where k and t are the first successive elements with modifiable weights (it's possible that t = q), then the length of the suffix list t...q is the path's depth.
+
+> 
+
+ This depth limits how far backwards credit assignment can move down the causal chain to find a modifiable weight... the depth of the deepest CAP within an event sequence is called the solution depth... Given some fixed NN topology, the smallest depth of any solution is called the problem depth. Sometimes we also speak of the depth of an architecture: supervised learning FNNs with fixed topology imply a problem-independent maximal problem depth bounded by the number of non-input layers... In general, RNNs may learn to solve problems of potenitally unlimited depth.
+
+So where does shallow learning end, and_deep learning_ begin? "Discussions with DL experts have not yet yielded a conclusive response to this question!"
+
+> 
+
+ Instead of committing myself to a precise answer, let me just define for the purposes of this overview: problems of depth > 10 require Very Deep Learning.
+
+## Key themes
+
+Several themes recur across the different types of deep learning:
+
+- Dynamic Programming can help to facilitate credit assignment. In supervised learning backpropagation itself can be viewed as a dynamic programming-derived method. Dynamic programming can also help to reduce problem depth in traditional reinforcement learning, and dynamic programming algorithms are essential for systems that combine concepts of NNs ad graphical models, such as Hidden Markov Models (HMMs). 
+
+- Unsupervised learning can facilitate both supervised and reinforcement learning by first encoding essential features of inputs in a way that describes the original data in a less redundant or more compact way. These codes become the new inputs for supervised or reinforcement learning. 
+
+- Many methods learn hierarchies of more and more abstract data representations - continuously learning concepts by combining previously learnt concepts.
+
+- "In the NN case, the Minimum Description Length principle suggest that a low NN weight complexity corresponds to high NN probability in the Bayesian view, and to high generalization performance, without overfitting the training data. Many methods have been proposed for regularizing NNs, that is, searching for solution-computing but simple, low-complexity supervised learning NNs."
+
+- GPUs! GPUs excel at the fast matrix and vector multiplications required for NN training, where they can speed up learning by a factor of 50 and more. 
+
+## Supervised and Unsupervised Learning
+
+> 
+
+ Supervised learning assumes that input events are independent of earlier output events (which may affect the environment thorugh actions causing subsequent perceptions). This assumption does not hold in the broader fields of Sequential Decision Making and Reinforcement Learning.
+
+Early supervised NNs were essentially variants of linear regression methods going back to at least the early 1800s! In 1979, the Neocognitron was the first artificial NN that deserved the attribute deep, based on neurophysiological insights from studies of the visual cortex of cats carried out in the 1960s.
+
+> 
+
+ It introduced convolutional NNs (today often called CNNs or convnets), where the (typically rectangular) receptive field of a convolutional unit with a given weight vector (a filter) is shifted step-by-step across a 2-dimensional array of input values, such as the pixels of an image (usually there are several such filters). The resulting 2D array of subsequest activation events of this unit can then provide inputs to higher-level units, and so on... The Neocognitron is very similar to the architecture of modern, contest-winning, purely supervised, feedforward, gradient-based Deep Learners with alternating convolutional and downsampling layers.
+
+The Neocognitron did not use backpropagation (BP), the first neural-network specific application of efficient backpropagation was described in 1981. For weight-sharing FNNs or RNNs with activation spreading through some differentiable function ft, a single iteration of gradient descent through backpropagation computes changes of all the weights wi. Forward and backward passes are reiterated until sufficient performance is reached.
+
+The backpropagation algorithm itself is wonderfully simple. In the description below, dt is the desired target output value and v(t,k) is a function giving the index of the weight that connects t and k. Each weight wi is associated with a real-valued variable &Delta;i initialized to 0.
+
+> 
+
+ As of 2014, this simple BP method is still the central learning algorithm for FNNs and RNNs. Notably, most contest-winning NNs up to 2014 did not augment supervised BP by some sort of unsupervised learning...
+
+In 1989 backpropagation was combined with Neocognitron-like weight sharing convolutional neural layers with adaptive connections....
+
+> 
+
+ This combination, augmented by Max-Pooling, and sped-up on graphics cards has become an essential ingredient of many modern, competition-winning, feedforward, visual Deep Learners. This work also introduced the MNIST data set of handwritten digits, which over time has become perhaps the most famous benchmark of machine learning.
+
+In Max Pooling, a 2-dimensional layor or array of unit activations is partitioned into smaller rectangular arrays. Each is replaced in a downsampling layer by the activation of its maximally active unit.
+
+Through the 1980's, it seem that although BP allows for deep problems in principle, it seemed only to work for shallow problems. The reason for this was only fully understood in 1991, via Hochreiter's diploma thesis:
+
+> 
+
+ Typical deep NNs suffer from the now famous problem of vanishing or exploding gradients. With standard activation functions, cumulative backpropagated error signals either shrink rapidly, or grow out of bounds. In fact, they decay exponentially in the number of layers or CAP depth, or they explode. This is also known as the long time lag problem.
+
+This is the Fundamental Deep Learning Problem, and several ways of partially overcoming it have been explored over the years.
+
+- Unsupervised pre-training can facilitate subsequent supervised credit assignment through BP.
+
+- LSTM-like networks (described shortly) alleviate the problem though a special architecture unaffected by it
+
+- Use of GPUs with much more computing power allow propagating errors a few layers further down within reasonable time, even in traditional NNs. "That is basically what is winning many of the image recognition competitions now, although this does not really overcome the problem in a fundamental way."
+
+- Hessian-free optimization (an advanced form of gradient descent) can alleviate the problem for FNNs and RNNs. 
+
+- The space of weight matrices can be searched without relying on error gradients at all, thus avoiding the problem. Random weight guessing sometimes works better than more sophisticated methods! Other alternatives include Universal Search and the use of linear methods. 
+
+> 
+
+ A working Very Deep Learner of 1991 could perform credit assignment across hundreds of nonlinear operators or neural layers by using unsupervised pre-training for a hierarchy of RNNs. The basic idea is still relevant today. Each RNN is trained for a while in unsupervised fashion to predict its next input. From then on, only unexpected inputs (errors) convey new information and get fed to the next higher RNN which thus ticks on a slower, self-organising time scale. It can easily be shown that no information gets lost. It just gets compressed...
+
+The Supervised Long Short-Term Memory) LSTM RNN could eventually perform similar feats to this deep RNN hierarchy but without needing any unsupervised pre-training.
+
+> 
+
+ The basic LSTM idea is very simple. Some of the units are called Constant Error Carousels (CECs). Each CEC uses as an activation function f, the identity function, and has a connection to itself with a fixed weight of 1.0. Due to f's constant derivative of 1.0 (d/dx f(x) = x is 1), errors backpropagated through a CEC cannot vanish or explode but stay as they are unless they 'flow out' of the CEC to other, typically adaptive parts of the NN). CECs are connected to several nonlinear adaptive units (some with multiplicative activation functions) needed for learning nonlinear behavior.... CECs are the main reason why LSTM nets can learn to discover the importance of (and memorize) events that happened thousands of discrete time steps ago, while previous RNNs already failed in case of minimal time lags of 10 steps.
+
+Speech recognition up until the early 2000s was dominated by Hidden Markov Models combined with FNNs. But when trained from scratch LSTM obtained results comparable to these system. By 2007, LSTM was outperforming them. "Recently, LSTM RNN / HMM hybrids obtained the best known peformance on medium-vocabulary and large-vocabularly speech recognition." LSTM RNNs have also won several international pattern recognition competitions and set numerous benchmark records on large and complex data sets.
+
+Many competition winning deep learning systems today are either stacks of LSTM RNNs trained using Connectionist Temporal Classification (CTC), or GPU-based Max-Pooling CNNs (GPU_MPCNNs). CTC is a gradient-based method for finding RNN weights that maximize the probability of teacher-given label sequences, given (typically much longer and higher-dimensional) streams of real-valued input vectors.
+
+> 
+
+ An ensemble of GPU-MPCNNs was the first system to achieve superhuman visual pattern recognition in a controlled competition, namely, the IJCNN 2011 traffic sign recognition contest in San Jose... The GPU-MPCNN ensemble obtained 0.56% error rate and was twice better than human test subects, three times better that the closest artificial NN competitor, and six times better than the best non-neural method.
+
+An ensemble of GPU-MPCNNs also was the first to achieve human competitive performance (around 0.2%) on MNIST in 2012. In the same year, GPU-MPCNNs achieved the best results on the ImageNet classification benchmark, and in a visual object detection contest - the ICPR 2012 Contest on Mitosis Detection in Breast Cancer Histological Images.
+
+> 
+
+ Such biomedical applications may turn out to be among the most important applications of DL. The world spends over 10% of GHP on healthcare (> 6 trillion USD per year), much of it on medical diagnosis through expensive experts. Partial automation of this could not only save lots of money, but also make expert diagnostics accessible to many who currently cannot afford it.
+
+## Reinforcement Learning
+
+> 
+
+ Without a teacher, solely from occasional real-valued pain and pleasure signals, RL agents must discover how to interact with a dynamic, initially unknown environment to maximize their expected cumulative reward signals. There may be arbitrary, a priori unknown delays between actions and perceivable consequences. The problem is as hard as any problem of computer science, since any task with a computable description can be formulate in the RL framework...
+
+In the general case RL implies deep CAPs, but under the simplifying assumption of Markov Decision Processes (MDPs) the CAP depth can be greatly reduced. In an MDP, the current input of the RL agent conveys all information necessary to compute an optimal next output event or decision.
+
+> 
+
+ Perhaps the most well-known RL NN is the world-class RL backgammon player (Tesauro, 1994) which achieved the level of human world champions by playing against itself... More recently, a rather deep GPU-CNN was used in a traditional RL framework to play several Atari 2600 computer games directly from 84&#215;84 pixel 60Hz video input... Even better results are achieved by using (slow) Monte Carlo tree planning to train comparatively fast deep NNs.
+
+For many situations the MDP assumption is unrealistic. "However, memories of previous events can help to deal with _partially observable Markov decision problems (POMDPs)."
+
+See also the work on Neural Turing Machines and Memory Networks from Google and Facebook respectively that was published after the date of the survey paper we're looking at today.
+
+> 
+
+ Not quite as universal... yet both more practical and more general than most traditional RL algorithms are methods for Direct Policy Search (DS). Without a need for value functions or Markovian assumptions, the weights of an FNN or RNN are directly evaluated on the given RL problem. The results of successive trials inform further search for better weights. Unlike with RL supported by BP, CAP depth is not a crucial issue. DS may solve the credit assignment problem without backtracking through deep causal chains of modifiable parameters - it neither cares for their existence, nor tries to exploit them.
+
+The very most general type of RL is constrained only be the fundamental limitations of computability. "Remarkably, there exist blueprints of universal problem solvers or universal RL machines for unlimited problem depth that are time-optimal in various theoretical senses." These can solve any well-defined problem as quickly as the unknown fastest way of solving it, save for an additive constant overhead that becomes negligible as the problem size grows...
+
+> 
+
+ Note that most problems are large; only few are small. AI and DL researchers are still in business because many are interested in problems so small that it is worth trying to reduce the overhead through less general methods, including heuristics...
+
+## Where next? (c. 2014)
+
+> 
+
+ ... humans learn to actively perceive patterns by sequentially directing attention to relevant parts of the available data. Near future deep NNs will do so too, extending previous work since 1990 on NNs that learn selective attention through RL of (a) motor actions such as saccade control, and (b) internal actions controlling spotlights of attention within RNNs, thus closing the general sensorimotor loop through both external and internal feedback.
+
+See the Google Deep Mind Neural Turing Machine paper for an example of a system with a memory and trainable attention mechanism.
+
+> 
+
+ Many recent DL results profit from GPU-based traditional deep NNs. Current GPUs, however, are little ovens, much hungrier for energy than biological brains, whose neurons communicate by brief spikes and often remain quiet. Many computational models of such spiking neurons have been proposed and analyzed.... Future energy-efficient hardware for DL in NNs may implement aspects of such models.
+
+The last word is reserved for universal problem solvers:
+
+> 
+
+ The more distant future may belong to general purpose learning algorithms that improve themselves in provably optimal ways, but these are not yet practical or commercially relevant.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Machine Learning, Uncategorized 
+ 
+ Deep Learning 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousEnd of termNext &rsaquo;Context-Dependent Pre-Trained Deep Neural Networks for Large-Vocabulary Speech Recognition
+ 
+ 
+
+ 
+ 
+## 
+ 10 thoughts on &ldquo;Deep Learning in Neural Networks: An Overview&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Big Analytics Roundup (April 25, 2016) | The Big Analytics Blog 
+ 
+ 
+- 
+ 
+ Pingback: Getting Up to Speed on Deep Learning - Requests for Startups 
+ 
+ 
+- 
+ 
+ Pingback: Sequence to sequence learning with neural networks | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: A survey of available corpora for building data-driven dialogue systems | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: AI, Machine learning and Deep learning &laquo; Be Mule 
+ 
+ 
+- 
+ 
+ Pingback: End of Term, and the power of compound interest | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Context-Dependent Pre-Trained Deep Neural Networks for Large-Vocabulary Speech Recognition | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Artificial Intelligence and life in 2030 | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Deep learning intro | What I learned 
+ 
+ 
+- 
+ 
+ Pingback: So that was 2016 | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

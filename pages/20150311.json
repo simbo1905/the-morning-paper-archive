@@ -1,0 +1,43 @@
+{
+  "date": "20150311",
+  "file_name": "20150311",
+  "slug": "vive-la-difference-paxos-vs-viewstamped-replication-vs-zab",
+  "blog_url": "https://blog.acolyer.org/2015/03/11/vive-la-difference-paxos-vs-viewstamped-replication-vs-zab/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes a paper by van Renesse et al. that provides a unifying framework for understanding consensus protocols like Paxos, Viewstamped Replication (VR), and Zab using refinement theory. The paper constructs a 'family tree' of consensus protocols, showing how different algorithms can be derived from a common ancestor (Multi-Consensus) through a series of design decisions and refinements. The author highlights the paper's systematic approach to comparing protocols, noting that while Paxos uses active replication and VR/Zab use passive replication, these can be implemented on top of one another. The key insight is that the differences between these protocols are largely superficial, stemming from terminology and implementation choices rather than fundamental design differences. The paper also introduces Multi-Consensus-PO, a refinement that ensures prefix ordering, and provides guidance on when to use active vs. passive replication based on workload characteristics.",
+  "paper_title": "Vive La Différence: Paxos vs Viewstamped Replication vs Zab",
+  "paper_authors": [
+    "Robbert van Renesse",
+    "Rashmi Vinayak",
+    "Wyatt Lloyd"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "ACM SIGACT News",
+  "paper_url": "http://arxiv.org/pdf/1309.5671.pdf",
+  "paper_abstract": "Autopilot service [11] (used by Bing), and in the popular Ceph distributed file system [33], with interfaces now part of the standard Linux kernel. Paxos, Viewstamped Replication, and Zab are replication protocols that ensure high-availability in asynchronous • Viewstamped Replication (VSR) [27, 23] is a replicaenvironments with crash failures. Various claims have tion protocol originally targeted at replicating particbeen made about similarities and differences between ipants in a Two-Phase Commit (2PC) [20] protocol. these protocols. But how does one determine whether two VSR has also been used in the implementation of the protocols are the same, and if not, how significant the difHarp File System [24]; ferences are? We propose to address these questions using refine• Zab [12] (ZooKeeper Atomic Broadcast) is a repliment mappings, where protocols are expressed as succinct cation protocol used for the popular ZooKeeper [10] specifications that are progressively refined to executable configuration service. ZooKeeper has been in active implementations. Doing so enables a principled underuse at Yahoo! and is now a popular open source prodstanding of the correctness of the different design deciuct distributed by Apache. sions that went into implementing the various protocols. Additionally, it allowed us to identify key differences that Many claims have been made about the similarities and have a significant impact on performance. differences of these protocols. For example, citations [21, 3] claim that Paxos and Viewstamped Replication are “the same algorithm independently invented,” “equivalent,” or",
+  "paper_file": "papers/2015/03/11/vive-la-difference-paxos-vs-viewstamped-replication-vs-zab.pdf",
+  "topics": [
+    "distributed-systems"
+  ],
+  "tags": [
+    "consensus-protocols",
+    "paxos",
+    "viewstamped-replication",
+    "zab",
+    "refinement",
+    "active-replication",
+    "passive-replication",
+    "multi-consensus",
+    "quorum-intersection",
+    "linearizability"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Ordering of refinement mappings and informal levels of abstraction",
+      "caption": "Figure 1: An ordering of refinement mappings and informal levels of abstraction."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,44 @@
+{
+  "date": "20160929",
+  "file_name": "20160929",
+  "slug": "lets-talk-about-storage-and-recovery-methods-for-non-volatile-memory-database-systems",
+  "blog_url": "https://blog.acolyer.org/2016/09/29/lets-talk-about-storage-and-recovery-methods-for-non-volatile-memory-database-systems/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this SIGMOD 2015 paper as a crucial analysis of how non-volatile memory (NVM) impacts database storage systems and recovery methods. The authors implement three traditional DBMS storage engines (in-place updates, copy-on-write, and log-structured) and evaluate their performance on NVM hardware, then propose NVM-aware variants optimized for NVM's byte-addressability and persistence. The key insight is that traditional DBMS engines, designed for slow block storage, are suboptimal for NVM's low-latency, byte-addressable nature. The NVM-aware engines achieve up to 5.5x higher throughput and reduce write operations by up to 2x compared to their traditional counterparts. The paper demonstrates that rearchitecting storage algorithms to exploit NVM's unique properties can yield significant performance and efficiency gains.",
+  "paper_title": "Let's talk about storage and recovery methods for non-volatile memory database systems",
+  "paper_authors": [
+    "Justin J. Levandoski",
+    "David Lomet",
+    "Sudipta Sengupta"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SIGMOD",
+  "paper_url": "http://www.pdl.cmu.edu/PDL-FTP/NVM/storage.pdf",
+  "paper_abstract": "The advent of non-volatile memory (NVM) will fundamentally change the dichotomy between memory and durable storage in database management systems (DBMSs). These new NVM devices are almost as fast as DRAM, but all writes to it are potentially persistent even after power loss. Existing DBMSs are unable to take full advantage of this technology because their internal architectures are predicated on the assumption that memory is volatile. With NVM, many of the components of legacy DBMSs are unnecessary and will degrade the performance of data intensive applications. To better understand these issues, we implemented three engines in a modular DBMS testbed that are based on different storage management architectures: (1) in-place updates, (2) copy-on-write updates, and (3) log-structured updates. We then present NVMaware variants of these architectures that leverage the persistence and byte-addressability properties of NVM in their storage and recovery methods. Our experimental evaluation on an NVM hardware emulator shows that these engines achieve up to 5.5× higher throughput than their traditional counterparts while reducing the amount of wear due to write operations by up to 2×. We also demonstrate that our NVM-aware recovery protocols allow these engines to recover almost instantaneously after the DBMS restarts.",
+  "paper_file": "papers/2016/09/29/lets-talk-about-storage-and-recovery-methods-for-non-volatile-memory-database-systems.pdf",
+  "topics": [
+    "storage-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "non-volatile-memory",
+    "NVM",
+    "database-storage",
+    "recovery-methods",
+    "in-place-updates",
+    "copy-on-write",
+    "log-structured",
+    "byte-addressability",
+    "write-ahead-log",
+    "crash-consistency"
+  ],
+  "figures": [
+    {
+      "number": "Table 1",
+      "title": "Comparison of emerging NVM technologies with other storage technologies",
+      "caption": "Comparison of emerging NVM technologies with other storage technologies [15, 27, 54, 49]: phase-change memory (PCM) [55], memristors (RRAM) [60], and STT-MRAM (MRAM) [26]."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

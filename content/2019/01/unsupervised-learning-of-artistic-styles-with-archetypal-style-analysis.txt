@@ -1,0 +1,282 @@
+URL: https://blog.acolyer.org/2019/01/11/unsupervised-learning-of-artistic-styles-with-archetypal-style-analysis/
+Title: Unsupervised learning of artistic styles with archetypal style&nbsp;analysis
+---
+
+Unsupervised learning of artistic styles with archetypal style analysis Wynen et al., NeurIPS'18
+
+I’ve always enjoyed following work on artistic style transfer. The visual nature makes it easy to gain an appreciation for what is going on and the results are very impressive. It also something that’s been unfolding within the timespan of The Morning Paper, if we peg the beginning to the work of Gatys et al. in 2015. See for example the posts on ‘Texture Networks’ and ‘Deep photo style transfer.’
+
+Beyond direct style transfer, the objective of the work described in today’s paper choice is to uncover representations of styles (archetypes) themselves. Given a large collection of paintings,...
+
+> 
+
+ ... Our objective is to automatically discover, summarize, and manipulate artistic styles present in the collection.
+
+This is achieved using an unsupervised learning technique called archetypal analysis. We can recover archetypes from a collection of paintings, and we can also go the other way; taking a painting and decomposing it into a combination of archetypes. And of course if we then manipulate the composition of archetypes, we can manipulate the style of an image.
+
+To visualise what an archetype ‘looks like’ the authors synthesise a texture from an image filled with random noise, using the style representation of the archetype. The following image shows some examples, with the synthesised archetypal textures in the left-most column and the three images next to them on each row showing the individual images that made the strongest contribution to the archetype.
+
+> 
+
+ The strongest contributions usually exhibit a common characteristic like stroke style or choice of colors. Smaller contributions are often more difficult to interpret. Figure 2a also highlights correlation between content and style: the archetype on the third row is only composed of portraits.
+
+## From a collection of paintings to archetypes
+
+Given a pre-trained VGG-19 network, a concise representation of the style of an individual painting can be obtained in the following manner:
+
+- Take the feature maps from five layers of the trained VGG-19 (the network is trained as an auto-encoder to encode the salient features of the input image)
+
+- Compute the first and second-order statistics of each feature map. Given a layer with feature map , channels, and pixel positions we have:
+
+- Normalise the statistics by the number of parameters at each layer (divide the statistics for layer l by ). This was found empirically to be useful for preventing over-representation of layers with more parameters.
+
+- From a style descriptor by concatenating the normalised statistics from all five layers: .
+
+After creating style descriptors in this way for all the paintings in a collection, singular value decomposition is applied to reduce the dimensions to 4096 while keeping more than 99% of the variance.
+
+Given the resulting set of vectors, archetypal analysis is then used to learn a set of archetypes such that each sample can be well approximated by a convex combination of archetypes. In addition, each archetype is a combination of samples. This is an optimisation problem that can be given to a dedicated solver.
+
+> 
+
+ ... we use archetypal analysis on the 4096-dimensional style vectors previously described, and typically learn between k=32 to k=256 archetypes. Each painting’s style can then be represented by a sparse low-dimensional code &#091;combination of styles&#093;, and each archetype itself associated to a few input paintings.
+
+The evaluation uses two datasets to extract archetypes: the GanGogh collection of 95,997 artworks from WikiArt, and a collection of 1154 paintings and drawings by Vincent van Gogh. 256 archetypes are extracted for GanGogh, and 32 for Vincent van Gogh.
+
+The following figure shows examples of image styles broken down into their contributing archetypes.
+
+## Style manipulation using archetypes
+
+Given a method of decoding a style vector to an image, we can manipulate style vectors in the archetype plane and then transform the results into images. Given a "content" (input) feature map from an original image, whitening and colouring operations can be used to match the mean and covariance structure of a given style feature map. This technique was first described in ‘Universal style transfer via feature transforms.’
+
+Several methods for identifying a target style are of interest:
+
+- Using a single archetype, to produce an image in the style of that archetype
+
+- Using a combination of archetypes, for archetypal style interpolation
+
+- Adjusting the weighting of archetypes already present in the image (e.g., significantly strengthening one component)
+
+For example, the following figure shows the results of amplifying archetypal styles within a source image. The middle panel on each row is the original image. Moving left, the strongest component is emphasised, and moving right the second strongest component.
+
+Ignoring any archetypal styles already present, the following figure shows the results of free exploration of the archetypal space for a given source image:
+
+## A visual summary
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Deep Learning 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousNeural Ordinary Differential EquationsNext &rsaquo;Serverless computing: one step forward, two steps back
+ 
+ 
+
+ 
+ 
+## 
+ 2 thoughts on &ldquo;Unsupervised learning of artistic styles with archetypal style analysis&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 14 January 2019 - MasMaz 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 14 January 2019 - sportsguru 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

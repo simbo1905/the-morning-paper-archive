@@ -1,0 +1,52 @@
+{
+  "date": "20181022",
+  "file_name": "20181022",
+  "slug": "legoos-a-disseminated-distributed-os-for-hardware-resource-disaggregation",
+  "blog_url": "https://blog.acolyer.org/2018/10/22/legoos-a-disseminated-distributed-os-for-hardware-resource-disaggregation/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the paper 'LegoOS: A Disseminated, Distributed OS for Hardware Resource Disaggregation' presented at OSDI'18. Adrian Colyer highlights the growing trend of hardware disaggregation, where dedicated accelerators and fast networking challenge the traditional monolithic server model. The key insight is that disaggregating hardware resources (CPU, memory, storage) into network-attached components can improve resource utilization, flexibility, and fault isolation. The paper introduces LegoOS, a distributed OS designed for this disaggregated hardware environment, which breaks traditional OS functions into loosely-coupled monitors managing individual hardware components. The biggest challenge addressed is the separation of processor and memory, which requires innovative solutions like the splitkernel architecture and ExCache for efficient memory access. The blog emphasizes the potential of LegoOS to support heterogeneous hardware and enable elastic resource allocation.",
+  "paper_title": "LegoOS: A Disseminated, Distributed OS for Hardware Resource Disaggregation",
+  "paper_authors": [
+    "Yizhou Shan",
+    "Yutong Huang",
+    "Yiying Zhang"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/conference/osdi18/presentation/shan",
+  "paper_abstract": "that can fit into monolithic servers and deploying them in datacenters is a painful and cost-ineffective process that The monolithic server model where a server is the unit often limits the speed of new hardware adoption. of deployment, operation, and failure is meeting its limWe believe that datacenters should break monoits in the face of several recent hardware and application lithic servers and organize hardware devices like CPU, trends. To improve resource utilization, elasticity, het- DRAM, and disks as independent, failure-isolated, erogeneity, and failure handling in datacenters, we be- network-attached components, each having its own conlieve that datacenters should break monolithic servers troller to manage its hardware. This hardware reinto disaggregated, network-attached hardware compo- source disaggregation architecture is enabled by recent nents. Despite the promising benefits of hardware re- advances in network technologies [24, 42, 52, 66, 81, 88] source disaggregation, no existing OSes or software sys- and the trend towards increasing processing power in tems can properly manage it. hardware controller [9, 23, 92]. Hardware resource disWe propose a new OS model called the splitkernel to aggregation greatly improves resource utilization, elasmanage disaggregated systems. Splitkernel disseminates ticity, heterogeneity, and failure isolation, since each traditional OS functionalities into loosely-coupled mon- hardware component can operate or fail on its own and itors, each of which runs on and manages a hardware its resource allocation is independent from other comcomponent. A splitkernel also performs resource allo- ponents. With these benefits, this new architecture has cation and failure handling of a distributed set of hard- already attracted early attention from academia and inware components. Using the splitkernel model, we built dustry [1, 15, 48, 56, 63, 77]. LegoOS, a new OS designed for hardware resource disHardware resource disaggregation co...",
+  "paper_file": "papers/2018/10/22/legoos-a-disseminated-distributed-os-for-hardware-resource-disaggregation.pdf",
+  "topics": [
+    "distributed-systems",
+    "operating-systems",
+    "hardware"
+  ],
+  "tags": [
+    "resource-disaggregation",
+    "splitkernel",
+    "ExCache",
+    "RDMA",
+    "memory-management",
+    "storage-systems",
+    "process-management"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "OSes Designed for Monolithic Servers",
+      "caption": null
+    },
+    {
+      "number": "Figure 2",
+      "title": "Multi-kernel Architecture",
+      "caption": "P-NIC: programmable NIC."
+    },
+    {
+      "number": "Figure 3",
+      "title": "Splitkernel Architecture",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

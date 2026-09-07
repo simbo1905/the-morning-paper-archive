@@ -1,0 +1,42 @@
+{
+  "date": "20151008",
+  "file_name": "20151008",
+  "slug": "lprof-a-non-intrusive-request-flow-profiler-for-distributed-systems",
+  "blog_url": "https://blog.acolyer.org/2015/10/08/lprof-a-non-intrusive-request-flow-profiler-for-distributed-systems/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses 'lprof', a novel profiler for distributed systems that extracts request-flow information from existing logs without requiring any code instrumentation or modifications. Adrian Colyer highlights lprof's ability to automatically identify and profile individual requests by reconstructing their processing paths across services, threads, and remote nodes, solely based on log analysis. The tool achieves an 88% accuracy in associating log records with individual requests across systems like HDFS, YARN, Cassandra, and HBase. Notably, lprof successfully detected and diagnosed 2/3 of real-world performance anomalies from bug reports without any source code changes, demonstrating its practical utility. The key insight is that even unstructured, distributed logs contain sufficient information to infer request flows and performance bottlenecks when analyzed with static bytecode analysis and temporal ordering techniques.",
+  "paper_title": "lprof: A Non-intrusive Request-Flow Profiler for Distributed Systems",
+  "paper_authors": [
+    "Wei Zhao",
+    "Swaminathan Sundararaman",
+    "Suli Yang",
+    "Sriram Govindan",
+    "Bhuvan Urgaonkar",
+    "Peter Bodik",
+    "Chengdu Huang",
+    "Amar Phanishayee"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-zhao.pdf",
+  "paper_abstract": "that lprof is easy and practical to use, and that it is capable of diagnosing performance issues that existing solutions are not able to diagnose without instrumentation. lprof outputs a database table with one line per request. Each entry includes (i) the type of the request, (ii) the starting and ending timestamps of the request, (iii) a list of nodes the request traversed along with the starting and ending timestamps at each node, and (iv) a list of the major methods that were called while processing the request. This table can be used to analyze the system’s performance behavior; for example, it can be SQL-queried to generate gprof -like output [16], to graphically display latency trends over time for each type of service request, to graphically display average/high/low latencies per node, or to mine the data for anomalies. Section 2 provides a detailed example of how lprof might be used in practice. Three observations led us to our work on lprof . First, existing tools to analyze and debug the performance of distributed systems are limited. For example, IT-level tools, such as Nagios [30], Zabbix [46], and OpsView [33], capture OS and hardware counter statistics, but do not relate them to higher-level operations such as service requests. A number of existing profiling tools rely on instrumentation; examples include gprof [16] that profiles applications by sampling function invocation points; MagPie [3], Project 5 [1], and XTrace [14] that instrument the application as well as the network stack to monitor network communication; and commercial solutions such as Dapper [36], Boundary [5], and NewRelic [31]. As these tools require modifications to the software stack, the added performance overhead can be problematic for systems deployed in production. Recently, a number of tools applied machine learning techniques to analyze logs [29, 42], primarily to identify performance anomalies. Although such techniques can be effective in detecting individual anomalies, they ...",
+  "paper_file": "papers/2015/10/08/lprof-a-non-intrusive-request-flow-profiler-for-distributed-systems.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "request-flow-profiling",
+    "log-analysis",
+    "performance-debugging",
+    "static-bytecode-analysis",
+    "temporal-order-analysis",
+    "communication-pair-analysis",
+    "mapreduce",
+    "distributed-tracing",
+    "anomaly-detection"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

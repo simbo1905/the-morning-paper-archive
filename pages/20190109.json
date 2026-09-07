@@ -1,0 +1,46 @@
+{
+  "date": "20190109",
+  "file_name": "20190109",
+  "slug": "neural-ordinary-differential-equations",
+  "blog_url": "https://blog.acolyer.org/2019/01/09/neural-ordinary-differential-equations/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer reviews the paper 'Neural Ordinary Differential Equations' by Chen et al., which won a best paper award at NeurIPS'18. The paper introduces a novel approach to neural networks by framing them as solutions to ordinary differential equations (ODEs). Instead of discrete layers, the network's hidden state evolves continuously over time, allowing the use of any ODE solver for training and inference. This formulation enables adaptive computation, where the depth of the network is determined dynamically by the solver, and offers memory efficiency since the network's state is not stored layer-by-layer. The adjoint method is employed for efficient gradient computation, scaling linearly with problem size. The paper demonstrates applications in residual networks (achieving similar performance to ResNet with fewer parameters), normalizing flows (improving learning of complex probability distributions), and time-series modeling (handling irregularly-sampled data effectively). Colyer highlights the elegance and generality of the approach, noting its potential to unify and improve various neural network architectures.",
+  "paper_title": "Neural Ordinary Differential Equations",
+  "paper_authors": [
+    "Ricky T. Q. Chen",
+    "Yulia Rubanova",
+    "Jesse Bettencourt",
+    "David Duvenaud"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "NeurIPS'18",
+  "paper_url": "https://arxiv.org/abs/1806.07366",
+  "paper_abstract": "We introduce a new family of deep neural network models. Instead of specifying a discrete sequence of hidden layers, we parameterize the derivative of the hidden state using a neural network. The output of the network is computed using a blackbox differential equation solver. These continuous-depth models have constant memory cost, adapt their evaluation strategy to each input, and can explicitly trade numerical precision for speed. We demonstrate these properties in continuous-depth residual networks and continuous-time latent variable models. We also construct continuous normalizing flows, a generative model that can train by maximum likelihood, without partitioning or ordering the data dimensions. For training, we show how to scalably backpropagate through any ODE solver, without access to its internal operations. This allows end-to-end training of ODEs within larger models.",
+  "paper_file": "papers/2019/01/09/neural-ordinary-differential-equations.pdf",
+  "topics": [
+    "machine-learning"
+  ],
+  "tags": [
+    "neural-networks",
+    "differential-equations",
+    "residual-networks",
+    "normalizing-flows",
+    "time-series",
+    "adjoint-method",
+    "continuous-depth"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Residual vs ODE network transformations",
+      "caption": "Left: A Residual network defines a discrete sequence of finite transformations. Right: A ODE network defines a vector field, which continuously transforms the state. Both: Circles represent evaluation locations."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Reverse-mode differentiation of an ODE solution",
+      "caption": "Reverse-mode differentiation of an ODE solution. The adjoint sensitivity method solves an augmented ODE backwards in time. The augmented system contains both the original state and the sensitivity of the loss with respect to the state. If the loss depends directly on the state at multiple observation times, the adjoint state must be updated in the direction of the partial derivative of the loss with respect to each observation."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

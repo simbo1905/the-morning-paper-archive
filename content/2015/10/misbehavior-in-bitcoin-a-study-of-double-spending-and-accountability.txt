@@ -1,0 +1,288 @@
+URL: https://blog.acolyer.org/2015/10/01/misbehavior-in-bitcoin-a-study-of-double-spending-and-accountability/
+Title: Misbehavior in Bitcoin: A Study of Double-Spending and&nbsp;Accountability
+---
+
+Misbehavior in Bitcoin: A Study of Double-Spending and Accountability - Karame et al. 2015
+
+"Fast" transactions as it relates to Bitcoin are those that take around a minute or less. Buying virtual goods with immediate delivery / access, or using Bitcoin in a store for immediate exchange of goods are examples where it is hard to imagine a good customer experience if everyone has to wait on the order of ten minutes or so for a transaction to be confirmed. If you don't wait for that confirmation though, the authors show that double-spending attacks can succeed with considerable probability and can be mounted at low cost. An electronic currency that either can't be trusted, or alternatively can't be used for fast transactions has obvious limitations.
+
+The basic idea is to submit two transactions - one that transfers payment to the merchant, and one that transfers the same payment back to one of your own accounts. Since both are spending the same bitcoin, only one of these transactions can make it into the blockchain. You set things up so that the merchant sees the valid looking transaction, yet the blockchain ultimately chooses the one that transfers money back to you with reasonable probability.
+
+There is a a countermeasure - already implemented in BitCoinXT - but introducting accountability for those that try to abuse the system is at odds with privacy. The second part of the paper examines this balance and quantifies privacy leakage in Bitcoin.
+
+## How to have your cake and eat it
+
+The setup:
+
+> 
+
+ Our system consists of a malicious client A and a vendor V connected through a Bitcoin network. We assume that A wishes to acquire a service from V without having to spend its BTCs. More speciﬁcally, A could try to double-spend the coin that she already transferred to V. By double-spending, we refer to the case where A can redeem and use the same coins with which she paid V so as to acquire a different service elsewhere. We assume that A can only control few peers in the network (that she can deploy since Bitcoin does not restrict membership) and does not have access to V’s keys or machine. The remaining peers in the network are assumed to be honest and to correctly follow the Bitcoin protocol. In this article, we assume that A does not participate in the block generation process. This also suggests that when a transaction is conﬁrmed in a block, this transaction cannot be modiﬁed by A. To hide her proﬁle, we assume that A generates a new Bitcoin address whenever it communicates with V.
+
+The average block generation time in the bitcoin network is about 10 minutes, thus the time required to confirm transactions impedes many businesses characterized by a fast service time...
+
+> 
+
+ As such, it is clear that vendors, such as vending machines and take-away stores, cannot rely on transaction conﬁrmation when accepting Bitcoin payments. To address that, Bitcoin encourages vendors to accept fast Bitcoin payments with zero conﬁrmations as soon as the vendor receives a transaction from the network transferring the correct amount of BTCs to one of its addresses.
+
+A needs to trick vendor V into accepting a transaction TRV that V will not be able to redeem subsequently. Attacker A creates a transaction TRA with the same inputs as TRV (uses the same BTCs), but replaces the recipient with an address that A controls. If both transactions are sent at the same time, and V sees TRV first but a majority of the network peers see TRA first, then TRA will be confirmed in an upcoming block and TRV will be rejected. By this time of course, in a fast transaction, V has already released the goods. V's service time must be smaller than the time it takes V to detect misbehaviour.
+
+A enlists the help of a set H of helper nodes. A sends TRV to V, and then a short delta later, it sends TRA to all of its helper nodes which immediately begin spreading TRA through the network. V may adopt a delay of a few seconds before releasing the goods, to see if it receives any transactions that attempt to double-spend the coins V received from A. The delay between the sending of TRV and TRA can be tuned so that this delay is circumvented. A can also increase the number of helpers it uses.
+
+> 
+
+ It is interesting to note that a Bitcoin node located at http://blockchain.info/ keeps track of all transactions exchanged in the system and attempts to identify double-spending transactions. However, this information is not propagated to peers in the network.
+
+The authors build a probabilistic model that shows this attack is highly likely to succeed, and then build an implementation to verify it empirically. PS is the probability that an attack succeeds, and &Delta; is the delay between sending TRV and TRA:
+
+> 
+
+ Our experimental results ... show that irrespective of a speciﬁc network topology, the probability that A succeeds in performing double-spending attacks is signiﬁcant. Conﬁrming our previous analysis, PS decreases as &Delta; increases. As explained in Section 3.4, this is because the higher is &Delta;, the larger is the number of peers that receive TRV; in turn, the probability that TRA is conﬁrmed before TRV decreases... This can be remedied if the number of helper nodes that spread TRA increases. Our results show that even for a large &Delta; of 2 seconds, relying on two helper nodes still guarantees that double-spending succeeds with a considerable probability; when&Delta; = 1 seconds, the attack is guaranteed to succeed (PS is close to 1) using two helpers.
+
+In general, A succeeds with high probability in spending the same coins to n &geq; 1 recipients when the number of helpers that assist A is &geq; n. Even if V adopts a listening period of a few tens of seconds double-spending is still possible.
+
+The above shows that double-spending is possible under normal operation of the network. The authors also how the change in Bitcoin clients from version 0.8.1 to 0.8.2 can be exploited in a similar manner:
+
+> 
+
+ Starting from version 0.8.2, Bitcoin clients no longer accept transactions that do not follow a given signature encoding. As we show, this incompatibility with prior client versions can potentially lead to a double-spending attack in a fast payment setting in Bitcoin. The attack can only work when V operates on any client version prior to 0.8.2.
+
+A sends transaction TRV to V, in a format that is accepted prior to 0.8.2, but not in v0.8.2. A then sends TRA into the network, in v0.8.2 compatible format. If the majority of peers in the network have moved onto version 0.8.2 then TRV will be rejected by them and there is a high probability that TRA will win.
+
+> 
+
+ We implemented this double-spending attack in a private “test” Bitcoin network comprised of two Bitcoin miners, a merchant, and the adversary’s machine. In our setup, the merchant was running client version 0.8.1, and the miners were running version 0.8.2. Our results show that such a double-spending attack succeeds with 100% probability in the investigated setting. We therefore hope that our ﬁndings increase the awareness within the Bitcoin community on the delicacy of version releases...
+
+## Countermeasures
+
+> 
+
+ To efﬁciently detect double-spending on fast Bitcoin payments, we propose that Bitcoin peers forward transactions that attempt to double-spend the same coins in the Bitcoin network. Namely, our technique unfolds as follows. Whenever a peer receives a new transaction, it checks whether the transaction uses coins that have not been spent in any other transaction that resides in the block chain and in their memory pool. If so, then peers follow the current protocol of Bitcoin; peers add the transaction to their memory pool and forward it in the network. If, on the other hand, peers detect that there is another transaction in their memory pool that spends the same coins with different recipients, then peers forward the transaction to their neighbors (without adding the transaction to their memory pools).
+
+Under this scheme, if the majority of peers are honest and receive both TRV and TRA then both transactions should be received within a few seconds by V and the double-spending attempt discovered. An optimisation that reduces network overhead is for peers to only forward the first attempt to double-spend a given coin.
+
+> 
+
+ This variant detection technique is integrated in BitcoinXT; a number of Bitcoin nodes already use this technique to report double-spending attempts.
+
+## Accountability and Privacy
+
+> 
+
+ Our ﬁndings... suggest that misbehavior in Bitcoin is inevitable and is only expected to increase as the utility of the system increases. Currently, Bitcoin nodes locally ban the IP address of the misbehaving user for 24 hours. Clearly, such an approach is not sufﬁcient to deter misbehavior, as malicious peers can, for example, modify/spoof their IPs or even try to connect to and attack other peers, who still have not blacklisted their IP address. We argue that if Bitcoin is to sustain another decade of service, then it must incorporate accountability measures to ensure that a misbehaving user is indeed “punished.”
+
+One approach would be to blacklist addresses, but even this is not sufficient because users can be equipped with many addresses. Therefore we would like to link addresses to (misbehaving) users. But this is at odds with user privacy which is strongly coupled to the notion of address unlinkability.
+
+The authors investigated how feasible it is to link addresses. Two heuristics can be exploited: multi-input transactions and shadow addresses.
+
+> 
+
+ ...multi-input transactions occur when u wishes to perform a payment and the payment amount exceeds the value of each of the available BTCs in u’s wallet. In fact, existing Bitcoin clients choose a set of BTCs from u’s wallet (such that their aggregate value matches the payment) and perform the payment through multi-input transactions. It is therefore straightforward to conclude that if these BTCs are owned by different addresses, then the input addresses belong to the same user.
+
+The standard Bitcoin client generates a new address, called a shadow address , on which the sender can collect back 'change.'
+
+> 
+
+ This mechanism suggests a distinguisher for shadow addresses. Namely, in the case when a Bitcoin transaction has n output addresses, such that only one address is a new address (i.e., an address that has never appeared in pubLog before), and all other addresses correspond to an old address (an address that has appeared previously in pubLog), we can safely assume that the newly appearing address constitutes a shadow address for ai Note that the ofﬁcial Bitcoin client started to support transactions with multiple recipients since December 16, 2010..
+
+Using these heuristics and parsing the first 239,200 blocks in the blockchain, the authors were able to link addresses for about 30% of participants.
+
+> 
+
+ ...Simply by observing the public Bitcoin log, the adversary can link some of the addresses and transactions of entities. However, our heuristics can only cluster a small number of addresses and link addresses that perform transactions close in time. In Section 4.4, we show that the advantage of the adversary in linking Bitcoin addresses can be signiﬁcantly boosted when combining the use of Heuristics I and II with standard clustering algorithms.
+
+Good news / Bad news :
+
+> 
+
+ Our results suggest that the privacy provisions of Bitcoin are not strong, which opens the door to the integration of accountability measures in the system.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Blockchain 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousA Pact with the DevilNext &rsaquo;Cloud Computing Resource Scheduling and a Survey of its Evolutionary Approaches
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

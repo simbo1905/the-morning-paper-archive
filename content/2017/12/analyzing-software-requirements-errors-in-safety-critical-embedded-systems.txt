@@ -1,0 +1,321 @@
+URL: https://blog.acolyer.org/2017/12/01/analyzing-software-requirements-errors-in-safety-critical-embedded-systems/
+Title: Analyzing software requirements errors in safety-critical embedded&nbsp;systems
+---
+
+Analyzing software requirements errors in safety-critical embedded systems Lutz, IEEE Requirements Engineering, 1993
+
+With thanks once more to @Di4naO (Thomas Depierre) who first brought this paper to my attention.
+
+We’re going even further back in time today to 1993, and a paper analysing safety-critical software errors uncovered during integration and system testing of the Voyager and Galileo spacecraft. There are 87 software errors in Voyager, and 122 software errors in Galileo that are classified as safety-related since they have ‘potentially significant or catastrophic effects’. Unlike the errors we looked at yesterday, you could make the case that the overall system development process here was effective in the sense that the problems were caught before the system was deployed. Lutz is interested in tracking down why so many safety-critical errors are found so late in the process though.
+
+The analysis methodology is a “3 whys” process:
+
+> 
+
+ This approach allows classification not only of the documented software error (called the program fault), but also of the earlier human error (the root cause, e.g., a misunderstanding of an interface specification), and, before that, of the process flaws that contribute to the likelihood of the error’s occurrence (e.g., inadequate communication between systems engineering and software development teams).
+
+Having thus created an error profile of safety-related software errors, the paper concludes with a set of six guidelines to help prevent them.
+
+## The first why: program faults
+
+Safety-related program faults break down into four categories:
+
+- Behavioural faults — the software doesn’t follow the functional requirements. This category accounts for 52% of Voyager issues, and 47% of Galileo’s. (Functionality is present, but incorrect). 
+
+- Operating faults — a required but omitted operation in the software. “Often the omitted operation involves the failure to perform adequate reasonableness checks on data input to a module.” (Functionality is not present). 
+
+- Conditional faults — nearly always an erroneous value on a condition or limit. Conditional faults had a high (73%) chance of being safety related. “The association between conditional faults and safety-related software errors emphasizes the importance of specifying the correct values for any data used in control decisions in safety-critical, embedded software.”
+
+- Interface faults — incorrect interactions with other system components. 
+
+## The second why: from program faults to human factors
+
+Communication errors between teams (rather than within teams) is the major cause of interface faults:
+
+> 
+
+ Safety-related interface faults are associated overwhelmingly with communications errors between a development team and others (often between software developers and systems engineers), rather than communications errors within teams.
+
+The primary cause of the behavioural, operating, and conditional faults is errors in recognising (understanding) the requirements.
+
+## The third why: from human factors to process flaws
+
+The third stage of the analysis examines both flaws or inadequacies in the control of system complexity, and well as associated process flaws in the communication or development methods used.
+
+> 
+
+ For safety-related interface faults, the most common complexity control flaw is interfaces not adequately identified or understood.
+
+Related to process, lack of documentation of hardware behaviour, poor communication between hardware and software teams, and undocumented (or communicated) interface specifications. In summary, the software developers are working with incomplete information and erroneous assumptions about the environment in which the software will operate. Not all of these things are perfectly knowable up front though:
+
+> 
+
+ Leveson (1991) listed a set of common assumptions that are often false for control systems, resulting in software errors. Among these assumptions are that the software specification is correct, that it is possible to predict realistically the software’s execution environment (e.g., the existence of transients), and that it is possible to anticipate and specify correctly the software’s behavior under all possible circumstances.
+
+For functional faults, the most common cause is requirements which have not been identified. Missing requirements are involved in nearly half the safety-related errors that involve recognising requirements. Imprecise or unsystematic specifications were more than twice as likely to be associated with safety-related functional faults.
+
+> 
+
+ These results suggest that the sources of safety-related software errors lie farther back in the software development process — in inadequate requirements — whereas the sources of non-safety-related errors more commonly involve inadequacies in the design phase.
+
+## Six recommendations for reducing safety-related software errors
+
+Since safety-related software errors tend to be produced by different mechanisms than non-safety-related errors, we should be able to improve system safety by targeting safety-related error causes. Lutz presents six guidelines:
+
+- Focus on the interfaces between the software and the system in analyzing the problem domain, since these interfaces are a major source of safety-related software errors.
+
+- Identify safety-critical hazards early in the requirements analysis. 
+
+- Use formal specification techniques in addition to natural-language software requirements specifications. “The capability to describe dynamic events, the timing of process interactions in distinct computers, decentralized supervisory functions, etc., should be considered in choosing a formal method.”
+
+- Promote informal communication among teams: “the goal is to be able to modularize responsibility in a development project without modularizing communication about the system under development.” For example, the identification and tracking of safety hazards in a system is clearly best done across team boundaries. 
+
+- As requirements evolve, communicate the changes to the development and test teams: “frequently, changes that appear to involve only one team or system component end up affecting other teams or components at same later date...”
+
+- Include requirements for “defensive design.” This includes things like input validity checking, error-handling, overflow protection, signal saturation limits, and system behaviour under unexpected conditions.
+
+> 
+
+ Requirements specifications that account for worst-case scenarios, models that can predict the range of possible (rather than allowable) values, and simulations that can discover unexpected interactions before system testing contribute to the system’s defense against hazards.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Software Engineering 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousThe role of software in spacecraft accidentsNext &rsaquo;ffwd: delegation is (much) faster than you think
+ 
+ 
+
+ 
+ 
+## 
+ 2 thoughts on &ldquo;Analyzing software requirements errors in safety-critical embedded systems&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Derek Jones says: 
+
+ 
+ December 1, 2017 at 6:25 pm 
+
+ 
+
+ 
+ 
+The link is to a poorly reproduced copy that does not contain the interesting numbers. There is a much better copy on the JPL technical report server: https://trs.jpl.nasa.gov/handle/2014/35278
+
+When I saw the name Lutz, I thought of this guy:
+
+http://www.mi.fu-berlin.de/w/Main/LutzPrechelt
+
+Whose experimental work is well worth checking out.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Some thoughts on security after ten years of qmail 1.0 | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

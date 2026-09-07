@@ -1,0 +1,340 @@
+URL: https://blog.acolyer.org/2016/03/01/ad-click-prediction-a-view-from-the-trenches/
+Title: Ad Click Prediction: A View from the&nbsp;Trenches
+---
+
+Ad Click Prediction: a View from the Trenches - McMahan et al. 2013
+
+Yesterday we looked at a tour through the many ways technical debt can creep into machine learning systems. In that paper, the authors mention an automated feature management tool that since its adoption, "has regularly allowed a team at Google to safely delete thousands of lines of feature-related code per quarter, and has made verification of versions and other issues automatic. The system has on many occasions prevented accidental use of deprecated or broken features in new models." Today's choice, 'Ad Click Prediction: a View from the Trenches' is the Google paper that gives further insight into that tool, as well as a number of other pragmatic tools and techniques that the team used for machine learning at scale using models that have billions of features.
+
+## Visual Exploration
+
+> 
+
+ One potential pitfall in massive scale learning is that aggregate performance metrics may hide effects that are specific to certain sub-populations of the data. For example, a small aggregate accuracy win on one metric may in fact be caused by a mix of positive and negative changes in distinct countries, or for particular query topics. This makes it critical to provide performance metrics not only on the aggregate data, but also on various slicings of the data, such as a per-country basis or a per-topic basis. Because there are hundreds of ways to slice the data meaningfully, it is essential that we be able to examine a visual summary of the data effectively. To this end, we have developed a high-dimensional interactive visualization called GridViz to allow comprehensive understanding of model performance.
+
+Here's a screen shot of GridViz in action comparing three variants with a control model.
+
+The tool allows interactive exploration and, "overall, has enabled us to dramatically increase the depth of our understanding for model performance on a wide variety of subsets of the data, and to identify high impact areas for improvement."
+
+## Automated Feature Management
+
+> 
+
+ An important aspect of scalable machine learning is managing the scale of the installation, encompassing all of the configuration, developers, code, and computing resources that make up a machine learning system. An installation comprised of several teams modeling dozens of domain specific problems requires some overhead. A particularly interesting case is the management of the feature space for machine learning. We can characterize the feature space as a set of contextual and semantic signals, where each signal (e.g., ‘words in the advertisement’, ‘country of origin’, etc.) can be translated to a set of real-valued features for learning. In a large installation, many developers may work asynchronously on signal development.
+
+Signals may have many different versions, and are often consumed by teams other than the ones that develop them. Without some way of tracking all of this, once you get into the thousands of signals and hundreds of models (and probably some time before then ;) ), things can start to get out of hand....
+
+> 
+
+ To handle the combinatorial growth of use cases, we have deployed a metadata index for managing consumption of thousands of input signals by hundreds of active models. Indexed signals are annotated both manually and automatically for a variety of concerns; examples include deprecation, platform-specific availability, and domain-specific applicability. Signals consumed by new and active models are vetted by an automatic system of alerts. Different learning platforms share a common interface for reporting signal consumption to a central index. When a signal is deprecated (such as when a newer version is made available), we can quickly identify all consumers of the signal and track replacement efforts. When an improved version of a signal is made available, consumers can be alerted to experiment with the new version.
+
+(In contrast with a typical pub-sub system, only the metadata about publishers and subscribers is maintained by this index, and my reading is that actual signal consumption happens independently).
+
+New signals are vetted by automatic testing and old signals are automatically earmarked for code cleanup and deletion of associated data.
+
+> 
+
+ Effective automated signal consumption management ensures that more learning is done correctly the first time. This cuts down on wasted and duplicate engineering effort, saving many engineering hours. Validating configurations for correctness before running learning algorithms eliminates many cases where an unusable model might result, saving significant potential resource waste.
+
+For any company of reasonable size that is taking the 'data-driven' approach to heart, this decoupling of signal generation and consumption with metadata tracking to manage signal life cycles and consumption sounds to me like a core capability you should be thinking about.
+
+## Strategies and tactics for working with very large models
+
+Now let's change tack a little and look at some of the tactics that the Google ad click-through rate (ML) team used to cope with very large data sets and very large models.
+
+> 
+
+ For learning at massive scale, online algorithms for generalized linear models (e.g., logistic regression) have many advantages. Although the feature vector x might have billions of dimensions, typically each instance will have only hundreds of nonzero values. This enables efficient training on large data sets by streaming examples from disk or over the network, since each training example only needs to be considered once.
+
+An online gradient descent (OGD) model produces a weights vector w. Given billions of features this itself is a challenge to manage efficiently. Models can be stored sparsely, so the number of non-zero coefficients in w determines memory usage. "Unfortunately, OGD is not particularly good at producing sparse models." Once this memory usage becomes an issue, alternative algorithms are available. The team settled on 'Follow The (Proximally) Regularized Leader' (FTRL-Proximal) - the paper shows the algorithm details, here I'm more interested in simply the idea that the model size can be an issue. Compared to FTRL-Proximal, OGD has over twice as many non-zero coefficients, yet FTRL-Proximal and OGD give very similar performance as measured by 'AucLoss' (1 - Area Under Curve).
+
+Memory can also be an issue during the training process itself of course:
+
+> 
+
+ In many domains with high dimensional data, the vast majority of features are extremely rare. In fact, in some of our models, half the unique features occur only once in the entire training set of billions of examples. It is expensive to track statistics for such rare features which can never be of any real use. Unfortunately, we do not know in advance which features will be rare...
+
+The most effective mechanism that the authors found for their use case was Bloom Filter inclusion. This works by only including features in the model once they have been seen a certain number of times...
+
+> 
+
+ We use a rolling set of counting Bloom filters to detect the first n times a feature is encountered in training. Once a feature has occurred more than n times (according to the filter), we add it to the model and use it for training in subsequent observations as above. Note that this method is also probabilistic, because a counting bloom filter is capable of false positives (but not false negatives). That is, we will sometimes include a feature that has actually occurred less than n times.
+
+Using Bloom Filter Inclusion with n=2 results in 66% RAM savings, with only 0.008% AucLoss detriment.
+
+Another straightforward memory saving is found by realising that in their model nearly all coefficient values lie in the range (-2,2). Therefore use 32-bit or 64-bit floating points is overkill at the desired level of accuracy. By switching to a 16-bit representation, and adding a simple randomized rounding strategy to mitigate accumulation of roundoff error, the authors managed to reduce the RAM requirements for coefficient storage by 75%.
+
+What can be done about the size of the training data set itself? What if we could get comparable accuracy results using less training data? And how should we choose an appropriate subset if so? The authors find a way to answer these questions by carefully exploiting the nature of the training data in their use case:
+
+> 
+
+ Typical CTRs (click-through rates) are much lower than 50%, which means that positive examples (clicks) are relatively rare. Thus, simple statistical calculations indicate that clicks are relatively more valuable in learning CTR estimates. We can take advantage of this to significantly reduce the training data size with minimal impact on accuracy.
+
+The authors include in their training data:
+
+- Any query for which at least one of the ads was clicked, and
+
+- A fraction r &isin; (0.1] of the queries where no ads were clicked.
+
+> 
+
+ Of course, naively training on this subsampled data would lead to significantly biased predictions. This problem is easily addressed by assigning an importance weight ωt to each example, where ωt = 1 if the event t is in a clicked query, and 1/r otherwise. Since we control the sampling distribution, we do not have to estimate the weights ω as in general sample selection.
+
+Experiments showed that even fairly aggressive sub-sampling of non-clicked queries has a minimal impact on model performance, and furthermore is not especially sensitive to the particular value of r.
+
+For experimenting with large numbers of model variants at once, the authors also introduce a couple of techniques they used to save space. This involves training the models simultaneously and sharing as much data as possible bar the coefficients. For very large model sets, even the coefficients are shared! For each feature i, every model that uses i computes a new value for the coefficient. These values are then averaged to produce the new coefficient value for the next iteration.
+
+## How do we know it's working?
+
+> 
+
+ Because the different metrics respond in different ways to model changes, we find that it is generally useful to evaluate model changes across a plurality of possible performance metrics. We compute metrics such as AucLoss (that is,1 −AUC, where AUC is the standard area under the ROC curve metric), LogLoss (see Eq. (1)), and SquaredError. For consistency, we also design our metrics so that smaller values are always better.
+
+Rather than focus on absolute metric values, the team at Google found that relative change expressed as a percentage against some baseline model gave better intuition:
+
+> 
+
+ Absolute metric values are often misleading. Even if predictions are perfect, the LogLoss and other metrics vary depending on the difficulty of the problem (that is, the Bayes risk). If the click rate is closer to 50%, the best achievable LogLoss is much higher than if the click rate is closer to 2%. This is important because click rates vary from country to country and from query to query, and therefore the averages change over the course of a single day. We therefore always look at
+
+ relative changes, usually expressed as a percent change in the metric relative to a baseline model. In our experience, relative changes are much more stable over time.
+
+Another technique I find interesting is the way the team separated in-situ calibration of predictions made by models from the development and training of the models themselves. Systematic bias captures the difference between the average predicted, and the actual, CTR on some slice of data. It can creep into the system for a number of reasons including inaccurate modeling assumptions, deficiencies in the learning algorithm, and hidden features not available at training or prediction serving time.
+
+> 
+
+ To address this, we can use a calibration layer to match predicted CTRs to observed click–through rates. Our predictions are calibrated on a slice of data d if on average when we predict p, the actual observed CTR was near p. We can improve calibration by applying correction functions τd(p) where p is the predicted CTR and d is an element of a partition of the training data. We define success as giving well calibrated predictions across a wide range of possible partitions of the data.
+
+## Concluding Food for Thought
+
+If you're working with very large models and training sets in production settings, hopefully this paper will give you some inspiration for places to look to make this more manageable/efficient. Regardless of the size of the models and/or data that you're working with though, there are a number of practical suggestions that you might want to consider if you're taking machine learning seriously within your organisation:
+
+- An automated feature management system that manages signal publishers and consumers.
+
+- A tool for visualising and comparing the impact of proposed model changes
+
+- Monitoring of multiple metrics and comparing relative change against a baseline
+
+- A model-independent system for measuring and correcting for systematic bias
+
+- Alerting when the number of actions taken by a system passes some threshold (this recommendation actually comes from yesterday's paper).
+
+How many of these do you have in place?
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ GoogleMachine Learning 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousMachine Learning: The High-Interest Credit Card of Technical DebtNext &rsaquo;Graying the Black Box: Understanding DQNs
+ 
+ 
+
+ 
+ 
+## 
+ 2 thoughts on &ldquo;Ad Click Prediction: A View from the Trenches&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: MacroBase: Analytic Monitoring for the Internet of Things | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Ground: A data context service | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

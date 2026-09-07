@@ -1,0 +1,289 @@
+URL: https://blog.acolyer.org/2018/01/23/why-is-random-testing-effective-for-partition-tolerance-bugs/
+Title: Why is random testing effective for partition tolerance&nbsp;bugs?
+---
+
+Why is random testing effective for partition tolerance bugs? Majumdar & Niksic, POPL 18
+
+A little randomness is a powerful thing! It can make the impossible possible (FLP ), balance systems remarkably well (the power of two random choices), and of course underpin much of cryptography. Today’s paper choice examines the unreasonable effectiveness of random testing for distributed systems. Why was Kyle Kingsbury’s wonderful work with Jepsen able to uncover so many bugs? Of course, one answer is that the developers of those systems hadn’t run sufficient tests themselves, but another answer revealed by this paper is that the (at its core) random exploration of partitions and operations exercised by Jepsen is highly likely to flush out bugs if they do exist.
+
+> 
+
+ The success of random testing in Jepsen and similar tools presents a conundrum. On the one hand, academic wisdom asserts that random testing will be completely ineffective in finding bugs in faulty systems other than by “extremely unlikely accident”: the probability that a random execution stumbles across the “right” combination of circumstances — failures, recoveries, reads and writes — is intuitively so small that any soundness guarantees for a given coverage goal, even probabilistic, would be miniscule (many systematic testing papers start by asserting that random testing does not or should not work). On the other hand, in practice, random testing finds bugs within a small number of tests.
+
+This paper provides a theoretical understanding / explanation for the empirical success of Jepsen. The same results apply equally to explain for example the power of random fault injection in the emerging discipline of chaos engineering.
+
+## Defining coverage
+
+Jepsen tests the behaviour of distributed systems under partition faults. In a typical bug found by Jepsen a small sequence of operations sets the system up in a special state, after which a network partition is introduced that separates the processes into two or more  blocks that cannot communicate with each other. A further sequence of operations is then performed (often in each of the different blocks in the partition), after which the partition is healed and a final set of operations are performed. Exactly what constitutes a bug depends on the guarantees claimed by the system under this scenario.
+
+To understand how likely it is that we’ve flushed out any bugs in a given system, we need some notion of coverage. We’re not talking about test coverage in terms of lines of code here, but the principle is similar. We want to know what kind of coverage we’re getting in the partition space. Three different coverage notions turn out to be sufficient to capture a very large class of fault tolerance bugs found by Jepsen. These are k-splitting, (k,l)-separation, and minority isolation.
+
+- k-splitting. If we have n processes, then a k-split partitions those processes into k distinct blocks. We achieve full coverage if we have tested all possible ways of splitting the processes into k different groups. Another way of saying this is that for every group of k processes, there is a test that splits them. A single network partition is a 2-split in this terminology. For the Jepsen bugs examined in the paper, k=2 or k=3 is sufficient to reveal them. In a  balanced k-split, the size of the partitions differs by at most one. 
+
+- (k,l)-separation. Forget everything I just told you about k, because this k is completely different! Here we’re talking about the different roles that processes might play in a system, such as leader and follower. It is important for coverage that when we introduce partitions, we explore different separations by roles (e.g., making sure that follower processes are cut off from leaders). In (k,l)-separation for every pair of collections of k and l roles full separation coverage requires that the collection of k roles is separated by a partition from the collection of l roles. Again, say we have a system in which lead replicas each have two followers, then we want to make sure that every choice of one and two processes is separated by a partition — (1,2)-separation. For the Jepsen bugs studied in the paper, values of k and l up to 3 are sufficient to reveal them all. 
+
+- minority isolation. This one is easier to get your head around. We often care whether a process ends up in a minority partition or not (especially if it is / was a leader). The minority isolation coverage criteria requires that every process end up in the smaller block of a bipartition. 
+
+## A combinatorial magic trick
+
+> 
+
+ [For each coverage case], for a fixed coverage goal (a process, a set of k processes, or a pair of k and l processes) we show we can bound the probability that a random test (a bipartition or k-partition) covers the goal (isolates, splits, or separates the processes). The bound depends on parameters k,l, but does not depend on n — the size of the system. This allows us to construct small families of tests that cover all goals with high probability by picking sufficiently many tests (we provide upper bounds) uniformly at random.
+
+Let’s try to get an intuition for how this works. It hinges on an application of the probabilistic method, a technique from combinatorics. At a high level it all sounds a bit like one of those philosophical riddles! We’d like to show that a combinatorial object with certain properties exists. Suppose we choose a object from a suitable probability space at random. If there is a a greater than zero probability (however slight) that the object has the desired properties then — sleight of hand... — there must be at least one object (although we don’t know which one) with that property! Make enough random selections, and you can amplify that probability until it becomes overwhelmingly likely that a randomly sampled object has the property. This holds even though (as is often the case), we don’t have any deterministic way of making such an object.
+
+In a testing context we have a distributed system of size n, a space of coverage goals parameterised by some constants k, l assumed to be much smaller than n, and a space of tests (e.g., schedules of operations and partitions simulating failures in the system).
+
+> 
+
+ A given test can cover one or more coverage goals. Our objective is to find a small covering family: a small set of tests that covers all the coverage goals. Here “small” means potentially exponential in k and l, but logarithmic or linear in n. We invoke the probabilistic method to show that a small covering family exists, and that a randomly choses small set of tests is overwhelmingly likely to be a covering family.
+
+The reasoning goes like this:
+
+- Suppose a randomly chosen test satisfies the goal with probability .
+
+- Then the probability such a does not satisfy the goal is simply .
+
+- If we take N such independently chosen random tests, then the probability than none of them satisfy the goal is .
+
+- If we have m coverage goals, then the set of N tests above is not a covering family with a probability at most . 
+
+- For a given , if we pick the number of tests N to be then the probability this not a covering family can be made less than .
+
+- And therefore, we have a covering family of tests with probability at least .
+
+> 
+
+ Together, our results imply that a small set of randomly chosen tests can already provide full coverage in distributed systems for coverage criteria empirically correlated with bugs. While we focus on partition tolerance, our general construction provides a general technique for a rigorous treatment of random testing. We show our main construction also shows the existence of small covering families for certain random testing procedures for multi-threaded and asynchronous programs, for feature interactions, and for VLSI circuits.
+
+## Jepsen examples
+
+The paper provides examples of bugs found by Jepsen in etcd, Kafka, and Chronos. The etcd inconsistency is reproducible with a minority isolation combined with a sequence of two operations. The Kafka bug requires observing a 2,2-separating partition followed by a 1,3-separating partition, and the Chronos bug requires k-splitting with k=2. There’s also a brief discussion of an Elasticsearch bug which requires intersecting partitions (non-disjoint blocks with a bridge node in common between them). The claim is that the coverage notions can still apply here since an intersecting partition with non-empty, can be modelled by a partition . They don’t seem to be the same thing at all to me (in the former for example, nodes in X can talk to Z, but in the latter they can’t), but the description is brief and it’s possible I’m missing something.
+
+## Lemmas, Theorems, Corollaries, oh my!
+
+I’m already at target length for a Morning Paper post, and we’ve only really covered the introductory material - but we have looked at all the big ideas. For the mathematically inclined, the meat of the paper is in sections 3 and 4 which develop a series of lemmas, theorems, and corollaries that develop and extend the informal results above.
+
+Using the results contained here, the authors are able to show that uncovering the minority isolation bug in etcd with a 5 node system has an 80% probability with approximately 302 tests. Exposing the Kafka bug (which requires two consecutive partitions) has probability 80% with 50 alternate partition pairs, and exposing the Chronos bug with 80% probability requires a sequence of 61 amalgamated operations.
+
+Using the theory developed in this section coupled with some basic information about the system under test — and knowing empirically that most bugs reveal themselves at small values of k and l (less than 3) — it should be possible to estimate the number of random tests you need to run to achieve desired coverage at a given confidence level. I leave that as an exercise for the reader ;).
+
+## The last word
+
+> 
+
+ Random simulation is the primary mode of testing systems with large and complex state spaces across many different domains... Our results are a step towards a theoretical understanding of random testing: we show that the effectiveness of testing can be explained in certain scenarios by providing lower bounds on the probability that a single random test covers a fixed coverage goal. For network partition tests, we introduce a set of coverage goals inspired by actual bugs in distributed systems and show lower bounds on the probability of a random test covering a goal.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Distributed SystemsTesting 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousProgramming and proving with distributed protocolsNext &rsaquo;Linear Haskell: Practical linearity in a higher-order polymorphic language
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;Why is random testing effective for partition tolerance bugs?&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: SRE Weekly Issue #107 - SRE WEEKLY 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

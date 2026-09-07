@@ -1,0 +1,440 @@
+URL: https://blog.acolyer.org/2017/09/18/bringing-the-web-up-to-speed-with-webassembly/
+Title: Bringing the web up to speed with&nbsp;WebAssembly
+---
+
+Bringing the web up to speed with WebAssembly Haas et al., PLDI 2017
+
+This is a joint paper from authors at Google, Mozilla, Microsoft and Apple describing the motivations for WebAssembly together with a very concise exposition of its core semantics. If you're following along with the paper, I found it helpful to dip into the full WebAssembly Specification at points for extra clarification. I'm going to spend most of my time in this write-up covering the parts of the paper focusing on the design rationale, properties, and implementation experiences since diving into the detailed semantics is really better left to the full spec.
+
+## Why do we need WebAssembly?
+
+There's a great observation in the introduction section: the Web has become the most ubiquitous application platform ever, and yet by historical accident the only natively supported programming language for that platform is JavaScript! That's made for a number of attempts to compile down to JavaScript (e.g., asm.js), but JavaScript isn't really a good compilation target.
+
+> 
+
+ WebAssembly addresses the problem of safe, fast, portable low-level code on the Web. Previous attempts at solving it, from ActiveX to Native Client to asm.js, have fallen short of the properties that a low-level compilation target should have...
+
+Those properties fall into two groups: safe, fast, and portable semantics (safe and fast to execute, language, hardware, and platform independent, deterministic and easy to reason about, simple interoperability with the Web platform); and safe and efficient representation (compact and easy to decode, easy to validate and compile, easy to generate for producers, streamable and parallelizable).
+
+> 
+
+ WebAssembly is the first solution for low-level code on the Web that delivers on all of the above design goals. It is the result of an unprecedented collaboration across major browser vendors and an online community group to build a common solution for high-performance applications.
+
+As we begin to understand all of the opportunities that WebAssembly opens up for the Web over the next few years, I believe it has the potential to be one of the most impactful changes to the Web platform since the introduction of JavaScript itself. Because of the way WebAssembly is also designed for easy embedding and modular safety, I believe we'll also see it popping up on the server-side in all sorts of interesting places too (see e.g. 'JavaScript for extending low latency in-memory key-value stores').
+
+## The design of WebAssembly
+
+> 
+
+ To our knowledge, WebAssembly is the first industrial-strength language or VM that has been designed with a formal semantics from the start. This not only demonstrates the "real world" feasibility of such an approach, but also that it leads to a notably clean design... nothing in its design depends on the Web or a JavaScript environment. It is an open standard specifically designed for embedding in multiple contexts, and we expect that stand-alone implementations will become available in the future.
+
+Ultimately WebAssembly is a binary code format, but it is presented as a language with syntax and structure, "an intentional design choice which makes it easier to explain and understand." The abstract syntax is quite compact and looks like this:
+
+A binary takes the form of a module, and the runtime instantiation of a module is an instance. Computation is based an a stack machine, since a stack organisation has been show to achieve a more compact program representation than a register machine.
+
+As the distribution format is binary, the speed and simplicity of validation is key to good performance and high assurance. Here the team learned from experiences with the JVM and CIL stack machines and their validation algorithms:
+
+> 
+
+ By designing WebAssembly in lock-step with a formalization, we managed to make its semantics drastically simpler. For example, JVM bytecode verification takes more than 150 pages to describe in the current JVM specification, while for WebAssembly it fits on one page.
+
+## WebAssembly: the less boring parts
+
+As the authors point out, the treatment of things such as local variables and value types is all fairly standard. But there are a few areas where WebAssembly makes more interesting decisions. The first of these is its linear memory model which is central to the memory safety guarantees.
+
+Each model has its own large area of bytes referred to as a linear memory. This is created with an initial size but may be grown later.
+
+> 
+
+ Linear memory is disjoint from code space, the execution stack, and the engine's data structures; therefore compiled programs cannot corrupt their execution environment, jump to arbitrary locations, or perform other undefined behavior.
+
+The worst that can happen with a buggy or exploited WebAssembly model is that its own memory gets messed up. Thus untrusted modules can be safely executed in the same address space as other code. This gives fast in-process isolation, and also allows a WebAssembly engine to be embedded into any other managed language runtime without violating memory safety.
+
+The second key design choice is not to support jumps, but instead to offer a foundational set of structured control flow constructs.
+
+> 
+
+ This ensures by construction that control flow cannot form irreducible loops, contain branches to blocks with misaligned stack heights, or branch into the middle of a multi-byte instruction. These properties allow WebAssembly code to be validated in a single pass, compiled in a single pass, or even transformed to an SSA-form intermediate form in a single pass.
+
+Modules may import and export functions, and the import mechanism also serves as a safe foreign function interface (FFI) through which a WebAssembly program can communicate with its embedding environment. Values crossing the language boundary are automatically converted according to JavaScript rules.
+
+WebAssembly seeks to give deterministic semantics in cases where hardware behaviour differs (corner cases such as out-of-range shifts, divide-by-zero, and so on). Three possible sources of non-determinism remain:
+
+- The representation of NaN values for floating point: CPUs differ, and normalising after every numeric operation is too expensive. The pragmatic choice is for instructions to output a canonical NaN representation, unless an input is a non-canonical NaN form, in which case the output NaN is non-deterministic.
+
+- The amount of available resource may differ wildly across devices. Not much you can do about that! A grow-memory instruction may therefore non-deterministically return -1 when out of memory. 
+
+- If you call host functions, then WebAssembly makes no guarantees about how they behave. 
+
+> 
+
+ WebAssembly does not (yet) have threads, and therefore no non-determinism arising from concurrent memory access. Adding threads and a memory model is the subject of ongoing work beyond the scope of this paper.
+
+(See https://github.com/WebAssembly/threads).
+
+## Execution
+
+The execution model is specified based on the state for a global store, which records all of the module instances, tables, and memories that have been allocated in it. (Tables are vectors of opaque values of a particular element type, at most one table may be defined for a module in the current version of WebAssembly). A set of small-step reduction relations specify the execution rules, with reductions defined over configurations that consist of a global store, local variable values, and the instruction sequence to execute. Here's a simple example, for the full set of rules see Figure 2 in the paper.
+
+We can interpret this as follows:
+
+- Due to validation, we know that a value of type t is on top of the stack
+
+- Pop the value from the stack
+
+- Let be the value produced by executing the unary operator unop with argument .
+
+- Push onto the stack 
+
+## Validation
+
+> 
+
+ On the Web, code is fetched from untrusted sources. Before it can be executed safely, it must be validated. Validation rules for WebAssembly are defined succinctly as a type system. This type system is, by design, embarrassingly simple. It is designed to be efficiently checkable in a single linear pass, interleaved with binary decoding and compilation.
+
+The typing rules fit on a single page (see Figure 3 in the paper). Again, I'll take just a single example for exposition.
+
+We can read this as 'given a context in which the local variable at index i is of type t (the part above the line), then under the assumptions encoded in the context, the expression produces a result of type t'.
+
+The WebAssembly type system is sound: the reduction rules cover all execution states that can arise for valid programs and hence the absence of undefined behaviour in the execution semantics. Lots of good things follow:
+
+> 
+
+ In particular, this implies the absence of type safety violations such as invalid calls or illegal accesses to locals, it guarantees memory safety, and it ensures the inaccessibility of code addresses or the call stack. It also implies that the use of the operand stack is structured and its layout determined statically at all program points, which is crucial for efficient compilation on a register machine. Furthermore, it es tablishes memory and state encapsulation – i.e., abstraction properties on the module and function boundaries, which cannot leak information unless explicitly exported/returned – necessary conditions for user-defined security measures.
+
+## Binary format
+
+WebAssembly is transmitted over the wire in a binary format. The translation from the abstract syntax is straightforward. Each binary represents a single module and is divided into sections with function types in their own section ahead of the code for their bodies. This means that loading latency can be minimised by starting streaming compilation as soon as function bodies arrive over the wire. Furthermore, consecutive function bodies can be compiled in parallel. V8 and SpiderMonkey both use parallel compilation and achieve a 5-6x improvement in compilation time with 8 threads.
+
+## Embedding
+
+> 
+
+ The embedder defines how modules are loaded, how imports and exports between modules are resolved, provides foreign functions to accomplish I/O and timers, and specifies how WebAssembly traps are handled. In our work the primary use case has been the Web and JavaScript embedding, so these mechanisms are implemented in terms of JavaScript and Web APIs.
+
+Inside the browser, you can load, compile and invoke WebAssembly modules through a JavaScript API.
+
+## Implementation experiences
+
+Independent implementations of WebAssembly have been developed for all major browsers. V8, SpiderMonkey, and JavaScriptCore (WebKit) reuse their optimising JIT compilers to compile modules ahead of time before instantiation. Chakra (Microsoft Edge) lazily translates individual functions to an interpreted internal bytecode format on first execution, and then later JIT compiles hot functions.
+
+> 
+
+ Our experience reusing the advanced JITs from 4 different JavaScript engines has been a resounding success, allowing all engines to achieve high performance in a short time.
+
+There is also a reference interpreter for the WebAssembly language, implemented in Ocaml, "due to the ability to write in a high-level stylized way that closely matches the formalization, approximating an 'executable specification'." This is used to test production implementations and the spec., and to prototype new features.
+
+Performance tests with V8 and SpiderMonkey using the PolyBenchC benchmark suite show that WebAssembly has good performance:
+
+> 
+
+ Overall, the results show that WebAssembly is very competitive with native code, with 7 benchmarks within 10% of native and nearly all of them within 2x of native.
+
+WebAssembly is on average 33.7% faster than asm.js, with validation taking only 3% of the time it does for asm.j.s
+
+WebAssembly binaries are also compact, being on average 62.5% the size of asm.js, and 85.3% of native x86-64 code.
+
+## Future directions
+
+The first goal is to provide fully comprehensive support for low-level code (i.e., compiled from C/C++), and future versions will include support for zero-cost exceptions, threads, and SIMD instructions.
+
+> 
+
+ Beyond that, we intend to evolve WebAssembly further into an attractive target for high-level languages by including relevant primitives like tail calls, stack switching, or coroutines. A highly important goal is to provide access to the advanced and highly tuned garbage collectors that are built into all Web browsers, thus eliminating the main shortcoming relative to JavaScript when compiling to the Web.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Programming Languages 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousStruc2vec: learning node representations from structural identityNext &rsaquo;To type or not to type: quantifying detectable bugs in JavaScript
+ 
+ 
+
+ 
+ 
+## 
+ 7 thoughts on &ldquo;Bringing the web up to speed with WebAssembly&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Derek Jones says: 
+
+ 
+ September 18, 2017 at 12:05 pm 
+
+ 
+
+ 
+ 
+PL/1, in 1967, was the first language to be designed with a formal semantics from the start and plenty of people would argue about the cleanliness of its design. VDM (the formalism used) was popular for a couple of decades and then faded away.
+
+The ISO Standard for Modula-2 (early 90s) has English prose on one page and a formal specification on the opposite page. The Wikipedia page is strangely silent on this topic.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Bringing the web up to speed with WebAssembly | ExtendTree 
+ 
+ 
+- 
+ 
+ 
+ 
+ tekrat (@tekrat) says: 
+
+ 
+ September 22, 2017 at 8:20 pm 
+
+ 
+
+ 
+ 
+So, what is the difference between the universal sandbox of Java in 90's to the WebAssembly today?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ joskid says: 
+
+ 
+ September 23, 2017 at 5:31 am 
+
+ 
+
+ 
+ 
+Reblogged this on josephdung.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Interesting Links for 24-09-2017 | Made from Truth and Lies 
+ 
+ 
+- 
+ 
+ Pingback: Designing secure Ethereum smart contracts: a finite state machine approach | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: TensorFlow.js: machine learning for the web and beyond | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

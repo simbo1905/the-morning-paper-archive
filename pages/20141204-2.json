@@ -1,0 +1,52 @@
+{
+  "date": "20141204",
+  "file_name": "20141204-2",
+  "slug": "tachyon-reliable-memory-speed-storage-for-cluster-computing",
+  "blog_url": "https://blog.acolyer.org/2014/12/04/tachyon-reliable-memory-speed-storage-for-cluster-computing/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Tachyon as a groundbreaking distributed in-memory file system designed to address inefficiencies in big data processing pipelines. He emphasizes the paper's key insight: leveraging lineage (recomputing lost data from pure functional transforms) to achieve fault tolerance without costly replication, which is traditionally used for reliability. This approach is particularly impactful for cluster computing frameworks like Spark, where intermediate data is often temporary and memory-bound. The blog post underscores Tachyon's performance benefits, such as 110x faster writes than MemHDFS and 4x speedup in multi-job workflows, while reducing network traffic by up to 50% through the Edge checkpointing algorithm. Colyer also notes the system's practicality, with minimal integration effort (300 lines of code for Spark) and low overhead during recomputation-based recovery.",
+  "paper_title": "Tachyon: Reliable, Memory Speed Storage for Cluster Computing Frameworks",
+  "paper_authors": [
+    "Haoyuan Li",
+    "Ali Ghodsi",
+    "Matei Zaharia",
+    "Scott Shenker",
+    "Ion Stoica"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "ACM Symposium on Cloud Computing (SOCC)",
+  "paper_url": "http://www.cs.berkeley.edu/~haoyuan/papers/2014_socc_tachyon.pdf",
+  "paper_abstract": "To get good performance for data stored in Object storage services like S3, data analysis clusters need to cache data locally. Recently these caches have started taking into account higher-level information from analysis framework, allowing prefetching based on predictions of future data accesses. There is, however, a broader opportunity; rather than using this information to predict one future, we can use it to select a future that is best for caching. This paper provides preliminary evidence that we can exploit the directed acyclic graph (DAG) of inter-task dependencies used by data-parallel frameworks such as Spark, PIG and Hive to improve application performance, by optimizing caching for the critical path through the DAG for the application. We present experimental results for PIG running TPC-H queries, showing completion time improvements of up to 23% vs our implementation of MRD, a state-of-the-art DAG-based prefetching system, and improvements of up to 2.5x vs LRU caching. We then discuss the broader opportunity for building a system based on this opportunity.",
+  "paper_file": "papers/2014/12/04/tachyon-reliable-memory-speed-storage-for-cluster-computing.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "lineage",
+    "fault-tolerance",
+    "in-memory-storage",
+    "checkpointing",
+    "pipelines",
+    "Spark",
+    "MapReduce",
+    "Zipf-distribution",
+    "recomputation",
+    "data-sharing"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Execution of Query #8 from TPC-H benchmark using Pig framework",
+      "caption": "Execution of Query #8 from TPC-H benchmark using Pig framework. In (a) we see the query script with jobs and inputs identified in purple circles and grey squares, respectively. (b) shows the directed acyclic graph (DAG) produced by the Pig compiler, with the corresponding jobs and inputs; (c) is the Pig schedule of the DAG to the MapReduce framework, with jobs executed in breadth-first stages."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Execution plan without prefetching and with LRU cache management",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

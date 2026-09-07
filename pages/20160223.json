@@ -1,0 +1,49 @@
+{
+  "date": "20160223",
+  "file_name": "20160223",
+  "slug": "not-quite-so-broken-tls",
+  "blog_url": "https://blog.acolyer.org/2016/02/23/not-quite-so-broken-tls/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this paper as an inspiring attempt to 'do it right' in security protocol engineering, focusing on the re-engineering of TLS with rigorous methods. The authors critique mainstream practices for building security-critical software, attributing failures to unsafe languages, poor modularity, and ambiguous specifications. They propose a solution centered on a precise, testable, and executable specification written as pure functions over abstract datatypes in OCaml, which also serves as the core of their implementation. This approach emphasizes memory safety, type safety, and a clean separation of concerns, avoiding common vulnerabilities like memory corruption, parsing bugs, and state machine errors. The paper demonstrates how functional programming and strong static typing can eliminate entire classes of bugs while maintaining performance and interoperability.",
+  "paper_title": "Not-quite-so-broken TLS: lessons in re-engineering a security protocol specification and implementation",
+  "paper_authors": [
+    "Kalin Karper Meršinjak",
+    "David Kaloper Meršinjak",
+    "Daniel Hillerström",
+    "Anil Madhavapeddy",
+    "Scott Owens",
+    "Karthikeyan Bhargavan",
+    "Cedric Fournet"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "USENIX Security",
+  "paper_url": "https://nqsb.io/nqsbtls-usenix-security15.pdf",
+  "paper_abstract": "Transport Layer Security (TLS) implementations have a history of security flaws. The immediate causes of these are often programming errors, e.g. in memory management, but the root causes are more fundamental: the challenges of interpreting the ambiguous prose specification, the complexities inherent in large APIs and code bases, inherently unsafe programming choices, and the impossibility of directly testing conformance between implementations and the specification. We present nqsb-TLS, the result of our re-engineered approach to security protocol specification and implementation that addresses these root causes. The same code serves two roles: it is both a specification of TLS, executable as a test oracle to check conformance of traces from arbitrary implementations, and a usable implementation of TLS; a modular and declarative programming style provides clean separation between its components. Many security flaws are thus excluded by construction. nqsb-TLS can be used in standalone Unix applications, which we demonstrate with a messaging client, and can also be compiled into Xen unikernels (specialised virtual machine image) with a trusted computing base (TCB) that is 4% of a standalone system running a standard Linux/OpenSSL stack, with all network traffic being handled in a memory-safe language; this supports applications including HTTPS, IMAP, Git, and Websocket clients and servers. Despite the dual-role design, the high-level implementation style, and the functional programming language we still achieve reasonable performance, with the same handshake performance as OpenSSL and 73% – 84% for bulk throughput.",
+  "paper_file": "papers/2016/02/23/not-quite-so-broken-tls.pdf",
+  "topics": [
+    "systems-security",
+    "programming-languages"
+  ],
+  "tags": [
+    "tls",
+    "security-protocols",
+    "functional-programming",
+    "ocaml",
+    "memory-safety",
+    "type-safety",
+    "state-machines",
+    "asn1-parsing",
+    "certificate-validation",
+    "pure-functions",
+    "specification-verification"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "nqsb-TLS module breakdown",
+      "caption": "nqsb-TLS is broken down into strongly separated modules. The main part, in bold boxes, has pure value-passing interfaces and internals. The PRNG maintains internal state, while Nocrypto includes C code but has a pure effect-free interface. Arrows indicate depends-on relationships."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

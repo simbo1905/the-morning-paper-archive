@@ -1,0 +1,272 @@
+URL: https://blog.acolyer.org/2018/09/12/qsym-a-practical-concolic-execution-engine-tailored-for-hybrid-fuzzing/
+Title: QSYM: a practical concolic execution engine tailored for hybrid&nbsp;fuzzing
+---
+
+QSYM: a practical concolic execution engine tailored for hybrid fuzzing Yun et al., USENIX Security 2018
+
+There are two main approaches to automated test case generated for uncovering bugs and vulnerabilities: fuzzing and concolic execution. Fuzzing is good at quickly exploring the input space, but can get stuck when trying to get past more complex conditional causes (i.e., when randomly generated inputs are unlikely to satisfy them). Concolic execution, which we saw in action earlier in the week, uses symbolic execution to uncover constraints and pass them to a solver. It can handle complex branch conditions, but it’s much slower. Hybrid fuzzers combine both coverage-guided fuzzing and concolic execution, bringing in the big guns (concolic) when the fuzzer gets stuck. In non-trivial real-world applications though, even the hybrid approach has been too slow. Until now.
+
+For me, the attention grabbing paragraph in this paper is to be found on page 8 (752) in section 5.1. Google’s OSS-Fuzz was previously used to test a number of important real-world applications and libraries including libjpeg, libpng, libtiff, lepton, openjpge, tcpdump, file, libarchive, audiofile, ffmpeg, and binutils.
+
+> 
+
+ It is worth noting that Google’s OSS-Fuzz generated 10 trillion test inputs a day &#091;using hundreds of servers&#093; for a few months to fuzz these applications, but QYSM ran them for three hours using a single workstation.
+
+QSYM is a hybrid fuzzer developed in this work which combines a state-of-the-art fuzzer, AFL, with a new concolic executor. QSYM found 13 previously unknown bugs in these eight programs and libraries, as shown in the table below. As noted, these programs had already been thoroughly tested by other state-of-the-art fuzzers including OSS-Fuzz and AFL.
+
+That’s a dramatic improvement in efficiency and effectiveness. The secret is in a careful reconsideration of the received wisdom for designing concolic executors, taking advantage of the fact that the executor will be used in the context of hybrid fuzzing where it doesn’t always have to be perfect, just useful.
+
+QSYM is available in open source at https://github.com/sslab-gatech/qsym.
+
+## Why are existing concolic executors slow?
+
+> 
+
+ ...the community believes that symbolic and concolic executions are slow due to path explosion and constraint solving...
+
+But careful measurement shows that it’s actually the emulation itself which introduces most of the overhead. The table below shows the emulation overhead in the KLEE and angr symbolic executors. Compared to native execution they are 3-5 orders of magnitude slower.
+
+To manage complexity, existing symbolic executors adopt an IR (intermediate representation). Since the IRs (e.g., the LLVM IR) have much smaller sets of instructions, simulating them is a much easier task than full native instruction simulation. The translation to IR is a source of overhead though. Because of this, existing symbolic executors try to avoid it whenever they can, making block level decisions about whether or not to execute a block in the emulator based on the symbolic variables involved. Analysis shows that even within a block though, only about 30% of instructions truly require symbolic execution. If switching between native and symbolic overhead had lower overhead, we could use symbolic execution at a finer-grained level and hence do less of it.
+
+When exploring multiple paths, conventional concolic execution engines also make heavy use of snapshotting to reduce the overhead of re-execution. This is effective when exploring multiple paths from a branch. In a hybrid fuzzing context with randomly generated inputs the opportunity for re-use is much less. Snapshotting also causes problems with external environments the program interacts with that may also maintain state (e.g., the kernel). One solution is to model the external environment (likely to be imperfect), another is to use (slow) full system concolic execution.
+
+Finally, existing concolic executors try to guarantee soundness by generating complete constraints. This can be expensive and may also end up over-constraining some paths, limiting the ability to find future paths.
+
+## The design of QSYM
+
+QSYM bites the bullet and does away with the IR layer altogether, performing symbolic execution on native instructions. Given the fast symbolic execution that results and the hybrid fuzzing context, QSYM is also able to eliminate the snapshot mechanism and use concrete execution to model external environments. Instead of generating complete constraints, QSYM collects an incomplete set and sometimes solves only a portion of the constraints if a path is overly-constrained.
+
+> 
+
+ ... QSYM first instruments and then runs a target program utilizing Dynamic Binary Translation (DBT) along with an input test case provided by a coverage-guided fuzzer. The DBT produces basic blocks for native execution and prunes them for symbolic execution, allowing us to quickly switch between two execution models. Then, QSYM selectively emulates only the instructions necessary to generate symbolic constraints, unlike existing approaches that emulate all instructions in the tainted basic blocks. By doing this, QSYM reduced the number of symbolic emulations by a significant maginitude (5x) and hence achieves a faster execution speed.
+
+## Fast symbolic execution
+
+QSYM’s efficient DBT makes it possible to implement fine-grained instruction level taint-tracking. As show in the following figure, by emulating only the required instructions, and not whole blocks, QSYM can avoid expensive emulations of other instructions.
+
+QSYM runs both native and symbolic executions in a single process making mode switches extremely lightweight. This plus the avoidance of snapshots makes it possible to use concrete execution for external environments, treating them as a black box.
+
+Unlike existing symbolic executors, QSYM generates new test cases by applying the solved constraints to the original input (e.g., Driller can generate new test cases that look radically different to the input). Only constraints relevant to the target branch we want to flip are considered.
+
+Combined, these techniques mean that QSYM symbolically executes only about 1/5th of instructions executed by Driller.
+
+## Optimistic solving
+
+> 
+
+ Concolic execution is susceptible to over-constraint problems in which a target branch is associated with complicated constraints generated in the current execution path... existing solvers give up too early (i.e., timeout) without trying to utilize the generated constraints, which took most of their execution time.
+
+In a hybrid fuzzing context, all we’re trying to go is get past conditional guards and go deeper into the program logic. So optimistically selecting and solving a portion of the constraints and passing the results to the fuzzer for evaluation is much better than timing out. When exploring a path using optimistic solving, QSYM chooses the last constraint in a path to solve for. Such test cases at least meet the local constraints when reaching the target branch.
+
+In the evaluation, optimistic solving greatly increases the number of bugs QSYM can find in a given amount of time.
+
+## Basic block pruning
+
+> 
+
+ We observed that constraints repetitively generated by the same code are not useful for finding new code coverage in real-world software. In particular, the constraints generated by compute-intensive operations are unlikely solvable (i.e, non-linear) at the end even if their constraints are formulated.
+
+QSYM measures the frequency of execution for each basic block and prunes those that have been executed too frequently. Basic blocks are pruned using exponential back-off, only generating constraints when the execution count is a power of two. A configurable parameter enables multiple block executions to count as one execution group for the purposes of frequency counting. This helps to avoid QSYM pruning too hard in some situations.
+
+Using basic block pruning QSYM finds more bugs in less time:
+
+## Representative bugs
+
+Here’s a simplified representation of a bug that QSYM found in ffmpeg. It’s nearly impossible for a fuzzer to get past all the constraints (lines 2-9), by QSYM was able to do so by modifying seven bytes of the input. This meant that the AFL fuzzer was able to pass the branch with the new test case and eventually reach the bug.
+
+Here’s another example of a bug found in file. Line 5 is a tautology due to the incorrect use of the OR operator. To reach this point, QSYM had to learn how to generate a valid ELF file with a note section. For a fuzzer to do this and generate a note section starting with ‘GNU’ is highly improbable.
+
+> 
+
+ QSYM makes hybrid fuzzing scalable enough to test complex, real-world applications... QSYM found 13 previously unknown bugs in the eight non-trivial programs, such as ffmpeg and OpenJPEG, which have been heavily tested by the state-of-the-art fuzzer, OSS-Fuzz, on Google’s distributed fuzzing infrastructure.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ SecurityTesting 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousNAVEX: Precise and scalable exploit generation for dynamic web applicationsNext &rsaquo;An empirical analysis of anonymity in Zcash
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

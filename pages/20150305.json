@@ -1,0 +1,50 @@
+{
+  "date": "20150305",
+  "file_name": "20150305",
+  "slug": "paxos-made-live",
+  "blog_url": "https://blog.acolyer.org/2015/03/05/paxos-made-live/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the practical challenges of implementing Paxos in a production system, contrasting theoretical simplicity with real-world complexities. The paper from Google's Chubby team reveals that while Paxos can be described concisely, building a fault-tolerant, production-ready system requires addressing numerous engineering hurdles. Key insights include handling disk corruption, optimizing read performance via master leases, managing group membership changes, and maintaining log consistency through snapshots. The authors also discuss software engineering challenges like separating core algorithm logic from system code using a DSL, and the importance of rigorous testing with failure injection. The blog emphasizes the non-trivial gap between academic consensus protocols and their real-world deployment.",
+  "paper_title": "Paxos Made Live - An Engineering Perspective",
+  "paper_authors": [
+    "Tushar Deepak Chandra",
+    "Robert Griesemer",
+    "Joshua Redstone"
+  ],
+  "paper_year": 2007,
+  "paper_venue": "OSDI'07",
+  "paper_url": "http://www.read.seas.harvard.edu/~kohler/class/08w-dsi/chandra07paxos.pdf",
+  "paper_abstract": "We describe our experience in building a fault-tolerant data-base using the Paxos consensus algorithm. Despite the existing literature in the field, building such a database proved to be non-trivial. We describe selected algorithmic and engineering problems encountered, and the solutions we found for them. Our measurements indicate that we have built a competitive system.",
+  "paper_file": "papers/2015/03/05/paxos-made-live.pdf",
+  "topics": [
+    "distributed-systems",
+    "algorithms"
+  ],
+  "tags": [
+    "paxos",
+    "consensus-protocols",
+    "multi-paxos",
+    "fault-tolerance",
+    "chubby",
+    "distributed-lock-service",
+    "group-membership",
+    "disk-corruption",
+    "master-leases",
+    "snapshots",
+    "state-machine-replication"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "A single Chubby replica",
+      "caption": "Figure 1: A single Chubby replica."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Fault-tolerant log API",
+      "caption": "Figure 2: Our fault-tolerant log’s API is depicted in Figure 2. It contains a call to submit a new value to the log. Once a submitted value enters the fault-tolerant log, our system invokes a callback to the client application at each replica and passes the submitted value."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

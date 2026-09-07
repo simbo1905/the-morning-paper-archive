@@ -1,0 +1,332 @@
+URL: https://blog.acolyer.org/2015/02/25/bloom-cookies-web-search-personalization-without-user-tracking/
+Title: Bloom Cookies: web search personalization without user&nbsp;tracking
+---
+
+Bloom Cookies: Web search personalization without user tracking - Mor et al. 2015
+
+After yesterday's homomorphic encryption-based paper it's a relief to read a privacy paper I can follow from end to end! Online services track us as much as they can get away with, in order to offer personalized services (including the 'service' of showing us ads of course). This paper looks at the trade-off between personalisation - in the context of improving search result rankings - and privacy. How much do I have to reveal about myself in order for meaningful personalisation to take place? Nowhere near as much as the average user does today it turns out!
+
+Two prior approaches to improving privacy while still supporting personalisation are (a) to generalise from actual URLs visited to interest categories, and (b) to add noise to the profile in the form of additional fake URLs. We get to see how well these techniques perform - noise is better but expensive - and then are introduced to a very elegant new approach based on Bloom filters. Some of you may know I have a soft spot for probabilistic data structures, so combining these with privacy (another topic I feel strongly about) is a definite win in my book!
+
+> 
+
+ Online services track users across their IP sessions using cookies, device fingerprinting, and browser plug-ins (e.g., Google toolbar), to name a few. To limit such tracking, users can hide IP addresses by using techniques such as proxies and anonymity networks, onion routing, or TOR. They can also disable web cookies, and browse in private mode to prevent tracking by cookies. However, a fundamental problem with all these approaches is that they deny personalization because services do not have access to the information necessary for building user profiles anymore.
+
+Exposing an exact profile to a server may leak a user's identity, and hence for privacy a client wants to obfuscate the profile before sending it to the server.
+
+> 
+
+ We consider unlinkability as our key privacy measure... it ensures that the server cannot identify if two queries are coming from the same client or from different clients. We aim for unlinkability across IP-sessions.
+
+From the authors' study, they determined that in an average home network scenario an IP-session may last about 2 weeks.
+
+> 
+
+ We assume that users’ web browsers are configured in a way that prevents online services from tracking them through cookies, browser fingerprinting, browser plug-ins, or similar techniques. The browser (or the underlying system) keeps track of the user’s online activities (e.g., search queries, visited sites) and maintains a profile that reflects the user’s interests. The profile is not directly shared with any online service; instead [an obfuscated version] is sent with each search query to the server.
+
+Existing privacy-preserving web search solutions can be divided into two main groups: profile generalization, and noise addition.
+
+Generalization shares items in a user's profile only at a coarse granularity (e.g. category of frequently visited web sites). The theory is that the server cannot distinguish between users with the same generalized profile.
+
+In noise addition fake profile items called dummies are added to the profile, and some orginal profile items taken away. Two noisy profiles from the same client look different making it hard for the server to link them.
+
+Evaluation was based upon the search logs of a popular search engine from May and June 2013. Generalized profiles were found to perform relatively poorly for personalization and for unlinkability.
+
+> 
+
+ Generalized profiles significantly hurt personalization. The average rank with generalized profiles is from 24% to 82% worse than that with exact profiles, mainly because generalized profiles contain less information for personalization. Other studies on personalized search drew a similar conclusion and emphasized the need for exact URLs in the profiles.
+
+ Second, as expected, generalized profiles provide better unlinkability than (noise-free) exact profiles, but they still do not ensure reasonable unlinkability. In other words, even though anonymity of generalized profiles make linking consecutive IP-sessions of the same user harder, user tracking is still largely achievable—in about 44% of the cases.
+
+This latter effect is due to the long tail of unique interests. The top 20 interests across 1000 users were common to 20-70% of the users, "but then there is a long tail of interests which are unique to a handful of users." Over time these make users linkable.
+
+The authors explored two different techniques for noise addition: RAND and HYBRID. The algorithms assume a dictionary D containing URLs and top-3 ODP categories associated to each URL. RAND simply draws fake URLs randomly from D. HYBRID draws fake URLs only from ODP categories matching the user's interests.
+
+> 
+
+ Both noise addition techniques are able to provide higher unlinkability than exact profiles. Compared to exact profiles where 98.7% of user profiles were correctly linked, noise addition lowers the percentage to 20% (with RAND) or 5.8% (with HYBRID).
+
+HYBRID does impact personalisation, but much less so than generalization, with 20 fake profile items for every real one, the personalization loss is only 4-7%.
+
+A practical difficulty arises with noisy profiles though: with modest noise levels the size of the profile is more than 30 times the size of its noise-free equivalent, and many times the size of a typical web cookie. Since the noisy profile is sent to the server often, perhaps with every request, the communication overhead can be too large.
+
+> 
+
+ More specifically, the size of the noisy profile that needs to accompany each client request can be in the order of tens of KB, much larger than actual requests and responses.
+
+So how can we get the benefits of a noisy profile, but without the communications overhead? Enter the bloom cookie...
+
+> 
+
+ Bloom cookies are based on Bloom filters, a well-known probabilistic data structure. A Bloom filter is used to store elements from a set E, and is implemented as a bit-string of size m with k hash functions. When querying if an element exists in the Bloom filter, false positives are possible but false negatives are not. The probability p of false positives can be controlled by varying m and k; k = m/n · ln2 minimizes p, where n = |E|.
+
+A first approach might be to generate the noisy profile, and then insert the URLs from it into a bloom filter - which the client sends along with queries.
+
+> 
+
+ For personalization, the server simply queries the Bloom filter for all the URLs contained in the search results for the submitted search query and re-ranks the results accordingly.
+
+Genius!
+
+But we can do better. You don't actually need the noise dictionary and the overhead of generating the noisy profile at all. Instead, just generate the Bloom filter from the exact profile, and then "set a random set of fake bits in the filter to 1."
+
+> 
+
+ We call this data structure, consisting of a Bloom filter of an exact profile and a set of fake bits, a Bloom cookie. The presence of fake bits increases the false positive rate of the filter and acts as noise. The number of fake bits acts as a tuning knob to control the magnitude of the noise.
+
+Such Bloom cookies have a number of advantages:
+
+- they are efficient
+
+- they are noisy by design - the false positives of Bloom filters, typically considered as drawbacks when creating approximations, are an advantage in this setting
+
+- the noise introduced is non-deterministic, which makes it harder for adversaries to predict
+
+- there is no need to create or rely on a noise dictionary (which introduces overhead and can bring in its own privacy threats)
+
+- it makes dictionary attacks much more expensive / infeasible.
+
+The Bloom cookie generation technique can be configured by varying the number of hash functions (k) and the noise level (l). An algorithm is shown for choosing k and l so as to achieve a given privacy/personalisation trade-off.
+
+Bloom cookies provide even better unlinkability than HYBRID (2-3.5%) for the same level of personalisation, and come in at just 2000 bits. They also provide a much better privacy-personalization-efficiency trade-off.
+
+Compare a Bloom cookie with l=30 to an exact profile: linkability can be reduced from 98.7% of users with an exact profile, to only 2.3% of users. The loss of personalization compared to an exact profile for this increase in privacy is 3-6%, and only 2000 bits of information need to be transmitted. That's a price I suspect many of us would happily pay.
+
+The only thing I'm left wondering is why the authors only propose randomly setting additional bits to 1, and not also randomly setting some of the 1 bits to 0. (This would be the equivalent of removing some items from the original profile, as is done in noisy profile generators).
+
+> 
+
+ We focus on web search and use personalization techniques (and metrics) which are standard in the web literature. Commercial search engines might use more sophisticated but proprietary techniques. However, if personalization algorithms rearrange search results as the last step before returning them to users and if rearranging is performed solely on the presence of certain items in user profiles, our privacy-preserving approach will work in a straightforward way. This is true not only for web search, but also for services with a similar structure such as advertising (ranking of ads), online shopping (ranking of products), or personalized news delivery (ranking of news). It might even be possible for different services to share the data responsibly in a privacy preserving way, provided they are interested in similar information about the user, such as the top visited websites.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Security 
+ 
+ Privacy 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousMachine Learning Classification over Encrypted DataNext &rsaquo;F2FS: A new file system for flash storage
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;Bloom Cookies: web search personalization without user tracking&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ julienledem says: 
+
+ 
+ February 25, 2015 at 5:23 pm 
+
+ 
+
+ 
+ 
+"The only thing I’m left wondering is why the authors only propose randomly setting additional bits to 1, and not also randomly setting some of the 1 bits to 0. (This would be the equivalent of removing some items from the original profile, as is done in noisy profile generators)."
+
+That's because it is not equivalent to removing one item. A bloom filter it a OR of all the hashes of the item so setting one bit to 0 removes *all* of the items that had that bit to 1. So a lot more noise than adding 1s.
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

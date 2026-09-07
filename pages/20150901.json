@@ -1,0 +1,44 @@
+{
+  "date": "20150901",
+  "file_name": "20150901",
+  "slug": "bolt-on-causal-consistency",
+  "blog_url": "https://blog.acolyer.org/2015/09/01/bolt-on-causal-consistency/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the paper 'Bolt-on Causal Consistency' by Bailis et al. (2013) as an innovative approach to addressing the limitations of eventually consistent stores. The blog post emphasizes the practicality of quantifying the 'probably' in 'it'll probably be OK' when working with eventually consistent systems, noting that even high probabilities (e.g., 99.99%) can lead to a significant number of stale reads over time. The author praises the paper's key insight: achieving causal consistency—a stronger guarantee than eventual consistency—by layering it on top of existing eventually consistent stores like Cassandra. This 'bolt-on' approach, termed layered causal consistency, not only provides stronger guarantees but can also improve request processing speed. The post explains the concept of causal chains, dependency tracking, and the separation of safety (causal consistency) and liveness (eventual consistency) properties, which simplifies reasoning about system behavior. The author also reflects on the terminology used in the paper, suggesting that terms like 'bolt-on' and 'shim' may unfairly downplay the elegance of the solution.",
+  "paper_title": "Bolt-on Causal Consistency",
+  "paper_authors": [
+    "Peter Bailis",
+    "Shivaram Venkataraman",
+    "Michael J. Franklin",
+    "Joseph M. Hellerstein",
+    "Ion Stoica"
+  ],
+  "paper_year": 2013,
+  "paper_venue": "SIGMOD",
+  "paper_url": "http://www.bailis.org/papers/bolton-sigmod2013.pdf",
+  "paper_abstract": "We consider the problem of separating consistency-related safety properties from availability and durability in distributed data stores via the application of a “bolt-on” shim layer that upgrades the safety of an underlying general-purpose data store. This shim provides the same consistency guarantees atop a wide range of widely deployed but often inflexible stores. As causal consistency is one of the strongest consistency models that remain available during system partitions, we develop a shim layer that upgrades eventually consistent stores to provide convergent causal consistency. Accordingly, we leverage widely deployed eventually consistent infrastructure as a common substrate for providing causal guarantees. We describe algorithms and shim implementations that are suitable for a large class of application-level causality relationships and evaluate our techniques using an existing, production-ready data store and with real-world explicit causality relationships.",
+  "paper_file": "papers/2015/09/01/bolt-on-causal-consistency.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "causal-consistency",
+    "eventual-consistency",
+    "layered-consistency",
+    "dependency-tracking",
+    "causal-chains",
+    "shim",
+    "bolt-on",
+    "distributed-storage"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Separation of concerns in the bolt-on architecture",
+      "caption": "Separation of concerns in the bolt-on architecture. In this work, a narrow shim layer upgrades an underlying eventually consistent data store to provide causal consistency."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

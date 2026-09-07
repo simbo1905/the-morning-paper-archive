@@ -1,0 +1,46 @@
+{
+  "date": "20160930",
+  "file_name": "20160930",
+  "slug": "write-limited-sorts-and-joins-for-persistent-memory",
+  "blog_url": "https://blog.acolyer.org/2016/09/30/write-limited-sorts-and-joins-for-persistent-memory/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a paper that explores optimizing database storage algorithms for Non-Volatile Memory (NVM), focusing on the asymmetry between read and write operations. The key insight is that writes are significantly slower than reads in NVM (e.g., 150ns vs. 10ns), making it crucial to design algorithms that minimize writes to improve performance and reduce wear. The paper introduces write-limited sorting and join algorithms that trade reads for writes, such as segment sort (a hybrid of external mergesort and selection sort) and lazy sorting (which defers writes until the cost of recomputation exceeds the write cost). For joins, the paper proposes partitioned and lazy hash joins that adjust the write intensity based on the read/write ratio of the medium. The evaluation shows that blocked memory, where persistent collections are implemented as linked lists of memory blocks, performs best for these algorithms.",
+  "paper_title": "Write-limited sorts and joins for persistent memory",
+  "paper_authors": [
+    "Shivnath Babu",
+    "Stavros Harizopoulos",
+    "Vijayshankar Raman",
+    "Mehul A. Shah",
+    "Joseph M. Hellerstein"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.vldb.org/pvldb/vol7/p413-viglas.pdf",
+  "paper_abstract": "main memory L1 cache To mitigate the impact of the widening gap between the memory needs of CPUs and what standard memory technology can deliver, system architects have introduced a new class of memory technology termed persistent memory. Persistent memory is byteaddressable, but exhibits asymmetric I / O: writes are typically one order of magnitude more expensive than reads. Byte addressability combined with I / O asymmetry render the performance profile of persistent memory unique. Thus, it becomes imperative to find new ways to seamlessly incorporate it into database systems. We do so in the context of query processing. We focus on the fundamental operations of sort and join processing. We introduce the notion of write-limited algorithms that effectively minimize the I / O cost. We give a high-level API that enables the system to dynamically optimize the workflow of the algorithms; or, alternatively, allows the developer to tune the write profile of the algorithms. We present four different techniques to incorporate persistent memory into the database processing stack in light of this API. We have implemented and extensively evaluated all our proposals. Our results show that the algorithms deliver on their promise of I / O-minimality and tunable performance. We showcase the merits and deficiencies of each implementation technique, thus taking a solid first step towards incorporating persistent memory into query processing. 1. 21 LL cache 23 25 27 DRAM persistent memory 29 211 high-performance disk flash 213 215 217 HDD 219 221 223 Figure 1: Typical access latency in processor cycles on a 4GHz processor (figure adapted from [22]) The need for persistent memory is practical. The increase of the number of cores per CPU dictates that the memory system primarily scale in terms of capacity as it must cater for the working sets of all concurrently executing processes across all cores; and secondarily in terms of data transfer rate to keep up with the increased demand. T...",
+  "paper_file": "papers/2016/09/30/write-limited-sorts-and-joins-for-persistent-memory.pdf",
+  "topics": [
+    "storage-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "non-volatile-memory",
+    "NVM",
+    "sorting-algorithms",
+    "join-algorithms",
+    "write-optimization",
+    "read-write-asymmetry",
+    "persistent-memory",
+    "hybrid-sort",
+    "lazy-sort",
+    "blocked-memory"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Typical access latency in processor cycles",
+      "caption": "Typical access latency in processor cycles on a 4GHz processor (figure adapted from [22])"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

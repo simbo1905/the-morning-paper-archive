@@ -1,0 +1,42 @@
+{
+  "date": "20160211",
+  "file_name": "20160211",
+  "slug": "fs-not-equal",
+  "blog_url": "https://blog.acolyer.org/2016/02/11/fs-not-equal/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the critical issue of crash consistency in applications built on top of file systems, emphasizing that the guarantees provided by modern file systems are unclear, underspecified, and vary widely between implementations. He notes that applications like SQLite and LevelDB, which rely on file systems rather than raw disks, are particularly vulnerable to inconsistencies due to the complex update protocols they implement and the differing persistence properties of file systems. The blog post introduces two tools, BOB (Block Order Breaker) and ALICE (Application Level Intelligent Crash Explorer), which are used to analyze file system behaviors and application-level crash recovery, respectively. The key insight is that applications designed to be crash-consistent on one file system may fail catastrophically on another, revealing 60 vulnerabilities across 11 major applications, many of which lead to data loss or application unavailability.",
+  "paper_title": "All File Systems are Not Created Equal: On the Complexity of Crafting Crash Consistent Applications",
+  "paper_authors": [
+    "Pillai",
+    "T. Lakshman",
+    "Theodore Ts'o"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-pillai.pdf",
+  "paper_abstract": "but achieving this goal atop modern file systems is challenging for two fundamental reasons. The first challenge is that the exact guarantees provided by file systems are unclear and underspecified. Applications communicate with file systems through the POSIX system-call interface [48], and ideally, a wellwritten application using this interface would be crashconsistent on any file system that implements POSIX. Unfortunately, while the POSIX standard specifies the effect of a system call in memory, specifications of how disk state is mutated in the event of a crash are widely misunderstood and debated [1]. As a result, each file system persists application data slightly differently, leaving developers guessing. To add to this complexity, most file systems provide a multitude of configuration options that subtly affect their behavior; for example, Linux ext3 provides numerous journaling modes, each with different performance and robustness properties [51]. While these configurations are useful, they complicate reasoning about exact file system behavior in the presence of crashes. The second challenge is that building a highperformance application-level crash-consistency protocol is not straightforward. Maintaining application consistency would be relatively simple (though not trivial) if all state were mutated synchronously. However, such an approach is prohibitively slow, and thus most applications implement complex update protocols to remain crash-consistent while still achieving high performance. Similar to early file system and database schemes, it is difficult to ensure that applications recover correctly after a crash [41, 47]. The protocols must handle a wide range of corner cases, which are executed rarely, relatively untested, and (perhaps unsurprisingly) error-prone. In this paper, we address these two challenges directly, by answering two important questions. The first question is: what are the behaviors exhibited by modern file systems that are relevant t...",
+  "paper_file": "papers/2016/02/11/fs-not-equal.pdf",
+  "topics": [
+    "storage-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "crash-consistency",
+    "file-systems",
+    "atomicity",
+    "persistence-properties",
+    "recovery",
+    "vulnerabilities",
+    "BOB",
+    "ALICE"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Git Crash Vulnerability",
+      "caption": "The figure shows part of the Git update protocol. The arrows represent ordering dependencies: if the appends are not persisted before the rename, any further commits to the repository fail. We find that, whether the protocol is vulnerable or not varies even between configurations of the same file system."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

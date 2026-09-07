@@ -1,0 +1,39 @@
+{
+  "date": "20160714",
+  "file_name": "20160714",
+  "slug": "dbsherlock-a-performance-diagnostic-tool-for-transactional-databases",
+  "blog_url": "https://blog.acolyer.org/2016/07/14/dbsherlock-a-performance-diagnostic-tool-for-transactional-databases/",
+  "blog_title": "",
+  "blog_summary": "DBSherlock is a performance diagnostic tool designed to help database administrators (DBAs) diagnose performance anomalies in transactional databases. The tool addresses the challenge of interpreting vast amounts of statistical data, which can be overwhelming even for highly skilled DBAs. DBSherlock compares regions of interest (anomalies) with normal behavior by analyzing historical statistics to identify likely causes of performance issues. It provides two types of outputs: concise predicates describing system configurations or workload characteristics linked to the anomaly, and high-level diagnoses based on causal models. The tool learns from user feedback, refining its causal models over time to improve future diagnoses. The approach emphasizes explaining anomalies rather than detecting them, leveraging predicate generation, domain knowledge pruning, and causal modeling layers. The system integrates with DBSeer, an open-source database administration suite, to collect and visualize performance statistics at one-second intervals, enabling real-time analysis.",
+  "paper_title": "DBSherlock: A Performance Diagnostic Tool for Transactional Databases",
+  "paper_authors": [
+    "Yoon",
+    "Jungmin"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "SIGMOD",
+  "paper_url": "https://web.eecs.umich.edu/~mozafari/php/data/uploads/sigmod_2016.pdf",
+  "paper_abstract": "Bohan Zhang Peking University ggordon@cs.cmu.edu bohan@pku.edu.cn many configuration knobs [22, 47, 36]. Part of what makes DBMSs so enigmatic is that their performance and scalability are highly dependent on their configurations. Further exacerbating this problem is that the default configurations of these knobs are notoriously bad. As an example, the default MySQL configuration in 2016 assumes that it is deployed on a machine that only has 160 MB of RAM [1]. Given this, many organizations resort to hiring expensive experts to configure the system’s knobs for the expected workload. But as databases and applications grow in both size and complexity, optimizing a DBMS to meet the needs of an application has surpassed the abilities of humans [11]. This is because the correct configuration of a DBMS is highly dependent on a number of factors that are beyond what humans can reason about. Previous attempts at automatic DBMS configuration tools have certain deficiencies that make them inadequate for general purpose database applications. Many of these tuning tools were created by vendors, and thus they only support that particular company’s DBMS [22, 33, 37]. The small number of tuning tools that do support multiple DBMSs still require manual steps, such as having the DBA (1) deploy a second copy of the database [24], (2) map dependencies between knobs [49], or (3) guide the training process [58]. All of these tools also examine each DBMS deployment independently and thus are unable to apply knowledge gained from previous tuning efforts. This is inefficient because each tuning effort can take a long time and use a lot of resources. In this paper, we present a technique to reuse training data gathered from previous sessions to tune new DBMS deployments. The crux of our approach is to train machine learning (ML) models from measurements collected from these previous tunings, and use the models to (1) select the most important knobs, (2) map previously unseen database worklo...",
+  "paper_file": "papers/2016/07/14/dbsherlock-a-performance-diagnostic-tool-for-transactional-databases.pdf",
+  "topics": [
+    "data-engineering",
+    "storage-systems"
+  ],
+  "tags": [
+    "database-performance",
+    "diagnostics",
+    "anomaly-detection",
+    "predicate-mining",
+    "causal-models",
+    "DBMS-monitoring"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Motivating Examples",
+      "caption": "Figs. 1a to 1c show performance measurements for the YCSB workload running on MySQL (v5.6) using different configuration settings. Fig. 1d shows the number of tunable knobs provided in MySQL and Postgres releases over time."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

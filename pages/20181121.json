@@ -1,0 +1,41 @@
+{
+  "date": "20181121",
+  "file_name": "20181121",
+  "slug": "continuum-a-platform-for-cost-aware-low-latency-continual-learning",
+  "blog_url": "https://blog.acolyer.org/2018/11/21/continuum-a-platform-for-cost-aware-low-latency-continual-learning/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses 'Continuum', a platform for cost-aware low-latency continual learning in machine learning models. Adrian Colyer highlights the trade-off between batching (higher throughput, higher latency) and online streaming (lower latency, lower throughput), noting that latency often matters more in business scenarios. The paper argues that offline-trained models suffer from concept drift and that continual learning can mitigate this by incorporating the latest data. Continuum introduces update policies (best-effort, cost-aware, and quality-aware) to optimize when to retrain models, balancing latency and compute costs. The key insight is that updating on every data point is not optimal, even for minimizing latency, and that policies like abort-and-restart or regret-based cost-aware updates can significantly improve performance. The post also compares Continuum with Velox, showing superior recommendation quality metrics.",
+  "paper_title": "Continuum: a platform for cost-aware low-latency continual learning",
+  "paper_authors": [
+    "Tian Tian",
+    "Wei Wang"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "SoCC'18",
+  "paper_url": "https://www.cse.ust.hk/~weiwa/papers/huangshi-socc18.pdf",
+  "paper_abstract": "Many machine learning applications operate in dynamic environments that change over time, in which models must be continually updated to capture the recent trend in data. However, most of today’s learning frameworks perform training offline, without a system support for continual model updating. In this paper, we design and implement Continuum, a generalpurpose platform that streamlines the implementation and deployment of continual model updating across existing learning frameworks. In pursuit of fast data incorporation, we further propose two update policies, cost-aware and best-effort, that judiciously determine when to perform model updating, with and without accounting for the training cost (machine-time), respectively. Theoretical analysis shows that cost-aware policy is 2-competitive. We implement both polices in Continuum, and evaluate their performance through EC2 deployment and trace-driven simulations. The evaluation shows that Continuum results in reduced data incorporation latency, lower training cost, and improved model quality in a number of popular online learning applications that span multiple application domains, programming languages, and frameworks.",
+  "paper_file": "papers/2018/11/21/continuum-a-platform-for-cost-aware-low-latency-continual-learning.pdf",
+  "topics": [
+    "machine-learning",
+    "cloud-computing"
+  ],
+  "tags": [
+    "continual-learning",
+    "online-learning",
+    "model-retraining",
+    "latency-optimization",
+    "cost-aware-updates",
+    "concept-drift",
+    "abort-and-restart",
+    "regret-based-policy"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Overview of Continuum",
+      "caption": "Overview of Continuum."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,284 @@
+URL: https://blog.acolyer.org/2016/02/09/the-heard-of-model/
+Title: The Heard-Of Model: Computing in Distributed Systems with Benign&nbsp;Failures
+---
+
+The Heard-Of Model: Computing in Distributed Systems with Benign Failures - Charron-Bost & Schiper2007
+
+We briefly touched on the Heard-Of model last week when we looked at PSync. It's really very elegant, so today I thought it would be good to take a closer look. The traditional view of fault-tolerant distributed systems makes the following two assumptions:
+
+- Degree of synchrony and failure model are two independent parameters that determine a particular type of system.
+
+- The notion of faulty component is helpful and even necessary for the analysis of distributed computations when failures occur.
+
+> 
+
+ In this paper we question these two basic principles of fault-tolerant distributed computing, and show that it is both possible and worthy to renounce them in the context of benign failures: we present a computational model, suitable for systems with benign failures, which is based only on the notion of transmission failure.
+
+Here's the basic intuition behind it: suppose a process crashes - can you tell the difference between this and the failure to receive a message from it? What about the difference between a process that is running slow and so is delayed in sending you a message, vs a message that is delayed in the network? Last year we looked at Albatross that deliberately exploited this symmetry to quarantine a suspected faulty process at the network layer to simulate the simpler 'fail-stop' failure model.
+
+By modeling computation in communication closed rounds we can also unify asynchronous and synchronous communication:
+
+> 
+
+ Computations in our model are composed of rounds. In each round, a process sends a message to the other processes, waits to receive messages from some processes, and then computes a new state. Every message received at some round has been sent at that round.Consequently, any message missed at a round is definitely discarded.
+
+This simpler unified model makes it easier to reason about fault-tolerant distributed algorithms:
+
+> 
+
+ there is no prima facie evidence that the notion of faulty component is really helpful in the analysis of fault-tolerant distributed algorithms. We show that our model leads to the development of new conditions guaranteeing the correctness of fault-tolerant algorithms, and to shorter and simpler proofs. This is due to the fact that the notion of faulty component unnecessarily overloads system analysis with non-operational details. In other words, it is sufficient that the model just specifies transmission failures (effects) without accounting for the faulty components (causes).
+
+There is no need for an external oracle, no unnecessary complication relating to the distinction between process failures and link failures, and no need to separate static and dynamic, transient and permanent failures.
+
+Consider a set of communicating sequential process, &Pi; communicating in rounds r0, r1, ... , rn. For process p &isin; &Pi; and round r, the Heard-Of relation HO(p,r) denotes the set of processes that p has received a message from in round r.
+
+HO :: Process &rarr; round &rarr; [Process]
+
+If there is a transmission failure from q to p in some round r, this is simply modeled as the the fact that p does not hear from q in that round: q &notin; HO(p,r). And here's the real beauty of the approach:
+
+> 
+
+ The features of a specific system are captured in the HO model as a whole, just by a predicate over the collection of HO(p,r)'s, called the communication predicate.
+
+A Heard-Of machine (HO machine) for a set of processes &Pi; is a pair M = (A,P) where A is an algorithm on &Pi;, and P is the communication predicate.
+
+For rounds, we can define the following:
+
+- The kernel of a round is the set of processes that are heard by every process in that round: K( r ) = &cap;p &isin; &Pi; HO(p,r)
+
+- A round r is uniform if every process hears from the same set of processes: &forall; p,q &isin; &Pi; : HO(p,r) = HO(q,r)
+
+- A round is a non-empty kernel (nek) round if there is at least one process that all processes hear from: K( r ) &ne; &empty;
+
+- A split round is a round in which there exists two processes that do not receive any messages in common: HO(p,r) &cap; HO(q,r) = &empty; 
+
+And for computations consisting of multiple rounds;
+
+- The global kernel of computation, K, is the set of processes that are heard by every process in every round: K = &cap;r > 0 K( r )
+
+- A non-empty kernel computation is one where at least one process is heard by every process in all rounds: K &ne; &empty;
+
+- In a space-uniform computation, all rounds are uniform.
+
+- In a time-uniform computation, every process hears from the same set of processes in every round: &forall; r > 0, &forall; p &isin; &Pi; : HO(p,r+1) = HO(p,r)
+
+- In a regular computation, a process that is not heard of by some process in round r will henceforth not be heard by any process in subsequent rounds: &forall; r > 0, &forall; p &isin; &Pi; : HO(p,r+1) &sube; K( r )
+
+A HO machine with communication predicate Pnek :: K &ne; &empty; for example is a machine with a non-empty kernel computation. A run of M = (A,P) is totally determined by a set of initial states (one per process) and a heard-of collection that satisfies P. A HO machine M = (A,P) solves a problem &Sigma; if the state collection in each of its runs satisfies &Sigma; - we say that the problem &Sigma; is solvable under P.
+
+An HO machine is implementable in a system as soon as the corresponding predicate can be guaranteed by the system. The following table exemplifies the power of this approach - it shows various classical types of message-passing systems of interest, and the corresponding predicate P that captures them:
+
+Using these building blocks, the paper goes on to show the communication predicates under which Consensus is solvable, and introduces the UniformVoting consensus algorithm based on the HO model. An extension is also given to model algorithms that rely on a coordinator:
+
+> 
+
+ Numerous algorithms for Consensus are coordinator-based algorithms (eg. the Consensus algorithms proposed by Dwork, Lynch, and Stockmeyer [13], Chandra and Toueg’s algorithm [6], Paxos [19]). The correctness of these algorithms is guaranteed by some properties on coordinators: for example, termination in Paxos requires that during some phase, all processes hear of the coordinator of the phase. For such algorithms, we introduce the Coordinated HO machine (or CHO machine for short) for which algorithms refer to the notion of coordinators, and predicates deal not only with heard-of sets, but also with coordinators.
+
+A CHO algorithm called LastVoting is introduced which is modeled on Paxos, but allows for multiple coordinators per phase.
+
+> 
+
+ The DLS and the LastVoting algorithms have shown that Consenus can be solved without invariant predicate if we resort to coordinators. This naturally leads us to question whether Consensus is solvable without both invariant predicates and coordinators. As we shall show below, the answer is yes if there exist rounds in which heard-of sets have a membership larger than 2n/3 (Algorithm 8), and we leave the question open in the case heard-of sets are only majority sets...
+
+These examples demonstrate another key facet of the Heard-Of model:
+
+> 
+
+ As we have observed, a second key point of the HO model is to allow the expression of sporadic conditions, in contrast to the classical models obtained by “augmenting” asynchronous systems with external devices (like failure detectors [6], or other oracles). Indeed,in such augmented asynchronous systems, only stable properties – i.e., properties that once they hold, hold forever – can be formulated. In the HO formalism, we can give a precise meaning to the statement “the system works correctly for long enough”, and we prove that such sporadic conditions are sufficient to make Consensus solvable whereas in augmented asynchronous models, Consensus requires stable properties of the type “eventually and forever the system behaves correctly.”
+
+Any finally, the same approach has been extended by the authors to also cover Byzantine failures (in a separate paper):
+
+> 
+
+ In this paper, we dealt with benign failures only, but the HO model can be extended to handle more severe failures. Indeed, we pursue our approach in a sequel paper where we show how to cope with value failures: messages may be corrupted, i.e., at any round, the message received by process q from p may be different to the message that p ought to send to q. This novel framework covers the classical Byzantine failures as well as the dynamic transmission faults studied in [29]. Thus, we derive new Consensus algorithms tolerating both benign failures and value failures, be they static or dynamic, permanent or transient.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Distributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousChapar: Certified Causally Consistent Distributed Key-Value StoresNext &rsaquo;How Complex Systems Fail
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

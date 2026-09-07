@@ -1,0 +1,43 @@
+{
+  "date": "20170120",
+  "file_name": "20170120",
+  "slug": "dependency-driven-analytics-a-compass-for-uncharted-data-oceans",
+  "blog_url": "https://blog.acolyer.org/2017/01/20/dependency-driven-analytics-a-compass-for-uncharted-data-oceans/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses 'Dependency-Driven Analytics' (DDA), a novel approach to handling massive, unstructured data volumes (e.g., petabytes of logs from 50K-node clusters) by constructing a compact dependency graph over entities like machines, jobs, and files. The author highlights how Microsoft's Guider system leverages this graph to enable efficient, interactive exploration of logs, reducing computational costs and cognitive effort for complex queries (e.g., job failure blast radius, root cause analysis). The key insight is that graph structures excel at navigating relationships, making them ideal for DDA. The post also critiques current graph technologies (e.g., Neo4j, TitanDB) as inadequate for large-scale use, emphasizing the need for scalable, unified graph-relational-unstructured data solutions. Future work includes optimizing graph storage/querying using temporal/causal properties and automatic entity extraction from logs.",
+  "paper_title": "Dependency-Driven Analytics: A Compass for Uncharted Data Oceans",
+  "paper_authors": [
+    "Ruslan Mavlyutov",
+    "Jens Dittrich",
+    "Anja Gruenheid"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "CIDR",
+  "paper_url": "https://www.microsoft.com/en-us/research/wp-content/uploads/2016/10/Provenance-2016-TR.pdf",
+  "paper_abstract": "In this paper, we predict the rise of Dependency-Driven Analytics (DDA), a new class of data analytics designed to cope with growing volumes of unstructured data. DDA drastically reduces the cognitive burden of data analysis by systematically leveraging a compact dependency graph derived from the raw data. The computational cost associated with the analysis is also reduced substantially, as the graph acts as an index for commonly accessed data items. We built a system supporting DDA using off-the-shelf Big Data and graph DB technologies, and deployed it in production at Microsoft to support the analysis of the exhaust of our Big Data infrastructure producing petabytes of system logs daily. The dependency graph in this setting captures lineage information among jobs and files and is used to guide the analysis of telemetry data. We qualitatively discuss the improvement over the brute-force analytics our users used to performed by considering a series of practical applications, including: job auditing and compliance, automated SLO extraction of recurring tasks, and global job ranking. We conclude by discussing the shortcomings of our current implementation and by presenting some of the open research challenges for Dependency-Driven Analytics that we plan to tackle next.",
+  "paper_file": "papers/2017/01/20/dependency-driven-analytics-a-compass-for-uncharted-data-oceans.pdf",
+  "topics": [
+    "data-engineering",
+    "distributed-systems"
+  ],
+  "tags": [
+    "dependency-graph",
+    "log-analysis",
+    "data-processing",
+    "graph-queries",
+    "scalability",
+    "ETL",
+    "data-governance",
+    "compliance",
+    "SLO-discovery"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Dependency-Driven Analytics: a log-analytics example",
+      "caption": "Dependency-Driven Analytics: a log-analytics example. (1) Petabytes of daily logs; (2) Dependency graph that represents a lightweight “skeleton” of the logs used for navigation; (3) User-level queries return bytes of aggregated data."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

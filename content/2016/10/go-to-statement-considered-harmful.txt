@@ -1,0 +1,226 @@
+URL: https://blog.acolyer.org/2016/10/13/go-to-statement-considered-harmful/
+Title: Go to statement considered&nbsp;harmful
+---
+
+Go to statement considered harmful Dijkstra, CACM 1968
+
+It sounds like the Heidelberg Laureate Forum this summer was a great event. Johanna Pirker was there and took notes on Barbara Liskov's talk, including 7 papers that Liskov highlighted as 'must reads' for computer scientists.  I'm sure you've figured out where this is going... for the next seven days we'll be covering those papers, starting with the classic 'Go to statement considered harmful.'
+
+I don't think we really need to have a serious debate about the merits of goto anymore, but that doesn't make Dijkstra's short note any less relevant today. Dijkstra's argument hinges on the realisation that when the gap between the program as laid out in text and the runtime behaviour of the program becomes too large, we're heading for trouble. It could perhaps be summarized as "It should be obvious what the program does from looking at it."
+
+> 
+
+ My first remark is that, although the programmer's activity ends when he has constructed a correct program, the process taking place under control of his program is the true subject  matter of his activity, for it is this process that has to accomplish the desired effect; it is this  process that in its dynamic behavior has to satisfy the desired specifications. Yet, once the  program has been made, the "making' of the corresponding process is delegated to the machine.
+
+We're better at understanding static relationships (such as the order of statements in a printout) says Dijkstra, than we are at understanding processes that evolve over time:
+
+> 
+
+ For that reason we should do (as wise programmers aware of our limitations) our utmost to shorten the conceptual gap between the static program and the dynamic process, to make the correspondence between the program (spread out in text space) and the process (spread out in time) as trivial as possible.
+
+If you just had a sequence of assignment statements one after the other, then the relationship would be very straightforward indeed - we could say where we 'are' in the program at any point during runtime by pointing at the corresponding point in the printout.
+
+When we add procedures and loops things get more complicated. It's no longer enough to point just at a place in the text, we also need the equivalent of a stack trace to show the nesting of procedures, and a 'dynamic index' showing how many iterations have been performed of each loop.
+
+> 
+
+ The main point is that the values of these indices are outside programmer's control; they are  generated (either by the write-up of his program or by the dynamic evolution of the process)  whether he wishes or not. They provide independent coordinates in which to describe the  progress of the process. Why do we need such independent coordinates? The reason is - and this seems to be inherent  to sequential processes - that we can interpret the value of a variable only with respect to the  progress of the process.
+
+The reason go to is harmful therefore, is that it makes it terribly hard to find a meaningful set of coordinates with which to describe the progress of a process.
+
+> 
+
+ The go to statement as it stands is just too primitive; it is too much an invitation to make a mess of one's program.
+
+A salient reminder that sometimes we can be too clever for our own good. If we can't easily understand what a program does by looking at it, we could be heading for trouble...
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Programming LanguagesSoftware Engineering 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousTowards deep symbolic reinforcement learningNext &rsaquo;Program development by stepwise refinement
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

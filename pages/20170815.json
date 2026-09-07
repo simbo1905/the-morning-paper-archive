@@ -1,0 +1,36 @@
+{
+  "date": "20170815",
+  "file_name": "20170815",
+  "slug": "writing-parsers-like-it-is-2017",
+  "blog_url": "https://blog.acolyer.org/2017/08/15/writing-parsers-like-it-is-2017/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this paper as a pragmatic approach to improving the security of existing C-based systems by incrementally replacing unsafe parsers with safer alternatives written in Rust. The authors argue that current methods for secure parsing are ineffective, as evidenced by recurring parser-related vulnerabilities like Cloudbleed. Their solution combines two key ideas: switching to a memory-safe language (Rust) and using parser combinators to simplify and secure parser implementation. Rust is chosen for its strong typing, memory safety guarantees, zero-copy compatibility with C, and efficient runtime. Parser combinators, implemented via the 'nom' library, provide a middle ground between error-prone hand-written parsers and rigid parser generators, enabling deterministic, state-free parsing. The paper demonstrates incremental adoption through case studies, including replacing the FLV parser in VLC and creating a safe TLS parser for the Suricata IDS, leading to the Rusticata project. The authors emphasize the importance of seamless integration with existing C systems and provide practical guidance on build system integration and interface design.",
+  "paper_title": "Writing parsers like it is 2017",
+  "paper_authors": [
+    "Yannick Chifflier",
+    "Philippe Couprie"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "SPW'17",
+  "paper_url": "http://spw17.langsec.org/papers/chifflier-parsing-in-2017.pdf",
+  "paper_abstract": "—Despite being known since a long time, memory violations are still a very important cause of security problems in low-level programming languages containing data parsers. We address this problem by proposing a pragmatic solution to ﬁx not only bugs, but classes of bugs. First, using a fast and safe language such as Rust, and then using a parser combinator. We discuss the advantages and difﬁculties of this solution, and we present two cases of how to implement safe parsers and insert them in large C projects. The implementation is provided as a set of parsers and projects in the Rust language. First, we show how changing the programming language can solve most of the memory-related problems. Second, we show how parser combinators both help prevent bugs and create faster parsers. We then explain how this solution was implemented in two different large C programs, VLC media player and Suricata, to integrate safe parsers by changing only a small amount of code. II. C URRENT S OLUTIONS , AND HOW TO GO FURTHER I. I NTRODUCTION In 2016, like every year for a long time, memory corruption bugs have been one of the ﬁrst causes of vulnerabilities of compiled programs [1]. When looking at the C programming language, many errors lead to memory corruption: buffer overﬂow, use after free, double free, etc. Some of these issues can be complicated to diagnose, and the consequence is that a huge quantity of bugs is hidden in almost all C software. Any software manipulating untrusted data is particularly exposed: it needs to parse and interpret data that can be controlled by the attacker. Unfortunately, data parsing is often done in a very unsafe way, especially for network protocols and ﬁle formats. For example, many bugs were discovered in media parsing libraries in Android [2], leading to the possible remote exploitation of all devices by a simple MMS message. Today, many applications embed a lot of parsers that could be targeted: web browsers like Firefox or Chrome, media players...",
+  "paper_file": "papers/2017/08/15/writing-parsers-like-it-is-2017.pdf",
+  "topics": [
+    "systems-security",
+    "programming-languages"
+  ],
+  "tags": [
+    "parser-security",
+    "rust",
+    "parser-combinators",
+    "nom",
+    "memory-safety",
+    "incremental-adoption",
+    "C-integration",
+    "zero-copy",
+    "case-study"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

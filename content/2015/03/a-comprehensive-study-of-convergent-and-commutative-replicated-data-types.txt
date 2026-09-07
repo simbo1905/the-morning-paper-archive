@@ -1,0 +1,469 @@
+URL: https://blog.acolyer.org/2015/03/18/a-comprehensive-study-of-convergent-and-commutative-replicated-data-types/
+Title: A Comprehensive study of Convergent and Commutative Replicated Data&nbsp;Types
+---
+
+A comprehensive study of Convergent and Commutative Replicated Data Types - Shapiro et al. 2011
+
+This is the third of five Desert Island Paper choices from Jonas Bonér, and it continues the theme of avoiding coordination overhead in a principled manner whenever you can. As we saw yesterday, there are trade-offs between consistency, failure tolerance, latency tolerance, and performance. Let us not confuse the family of eventual consistency approaches with an ill-defined 'approximate' consistency though:
+
+> 
+
+ [Eventual consistency] performs well (as the consensus bottleneck has been moved oﬀ the critical path), and the weaker consistency is considered acceptable for some classes of applications. However, reconciliation is generally complex. There is little theoretical guidance on how to design a correct optimistic system, and ad-hoc approaches have proven brittle and error-prone.
+
+This paper introduces the concept of a CRDT, a "simple, theoretically sound approach to eventual consistency." Let's adddress one of the pressing distributed systems questions of our time right here: "what does CRDT stand for?" We've seen over the last couple of weeks that there are two fundamental approaches to replication: you can execute operations at a primary and replicate the resulting state, or you can replicate the operations themselves. If you're replicating state, then given some convergence rules for state, you can create Convergent Replicated Data Types. If you're replicating operations, then given operations carefully designed to commute , you can create Commutative Replicated Data Types. Conveniently both 'convergent' and 'commutative' begin with C, so we can call both of these CRDTs. In both cases, the higher order goal is to avoid the need for coordination by ensuring that actions taken independently can't conflict with each other (and thus can be composed at a later point in time). Thus we might also call them Conflict-free Replicated Data Types.
+
+Think of it a bit like this: early on languages gave us standard data type implementations for set, list, map, and so on. Then we saw the introduction of concurrent versions of collections and related data types. With CRDTs, we are seeing the birth of distributed collections and related data types. Eventually any self-respecting language/framework will come with a distributed collections library - Riak already supports CRDTs and Jonas has an Akka CRDT library in github at least. As you read through the paper, it's tempting to think "oh, these are pretty straightforward to implement," but pay attention to the section on garbage collection - a bit like we saw with Edelweiss, making production implementations with state that doesn't grow unbounded makes things more difficult.
+
+> 
+
+ Since, by design, a CRDT does not use consensus, the approach has strong limitations; nonetheless, some interesting and non-trivial CRDTs are known to exist.
+
+Assume that some number of replicas of an object (e.g .a Set) are distributed. We'd like these to eventually converge to the same state, or more precisely, we'd like all query operations on the object to return the same result at each replica. For any two replicas i and j, this requires both a safety and a liveness condition:
+
+- Safety: if the causal history of i and j is the same, then the abstract state of i and j is equivalent.
+
+- Liveness: if some event e is in the causal history of i then it will eventually be in the causal history of j.
+
+If we have this pairwise eventual convergence for any i and j, then this implies that any non-empty subset of replica objects will converge so long as all replicas eventually receive all updates.
+
+## State-based CRDTs
+
+The terminology can seem intimidating, but the core idea is actually very simple. If you understand max(x,y) you can understand how state-based CRDTs work. Let's suppose our state is a simple integer value. Given two values 4 and 6, then the max is 6. We could also describe 6 as the least upper bound of the two values: the smallest value such that 4 and 6 are both ≤ to it. Of course, the state values we want to compose won't always be integers, but so long as we can define a meaningful least upper bound (LUB) function over the state, we can create a CRDT. You might hear the term join semilattice being thrown around. This simply means a set of values with an LUB-based partial order function defined over them. (Such as the set of integers, and max).
+
+Take an object whose values come from such a semilattice, and define the merge operation for state values to be its least upper bound function. If the values of such an object only get larger (as defined by the least upper bound function) - a monotonic semilattice, then the type is a CRDT. Replicas of such a type will eventually converge.
+
+## Operation-based CRDTs
+
+For an operation-based object, we assume a delivery channel (such as TCP) that can deliver updates in the deliver order specified by the data type (e.g. causal delivery). Operations not covered by this order are said to be concurrent. If all such concurrent operations commute, then all execution orders consistent with the delivery order are equivalent, and all replicas will converge to the same state. As an example, addition and subtraction commute (+7, -5 gives the same result as -5, +7).
+
+> 
+
+ Interestingly, it is always possible to emulate a state-based object using the operation-based approach, and vice-versa.
+
+## Example CRDTs
+
+On the surface, it maybe seems a little underwhelming. The clever part is that if these rules are all we've got to work with, how can we design data types that stick to the constraints and yet still do meaningful things? Because if we can do that, we get all the nice convergent properties. To a man with a hammer, everything looks like a nail. We have a hammer, it's time to find some nails...
+
+Starting with the humble counter, an operation based counter is straightforward since addition and subtraction commute. The state-based counter highlights some of the interesting issues that arise in designing CRDTs though. Let's start with a counter that only increments: if two independent replicas both increment the counter (from 0 to 1), and then we merge with max, we'll end up with 1, not the desired 2. So let's keep a more complex state structure modeled after a vector clock with one entry in the vector for each replica, increment at a given replica increments its counter in the vector. Now merge can take the maximum of each entry, and the counter value is the sum of all entries...
+
+> 
+
+ It is not straightforward to support decrement with the previous representation, because this operation would violate monotonicity of the semilattice. Furthermore, since merge is a max operation, decrement would have no eﬀect.
+
+But... we can solve that by keeping two counters, one for the number of increments, and one for the number of decrements. (The authors call this a PN-counter). Having a non-negative counter (e.g. to count the remaining quantity of some asset) turns out to be hard because 'non-negative' is a global invariant you can't calculate locally. You can enforce the rule locally at each replica (you can't decrement more than you increment) which will of course ensure the global property, but may be too restrictive.
+
+> 
+
+ Sadly, the remaining alternative is to synchronise. This might be only occasionally, e.g., by reserving in advance the right to originate a given number of decrements, as in escrow transactions.
+
+Now that you've got an idea of what's involved in designing a CRDT, let's take a whistlestop tour through some of the other CRDTs defined in the paper:
+
+- Last-Writer-Wins register (a register is a cell that can store an object or value) - merge is based on the timestamp
+
+- Multi-value register - with merge based on a version vector
+
+- A Grow-only Set (supports add and lookup). This turns out to be a useful building block for higher types.
+
+- A 2P-Set (two-phase set), in which an item can be added and optionally removed, but never added again thereafter.
+
+- 
+
+- A U-Set, (unique set). Simplified variant of a 2P-Set under the assumption that 'each element to be added is unique'. Which confused me on the first several readings - because by definition every element in a set is unique! What the authors seem to be capturing here is that the element to be added is not drawn from some a priori know fixed set of values, but instead is 'created' at the point of addition, in such a way that the same element can never be created again, nor can it be independently created at another replica. For example, suppose values are drawn from the set of all UUIDs, and replicas generate and then add UUIDs to the U-Set... 
+
+- A Last-Writer-Wins element Set, which keeps an add-set and a remove-set, with timestamped entries
+
+- A PN-Set which keeps a counter for each element (has the interesting property that the counter can go negative, in which circumstance adding an element does not make it a set member...).
+
+- An Observed-Remove Set:
+
+> 
+
+ The preceding Set constructs have practical applications, but are somewhat counter-intuitive. In 2P-Set, a removed element can never be added again; in LWW-Set the outcome of concurrent updates depends on opaque details of how timestamps are allocated. We present here the Observed-Removed Set (OR-Set), which supports adding and removing elements and is easily understandable. The outcome of a sequence of adds and removes depends only on its causal history and conforms to the sequential speciﬁcation of a set. In the case of concurrent add and remove of the same element, add has precedence (in contrast to 2P-Set).
+
+- A 2P2P-Graph (which is the combination of two 2P-Sets for vertices and edges).
+
+- An add-only monotonic DAG (an edge may be added only if it is oriented in the same direction as an existing path).
+
+- An add-and-remove partial order data type 
+
+- A couple of data types supporting collaborative text editing. 
+
+## Shopping Carts Again
+
+In Monday's paper Alvaro et al. showed us how to reduce the amount of coordination required in a shopping cart using a CALM analysis in Bloom. Shapiro et al. pull off the same trick by modeling the shopping cart using CRDTs.
+
+> 
+
+ We deﬁne a shopping cart data type as a map from an ISBN number (a unique number representing the book edition) to an integer representing the number of units of the book the user wants to buy. Any of the Set abstractions presented earlier extends readily to a Map; we choose to extend OR-set as it minimises anomalies. An element is a (key, value) pair; concretely the key is a book ISBN (a unique product identiﬁer), and the value is a number of copies.
+
+Going one stage further, we can model a bookstore's worth of shopping carts:
+
+> 
+
+ Our e-commerce bookstore maintains the following information. Each user account has a separate OR-Cart. Assuming accounts are uniquely identiﬁed, the mapping from user to OR-Cart can be maintained by a U-Map, derived from U-Set in the obvious way. The shopping cart is created when the account is ﬁrst created, and removed when it is deleted from the system.
+
+In Amazon's multi-version approach used with Dynamo under failures with concurrent updates, version branching can occur. Added items are never lost, but a deleted item may resurface.
+
+> 
+
+ This (CRDT based-)design remains simple and does not incur the remove anomaly reported for Dynamo, and does not bear the cost of the version vector needed by Dynamo’s MV-Register approach.
+
+## A note on CRDTs and CALM
+
+> 
+
+ Alvaro et al.’s so-called CALM approach ensures eventual consistency by enforcing a monotonic logic. This is somewhat similar to our rule for CvRDTs, that every update or merge operation move forward in the monotonic semilattice. Their Bloom domain-speciﬁc language comes with a static analysis tool that analyses program ﬂow and identiﬁes non-monotonicity points, which require synchronization. This approach encourages programmers to write monotonic programs and makes them aware of synchronization requirements. Monotonic logic is more restrictive than our monotonic semilattice. Thus, Bloom does not support remove without synchronisation.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems 
+ 
+ Algorithms and data structuresDistributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousConsistency, Availability, and Convergence + COPSNext &rsaquo;Coordination Avoidance in Database Systems
+ 
+ 
+
+ 
+ 
+## 
+ 20 thoughts on &ldquo;A Comprehensive study of Convergent and Commutative Replicated Data Types&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: A Comprehensive study of Convergent and Commutative Replicated Data Types &laquo; Another Word For It 
+ 
+ 
+- 
+ 
+ Pingback: Coordination Avoidance in Database Systems | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Three Short Links: March 19, 2015 - Apprenda 
+ 
+ 
+- 
+ 
+ Pingback: Building on quicksand | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Lasp: A language for distributed, coordination-free programming | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Consistency Without Borders | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Out of the Fire Swamp* - Part I, 'The Data Crisis' | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Out of the Fire Swamp - Part III, Go with the flow. | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Anna: A KVS for any scale | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Anna: A KVS for any scale | the morning paper 
+ 
+ 
+- 
+ 
+ 
+ 
+ sgd1041 says: 
+
+ 
+ November 19, 2018 at 3:37 pm 
+
+ 
+
+ 
+ 
+hi,
+
+your statement regarding property reqd for concurrent operations is incomplete as to the commutative property. you say 
+
+"If all such concurrent operations commute, then all execution orders consistent with the delivery order are equivalent, and all replicas will converge to the same state. As an example, addition and subtraction commute (+7, -5 gives the same result as -5, +7)."
+
+but subtraction is not commutative: e.g. 1 - 0 = 1, but 0 - 1 = -1
+
+thanks
+
+Sam
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ November 20, 2018 at 3:02 pm 
+
+ 
+
+ 
+ 
+You’re quite right! Subtraction definitely does not commute.
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ Pingback: Keeping CALM: when distributed consistency is easy | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Keeping CALM: when distributed consistency is easy - NewsUcan2Use 
+ 
+ 
+- 
+ 
+ Pingback: Keeping CALM: when distributed consistency is easy - SkyFoxMail News 
+ 
+ 
+- 
+ 
+ Pingback: Efficient synchronisation of state-based CRDTs | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Mergeable replicated data types - Part I - the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Mergeable replicated data types – Part I - TechBits 
+ 
+ 
+- 
+ 
+ Pingback: Mergeable replicated data types – Part I - UpShed 
+ 
+ 
+- 
+ 
+ Pingback: Mergeable replicated recordsdata sorts – Section I - Tech &#039;n&#039; Gadget News 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

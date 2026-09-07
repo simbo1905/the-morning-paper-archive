@@ -1,0 +1,33 @@
+{
+  "date": "20150917",
+  "file_name": "20150917",
+  "slug": "lessons-learned-in-implementing-and-deploying-crypto-software",
+  "blog_url": "https://blog.acolyer.org/2015/09/17/lessons-learned-in-implementing-and-deploying-crypto-software/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes Peter Gutmann's 2002 paper, which critiques the misuse of cryptographic software despite the widespread availability of strong encryption algorithms. Gutmann introduces the concept of '2nd generation snake oil' (or 'naugahyde crypto'), where systems appear secure but are fundamentally flawed due to poor implementation choices, such as using weak keys, improper modes (e.g., ECB instead of CBC), or inadequate entropy for key generation. The paper highlights recurring mistakes like exposing private keys, poor key management, and relying on users to handle low-level crypto operations correctly. Gutmann argues that crypto libraries should abstract away complexity to prevent misuse, as most developers lack the expertise to safely implement cryptographic protocols. The paper serves as a cautionary tale about the dangers of 'crypto for the masses' without proper safeguards.",
+  "paper_title": "Lessons Learned in Implementing and Deploying Crypto Software",
+  "paper_authors": [
+    "Peter Gutmann"
+  ],
+  "paper_year": 2002,
+  "paper_venue": "USENIX Security Symposium",
+  "paper_url": "https://www.usenix.org/legacy/event/sec02/full_papers/gutmann/gutmann.pdf",
+  "paper_abstract": "crypto, with an appropriately similar type of relationship to the real thing. Although the basic building blocks for working with strong encryption have become fairly widespread in the last few years, experience has shown that implementers frequently misuse them in a manner which voids their security properties. At least some of the blame lies with the tools themselves, which often make it unnecessarily easy to get things wrong. Just as no chainsaw manufacturer would think of producing a model without a finger-guard and cutoff mechanism, so security software designers need to consider safety features which will keep users from injuring themselves or others. This paper examines some of the more common problem areas which exist in crypto security software, and provides a series of design guidelines which can help minimise damage due to (mis-)use by inexperienced users. These issues are taken from extensive real-world experience with users of security software, and represent areas which frequently cause problems when the software is employed in practice. Most crypto software is written with the assumption that the user knows what they’re doing, and will choose the most appropriate algorithm and mode of operation, carefully manage key generation and secure key storage, employ the crypto in a suitably safe manner, and do a great many other things which require fairly detailed crypto knowledge. However, since most implementers are everyday programmers whose motivation for working with crypto is defined by “the boss said do it”, the inevitable result is the creation of products with genuine naugahyde crypto. Sometimes this is discovered (for example when encryption keys are generated from the process ID and time, or when the RC4 keystream is re-used multiple times so the plaintext can be recovered with a simple XOR), but more frequently it isn’t, so that products providing only illusory security may be deployed and used for years without anyone being any the wiser.",
+  "paper_file": "papers/2015/09/17/lessons-learned-in-implementing-and-deploying-crypto-software.pdf",
+  "topics": [
+    "systems-security"
+  ],
+  "tags": [
+    "cryptography",
+    "key-management",
+    "crypto-implementation",
+    "snake-oil-crypto",
+    "entropy",
+    "ECB-mode",
+    "CBC-mode",
+    "private-keys"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,43 @@
+{
+  "date": "20151209",
+  "file_name": "20151209",
+  "slug": "elm",
+  "blog_url": "https://blog.acolyer.org/2015/12/09/elm/",
+  "blog_title": "",
+  "blog_summary": "The blog post introduces Elm, a functional reactive programming (FRP) language designed for building responsive graphical user interfaces (GUIs), particularly for web applications. Adrian Colyer highlights Elm's use of FRP to model time-varying values (signals) in a purely functional and declarative way, which simplifies the creation of complex time-dependent relationships in GUIs. A key distinction in Elm is that signals change only in response to discrete events, unlike traditional FRP languages where signals change continuously. This design choice ensures that GUIs remain responsive even during long-running computations by allowing asynchronous processing. The post also discusses Elm's core abstractions, such as signals, lift (map), foldp, and async operations, and how they enable efficient and composable GUI development. The Featherweight Elm (FElm) formalism is mentioned as a stripped-down version of Elm used to explain its syntax and semantics.",
+  "paper_title": "Asynchronous Functional Reactive Programming for GUIs",
+  "paper_authors": [
+    "Czaplicki",
+    "Chong"
+  ],
+  "paper_year": 2013,
+  "paper_venue": "PLDI",
+  "paper_url": "http://people.seas.harvard.edu/~chong/pubs/pldi13-elm.pdf",
+  "paper_abstract": "Semantics of most FRP languages assume that signals change continuously. Thus, their implementations sample input signals as quickly as possible, and continually recompute the program with the latest values for the signals. In practice, however, many signals change discretely and infrequently, and so constant sampling leads to unnecessary recomputation. By contrast, Elm assumes that all signals are discrete, and uses this assumption to detect when a signal is unchanged, and in that case, avoid unnecessary recomputation. In Elm, signals change only when a discrete event occurs. An event occurs when a program input (such as the mouse position) changes. Events require recomputation of the program, as the result of the program may have changed. Previous FRP systems require that events are processed synchronously: one at a time in the exact order of occurrence. In general, synchronization is required to allow the programmer to reason about the behavior of the FRP system, and ensure correct functionality. However, processing an event may take significant time, resulting in delays to the entire FRP system. Pipelining event processing can help to reduce latency, but because the global order of events must be respected, an event cannot finish processing until all previous events have finished. In GUIs, this is unacceptable behavior: the user interface should remain responsive, even if a previous user action triggered a long-running computation. Graphical user interfaces (GUIs) mediate many of our interactions with computers. Functional Reactive Programming (FRP) is a promising approach to GUI design, providing high-level, declarative, compositional abstractions to describe user interactions and time-dependent computations. We present Elm, a practical FRP language focused on easy creation of responsive GUIs. Elm has two major features: simple declarative support for Asynchronous FRP; and purely functional graphical layout. Asynchronous FRP allows the programmer to specify whe...",
+  "paper_file": "papers/2015/12/09/elm.pdf",
+  "topics": [
+    "programming-languages"
+  ],
+  "tags": [
+    "functional-reactive-programming",
+    "gui",
+    "signals",
+    "asynchronous-programming",
+    "type-system",
+    "featherweight-elm"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Purely functional graphics: basic layout",
+      "caption": "A basic FRP program: tracking mouse movement"
+    },
+    {
+      "number": "Figure 2",
+      "title": "A basic FRP program: tracking mouse movement",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

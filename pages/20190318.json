@@ -1,0 +1,37 @@
+{
+  "date": "20190318",
+  "file_name": "20190318",
+  "slug": "datacenter-rpcs-can-be-general-and-fast",
+  "blog_url": "https://blog.acolyer.org/2019/03/18/datacenter-rpcs-can-be-general-and-fast/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses 'eRPC', a new general-purpose remote procedure call (RPC) library by Kalia et al., which won a best paper award at NSDI'19. The author highlights that eRPC achieves performance comparable to specialized systems (using RDMA, FPGAs, or programmable switches) while running on commodity CPUs and traditional datacenter networks (lossy Ethernet or lossless fabrics). Key achievements include 2.3µs median RPC latency, up to 10 million RPCs/second on a single core, and 75Gbps large message transfer. The paper challenges the notion that high performance requires low-level interfaces or specialized hardware, instead demonstrating that thoughtful design can optimize for common cases (small messages, short handlers, congestion-free networks) to achieve remarkable efficiency. The author emphasizes that eRPC's success stems from careful integration of existing techniques rather than exotic algorithms, showcasing the power of disciplined system design.",
+  "paper_title": "eRPC: Efficient Remote Procedure Call",
+  "paper_authors": [
+    "Kalia",
+    "Ankit",
+    "Michael Kaminsky",
+    "David G. Andersen"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "NSDI",
+  "paper_url": "https://www.usenix.org/conference/nsdi19/presentation/kalia",
+  "paper_abstract": "It is commonly believed that datacenter networking software must sacrifice generality to attain high performance. The popularity of specialized distributed systems designed specifically for niche technologies such as RDMA, lossless networks, FPGAs, and programmable switches testifies to this belief. In this paper, we show that such specialization is not necessary. eRPC is a new general-purpose remote procedure call (RPC) library that offers performance comparable to specialized systems, while running on commodity CPUs in traditional datacenter networks based on either lossy Ethernet or lossless fabrics. eRPC performs well in three key metrics: message rate for small messages; bandwidth for large messages; and scalability to a large number of nodes and CPU cores. It handles packet loss, congestion, and background request execution. In microbenchmarks, one CPU core can handle up to 10 million small RPCs per second, or send large messages at 75 Gbps. We port a production-grade implementation of Raft state machine replication to eRPC without modifying the core Raft source code. We achieve 5.5 µs of replication latency on lossy Ethernet, which is faster than or comparable to specialized replication systems that use programmable switches, FPGAs, or RDMA.",
+  "paper_file": "papers/2019/03/18/datacenter-rpcs-can-be-general-and-fast.pdf",
+  "topics": [
+    "distributed-systems",
+    "networking"
+  ],
+  "tags": [
+    "rpc",
+    "latency-optimization",
+    "datacenter-networking",
+    "zero-copy",
+    "flow-control",
+    "session-management",
+    "congestion-control",
+    "commodity-hardware"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

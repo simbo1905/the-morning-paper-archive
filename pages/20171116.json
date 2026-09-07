@@ -1,0 +1,38 @@
+{
+  "date": "20171116",
+  "file_name": "20171116",
+  "slug": "opening-the-black-box-of-deep-neural-networks-via-information-part-ii",
+  "blog_url": "https://blog.acolyer.org/2017/11/16/opening-the-black-box-of-deep-neural-networks-via-information-part-ii/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes a paper that applies information theory to analyze the inner workings of deep neural networks (DNNs). The authors train a 7-layer DNN and track mutual information between hidden layers and inputs/outputs across training epochs. They observe two distinct phases: an initial 'Empirical Error Minimization (ERM)' phase where layers rapidly increase mutual information with outputs while preserving input information, followed by a longer 'representation compression' phase where layers discard irrelevant input information. The compression phase behaves like a diffusion process, maximizing entropy under training constraints. The paper also shows that deeper networks converge faster and that training sample size significantly impacts the information bottleneck behavior. The key insight is that DNNs naturally follow an information bottleneck principle, discarding irrelevant information during training.",
+  "paper_title": "Opening the black box of deep neural networks via information",
+  "paper_authors": [
+    "Ravid Schwartz-Ziv",
+    "Naftali Tishby"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "ICRI-CI 2017",
+  "paper_url": "https://arxiv.org/abs/1703.00810",
+  "paper_abstract": "Despite their great success, there is still no comprehensive theoretical understanding of learning with Deep Neural Networks (DNNs) or their inner organization. Previous work [Tishby and Zaslavsky (2015)] proposed to analyze DNNs in the Information Plane; i.e., the plane of the Mutual Information values that each layer preserves on the input and output variables. They suggested that the goal of the network is to optimize the Information Bottleneck (IB) tradeoff between compression and prediction, successively, for each layer. In this work we follow up on this idea and demonstrate the effectiveness of the InformationPlane visualization of DNNs. Our main results are: (i) most of the training epochs in standard DL are spent on compression of the input to efficient representation and not on fitting the training labels. (ii) The representation compression phase begins when the training errors becomes small and the Stochastic Gradient Decent (SGD) epochs change from a fast drift to smaller training error into a stochastic relaxation, or random diffusion, constrained by the training error value. (iii) The converged layers lie on or very close to the Information Bottleneck (IB) theoretical bound, and the maps from the input to any hidden layer and from this hidden layer to the output satisfy the IB self-consistent equations. This generalization through noise mechanism is unique to Deep Neural Networks and absent in one layer networks. (iv) The training time is dramatically reduced when adding more hidden layers. Thus the main advantage of the hidden layers is computational. This can be explained by the reduced relaxation time, as this it scales super-linearly (exponentially for simple diffusion) with the information compression from the previous layer. (v) As we expect critical slowing down of the stochastic relaxation near phase transitions on the IB curve, we expect the hidden layers to converge to such critical points.1",
+  "paper_file": "papers/2017/11/16/opening-the-black-box-of-deep-neural-networks-via-information-part-ii.pdf",
+  "topics": [
+    "machine-learning"
+  ],
+  "tags": [
+    "deep-learning",
+    "information-bottleneck",
+    "mutual-information",
+    "stochastic-gradients",
+    "training-phases",
+    "neural-networks"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "DNN layers as a Markov chain in the Information Plane",
+      "caption": "The DNN layers form a Markov chain of successive internal representations of the input layer X. Any representation of the input, T, is defined through an encoder, P(T|X), and a decoder P(Ŷ|T), and can be quantified by its information plane coordinates: IX = I(X;T) and IY = I(T;Y). The Information Bottleneck bound characterizes the optimal representations, which maximally compress the input X, for a given mutual information on the desired output Y. After training, the network receives an input X, and successively processes it through the layers, which form a Markov chain, to the predicted output Ŷ. I(Y;Ŷ)/I(X;Y) quantifies how much of the relevant information is captured by the network."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

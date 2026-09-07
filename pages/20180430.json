@@ -1,0 +1,74 @@
+{
+  "date": "20180430",
+  "file_name": "20180430",
+  "slug": "netchain-scale-free-sub-rtt-coordination",
+  "blog_url": "https://blog.acolyer.org/2018/04/30/netchain-scale-free-sub-rtt-coordination/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights NetChain, a best paper award winner at NSDI 2018, as a groundbreaking coordination service that achieves unprecedented low latency (9.7 microseconds for reads and writes) and massive scalability (tens of billions of operations per second). The key innovation is moving the coordination service implementation into programmable network switches, leveraging their line-rate packet processing capabilities to reduce query latency to sub-RTT levels. Unlike traditional server-based systems like ZooKeeper, NetChain executes consensus protocols directly in the network data plane, achieving orders of magnitude higher throughput. The paper demonstrates how modern switch ASICs' on-chip SRAM can store coordination state (e.g., locks, configuration parameters) while maintaining strong consistency through chain replication. Colyer emphasizes NetChain's practicality for small, frequently accessed values and its incremental deployability in existing datacenters, opening avenues for designing next-generation distributed systems beyond transactions.",
+  "paper_title": "NetChain: Scale-free sub-RTT coordination",
+  "paper_authors": [
+    "Jin",
+    "Ming",
+    "Xin Jin",
+    "Hongqiang Harry Liu",
+    "Yibo Zhu",
+    "Haoqiang Zheng",
+    "Chuanxiong Guo",
+    "Chen Tian",
+    "Yongguang Zhang",
+    "Simon Peter"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "NSDI",
+  "paper_url": "https://www.usenix.org/conference/nsdi18/presentation/jin",
+  "paper_abstract": "Coordination services are a fundamental building block of modern cloud systems, providing critical functionalities like configuration management and distributed locking. The major challenge is to achieve low latency and high throughput while providing strong consistency and fault-tolerance. Traditional server-based solutions require multiple round-trip times (RTTs) to process a query. This paper presents NetChain, a new approach that provides scale-free sub-RTT coordination in datacenters. NetChain exploits recent advances in programmable switches to store data and process queries entirely in the network data plane. This eliminates the query processing at coordination servers and cuts the end-to-end latency to as little as half of an RTT—clients only experience processing delay from their own software stack plus network delay, which in a datacenter setting is typically much smaller. We design new protocols and algorithms based on chain replication to guarantee strong consistency and to efficiently handle switch failures. We implement a prototype with four Barefoot Tofino switches and four commodity servers. Evaluation results show that compared to traditional server-based solutions like ZooKeeper, our prototype provides orders of magnitude higher throughput and lower latency, and handles failures gracefully.",
+  "paper_file": "papers/2018/04/30/netchain-scale-free-sub-rtt-coordination.pdf",
+  "topics": [
+    "distributed-systems",
+    "networking"
+  ],
+  "tags": [
+    "consensus-protocols",
+    "chain-replication",
+    "in-network-processing",
+    "programmable-switches",
+    "coordination-services",
+    "sub-RTT",
+    "fault-tolerance",
+    "fast-failover"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "NetChain system overview",
+      "caption": null
+    },
+    {
+      "number": "Figure 2",
+      "title": "NetChain chain replication protocol",
+      "caption": null
+    },
+    {
+      "number": "Figure 3",
+      "title": "NetChain failure recovery",
+      "caption": null
+    },
+    {
+      "number": "Figure 4",
+      "title": "NetChain evaluation setup",
+      "caption": null
+    },
+    {
+      "number": "Figure 5",
+      "title": "NetChain throughput vs. latency comparison",
+      "caption": null
+    },
+    {
+      "number": "Figure 6",
+      "title": "NetChain fault tolerance evaluation",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

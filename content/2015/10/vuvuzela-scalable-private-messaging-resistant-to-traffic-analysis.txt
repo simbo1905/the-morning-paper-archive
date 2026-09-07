@@ -1,0 +1,284 @@
+URL: https://blog.acolyer.org/2015/10/23/vuvuzela-scalable-private-messaging-resistant-to-traffic-analysis/
+Title: Vuvuzela: Scalable Private Messaging Resistant to Traffic&nbsp;Analysis
+---
+
+Vuvuzela: Scalable Private Messaging Resistant to Traffic Analysis - van den Hooff, Lazar, et al. 2015
+
+> 
+
+ Many users would like their communications over the Internet to be private, and for some, such as reporters, lawyers, or whistleblowers, privacy is of paramount concern... Recently, officials at the NSA have even stated that “if you have enough metadata you don’t really need content.” ... Unfortunately, state-of-the-art private messaging systems are unable to protect metadata for large numbers of users.
+
+What now for privacy in a post-Snowden world where systems like Tor and mixnets provide little protection against powerful adversaries that can observe and tamper with network traffic?
+
+> 
+
+ This paper presents Vuvuzela, a system that provides scalable private point-to-point text messaging. Vuvuzela prevents an adversary from learning which pairs of users are communicating, as long as just one out of N servers is not compromised, even for users who continue to use Vuvuzela for years. Vuvuzela uses only simple, fast cryptographic primitives, and, using commodity servers, can scale to millions of users and tens of thousands of messages per second. At the same time, Vuvuzela can provide guarantees at a small scale, without the need for a large anonymity set: even if just two users are using the system, an adversary will not be able to tell whether the two users are talking to each other.
+
+Having read through the paper, I'm not convinced Vuvuzela is yet the solution to privacy problems at scale, but it is certainly an important and interesting step forward. Messages in Vuvuzela are routed through a chain of servers - at least one of which is assumed to be trustworthy. Each server adds cover traffic to mask the behaviour of users, and unlike previous systems this cover traffic can scale to millions of users.
+
+> 
+
+ Somewhat counter-intuitively, results from differential privacy show that the amount of cover traffic needed is constant—independent of the number of users—and we find that the amount is manageable in practice. Adding noise to achieve differential privacy is tractable for the small number of variables exposed by Vuvuzela, but it was not feasible for prior systems that expose many distinct variables.
+
+In a typical Vuvuzela configuration, an adversary observing a user who sends and receives 200,000 messages still cannot increase confidence in any suspicion beyond 2x what it was before monitoring Vuvuzela traffic. All clients of Vuvuzela use the same chain of servers, which is known in advance. Performance of Vuvuzela scales roughly quadratically with the number of servers. Thus there is a tension between increasing the number of servers for security, and keeping the number manageable for performance. Recall that at least one server must remain trusted. Given a relatively small number of publically known servers, Vuvuzela is vulnerable to denial of service attacks (if an adversary simply wanted to block all communication and force it into less secure channels), and to targeted attacks on every server in a chain. "In future work, we hope to explore a more Tor-like distributed design where the bandwidth costs are spread out over a larger network of servers, without requiring that each message traverse every server. We expect the main challenges will be in coming up with a suitable security definition for this setting, and in constructing a provable analysis of privacy."
+
+An adversary who can monitor and control the network is in a very powerful position. Suppose the adversary wants to discover whether Alice and Bob are communicating: one simple strategy is to block communication from Alice and see whether Bob stops receiving messages. Or the adversary could block traffic from all parties except for Alice and Bob, and see whether any messages get exchanged when just they are online. Any system that reveals some information about messages exchanged is vulnerable over a number of rounds. Vuvuzela must protect against not only a network-based adversary, but also against compromise of one or more Vuvuzela servers.
+
+## Threat model and Security Goals
+
+> 
+
+ Vuvuzela’s design assumes an adversary who controls all but one of the Vuvuzela servers (users need not know which one), controls an arbitrary number of clients, and can monitor, block, delay, or inject traffic on any network link. Two users, Alice and Bob, communicating through Vuvuzela should have their communication protected if their two clients, and any one server, are uncompromised. Since users will communicate over multiple rounds, we assume that the adversary may also monitor and interfere with them over multiple rounds.
+
+Two users who wish to communicate must know each others public keys, and the exchange of this information is assumed to happen out-of-band. The public keys of all servers in the chain must also be known.
+
+Given this, an adversary should not be able to distinguish between any of Alice's communication patterns, even after Alice exchanges many messages. Guarantees are formulated using differential privacy:
+
+> 
+
+ Differential privacy says that for any observation O that the adversary might make of the system, the probability of observing O should be similar regardless of Alice’s communication pattern... Intuitively, the definition says that any set of observations by an adversary (the payload of network packets, the state of
+
+ compromised servers, etc.) is almost as likely given Alice’s real actions as it is given some cover story for Alice. As a result, regardless of what the adversary suspects Alice is doing (e.g., talking to a reporter from the Guardian), monitoring Vuvuzela provides only a limited improvement in the adversary’s certainty of that suspicion (bounded by eε and δ). Vuvuzela does not require users to explicitly specify a cover story; rather, the definition says that all user actions (both real and any possible “cover stories”) will look about the same to an adversary.
+
+One thing that Vuvuzela cannot hide is the fact that a user is connected to the system. "To limit the information disclosed by the fact that Alice connects to Vuvuzela, we recommend that users run the
+
+Vuvuzela client at all times. In principle, users are allowed to connect at any time, but if this correlates with information they are trying to hide, Vuvuzela cannot help. "
+
+## How it works...
+
+Vuvuzela assumes a single well-known chain of servers. In order to communicate, clients always connect to the first server in the chain (another reason why Vuvuzela is vulnerable to DoS attacks). Once connected, clients participate in two protocols: a conversation protocol which allows a pair of users who have agreed to communicate to exchange messages, and a dialling protocol which allows one user to request a conversation with another. Both protocols route communication via dead drops: virtual locations on Vuvuzela's servers where one client deposits a message and another one picks it up. Conversation dead drops are randomly chosen for each message exchange (from a 128-bit namespace). Invitation dead drops are based on a hash of the user's public key, and are shared between multiple users.
+
+> 
+
+ Vuvuzela’s dead drops are ephemeral, meaning they do not persist over time. Instead, Vuvuzela works in synchronous rounds, each with a new set of dead drops. The first server in Vuvuzela’s chain is responsible for coordinating the round, by announcing the start of a round to clients and waiting a fixed amount of time for clients to declare what dead drop they want to access. The servers collect all of the requests in a given round, perform the accesses requested by clients (e.g., put a message into a dead drop, or get the contents of a dead drop), and return the results to each client. There is no way to access a dead drop once the corresponding round is over .
+
+Vuvuzela uses three main techniques to achieve privacy: constant-bandwidth protocols, mixnets, and cover traffic. Vuvuzela encrypts all messages, and ensures that both message sizes (via splitting and padding) and the rate at which messages are sent (via queueing messages or generating empty messages) are constant independent of actual user activity.
+
+> 
+
+ Dealing with server compromises is a challenge in Vuvuzela. Dead drops are stored in memory on the last server in the chain, and all requests to this server are encrypted. However, we assume that any server — including this last server—could be compromised. This can be problematic if an adversary can determine which pair of users accessed a given dead drop. To address this attack, Vuvuzela uses a mixnet approach. In particular, all requests are recursively encrypted under the public key of each server in Vuvuzela’s chain. Each server is responsible for decrypting incoming requests, and randomly shuffling all of the requests in a round before forwarding them to the next server. This design ensures that, if there is an honest server in the chain, an adversary cannot figure out which incoming request corresponds to an outgoing request, and thus prevents an adversary with access to the dead drops on the last server from learning which users accessed them.
+
+After processing the exchanges, results get passed back though the chain in reverse. To obscure information about the number of dead drops accessed each round, Vuvuzela's servers add noise requests to prevent statistical correlation attacks. To eliminate the variable of which users are participating in which rounds, all users always perform an exchange even if they have no partner.
+
+## The Dialling Protocol
+
+The dialling protocol has stronger privacy than the conversation protocol - at the cost of much greater use of bandwidth. This much increased message size is the reason that the dialling protocol is not used for all exchanges.
+
+> 
+
+ In Vuvuzela’s dialing protocol, a user can send an invitation to talk to another user identified by a long-term public key. The invitation itself consists of the sender’s public key. Then, the two users can derive a shared secret from their keys using Diffie-Hellman and use the conversation protocol to chat. The challenge Vuvuzela’s dialing protocol addresses is, once again, to reveal as few variables to an adversary as possible, and to add the right amount of noise to those variables.
+
+Of course, we can't use a random dead drop location - we have to use the known invitation dead drop location of the party we wish to communicate with...
+
+> 
+
+ The dialing protocol uses a number of large invitation dead drops. Each such dead drop receives all invitations for a fixed set of public keys; with m invitation dead drops, public key pk’s invitations are stored in dead drop H(pk) mod m, where H is a standard cryptographic hash function. Each user downloads all invitations from their dead drop (including noise invitations added as cover traffic) and tries to decrypt every invitation to find any that are meant for them. If a user wishes to accept a sender’s invitation, the user simply starts the conversation protocol based on that sender’s public key.
+
+As in the conversation protocol, Vuvuzela hides information about which parties are participating in the protocol by using fake invitations. The dead-drop that a sender sent an invitation to is obscured via the mixnet technique, and the number of genuine invitations in a dead-drop is obscured by adding cover noise.
+
+> 
+
+ In Vuvuzela’s dialing protocol, each dead drop contains a large amount of data (on the order of megabytes, as we show in §8), and each dead drop is downloaded by a large number of clients whose public keys map to that dead drop ID. This traffic can overwhelm Vuvuzela’s servers, but at the same time, requests for downloading invitations do not need to be routed through Vuvuzela’s servers, since they do not need to be mixed or noised. Thus, we envision that Vuvuzela could use a CDN or BitTorrent-like design to distribute the contents of invitation dead drops to clients. However, we have not implemented this in our prototype so far, so we avoid further speculating about the detailed design of this extension.
+
+## Implementation and Evaluation
+
+Using differential privacy, the authors are able to demonstrate the amount of privacy a given level of noise provides in any given round. A Go implementation is available in GitHub and compromises approximately 2,700 lines of code. With one million users, and a chain of three servers, the prototype achieves a throughput of approximately 68,000 messages per second. Vuvuzela scales linearly with the number of users and messages.
+
+> 
+
+ Deployments of Vuvuzela can vary the number of Vuvuzela servers. Increasing the number of servers provides stronger security. On the other hand, adding more servers increases end-to-end latency (since
+
+ each message must travel through more servers) and increases the number of messages each server has to process each round (due to cover traffic from each previous server). Performance scales roughly quadratically with the number of servers in the chain. This is to be expected, since each of the s servers must decrypt cover traffic from all previous servers in the chain, with O(s) work for all O(s) servers, leading to O(s2) scaling.
+
+The cost of running a Vuvuzela server on AWS at current prices is about $10K/month, dominated by bandwidth usage.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Security 
+ 
+ Privacy 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousImplementing Linearizability at Large Scale and Low LatencyNext &rsaquo;Fast In-memory Transaction Processing using RDMA and HTM
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

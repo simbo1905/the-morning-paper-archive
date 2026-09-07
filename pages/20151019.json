@@ -1,0 +1,40 @@
+{
+  "date": "20151019",
+  "file_name": "20151019",
+  "slug": "existential-consistency-measuring-and-understanding-consistency-at-facebook",
+  "blog_url": "https://blog.acolyer.org/2015/10/19/existential-consistency-measuring-and-understanding-consistency-at-facebook/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Facebook's analysis of consistency anomalies in their TAO production system, noting an impressively low anomaly rate of 0.0004% under normal operation. The paper introduces a real-time consistency monitoring system using φ(P)-consistency metrics to track global and regional consistency, which serves as an early-warning indicator for system issues. The system compares reads across replicas to detect inconsistencies caused by network delays, replication lag, or misconfigurations. The paper also presents an offline analysis of 12 days of trace data, identifying anomalies in linearizability, per-object sequential consistency, and read-after-write consistency. The results show that most anomalies are stale reads due to replication lag, with a very small fraction violating linearizability. The key insight is the practicality of lightweight, real-time consistency monitoring and the quantification of consistency violations in large-scale systems.",
+  "paper_title": "Existential Consistency: Measuring and Understanding Consistency at Facebook",
+  "paper_authors": [
+    "Qi Lu",
+    "Kaushik Veeraraghavan",
+    "Kunal Talwar",
+    "Lorenzo Alvisi",
+    "Mahesh Balakrishnan"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SOSP'15",
+  "paper_url": "http://sigops.org/sosp/sosp15/current/2015-Monterey/printable/240-lu.pdf",
+  "paper_abstract": "1. Replicated storage for large Web services faces a trade-off between stronger forms of consistency and higher performance properties. Stronger consistency prevents anomalies, i.e., unexpected behavior visible to users, and reduces programming complexity. There is much recent work on improving the performance properties of systems with stronger consistency, yet the flip-side of this trade-off remains elusively hard to quantify. To the best of our knowledge, no prior work does so for a large, production Web service. We use measurement and analysis of requests to Facebook’s TAO system to quantify how often anomalies happen in practice, i.e., when results returned by eventually consistent TAO differ from what is allowed by stronger consistency models. For instance, our analysis shows that 0.0004% of reads to vertices would return different results in a linearizable system. This in turn gives insight into the benefits of stronger consistency; 0.0004% of reads are potential anomalies that a linearizable system would prevent. We directly study local consistency models—i.e., those we can analyze using requests to a sample of objects—and use the relationships between models to infer bounds on the others. We also describe a practical consistency monitoring system that tracks φ -consistency, a new consistency metric ideally suited for health monitoring. In addition, we give insight into the increased programming complexity of weaker consistency by discussing bugs our monitoring uncovered, and anti-patterns we teach developers to avoid. Replicated storage is an important component of large Web services and the consistency model it provides determines the guarantees for operations upon it. The guarantees range from eventual consistency, which ensures replicas eventually agree on the value of data items after receiving the same set of updates to strict serializability [12] that ensures transactional isolation and external consistency [25]. Stronger consistency guarantees often ...",
+  "paper_file": "papers/2015/10/19/existential-consistency-measuring-and-understanding-consistency-at-facebook.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "consistency-models",
+    "linearizability",
+    "sequential-consistency",
+    "read-after-write",
+    "replication-lag",
+    "stale-reads",
+    "monitoring",
+    "anomaly-detection",
+    "TAO",
+    "cache-invalidation"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

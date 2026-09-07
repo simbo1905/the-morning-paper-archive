@@ -1,0 +1,290 @@
+URL: https://blog.acolyer.org/2018/03/09/settling-payments-fast-and-private-efficient-decentralized-routing-for-path-based-transactions/
+Title: Settling payments fast and private: efficient decentralized routing for path-based&nbsp;transactions
+---
+
+Settling payments fast and private: efficient decentralized routing for path-based transactions Roos et al., NDSS’18
+
+Peer-to-peer path-based-transaction (PBT) networks such as the Lightning Network address scalability, efficiency, and interoperability concerns with blockchains through off-chain transactions. They work by establishing decentralised chains of participants through which payments are routed.
+
+> 
+
+ A PBT network builds on top of three key algorithms: routing, payment, and accountability. The routing algorithm is in charge of finding paths with enough funds from sender to receiver. The payment algorithm settles the funds between sender and receiver along the paths connecting them. Finally, the accountability algorithm allows the resolution of disputes in the presence of misbehaving users.
+
+A good routing algorithm should offer efficiency, effectiveness (i.e., it is able to successfully route transactions), scalability, and privacy. When it comes to transaction privacy, this is comprised of three elements:
+
+- Value privacy: an adversary should not be able to determine the value of the payment made between two non-compromised users. In this paper, this guarantee comes with the additional condition that none of the intermediate nodes are compromised either. Payments are split into multiple pieces, each following a separate route between the sender and receiver. A weaker form of value privacy can be offered even when some intermediate nodes are compromised, so long as at least one of the employed paths remains non-compromised.
+
+- Sender privacy: it should not be possible for an adversary to determine the sender in a path-based transaction between non-compromised users.
+
+- Receiver privacy: it should not be possible for an adversary to determine the receiver in a path-based transaction between non-compromised users.
+
+> 
+
+ The few routing algorithms proposed so far for PBT networks fail to achieve either privacy, efficiency, or scalability... In this work, we present SpeedyMurmurs, a routing algorithm for PBT networks that provides formal privacy guarantees in a fully distributed setting and outperforms the state-of-the-art routing algorithms in terms of effectiveness and efficiency.
+
+And that makes SpeedyMurmurs very interesting indeed!
+
+SpeedyMurmurs builds on existing work in SilentWhispers, Prefix Embedding and VOUTE.
+
+## Building blocks and limitations
+
+In a PBT network users maintained weighted links between them, where the weights correspond to application-dependent funds. To make a payment, a path of intermediate users is formed between the sender and recipient, and link weights are pairwise adjusted to effectively settle funds between a sender and a receiver. This paper focuses on routing algorithm used to find paths.
+
+## Private PBTs with SilentWhispers
+
+SilentWhispers is a decentralised PBT network without a public ledger. It offers good privacy, but lacks efficiency. SilentWhispers uses landmark-centered routing to discover multiple paths, and then performs multi-party computation to determine the amount of funds to send along each path. Landmark-centered routing uses well-known nodes of high connectivity, known as landmarks, to form the backbone of path creation. Payment is in two phases: first a probe operation computes the credit available in paths and determines amounts to send down each of L paths, such that , where c is the total amount to be transferred between sender and receiver. A payment operation then executes the suggested transfers is a secure manner.
+
+SilentWhispers has four main disadvantages though (which SpeedyMurmurs seeks to overcome):
+
+- Periodic tree creation from landmarks is slow to react to changes in the network.
+
+- All paths include the landmarks, even when the sender and receiver are in the same branch or there is an otherwise shorter path available. This makes paths unnecessarily long and increases the chances of failing to find at least one link without enough funds.
+
+- The probe operation requires that nodes in a transaction path send shares to all landmarks. Transaction overhead scales quadratically in the number of landmarks.
+
+- There is no suitable solution for concurrent transfers.
+
+## Embedding based routing and Prefix Embedding
+
+> 
+
+ Peer-to-peer PBT networks differ from common peer-to-peer networks as the connections between peers are predefined and cannot be changed to improve the quality of the routing. Due to their fixed structure, P2P PBT networks are route-restricted and hence are closely related to Friend-to-Friend (F2F) networks, which restrict connections to peers sharing a mutual trust relationship.
+
+The state of the art in F2F networks is embedding-based routing. Embeddings assign coordinates to nodes in a network, and have nodes forward packets based on the distances between coordinates known to that node and a destination coordinate. Greedy embeddings assign coordinates base on a node’s position in a spanning tree.
+
+> 
+
+ Prefix Embedding is a greedy embedding that enables routing of messages in F2F overlays. As illustrated in Fig 1, Prefix Embedding assigns coordinates in the form of vectors, starting with an empty vector at the landmark/root. Each internal node of the spanning tree enumerates its children and appends the enumeration index of a child to its coordinate to obtain the child coordinate. The distance between two such coordinates corresponds to the length of the shortest path in the spanning tree between them.
+
+## VOUTE
+
+VOUTE is a routing algorithm that provides anonymous and efficient message delivery based on Prefix Embedding, for dynamic route-restricted networks. Whereas Prefix Embedding reveals the unique coordinate of the receiver, VOUTE allows nodes to provide anonymous return addresses. VOUTE also replaces the node enumeration index with random b-bit numbers. Instead of periodically reconstructing the spanning tree, VOUTE repairs the tree on-demand.
+
+When a tree is being built, nodes send invitations to all neighbours offering to become a parent. Nodes accept only one such invitation, but keep the others in their back pocket. If a link in the spanning tree ceases to exist, the child node and all its descendants choose a new parent based on their remaining invitations.
+
+VOUTE uses undirected and unweighted links, whereas in PBT we need directed and weighted links. Likewise, VOUTE does not take into account changes in link weights when repairing the tree.
+
+## SpeedyMurmurs
+
+SpeedyMurmurs builds on ideas from SilentWhispers and VOUTE, adapting them to a scalable, efficient, effective and private PBT algorithm. There are three key operations in SpeedyMurmurs routing: setRoutes, setCred, and routePay.
+
+- In setRoutes multiple embeddings are constructed, one for each landmark. The VOUTE algorithm is divided into two phases. In the first phase only bidirectional links are added during construction of a spanning tree. In the second phase nodes that have not yet been included join by adding unidirectional links. The algorithm is described below using queues for ease of explanation. In the actual distributed scenario there are no central queues, and instead nodes send messages to their neighbours when they join a spanning tree. Because we also can’t take a central decision to move from the first phase to the second, setRoutes uses a simple time limit to determine when to shift. 
+
+- setCred(it) reacts to a pair of nodes (u,v) that want to change the value of their shared link to c. Such a change may lead to coordinate changes. If one of the nodes changes its parent, all descendants also remove their coordinates, and then choose a new parent and corresponding coordinate. There are three situations that indicate the need for a coordinate change: (i) it’s a new non-zero unidirectional link and of the nodes is not yet part of the tree and hence should choose the other as their parent; (ii) it’s a new non-zero bidirectional link and u only has a unidirectional link to its current parent. In this case u changes its parent to v ; (iii) if a link is removed the child node should select a new parent.
+
+- routePay corresponds to the probe operation in SilentWhispers. It divides the process into three parts: generating receiver addresses, splitting the total transaction value c randomly over L paths, and finding paths for all embeddings that can transmit the required value. The path selection only considers links with guaranteed available credit, where the guaranteed credit is the link credit minus any funds a probe operation indicates is pending transmission along the link. 
+
+> 
+
+ Apart from using embedding-based routing, SpeedyMurmurs distinguishes itself from SilentWhispers by splitting the credit between paths before the path discovery.
+
+## Performance
+
+The performance evaluation is based on a simulation using data obtained from crawling the Ripple PBT network. In the interests of space, I’m going to cut straight to the chase:
+
+- SpeedyMurmurs outperforms SilentWhispers on all performance metrics in a static scenario (routing when links don’t change)
+
+- On-demand stabilization and embedding-based routing had a positive effect on all five performance metrics. 
+
+- The Ford-Fulkerson method achieves a higher success than both SpeedyMurmurs and SilentWhispers when it comes to finding a path. However, it’s overhead is 2-3 orders of magnitude greater. 
+
+- The evolution of the PBT network affects the performance of SpeedyMurmurs considerably. Stabilisation overhead and success ratio vary considerably depending on the frequency of transactions and link changes. SilentWhispers is more efficient during periods of frequent change, but results in higher overhead otherwise. One possibility for future work is to dynamically switch between the two depending on network conditions. 
+
+(Enlarge).
+
+## The last word
+
+> 
+
+ Our extensive simulation study and analysis indicate that SpeedyMurmurs is highly efficient and achieves a high probability of success while still providing value privacy as well as sender/receiver privacy against a strong network adversary. As these privacy notions are essential for PBT applications, SpeedyMurmurs is an ideal routing algorithm for decentralized credit networks and payment channel networks, as well as of emerging inter-blockchain algorithms.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Blockchain 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousZeus: Analyzing safety of smart contractsNext &rsaquo;Synode: understanding and automatically preventing injection attacks on Node.js
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

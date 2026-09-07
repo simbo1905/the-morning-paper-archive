@@ -1,0 +1,35 @@
+{
+  "date": "20190524",
+  "file_name": "20190524",
+  "slug": "zippads",
+  "blog_url": "https://blog.acolyer.org/2019/05/24/zippads/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Zippads, a novel approach to memory compression that achieves a 1.63x higher compression ratio and 17% performance improvement over state-of-the-art compressed memory hierarchies. The key insight is to compress objects rather than fixed-size cache lines, which is particularly effective for object-based programs (e.g., Java applications) where traditional compression fails due to irregular layouts. Zippads introduces Hotpads, a hardware-managed hierarchy of scratchpad-like memories, and modifies the ISA to support object-granularity access and compression. The COCO compression scheme further enhances performance by leveraging cross-object similarities, achieving up to 95% compression ratios in some cases. The paper demonstrates significant reductions in memory traffic and improvements in performance across both Java and C/C++ benchmarks.",
+  "paper_title": "Compress objects, not cache lines: an object-based compressed memory hierarchy",
+  "paper_authors": [
+    "Po-An Tsai",
+    "Daniel Sanchez"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "ASPLOS'19",
+  "paper_url": "https://people.csail.mit.edu/poantsai/papers/2019.zippads.asplos.pdf",
+  "paper_abstract": "1 Existing cache and main memory compression techniques compress data in small fixed-size blocks, typically cache lines. Moreover, they use simple compression algorithms that focus on exploiting redundancy within a block. These techniques work well for scientific programs that are dominated by arrays. However, they are ineffective on object-based programs because objects do not fall neatly into fixed-size blocks and have a more irregular layout. We present the first compressed memory hierarchy designed for object-based applications. We observe that (i) objects, not cache lines, are the natural unit of compression for these programs, as they traverse and operate on object pointers; and (ii) though redundancy within each object is limited, redundancy across objects of the same type is plentiful. We exploit these insights through Zippads, an object-based compressed memory hierarchy, and COCO, a cross-object-compression algorithm. Building on a recent object-based memory hierarchy, Zippads transparently compresses variable-sized objects and stores them compactly. As a result, Zippads consistently outperforms a state-of-theart compressed memory hierarchy: on a mix of array- and object-dominated workloads, Zippads achieves 1.63× higher compression ratio and improves performance by 17%. Compression has become an attractive technique to improve the performance and efficiency of modern memory hierarchies. Ideally, compressing data at a level of the memory hierarchy (e.g., main memory or the last-level cache) brings two key benefits. First, it increases the effective capacity of that level (e.g., reducing page faults or cache misses). Second, it reduces bandwidth demand to that level, as each access fetches a smaller amount of compressed data. Because accesses to off-chip memory or large on-chip caches are slow and expensive, the benefits of compression justify its overheads. Therefore, prior work has proposed compressed main memory [17, 25, 34, 51] and cache [1, 22, 30, 41, ...",
+  "paper_file": "papers/2019/05/24/zippads.pdf",
+  "topics": [
+    "operating-systems",
+    "hardware"
+  ],
+  "tags": [
+    "memory-compression",
+    "object-granularity",
+    "hardware-hierarchy",
+    "cross-object-compression",
+    "ISA-modification",
+    "garbage-collection",
+    "compression-algorithms",
+    "memory-traffic-reduction"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

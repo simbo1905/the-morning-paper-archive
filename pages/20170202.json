@@ -1,0 +1,39 @@
+{
+  "date": "20170202",
+  "file_name": "20170202",
+  "slug": "fencing-off-go-liveness-and-safety-for-channel-based-programming",
+  "blog_url": "https://blog.acolyer.org/2017/02/02/fencing-off-go-liveness-and-safety-for-channel-based-programming/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights 'Fencing off Go' as a practical and noteworthy paper from POPL 2017 that addresses liveness and safety issues in Go's channel-based concurrency model. The authors present a static verification framework (GoInfer and Gong) capable of detecting communication errors and partial deadlocks in realistic concurrent Go programs, including those with dynamic channel creation and unbounded thread creation. The toolchain is available for public use, though the test programs are small. The key insight is the use of behavioural types (augmented with CCS processes) to model Go's concurrency semantics (MiGo) and verify liveness and safety properties, even in highly dynamic and recursive programs.",
+  "paper_title": "Fencing off Go: Liveness and safety for channel-based programming",
+  "paper_authors": [
+    "Julien Lange",
+    "Nobuko Yoshida",
+    "Kohei Honda"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "POPL 2017",
+  "paper_url": "http://mrg.doc.ic.ac.uk/publications/fencing-off-go-liveness-and-safety-for-channel-based-programming/long.pdf",
+  "paper_abstract": "Go is a production-level statically typed programming language whose design features explicit message-passing primitives and lightweight threads, enabling (and encouraging) programmers to develop concurrent systems where components interact through communication more so than by lock-based shared memory concurrency. Go can only detect global deadlocks at runtime, but provides no compile-time protection against all too common communication mismatches or partial deadlocks. This work develops a static verification framework for bounded liveness and safety in Go programs, able to detect communication errors and partial deadlocks in a general class of realistic concurrent programs, including those with dynamic channel creation and infinite recursion. Our approach infers from a Go program a faithful representation of its communication patterns as a behavioural type. By checking a syntactic restriction on channel usage, dubbed fencing, we ensure that programs are made up of finitely many different communication patterns that may be repeated infinitely many times. This restriction allows us to implement bounded verification procedures (akin to bounded model checking) to check for liveness and safety in types which in turn approximates liveness and safety in Go programs. We have implemented a type inference and liveness and safety checks in a tool-chain and tested it against publicly available Go programs.",
+  "paper_file": "papers/2017/02/02/fencing-off-go-liveness-and-safety-for-channel-based-programming.pdf",
+  "topics": [
+    "programming-languages",
+    "formal-methods"
+  ],
+  "tags": [
+    "concurrency",
+    "channel-based-programming",
+    "goroutines",
+    "deadlock-detection",
+    "liveness",
+    "safety",
+    "behavioural-types",
+    "type-inference",
+    "MiGo",
+    "GoInfer",
+    "Gong"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

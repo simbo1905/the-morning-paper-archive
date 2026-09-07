@@ -1,0 +1,56 @@
+{
+  "date": "20160513",
+  "file_name": "20160513",
+  "slug": "dynamic-time-warping-averaging-of-time-series-allows-faster-and-more-accurate-classification",
+  "blog_url": "https://blog.acolyer.org/2016/05/13/dynamic-time-warping-averaging-of-time-series-allows-faster-and-more-accurate-classification/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a paper that addresses the computational challenges of using Dynamic Time Warping (DTW) for time series classification, particularly on resource-constrained devices like wearables or embedded medical systems. The key insight is that while Nearest Neighbor (NN) classification with DTW is effective, it is computationally expensive for large datasets. The authors propose the Nearest Centroid Classifier (NCC) as a solution, which reduces the training set to a single 'average' example per class, significantly cutting memory and computation requirements. Surprisingly, NCC can also outperform NN in accuracy, drawing an analogy to Francis Galton's observation about the wisdom of crowds. The paper's main contribution is introducing DTW Barycenter Averaging (DBA), an algorithm to compute meaningful centroids for time series under DTW, which outperforms prior methods by a significant margin. DBA iteratively refines an average sequence using an expectation-maximization scheme, ensuring convergence and practical efficiency.",
+  "paper_title": "Dynamic Time Warping Averaging of Time Series Allows Faster and More Accurate Classification",
+  "paper_authors": [
+    "Francois Petitjean",
+    "Geoffrey I. Webb",
+    "Alaa Al-Obaidi"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "ICDM 2014",
+  "paper_url": "http://www.cs.ucr.edu/~eamonn/ICDM_2014_DTW_average.pdf",
+  "paper_abstract": "—Recent years have seen significant progress in improving both the efficiency and effectiveness of time series classification. However, because the best solution is typically the Nearest Neighbor algorithm with the relatively expensive Dynamic Time Warping as the distance measure, successful deployments on resource constrained devices remain elusive. Moreover, the recent explosion of interest in wearable devices, which typically have limited computational resources, has created a growing need for very efficient classification algorithms. A commonly used technique to glean the benefits of the Nearest Neighbor algorithm, without inheriting its undesirable time complexity, is to use the Nearest Centroid algorithm. However, because of the unique properties of (most) time series data, the centroid typically does not resemble any of the instances, an unintuitive and underappreciated fact. In this work we show that we can exploit a recent result to allow meaningful averaging of “warped” times series, and that this result allows us to create ultra-efficient Nearest “Centroid” classifiers that are at least as accurate as their more lethargic Nearest Neighbor cousins. I.",
+  "paper_file": "papers/2016/05/13/dynamic-time-warping-averaging-of-time-series-allows-faster-and-more-accurate-classification.pdf",
+  "topics": [
+    "machine-learning",
+    "algorithms"
+  ],
+  "tags": [
+    "time-series-classification",
+    "dynamic-time-warping",
+    "nearest-neighbor",
+    "centroid-averaging",
+    "DBA",
+    "data-editing",
+    "resource-constrained-devices"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "DTW averaging vs Euclidean averaging of time series",
+      "caption": "top) Three examples of daily patterns at an oil refinery [7]. middle) When averaged under the Euclidean distance the resulting centroid has an additional peak that is in none of the original time series. bottom) When averaged using the DTW based method proposed in this work, the “centroid” is more intuitive."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Nearest Neighbor vs Nearest Centroid decision boundaries",
+      "caption": null
+    },
+    {
+      "number": "Figure 3",
+      "title": "Error rate comparison for large training data sizes",
+      "caption": "The error rate of two algorithms for increasingly large training data sizes of “left vs. right side of the unit square” problem."
+    },
+    {
+      "number": "Figure 4",
+      "title": "Japanese flag dataset example",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

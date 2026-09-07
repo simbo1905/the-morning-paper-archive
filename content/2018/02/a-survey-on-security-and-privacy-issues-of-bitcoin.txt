@@ -1,0 +1,392 @@
+URL: https://blog.acolyer.org/2018/02/15/a-survey-on-security-and-privacy-issues-of-bitcoin/
+Title: A survey on security and privacy issues of&nbsp;Bitcoin
+---
+
+A survey on security and privacy issues of Bitcoin Conti et al., arVix 2017
+
+At the core of this survey is a catalogue of security attacks on Bitcoin, together with known defences or mitigations where applicable. We’ve touched on many of these before in one way or another, but it’s helpful to see them all in one place. Let’s get straight to it with this table of major attacks:
+
+(Enlarge).
+
+## Double spending attack
+
+A double spending attack occurs when the same set of bitcoins are spent in two different transactions. It involves arranging things so that a vendor sees a transaction confirmation (and releases the product), but a double-spend transaction (e.g., paying the same funds back to an address the attacker controls) makes it onto another fork, which ultimately becomes the main branch. Thus the attackers has the goods and the coins.
+
+There are several schemes for achieving a favourable fork, starting with the Finney attack.
+
+## Finney attack
+
+The Finney attack is a form of double spending attack in which a dishonest client pre-mines a block containing a transaction paying the coins to an address under their control. On successfully mining such a block, the attacker creates and submits a transaction paying the same bitcoins to a vendor. Once the vendor receives confirmation that the transaction is valid and included in the blockchain, the attacker immediately releases their pre-mined block, creating a fork of equal length to the existing fork. The attack succeeds if the attackers fork becomes the prefix of the longest chain.
+
+## Brute force attack
+
+With more compute power (e.g., in a large mining pool) it is theoretically possible to mine ahead (pre-mine) not just a single block, but a sequence of blocks. The rest of the attack proceeds as for Finney, but the attacker releases the whole block sequence once the vendor has received a transaction confirmation, thus immediately becoming the longest chain.
+
+## Vector 76 / one-confirmation attack
+
+A dishonest client with a pre-mined block can also perform a vector 76 double spending attack. The main difference is that the target is an exchange rather than a vendor. The pre-mined block contains a deposit transaction moving funds to an exchange. Once the network announces a new block, the attacker (a) immediately submits a transaction withdrawing the ‘deposited’ funds, and (b) releases the pre-mined block hoping to create a fork. If the deposit fork is ultimately thwarted, then the deposit never happens. In the meantime, the attacker may have been successful in withdrawing the funds and the exchange is out of pocket.
+
+## Discussion
+
+> 
+
+ Based on the above discussion on double spending attack and its variants, one main point that emerges is that if a miner (or mining pool) is able to mine blocks with a faster rate than the rest of the Bitcoin network, the possibility of a successful double spending attack is high.
+
+The following chart shows the market share of hashrate for mining pools as of December 2017.
+
+Since there isn’t really a mechanism to restore funds appropriated through double spending attacks, we need to focus on preventing them in the first place. And the most effective way to do that is to wait for multiple numbers of confirmations (e.g., 6 x 10 minutes) before delivering goods or services. The classic bitcoin client only shows a transaction as confirmed after it is six blocks deep.
+
+In fast payment scenarios where it is not desirable to wait that long, we can increase the vendor confidence if we can detect double-spending attempts within a shorter time window. At its most basic, the vendor chooses a listening period and monitors all broadcast transactions during this period. The product is only delivered if no double spend transaction is detected in this time. If the vendor has access to a number of observer nodes in the network, this increases the probability of detecting the transaction. Alternatively, if miners were to automatically forward any double spend attempt they detect (instead of just discarding the transaction) this would also increase the probability of timely detection.
+
+Other proposals involve setting up various forms of escrow with misbehaving parties losing their funds upon detection.
+
+> 
+
+ For now, it is safe to conclude that there is no solution available in the literature that guarantees the complete protection from double spending in Bitcoin. The existing solutions only make the attack more difficult for adversaries. In particular, double spending is an attack that is well discussed in the Bitcoin community, but very few solutions exist so far, and it remains an open challenge for researchers.
+
+Again, the best defence is patience! (Waiting for more confirmations).
+
+## Goldfinger attack
+
+If a miner (mining pool) can get to 51% of the overall hashrate, then all bets are off. This is known as a 51% attack (it enables you to double spend at will for example). When the motivation is not to profit directly through Bitcoin, but instead to bring down the currency or network, it is called a Goldfinger attack.
+
+> 
+
+ The 51% attack is considered the worst-case scenario in the Bitcoin network because it has the power to destroy the stability of the whole network by introducing actions such as claiming all block incentives, performing double spending, rejecting or including transactions as preferred, and playing with Bitcoin exchange rates. The instability in the network once started will further strengthen the attacker’s position as more and more honest miners will start leaving the network.
+
+There are games to be played within pools, and between pools, before the 51% threshold is reached.
+
+> 
+
+ Internal attacks are those in which miners act maliciously within the pool to collect more than their fair share of collective reward or disrupt the functionality of the pool to distance it from successful mining attempts. In external attacks, miners could use their higher hash power to perform attacks such as double spending.
+
+## Block discarding / selfish mining
+
+In block discarding, a dishonest miner (or colluding set of miners) working in a pool withholds a block once found. They keep working on the private chain, while the rest of the miners work on the (shorter) public chain. If the dishonest subset can maintain a lead on their branch they will gain proportionally more rewards as the rest of the miners are wasting their efforts - effectively reducing their compute power. If the dishonest and honest forks get back to the same length, the dishonest miners publish their mined blocks immediately. If this becomes the longest chain, they win!
+
+## Block withholding
+
+Block withholding is an internal attack on a mining pool, which could be by infiltration from a rival pool. Here a pool miner submits shares of Partial PoWs (to participate in pool reward sharing), but never submits Full PoWs. In this way it is possible either to undermine a rival pool, or potentially to profit directly via similar race-to-publish schemes as we have seen before.
+
+The Miners Dilemma shows that if two pools attack each other this way they arrive at a Nash Equilibrium in which each earns less than they would have if neither of them attacked.
+
+## Fork after withholding
+
+The fork after witholding variation though does not have this disadvantage and can be used up to four times more often per pool than a straightforward block withholding attack. See my earlier post for a description of how it works. As well as being more profitable, there is no known defence at the moment. FAW has the potential to set in place a vicious circle whereby the rich get richer, until we reach the 51% threshold. Power loves to concentrate.
+
+## Attack components / misbehaviour attacks
+
+Beyond the major attacks summarised above, there are also a number of techniques and bad behaviours that can be used to disadvantage participants in the network. These are summarised in table II:
+
+(Enlarge).
+
+## Bribery attacks
+
+An attacker obtains a majority of computing resources for a duration via bribery. Several bribing schemes have been discussed included out-of-band payments, setting up mining pools with higher reward payments to lure miners, and creating forks with bribe money available to any miner adopting them.
+
+Once hash power is temporarily enhanced, other attacks such as those outlined above become more tractable.
+
+## Refund attacks
+
+Refund attacks target the BIP70 payment protocol governing how vendors and customers perform payments in Bitcoin. A trader that learns a customer’s address (through regular trading with the customer) can claim refunds on behalf of the customer (without the customer ever knowing) and pocket the proceeds.
+
+## Punitive and feather forking
+
+In punitive forking the goal is to blacklist or censor Bitcoin addresses owned by certain people (e.g., those who don’t pay you some kind of extra fee) so that they can’t spend any of their bitcoins. This works when the attacker has the majority of the hash power. The attacker announces that they will not extend any chain containing blacklisted transactions, and immediately forks and creates a longer chain if blocks containing such transactions do appear.
+
+In feather forking the attacker announces a similar intention, but also that they will give up attempting to fork after a while (say falling k confirmations behind the main chain). Other miners are still motivated to block blacklisted transactions because they increase the probability the miner will lose their reward.
+
+> 
+
+ An attacker performing feather forking can also use it to blackmail a client by threatening that all her transactions will be put on the blacklist until the client pays the asked ransom coins.
+
+## Transaction malleability
+
+Transaction malleability refers to a bug in the original protocol (but not the reference implementation) through which it is possible to change the redeem script in a transaction without invalidating the signature. Several exchanges were vulnerable to this.
+
+## Wallet theft
+
+One of the most straightforward attacks. Find the owner of a high value address and steal or destroy their private key.
+
+## Time jacking
+
+All participating nodes in the Bitcoin network maintain a time counter representing network time. The value of the counter is based on the median time of a node’s peers. If the median time differs by more than 70 minutes the system time, the network time counter reverts to system time. By planting fake peers in the network and advertising the wrong time an attacker can alter a target’s network time counter and deceive it into accepting an alternate blockchain (the creation of new blocks depends heavily on the counters).
+
+## DDoS
+
+Attempting to disrupt network access for target miners, effectively taking them out of the Bitcoin network. Such attacks seem to be widespread in practice.
+
+## Sybil
+
+Installing lots of dummy helper nodes (false identities) and using them to try and compromise a part of the network.
+
+## Eclipse or netsplit
+
+Forcing a network partition between a victim and the public network. IP addresses to which the victim connects are diverted towards an adversary.
+
+## Tampering
+
+Introducing network delays in the broadcast of blocks and new transactions.
+
+## Routing attacks
+
+Using e.g. hijacked BGP prefixes to partition mining power. See ‘Hijacking Bitcoin: routing attacks on cryptocurrencies.’
+
+## Deanonymisation
+
+We’ve seen before that it’s possible to attempt to uncover the real identities behind Bitcoin addresses (‘A fistful of Bitcoins’). Coupled with the ability to trace the history of every coin, this has some interesting currency implications:
+
+> 
+
+ The fact that the transaction history of each bitcoin is traceable puts the fungibility of bitcoins at risk... No two coins are equal, and fungibility, a fundamental property required in every currency, is at risk.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ BlockchainSecurity 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousSoK: Research perspectives and challenges for Bitcoin and cryptocurrency - Part IINext &rsaquo;Decentralisation in Bitcoin and Ethereum networks
+ 
+ 
+
+ 
+ 
+## 
+ 5 thoughts on &ldquo;A survey on security and privacy issues of Bitcoin&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Bitcoin News Digest Thursday, February 15, 2018 - zentrade.online 
+ 
+ 
+- 
+ 
+ Pingback: Michael Tsai - Blog - Security and Privacy Issues of Bitcoin 
+ 
+ 
+- 
+ 
+ 
+ 
+ Coalichain says: 
+
+ 
+ June 20, 2018 at 11:45 am 
+
+ 
+
+ 
+ 
+Hii I am Coalichain standers of cryptocurrency. An attacker performing feather forking can also use it to blackmail a client by threatening that all her transactions will be put on the blacklist until the client pays the asked ransom coins. But there is no confusion click to continue for more information -https://www.coalichain.io/images/pdf/coalichain.pdf
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: The Rise and Fall of Mt. Gox — What’s in your Bitcoin Wallet? - DEVOPS DOJO 
+ 
+ 
+- 
+ 
+ Pingback: ББ-022: geth 1.8, ECF, Monero и ASIC, SV meetup, блокчейн-неделя в The morning paper -- Базовый Блок 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,34 @@
+{
+  "date": "20190913",
+  "file_name": "20190913",
+  "slug": "declarative-recursive-computation-on-an-rdbms",
+  "blog_url": "https://blog.acolyer.org/2019/09/13/declarative-recursive-computation-on-an-rdbms/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a paper that proposes using a relational database management system (RDBMS) as a platform for distributed machine learning, arguing that SQL-based declarative computation could unify an organization's data needs. The key insight is that SQL's declarative nature and optimized query engines can simplify model-parallelism in machine learning, which is currently challenging with imperative DSLs like TensorFlow. The paper introduces recursive SQL extensions to express machine learning computations declaratively, avoiding imperative loops and materialization overhead. Colyer notes that while the SQL expressions for ML tasks may not be aesthetically pleasing, the approach leverages decades of database optimization expertise to handle large-scale computations efficiently.",
+  "paper_title": "Declarative Recursive Computation on an RDBMS: Why You Should Use a Database for Distributed Machine Learning",
+  "paper_authors": [
+    "Vanja Josifovski",
+    "Konstantin Gulin",
+    "Christopher Ré"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.vldb.org/pvldb/vol12/p822-jankov.pdf",
+  "paper_abstract": "RAM. 32GB of RAM cannot store the matrix required for a fullyconnected layer to encode a vector containing entries from 200,000 categories into a vector of 50,000 neurons. Depending upon the application, 50,000 neurons may not be a lot [48]. Handling such a model requires model parallelism—where the statistical model being learned is not simply replicated at different computational units, but is instead partitioned and operated over in parallel, and is executed by a series of bulk-synchronous operations. As discussed in the related work section, existing systems for distributed ML offer limited support for model parallelism. A number of popular systems, most notably Google’s TensorFlow, have been implemented from the ground up to support machine learning tasks. We consider how to make a very small set of changes to a modern relational database management system (RDBMS) to make it suitable for distributed learning computations. Changes include adding better support for recursion, and optimization and execution of very large compute plans. We also show that there are key advantages to using an RDBMS as a machine learning platform. In particular, learning based on a database management system allows for trivial scaling to large data sets and especially large models, where different computational units operate on different parts of a model that may be too large to fit into RAM. Re-purposing relational technology for ML. We argue that model parallelism can be implemented using relational technology. Different parts of the model can be stored in a set of tables, and the computations on the partial model can often be expressed through a few SQL queries. In fact, to a programmer, the model-parallel SQL implementation of a learning algorithm looks no different than the data parallel implementation. Relational database management systems (RDBMSs) provide a declarative programming interface, which means that the programmer (or automated algorithm generator, if a ML algorithm i...",
+  "paper_file": "papers/2019/09/13/declarative-recursive-computation-on-an-rdbms.pdf",
+  "topics": [
+    "data-engineering",
+    "machine-learning"
+  ],
+  "tags": [
+    "sql-extensions",
+    "distributed-learning",
+    "model-parallelism",
+    "recursive-queries",
+    "declarative-computation",
+    "rdbms"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,49 @@
+{
+  "date": "20180327",
+  "file_name": "20180327",
+  "slug": "anna-a-kvs-for-any-scale",
+  "blog_url": "https://blog.acolyer.org/2018/03/27/anna-a-kvs-for-any-scale/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Anna, a key-value store (KVS) designed to excel across a vast range of scales, from a single multicore machine to global cloud deployments. The paper's key insight is the use of coordination-free actors and lattice-based composite data structures to avoid traditional bottlenecks like locks, consensus protocols, and coordination overhead. This design enables wait-free execution, multi-master replication, and flexible consistency models while maintaining high performance. The blog emphasizes Anna's ability to outperform established systems like Redis and Cassandra across different scales and workloads, showcasing its scalability and adaptability. The paper also demonstrates how the system's design principles lead to good software engineering practices, such as modularity and composability.",
+  "paper_title": "Anna: A KVS for Any Scale",
+  "paper_authors": [
+    "Chenggang Wu",
+    "Yihan Lin",
+    "Jialin Li",
+    "Yifeng Geng",
+    "Joseph E. Gonzalez",
+    "Joseph M. Hellerstein",
+    "Koushik Sen",
+    "Scott Shenker"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "ICDE'18",
+  "paper_url": "http://db.cs.berkeley.edu/jmh/papers/anna_ieee18.pdf",
+  "paper_abstract": "—Modern cloud providers offer dense hardware with multiple cores and large memories, hosted in global platforms. This raises the challenge of implementing high-performance software systems that can effectively scale from a single core to multicore to the globe. Conventional wisdom says that software designed for one scale point needs to be rewritten when scaling up by 10−100× [1]. In contrast, we explore how a system can be architected to scale across many orders of magnitude by design. We explore this challenge in the context of a new keyvalue store system called Anna: a partitioned, multi-mastered system that achieves high performance and elasticity via waitfree execution and coordination-free consistency. Our design rests on a simple architecture of coordination-free actors that perform state update via merge of lattice-based composite data structures. We demonstrate that a wide variety of consistency models can be elegantly implemented in this architecture with unprecedented consistency, smooth fine-grained elasticity, and performance that far exceeds the state of the art. I. I NTRODUCTION High performance key-value storage (KVS) systems are the backbone of many large-scale applications ranging from retail shopping carts to machine learning parameter servers. Many KVS systems are designed for large-scale and even globallydistributed usage (e.g., [2]–[4]); others are designed for highperformance single-machine settings (e.g., [5], [6]). In recent years, these distinct hardware targets have begun to converge in the cloud. For example, Amazon now offers EC2 instances with up to 64 physical cores, while continuing to provide the ability to scale across machines, racks and the globe. Given the convergence of dense hardware and the globespanning cloud, we set out to design a KVS that can run well at any scale: providing excellent performance on a single multicore machine, while scaling up elastically to geo-distributed cloud deployment. In addition to wide-ranging arc...",
+  "paper_file": "papers/2018/03/27/anna-a-kvs-for-any-scale.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "key-value-store",
+    "lattices",
+    "CRDTs",
+    "coordination-free",
+    "multi-master-replication",
+    "wait-free",
+    "consistency-models",
+    "epoch-based-communication",
+    "Bloom-languages",
+    "CALM-theorem"
+  ],
+  "figures": [
+    {
+      "number": "Figure I",
+      "title": "Taxonomy of existing KVS systems",
+      "caption": "Figure I shows a taxonomy of existing KVS systems based on the scale at which they are designed to operate, the memory model, and the per-key as well as multi-key consistency levels supported."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

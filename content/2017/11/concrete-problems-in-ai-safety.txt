@@ -1,0 +1,403 @@
+URL: https://blog.acolyer.org/2017/11/29/concrete-problems-in-ai-safety/
+Title: Concrete problems in AI&nbsp;safety
+---
+
+Concrete problems in AI safety Amodei, Olah, et al., arXiv 2016
+
+This paper examines the potential for accidents in machine learning based systems, and the possible prevention mechanisms we can put in place to protect against them.
+
+> 
+
+ We define accidents as unintended and harmful behavior that may emerge from machine learning systems when we specify the wrong objective function, are not careful about the learning process, or commit other machine learning related errors... As AI capabilities advance and as AI systems take on increasingly important societal functions, we expect the fundamental challenges discussed in this paper to become increasingly important.
+
+Even having a raised awareness of the potential ways that things might go wrong is a very valuable first step. There’s no sensationalism here, this is a very grounded and pragmatic discussion. The emphasis is on reinforcement learning (RL), in which agents can interact with their environment. Some of the safety problems discussed are RL specific, others gain added complexity in an RL setting. As agents become more complex, and we start to deploy them in more complex environments both the opportunity for and the consequences of side effects increase. At the same time, agents are being given increasing autonomy.
+
+What could possibly go wrong? The authors explore five different failure modes in machine learning, and highlight relevant research and directions for protecting against them. The discussion takes place in the context of a fictional robot designed to clean up messes in an office using common cleaning tools.
+
+- Negative side effects - the agent causes unintended and negative consequences in its environment (e.g., knocking over a vase on its way to clean up a mess).
+
+- Reward hacking - the agent might game its reward function (e.g., covering over messes with materials it can’t see through).
+
+- Insufficient oversight - arising from situations where the objective function is too expensive to evaluate frequently (e.g., deciding how to handle stray objects in the environment- we want the object to treat candy wrappers and cell phones differently).
+
+- (Un)safe exploration - the agent makes exploratory moves with bad repercussions (e.g., experimenting with mopping strategies is ok, but putting a mop in an electrical outlet is not). 
+
+- Fragility in the face of distributional shift - what happens when the real world doesn’t perfectly match the training environment? (E.g., strategies learned cleaning factory floors may not be safe in an office context). 
+
+Let’s look at each of these in turn.
+
+## Avoiding negative side effects
+
+> 
+
+ ...for an agent operating in a large, multifaceted environment, an objective function that focuses on only one aspect of the environment may implicitly express indifference over other aspects of the environment. An agent optimising this objective function might thus engage in major disruptions of the broader environment if doing so provides even a tiny advantage for the task at hand.
+
+One counter-measure is to penalise “change to the environment” through an impact regulariser. This would cause an agent to prefer policies with minimal side effects. Defining that regularisation term can itself be tricky, so an alternative is to learn an impact regulariser. The notion is to learn a generalised regulariser by training over many tasks (presumably in the same or similar environments?), and then transfer it to the problem in hand.
+
+> 
+
+ Of course, we could attempt to just apply transfer learning directly to the tasks themselves instead of worrying about side effects, but the point is that side-effects may be more similar across tasks than the main goal is.
+
+As an alternative to penalising change, we could penalise getting into states where the agent has the potential to cause undesirable change. In other words, we can penalise influence. One way of measuring influence is through mutual information:
+
+> 
+
+ Perhaps the best-known such measure is empowerment, the maximum possible mutual information between the agent’s potential future actions and its potential future state (or equivalently, the Shannon capacity of the channel between the agent’s actions and the environment).
+
+There are some gotchas here though: the ability to press a button is just one ‘bit’ of empowerment, but it might have disproportional impact depending on exactly what that button does!
+
+Another option for penalising change is to increase the uncertainty it induces: “rather than giving an agent a single reward function, it could be uncertain about the reward function, with a prior probability distribution that reflects the property that random changes are more likely to be bad than good.”
+
+Finally, there are multi-agent approaches in which other actors in the environment are also included in the system. If they don’t mind a particular side-effect, maybe it’s not so bad after all.
+
+## Avoiding reward hacking
+
+> 
+
+ Imagine that an agent discovers a buffer overflow in its reward function: it may then use this to get extremely high reward in an unintended way. From an agent’s point of view, this is not a bug, but simply how the environment works, and is thus a valid strategy like any other for achieving reward.
+
+When objective functions / rewards can be gamed, it can lead to behaviours the designer did not intend. There’s a lovely example in the paper of a circuit designed by genetic algorithms and tasked to keep time, which instead developed into a radio that picked up the regular RF emissions of a nearby PC.
+
+> 
+
+ The proliferation of reward hacking instances across so many different domains suggests that reward hacking may be a deep and general problem...
+
+Unintended sources of reward hacking include over-optimising on a single reward metric, or the accidental introduction of feedback loops that reinforce extreme behaviours. Suppose in the cleaning robot example a proxy metric is used for success, such as the rate at which the robot consumes cleaning supplies. Pouring bleach down the drain becomes an effective strategy!
+
+> 
+
+ In the economics literature this is known an Goodhart’s law: “when a metric is used as a target, it ceases to be a good metric.”
+
+(I’m sure we can all think of organisational examples of that law in action too!).
+
+As an example of a feedback loop, consider an ad placement system that displays more popular ads in larger fonts - which in turn further accentuates the popularity of those ads. Ads that show a small transient burst of popularity can be rocketed to permanent dominance. “This can be considered a special case of Goodhart’s law, in which the correlation breaks specifically because the obje.ct function has a self-amplifying component.”
+
+One potential protection mechanism is to install ‘trip wires’ - deliberately introducing some vulnerabilities that an agent has the ability to exploit, but should not if its value function is correct. Monitoring these trip wires gives an early indication of trouble.
+
+Other mitigation strategies include:
+
+- Making the reward function its own agent, and setting it up in adversarial competition
+
+- Including reward terms based on anticipated future states, rather than just the present one (c.f. AlphaGo Zero).
+
+- Hiding certain environmental variables from the agent’s sight, so it cannot exploit them
+
+- Formal verification, and/or sandboxing
+
+- Reward capping
+
+- Using multiple rewards, on the assumption that a basket of rewards will be more difficult to hack and hence more robust. 
+
+## Scalable oversight
+
+The problem here occurs when we want an agent to maximise a complex objective, but we don’t have enough time (or other resources) to provide sufficient oversight. In semi-supervised reinforcement learning the agent only sees its reward on a small fraction of timesteps/episodes. One strategy here is to train a model to predict the reward from the state on either a per-timestep or per-episode basis. Distant supervision, which gives feedback in the aggregate, and hierarchical reinforcement learning (HRL)) can both help too. In HRL, “a top-level agent takes a relatively small number of highly abstract actions that extend over large temporal or spatial scales, and receives rewards over similarly long timescales.” This agent delegates to sub-agents, and so on.
+
+## Safe exploration
+
+> 
+
+ All autonomous learning agents need to sometimes engage in exploration — taking actions that don’t seem ideal given current information, but which help the agent learn about its environment. However, exploration can be dangerous, since it involves taking actions whose consequences the agent doesn’t understand well.
+
+Common exploration policies may choose actions at random, or view unexplored actions optimistically, with no regard for potential harm. For dangers understood by the designers ahead of time, it may be possible to hard-code avoidance. But in more complex domains, anticipating all possible catastrophic failures becomes increasingly difficult. Instead we can introduce risk-sensitive performance criteria and models of uncertainty. A related tactic (it’s the other side of the same coin really), is to bound exploration to parts of the state-space we know to be safe.
+
+An alternative strategy is to do the exploration in a simulation environment:
+
+> 
+
+ The more we can do our exploration in simulated environments instead of the real world, the less opportunity there is for catastrophe... Training RL agents (particularly robots) in simulated environments is already quite common, so advances in “exploration-focused simulation” could be easily incorporated into current workflows.
+
+One challenge here is assumptions baked into the simulator (explicitly or implicitly) that may not precisely model the target environment. And this leads us nicely to our last failure mode...
+
+## Robustness to distributional change
+
+> 
+
+ All of us occasionally find ourselves in situations that our previous experience has not adequately prepared us to deal with... a key (and often rare) skill in dealing with such situations is to recognize our own ignorance, rather than simply assuming that the heuristics and intuitions we’ve developed for other situations will carry over perfectly. Machine learning systems also have this problem — a speech system trained on clean speech will perform very poorly on noisy speech, yet often be highly confident in its erroneous classifications...
+
+Consider a medical diagnosis classifier that has such high (false) confidence that it doesn’t flag a decision for human inspection.
+
+These problems occur when the training environment does not match the operational environment, or when there is drift in the operational environment over time. One approach here is to assume a partially specified model, in which we only make assumptions about some aspects of a distribution. In economics, there is a large family of tools for handling this situation, but not so much in the field of machine learning. For more details, see section 7 in the paper.
+
+## The last word
+
+> 
+
+ While many current-day safety problems can and have been handled with ad-hoc fixes or by case-by-case rules, we believe that the increasing trend towards end-to-end, fully autonomous systems points towards the need for a unified approach to prevent these systems from causing unintended harm.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ AIMachine Learning 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousPopularity predictions of Facebook videos for higher quality streamingNext &rsaquo;The role of software in spacecraft accidents
+ 
+ 
+
+ 
+ 
+## 
+ 7 thoughts on &ldquo;Concrete problems in AI safety&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Tim Vergenz says: 
+
+ 
+ November 29, 2017 at 3:35 pm 
+
+ 
+
+ 
+ 
+If you squint, this almost reads like an article about raising kids. :-)
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Concrete Problems in AI Safety - Full-Stack Feed 
+ 
+ 
+- 
+ 
+ 
+ 
+ notpickard says: 
+
+ 
+ November 30, 2017 at 10:13 pm 
+
+ 
+
+ 
+ 
+Nice write up. Robert Miles is doing a series on YouTube covering this paper as well. The link follows.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: End of term | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Lie, damned lies, and (bad) AIs - Notes from Cloud City 
+ 
+ 
+- 
+ 
+ Pingback: The surprising creativity of digital evolution | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: The surprising creativity of digital evolution - Tech and Design 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

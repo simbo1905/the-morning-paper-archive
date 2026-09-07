@@ -1,0 +1,454 @@
+URL: https://blog.acolyer.org/2015/11/09/from-apis-to-languages-generalising-method-names/
+Title: From APIs to Languages: Generalising Method&nbsp;Names
+---
+
+From APIs to Languages: Generalising Method Names - Homer et al. 2015
+
+We've just had OOPSLA 2015, so I'm going to dedicate a few days to some of the papers published in the program. We'll have to put the robotics to one side for a little bit - so many interesting papers and ideas, so little time!!
+
+Today's paper should come with a health warning: may cause feelings of frustration that your current preferred programming language can't do this. Continue reading at your peril :). Let's hope it also causes feelings of inspiration in language and compiler writers! Some of you may know that I spent a number of years as the lead of the AspectJ project working on the language design, compiler, and weaver before handing responsibility over to the wonderful Andy Clement. So I have somewhat of a bias for this kind of work...
+
+The essential idea is really easy to grasp: extending the concept of named, optional, and repeated method arguments, why not allow a mini-grammar for method parameters? Jumping straight to an example, we could then write a method declaration that looked like this:
+
+method scenario(desc) 
+ ?(Given(context) *And(contexts)) 
+ When(event)
+ Then(expr) ShouldBe(val)
+ *(And(exprs) ShouldBe(vals)) {
+ ...
+}
+
+(I'll explain in more detail later, but if I tell you that ? means optional, * means zero or more, and parameters can be grouped, you probably get the gist of it already). Homer et al. say that such a method has a generalised method name.
+
+I could invoke this method in the following way for example:
+
+scenario("1 + 2 = 3")
+ Given { x := 1}
+ And {y := 2}
+ When { x := x + y }
+ Then { x } ShouldBe { 3 }
+
+Note how wonderfully the method grammar constrains us to only write semantically valid combinations of parameters...
+
+> 
+
+ Multi-part method names, where a method name is a sequence of multiple words each with their own parameters, go back as far as methods like “between:and:” and “to:by:” in Smalltalk-76. In this paper we present a generalisation of multi-part names by allowing parts to be repeated, optional, or alternatives, so that a single method defines a whole family of related names. Generalising method names enables advanced APIs and domain-specific languages, blurring the distinction between them. Generalising names also gives concise definitions for families of methods for control structures, such as “if then”, “if then else”, “if then elseif then”. By making explicit the structure of these families of names, generalised methods allow automated error detection both dynamically and statically.
+
+Generalised method names are implemented in the context of Grace, which already supported multi-part method names such as
+
+method test(val) between(low) and(high) { ... }
+
+Multi-part method names allow control structures (for example, if then else) to be implemented as methods. Generalised method names extend this idea so that parts of names and arguments can be optional, repeated, or omitted entirely. "A generalised method name defines a whole family of method names within a single definition."
+
+Some use cases for generalised method names include control structures,DSLs, and library initialisation / configuration (replacing Builders).
+
+## Control structures
+
+> 
+
+ Several control structures included with Grace have a number of variants. The pattern-matching system of Grace for example, uses multi-part methods to define its match case... statement. Many versions of this method are defined, varying only in the number of cases. Similarly, many instances of elseif and try catch are defined, and the same for other structures with many slight variants. These tedious repetitions motivate this work, which will permit a single definition standing in for a whole family of methods.
+
+Prior to generalised method names, Grace had nearly 2,000 lines of repetitive tedious code to implement all of the case statement variants. With generalised method names, all of this was replaced with one 9-line method:
+
+ method match(target) +case(cases) {
+ for (cases) do { case -> 
+ def mr = case.match(target)
+ if (mr) then {
+ return mr.result
+ }
+ }
+ fail "did not match any case"
+ }
+
+(The + prefix indicates one-or-more...).
+
+The implementations of all else-if variants and and try-catch were similarly simplified significantly:
+
+ method if(bool) then(blk) 
+ +( elseif(conds) then(blks) )
+ ?else(elseblk) { ... }
+ 
+ method try(blk) *catch(catchblk) 
+ ?finally(finallyblk) { ... }
+
+## DSL style use cases
+
+> 
+
+ Our broadest use case was complex domain-specific languages, and we present a case study of such a language. This language is directly modelled on Microsoft’s LINQ for Objects and its syntactic embedding into C# and Visual Basic. We can define a querying method supporting a fluent syntax. We capitalise the names of parts as “where” is a keyword in Grace and is not available as part of a method name. This method admits requests such as:
+
+ from(students) 
+ Where { s -> s.enrolledIn "COMP123" }
+ Where { s -> s.age > 25 }
+ OrderBy { s -> s.gpa }
+ Select { s -> s.name }
+
+> 
+
+ As in C# and Visual Basic, this query is simpler to read and write than the equivalent hand-written code, but with generalised method names does not involve a special-case sublanguage in the parser. The implementation is still able to provide meaningful error messages when the syntactic rules of the miniature DSL are broken, as for example by omitting the selection or grouping component, or providing clauses out of order.
+
+Here's the method declaration - it does a lot of work for its size...
+
+ method from(source : Iterable)
+ *Where(filter : Predicate)
+ ?(
+ OrderBy(ordering : Comparator)
+ *ThenBy(tiebreak : Comparator)
+ )
+ (
+ Select(selectProjection : Function)
+ | GroupBy(grouping : Function)
+ )
+ { ... }
+
+This example introduces the argument choice operator, | . Here you must specify one of Select or GroupBy.
+
+## Library initialisation
+
+For libraries with complex initialisation and many optional parts such as widget libraries it is common to provide a builder API. Generalised method names support a nicer alternative...
+
+> 
+
+ All of the configuration options with default values can be made optional parts, with the part names serving to label the role of each argument. Options that must be provided together can be grouped, and complex configuration—placement and initialisation of subwidgets, for example—can be integrated as a user-friendly sublanguage within the main method body, incorporating their own repetitions, alternations or optional parts as required. With these rules in place it will not be possible to omit a contextually mandatory component or perform post-construction configuration operations out of order, while consistent error messages are always presented to the user. We present the structure of a single common widget from GTK+, a standard button...
+
+Here's an example of the constructor and several common post-constructor configuration items handled in a single method:
+
+ method button(handler : Block)
+ ( 
+ ( 
+ label(text : String)
+ | mnemonic(mnemonicText : String) 
+ )
+ ?(
+ image(textImage : Image)
+ ?position(imagePos:PositionType)
+ )
+ | namedIcon(name : String, size : IconSize)
+ | image(image : Image)
+ | widget(w : Widget) 
+ )
+ ?relief(style : ReliefStyle)
+ ?alignment(xalign : Number, yalign : Number) { 
+ ... 
+ }
+
+> 
+
+ We omit further options to save the reader’s patience. The above method header is complex, but from the end user’s perspective they simply describe what they want:
+
+gtk.button { document.save } 
+ label "Save"
+ image(icons.floppy_disk)
+ position(gtk.position.right)
+ relief(gtk.relief.none)
+
+## Syntax and Semantics
+
+Generalised method names support the following syntax, and any of the prefix operators can be applied to a parenthesised group:
+
+- +b(x) : one or more b parts
+
+- *b(x) : zero or more b parts
+
+- ?b(x) : optional b part (zero or one)
+
+- (b(x) | c(y)) : either a b part or a c part
+
+- (b(x) c(y)) : a b part followed by a c part
+
+- ?(b(x) c(y)) : optionally the two parts b and c in sequence 
+
+> 
+
+ We use method prefixes to identify methods, and to match requests to declarations. The prefix of a multi-part method name is the longest initial sequence of ordinary parts, plus the prefix of the body of any + part that immediately follows. The prefix is thus the sequence of initial request parts that is required in order for a declaration to match a request. Two methods with the same prefix may not be defined in the same object; subclasses’ declarations override inherited methods with the same or longer prefix. A method request is mapped to the declaration with the longest prefix. As the prefix of a linear method is the entire method name, all pre-existing methods work exactly as before.
+
+Requesting a generalised method is indistinguishable from a traditional 'linear' method at the call site.
+
+> 
+
+ Once the method to execute has been identified, the parts of the request must be matched with the parts of the declaration. We elect to use a greedy approach to this matching: for each part of the declaration, we determine whether it (or the prefix of its body) matches at the start of the remaining unmatched tail of the request, and if so attempt to match the entire part, paying attention to the semantics of each kind of variable part and consuming parts from the request. Within a parenthesised group, we perform the same matching recursively, and within an alternation attempt matching from left to right. If a part is found in the request that we are unable to match, we report an error. After parts have been matched, arguments are in turn matched to formal parameters. Because the parameters included in variable parts are provided an unknown number of times they are treated in the same fashion as variadic parameters, bound as a sequence. Nested variable parts result in nested sequences.
+
+Section 6 of the paper shows that the type system of Grace remains sound with the introduction of generalised methods. An evaluation of the runtime performance of generalised methods in a 'likely worst-case scenario' showed a 7.3% overhead for the current unoptimised implementation.
+
+> 
+
+ Code that does not make heavy use of very long requests of generalised methods in a tight loop would experience a smaller slowdown, and code that makes no generalised requests at all will not be impacted. In fact, such programs are liable to execute slightly faster, as there are fewer confounding method definitions in existence: a second sample program reversing strings completed 5.7% faster in the generalised implementation.
+
+I'll leave the last word to the authors of the paper: "Generalised names turn out to be a relatively small extension to an object-oriented language providing a disproportionate amount of power to programmers."
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Programming Languages 
+ 
+ Programming Languages 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousMonocular SLAM Supported Object RecognitionNext &rsaquo;Runtime Metric Meets Developer - Building Better Cloud Applications Using Feedback
+ 
+ 
+
+ 
+ 
+## 
+ 2 thoughts on &ldquo;From APIs to Languages: Generalising Method Names&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Steve says: 
+
+ 
+ November 9, 2015 at 10:40 am 
+
+ 
+
+ 
+ 
+Interesting. I think Algol60 had multi-part procedure names. Here is an example from the Algol60 report(!):
+
+"`
+
+procedure Spur (a) Order: (n); value n;
+
+array a; integer n; real s;
+
+begin integer k;
+
+s:=0;
+
+for k:=1 step 1 until n do s:=s+a[k,k]
+
+end
+
+"`
+
+Notice the signature. Nobody ever used it, though. I wonder why?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ rc says: 
+
+ 
+ November 9, 2015 at 12:26 pm 
+
+ 
+
+ 
+ 
+I read this:
+
+"A curious and rare feature of Algol 60 is giving procedures, and calling them with, multi-part names, such as sort(a) from index:(2) to index:(100). Formally, it is not that the name of the procedure is of many parts, but arbitrary delimiters of this form can be used in place of the more traditional comma for the sake of clarifying the text to the reader. To a compiler, those delimiters are no more meaningful than comments: the above call is indistinguishable from sort(a,2,100)."
+
+Cool.
+
+http://www.math.bas.bg/bantchev/place/algol60.html
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

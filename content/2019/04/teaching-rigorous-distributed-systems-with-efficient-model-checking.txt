@@ -1,0 +1,361 @@
+URL: https://blog.acolyer.org/2019/04/17/teaching-rigorous-distributed-systems-with-efficient-model-checking/
+Title: Teaching rigorous distributed systems with efficient model&nbsp;checking
+---
+
+Teaching rigorous distributed systems with efficient model checking Michael et al., EuroSys'19
+
+On the surface you might think today’s paper selection an odd pick. It describes the labs environment, DSLabs, developed at the University of Washington to accompany a course in distributed systems. During the ten week course, students implement four different assignments: an exactly-once RPC protocol; a primary-backup system; Paxos; and a scalable, transactional key-value storage system. 175 undergraduates a year currently go through this course. Enabling students to build running performant versions of all of those systems in the time available is one challenge. Testing and grading their solutions is another!
+
+> 
+Although we added tests to catch specific issues as we learned of them, we found it difficult to keep up with the diversity of possible student errors.
+
+What I like about the paper is that (a) the DSLabs framework and all assignments are available in open source, and it looks like it would be a lot of fun to play with, and (b) the challenges students have to face in building reliable, testable, distributed systems under time pressure look pretty much like the challenges many practitioners have to face to me! So by focusing on what it takes to help students be successful in this context, we can also derive some inspiration for building systems in the wild too.
+
+DSLabs combines traditional testing with model checking:
+
+> 
+Faced with the challenges of building robust distributed systems and the inadequacies of other methodologies, both academic research and industry have increasingly turned to model checking to validate system correctness. Model checking overcomes the weakness of ad hoc testing by systematically exploring all possible executions, but without the high labor cost of formal verification.
+
+At this point you might think of turning to TLA+. However, it’s difficult to master this environment and learn core distributed systems concepts in a single term, and moreover a model checked TLA+ specification still has to then be implemented in some language. Hence the DSLabs framework integrates model checking into a holistic distributed systems development environment (based on Java as the implementation language - it would be neat to see a Rust version!).
+
+> 
+This paper introduces DSLabs, a framework for writing, testing, model checking, running, and debugging distributed systems, along with a sequence of assignments written to use the framework.
+
+In the core programming model, students provide implementations of Node subclasses which specify the behaviour of individual nodes in their distributed systems. Each node runs in a single threaded event loop. The interface is pretty straightforward:
+
+The only thing that looks slightly odd on first glance in that interface is the set timer method that takes a min duration and max duration. To make things easily testable, all handlers are required to be deterministic. But hang on a minute you may say, isn’t a little randomness very useful in constructing distributed systems? Yes it is! In the DSLabs environment the only allowable randomness is encapsulated in that timer call, which will expire the timer at a random time between the min and max parameter values.
+
+Clients are also implemented as Nodes. Worker drivers are provided by the tutors and execute a pre-determined workload using clients written by students.
+
+The networking model is asynchronous (allowing out of order, dropped, delayed, and duplicated messages), the failure model is crash-stop.
+
+## Testing and model checking
+
+> 
+One of the goals of DSLabs is for students to create runnable distributed systems. We would like students to consider the performance characteristics of their systems, and our tests check that their designs attain reasonable run-time performance.
+
+It’s hard to exhaustively test a distributed system with traditional testing techniques. So DSLabs also uses model checking. Consider the lab exercise to implement Paxos. One common implementation error (i.e., one observed being made by many students) is to accept a value being proposed without also checking the proposal number (see full explanation in §3.1 of the paper).
+
+> 
+While this bug could cause a violation of linearizability, witnessing such a violation would be rare... In light of our goal of providing a thorough suite of tests, not being able to find a common bug like this one is problematic! On the other hand, model checking can find this bug reliably.
+
+So we need an approachable model checking solution that doesn’t come with a steep learning curve, and can find common bugs in a timely fashion. These twin requirements led DSLabs to incorporate its own lightweight model checking solution. In addition, another lesson here is that once we accept model checking is necessary, we need to design systems that are amenable to model checking.
+
+> 
+I would be nice if students did not have to take model checking into consideration (aside from ensuring their systems meet the basic requirements...). If this were true, the model checking tests we provide would simply be better tests which reliably caught distributed systems bugs. However, systems design decisions can have a large impact on the performance of the model checker, and thus its ability to find bugs within a reasonable amount of time.
+
+The heuristic advice given to students is as follows:
+
+- Favour simplicity above all else
+
+- Do not keep or send unnecessary state
+
+- Explore performance optimisations, but not at the expense of significant added complexity
+
+- Consider the number of events it takes for your system to make progress from any state; ensure that number is reasonably close to the minimum.
+
+> 
+Luckily, code that is readily model checkable usually corresponds to the kind of code we want students to write — code that is as simple as possible with respect to its state graph.
+
+As we saw earlier, the DSLabs model checker requires deterministic handlers. It collapses equivalent states to avoid wasting work during model checking (in this case, based on equals and hashCode methods generated for students by Project Lombok). Even then, the state space can be huge (e.g. exponential in n, where n is the number of steps). The model checker needs to provide timely feedback rather than having it run for hours and hours every time. So DSLabs uses two basic strategies to focus the search in the areas most likely to be fruitful:
+
+- We’d like to know how deep into the graph we need to explore. One way to do this is to ensure the model checker has gone deep enough for the system to be able to make progress. So we can search for states in which progress has been made, and assume that this depth is also enough as a first pass to find not only states where we have made good progress, but also states where we take ‘bad’ actions.
+
+- There will still remain places where the model checker needs to probe deeper. For example, the Paxos bug alluded to earlier takes a minimum of 36 steps to trigger. DSLabs uses a guided search strategy here, using knowledge about each system’s specification to guide the model checker’s search to more interesting and error-prone parts of the state space. Prunes are predicates telling the model checker which states not to expand. Punctuated search first looks for states satisfying some intermediate constraint, and then restarts a (deeper) search from there.
+
+DSLabs post-processes failing traces to present them in the easiest to understand form possible for students, with events laid out in causal order wherever possible.
+
+## A visual debugger/system explorer
+
+DSLabs also includes a visual debugger called Oddity, which can be used to explore system behaviour. Oddity will also start automatically when the model checker finds an invariant violation. It looks like this:
+
+## Teaching distributed systems using DSLabs
+
+The following table shows the LOC count for the reference implementations of each assignment in DSLabs.
+
+> 
+A solution implemented in TLA+ would likely be smaller, but only modestly so, at the expense of students needing to learn a completely new language.
+
+The table above also shows wall clock time for running the tests (including model checking). The DSLabs test suite can give useful feedback in six minutes or less (on the reference solutions), fast enough to be part of an iterative development process.
+
+> 
+This supports our goal of giving students timely feedback... Prior to adding model checking, it was common for students to find bugs in their Paxos implementation only when they tried to use that implementation in a later lab. By catching student errors more quickly , we reduce the amount of rework needed.
+
+For the Paxos bug described earlier, the DSLabs guided search can find it in 18 seconds. As a comparison, an unguided search took an average of 12 hours to do so.
+
+The hardest part of the class for many students is learning to think about their code as inherently distributed. This in turn requires thinking about the invariants maintained by the system over all possible event sequences simultaneously. It highlights a case where students, perhaps trained on good TDD practices (do students get taught that these days??) and used to taking small incremental steps, fail to appreciate the need for some degree of up-front design. (Of course, we never make that mistake in industry;) ).
+
+> 
+Students often march though test cases incrementally, fixing problems only once they occur. A particular student tried this for the primary-backup assignment and got stuck: the fix for a problem found by one test would often break the solution for previous tests. The student found he could find a version to pass each of the tests, just not the same version. After we encouraged him to start over with a clean design that met all of the criteria simultaneously, he was able to quickly converge on a solution.
+
+The model checking was a big help here as it surfaced bugs students may not have realised were latent in their code.
+
+## The last word
+
+> 
+Using the DSLabs framework and assignments, we have successfully guided hundreds of students through the process of building a fault-tolerant, scalable, distributed key–value store. Furthermore, these student-built systems are actually runnable, rather than mere specifications; they can be deployed in a fully distributed fashion and can achieve considerable performance.
+
+I’ll leave you with another reminder that if you want to play with it, the labs environment and assignments can all be found on GitHub...
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Distributed SystemsSoftware Engineering 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousTime protection: the missing OS abstractionNext &rsaquo;Keeping master green at scale
+ 
+ 
+
+ 
+ 
+## 
+ 7 thoughts on &ldquo;Teaching rigorous distributed systems with efficient model checking&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Teaching rigorous distributed systems with efficient model checking - Latest news 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Teaching rigorous distributed systems with efficient model checking - Golden News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Teaching rigorous distributed systems with efficient model checking - Hckr News 
+ 
+ 
+- 
+ 
+ 
+ 
+ Kat says: 
+
+ 
+ April 18, 2019 at 11:42 am 
+
+ 
+
+ 
+ 
+I understand this is a training exercise, but Virding's First Rule is relevant here:
+
+https://rvirding.blogspot.com/2008/01/virdings-first-rule-of-programming.html
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Teaching rigorous distributed systems with efficient model checking | My Tech Blog 
+ 
+ 
+- 
+ 
+ Pingback: Teaching rigorous distributed systems with efficient model checking - JNW 
+ 
+ 
+- 
+ 
+ Pingback: Stuff The Internet Says On Scalability For April 19th, 2019 - AWS Feed 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

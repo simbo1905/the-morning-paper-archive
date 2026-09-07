@@ -1,0 +1,44 @@
+{
+  "date": "20170124",
+  "file_name": "20170124",
+  "slug": "data-provenance-at-internet-scale-architecture-experiences-and-the-road-ahead",
+  "blog_url": "https://blog.acolyer.org/2017/01/24/data-provenance-at-internet-scale-architecture-experiences-and-the-road-ahead/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes Chen et al.'s work on extending data provenance to distributed systems at Internet scale, highlighting its relevance to modern challenges like GDPR compliance. The paper introduces ExSPAN, a system for tracing provenance in distributed networks by capturing causal relationships between data and code across nodes. Key innovations include temporal provenance for historical queries, secure forensics to detect tampering, negative provenance for 'why not' questions, and differential provenance for root cause analysis. Colyer notes the system's ability to handle adversarial settings and its application to BGP routing, DHTs, and MapReduce. The architecture relies on local logging with cryptographic commitments and distributed graph processing, addressing challenges like partitioning and incremental view maintenance.",
+  "paper_title": "Data provenance at Internet scale: Architecture, experiences, and the road ahead",
+  "paper_authors": [
+    "Peter Alvaro Chen",
+    "Todd D. Millstein",
+    "Joseph M. Hellerstein",
+    "Petros Maniatis"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "CIDR",
+  "paper_url": "http://www.cis.upenn.edu/~ahae/papers/provenance-cidr2017.pdf",
+  "paper_abstract": "these systems frequently do something that their operators did not expect. In the context of database applications, a SQL query may have been written incorrectly, resulting in erroneous query results. Likewise, in computer networks, a network operator may observe unusual routes or dropped packets, which may be symptoms of errors in network configurations, or worse still, bugs introduced by intentional manipulation and even targeted attacks. And, just as in the database world, the operators are faced with the challenging problem of tracing the observed symptoms to a set of root causes. One way to apply provenance to distributed systems is to essentially model the distributed system as a giant database: the state of each node can be stored in tables, and the programs can be modeled as a set of declarative rules [29]. The provenance of each tuple can then be tracked just like it would be in a database, and diagnostic queries (say, “Why is the network using route R to reach host H?”) can be formulated as provenance queries (say, “What is the provenance of route R?”), which then reveal the corresponding root causes (say, a recent configuration change). Given the distributed nature of networks, we can partition and distribute the state such that each node maintains only a portion of the information required to reconstruct any tuple provenance, rather than storing all the network state in a centralized database. This was the approach we took in our first solution [51], but it quickly became clear that there were a number of additional challenges. One simple example is the fact that network state, unlike tuples in traditional databases, tends to be short-lived: by the time that the operator is notified of the problem with route R, that route may already have been replaced by another. We solved this by adding a temporal dimension to the provenance, so that questions could be asked about past states [50]; however, this massively increased the amount of metadata that needed to...",
+  "paper_file": "papers/2017/01/24/data-provenance-at-internet-scale-architecture-experiences-and-the-road-ahead.pdf",
+  "topics": [
+    "distributed-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "data-provenance",
+    "distributed-tracing",
+    "temporal-provenance",
+    "secure-forensics",
+    "negative-provenance",
+    "differential-provenance",
+    "meta-provenance",
+    "network-verification",
+    "GDPR-compliance"
+  ],
+  "figures": [
+    {
+      "number": "Figure 2",
+      "title": "The provenance tree for a misrouted packet",
+      "caption": "The provenance tree for a misrouted packet (excerpt)."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,409 @@
+URL: https://blog.acolyer.org/2018/03/14/game-of-missuggestions-semantic-analysis-of-search-autocomplete-manipulation/
+Title: Game of missuggestions: semantic analysis of search autocomplete&nbsp;manipulation
+---
+
+Game of missuggestions: semantic analysis of search autocomplete manipulations  Wang et al., NDSS’18
+
+Maybe I’ve been pretty naive here, but I really had no idea about the extent of manipulation (blackhat SEO) of autocomplete suggestions for search until I read this paper. But when you think about it, it makes sense that people would be doing this: it’s a lot easier to generate a bunch of fake queries to try and manipulate autocomplete suggestions than it is to create a collection of highly ranked content. Here’s an example of what we’re talking about:
+
+The paper contains two related investigations: one looking at the growing ecosystem of ‘autocomplete manipulation as-a-service’ providers, and one using a tool called Sacabuche to look at the extent to which manipulated suggestions have been able to pollute the autocomplete suggestion lists from the major search engines.
+
+> 
+
+ Looking into the manipulated autocomplete results reported by Sacabuche, we are surprised to find that this new threat is indeed pervasive, having a large impact on today’s Internet. More specifically, over 383K manipulated suggestions (across 275K triggers) were found from mainstream search engines, including Google, Bing, and Yahoo!. Particularly, we found at least 0.48% of the Google autocomplete results are polluted.
+
+The manipulations are often used to promote dodgy sites, for example, with low quality content, malware, phishing. And by the way, there’s absolutely no reason you couldn’t use the same techniques to manipulate autocomplete suggestions for politicians...
+
+According to publicly available information, autocomplete suggestions at major search engines rely heavily on the popularity of queries observed from search logs together with their freshness (how trending they are as popular topics). This makes them vulnerable to adversaries capable of forging a large number of queries.
+
+## Determining how widespread manipulation is
+
+The authors built a tool called Sacabuche (Search AutoComplete Abuse Checking) to try and figure out just how widespread manipulation is in practice.
+
+> 
+
+ Our key insight is that a trigger and its suggestion are often less related when the autocomplete has been manipulated, presumably due to the fact that a missuggestion tends to promote a specific and rarely known product, which is less relevant to the corresponding trigger.
+
+Consider a search query “bingo sites play free” a genuine autocomplete suggestion might be “free bingo sites for us players,” and a manipulated one “play free bingo online now an moonbingo.com.” The latter is more specific, and therefore less similar to the trigger. The insight leads to a two-stage process for uncovering manipulated suggestions: first evaluating autocomplete suggestions, and then verifying search results for suggestions that seem suspicious to get further confirmation.
+
+Hitting the autocomplete endpoint is cheap and easy, so starting with a set of seed words and growing from there, it’s possible to submit a query and get back a set of autocomplete suggestions. It’s then possible to compare the semantic distance between the trigger (search term) and the suggestions. The algorithm uses word2vec at its core (see ‘The Amazing Power of Word Vectors’).
+
+> 
+
+ Such a semantic inconsistency feature was found to be discriminative in our research... missuggestions tend to have lower sentence similarity than benign ones: the average sentence similarity is 0.56 for the missuggestions, and 0.67 for the legitimate ones.
+
+Furthermore, if you actually use a suggestion to perform a search, it turns out that for genuine suggestions the search results are in line with those you would get for the initial trigger, but for missuggestions, they often are not. Consider the trigger “online backup free download.” If you search on that term, you might see results like this:
+
+Which are not too dissimilar from the results you might see if you instead search on one of the genuine autocomplete suggestions: “norton online backup free download” :
+
+However, if we look at the manipulated suggestion “strongvault online backup free download” the search results look very different to those produced by the initial trigger:
+
+The search result analysis uses the Rank-Biased Overlap algorithm to evaluate the similarity of two ranked lists. Not only are the suggestions different, but it also turns out that there tend to be fewer results overall when a manipulated suggestion is queried, and the domains involved often have low Alexa ranking.
+
+Overall the set of features used to detect manipulated suggestions is as follows:
+
+Sacabuche is used to automatically analyse 114 million suggestions and trigger pairs, and 1.6 million search result pages. The seed triggers are obtained from a set of ‘hot’ phrases representing popular search interests, coupled with 386 gambling keywords, and 514 pharmaceutical keywords. These latter two are added because they tend to be popular for manipulation, but are under-represented in the population at large. From the seed keywords new suggestion triggers are iteratively discovered from the autocomplete suggestions.
+
+> 
+
+ Altogether, our Search Term Analyzer found 1 million pairs to be suspicious. These pairs were further inspected by the Search Result Analyzer, which reported 460K to be illegitimate. Among all those detected, 5.6% of manipulated suggestions include links to compromised or malicious websites in their top 20 search results. In this step, we manually inspected 1K suggestion trigger pair, and concluded that Sacabuche achieved a precision of 95.4% on the unknown set.
+
+The following table shows the most popular categories for autocomplete manipulation:
+
+Manipulated suggestions tend to follow common patterns, the most popular being the “trigger relevant content + target” pattern. For example, “free web hosting by example.com.” Here are the top five patterns that indicate you might be looking at a manipulated suggestion:
+
+## The autocomplete manipulation industry
+
+Promoting autocomplete suggestions is a booming business! It works like this:
+
+An example of an autocomplete manipulation system is iXiala, which provides a manipulation service on 19 different platforms (web and mobile) including search engines, C2C, and B2C platforms.
+
+> 
+
+ To understand their promotion strategies and ecosystem, we studied such services through communicating with some of them to understand their services and purchasing the service to promote suggestion terms.
+
+The services use a combination of search log pollution and search result pollution. Search logs are often polluted through crowd-sourcing of search requests. For example, the authors purchased a service from Affordable Reputation Management, who hired crowd-sourcing operators around the U.S. to perform the search. The workers performed the following three-step process:
+
+- Search for the target suggestion phrase on Google
+
+- Click the client’s website (which seems to presume it was already somewhere in the search results at least?)
+
+- Click any other link from this website
+
+> 
+
+ Surprisingly, the operation took effect in just one month with our suggestion phrase ranking first in the autocomplete list. The service provider claimed that this approach was difficult to detect since the searches were real and the operations performed by the crowd-sourcing operators were unrecognizable from the normal activities.
+
+In combination with search log pollution using the above process, search result pollution is also attempted using a variety of blackhat SEO techniques such as keyword stuffing, link farms, and traffic spam (adding unrelated keywords to manipulate relevance).
+
+Manipulation campaigns often monetise by attracting victims to download malware of visit phishing sites, or by selling the victim’s traffic through an affiliate program. The top 3 affiliate networks involved in these schemes are shown in the table below.
+
+Promoting a phrase costs between $300 to $ 2,500 per month depending on the target search engines and the popularity of the phrase. It takes 1-3 months to get the suggestion visible in the autocomplete results.
+
+> 
+
+ Hence the average revenue for the service providers to successfully manipulate one suggestion is $ 2,544... Through the communication with the provider iXiala, we found that 10K sites requested suggestion manipulation on it, which related to a revenue of $ 569K per week with 465K manipulated suggestions. At the same time, iXiala had a group of operators, who earned a commission of $ 54K per week. Hence, iXiala earned a profit of around $ 515K per week.
+
+## The last word
+
+> 
+
+ Our findings reveal the significant impact of the threat, with hundreds of thousands of manipulated terms promoted through major search engines (Google, Bing, Yahoo!), spreading low-quality content and even malware and phishing. Also discovered in this study are the sophisticated evasion and promotion techniques employed in the attack and exceedingly long lifetimes of the abused terms, which call for further studies on the illicit activities and serious efforts to mitigate the ultimately eliminate this threat.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousJavaScript Zero: real JavaScript, and zero side-channel attacksNext &rsaquo;Exposing congestion attack on emerging connected vehicle based traffic signal control
+ 
+ 
+
+ 
+ 
+## 
+ 5 thoughts on &ldquo;Game of missuggestions: semantic analysis of search autocomplete manipulation&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ himanshu says: 
+
+ 
+ March 14, 2018 at 8:10 pm 
+
+ 
+
+ 
+ 
+Can you please write something about security model around Microservices in cloud, how to manage secrets in the service to service communication, and user secrets inside the service.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ March 15, 2018 at 6:19 am 
+
+ 
+
+ 
+ 
+That’s a great topic. I’ll certainly keep my eye out for any good papers on this subject. In the meantime, Sam Newman gave a very well received talk on the topic at QCon in London earlier this month: https://qconlondon.com/london2018/presentation/insecure-transit-microservice-security
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ himanshu says: 
+
+ 
+ March 15, 2018 at 10:13 pm 
+
+ 
+
+ 
+ 
+Thanks! I saw that one, waiting or searching for the video.
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ 
+ 
+ jerkface says: 
+
+ 
+ March 19, 2018 at 12:51 pm 
+
+ 
+
+ 
+ 
+Actually manipulation is getting more and more in google auto search suggestion because most people use fake queries to show wrong results through different bots
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Blogdowordpress.com says: 
+
+ 
+ December 15, 2018 at 7:12 pm 
+
+ 
+
+ 
+ 
+I did not know that it was possible to do some kind of manipulation in the autocomplete, this for me is totally novelty
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

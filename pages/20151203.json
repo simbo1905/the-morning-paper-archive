@@ -1,0 +1,44 @@
+{
+  "date": "20151203",
+  "file_name": "20151203",
+  "slug": "fast-and-vulnerable",
+  "blog_url": "https://blog.acolyer.org/2015/12/03/fast-and-vulnerable/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a critical security vulnerability in aftermarket telematic control units (TCUs) used in connected cars, which are loosely coupled and independently maintained devices. The paper demonstrates how these devices, often used for insurance telematics or fleet management, expose multiple attack vectors—both locally via USB and remotely through network interfaces or SMS. The authors uncover severe flaws, including hardcoded cryptographic keys across all devices, exposed administrative interfaces, and the ability to remotely update firmware without authentication or cryptographic signing. These weaknesses allow attackers to gain root access, inject malicious updates, or compromise the vehicle's CAN bus. The blog emphasizes the dangers of poor security practices like default keys, lack of update signing, and exposed services, while also demonstrating how such devices can be discovered and enumerated using tools like Shodan or sequential phone number patterns.",
+  "paper_title": "Fast and Vulnerable: A Story of Telematic Failures",
+  "paper_authors": [
+    "Stephen A. Foster",
+    "Alastair R. Beresford"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "USENIX Workshop on Offensive Technologies (WOOT '15)",
+  "paper_url": "https://www.usenix.org/system/files/conference/woot15/woot15-paper-foster.pdf",
+  "paper_abstract": "the associated manufacturers to fix those problems was relatively straightforward. Since the TCUs were tightly coupled into their vehicles, they could be updated during scheduled vehicle service and mitigated through changes in the OEM-operated service. In this paper we have turned our attention to the thornier problem of aftermarket devices, which are typically purchased directly by consumers or through a third-party service offering (e.g., insurance or fleet management), are loosely coupled with the vehicle in which they are installed, and are maintained independent of normal automotive service channels. Most of such aftermarket devices take the form of small “dongles” that interface with automotive systems through the mandated On-Board Diagnostics port (OBDII in the US, EOBD in Europe, JOBD in Japan) typically located under the driver’s side dashboard. A series of standard protocols and schemas allow an OBD-II peer to access an array of low-level sensor information about the car’s operation (most of this is defined in SAE standards J1979, J2012, and J2178). In addition, it is common that the physical OBD-II port also provides access to the vehicle’s internal networks (typically one or more CAN buses) for monitoring additional, vehicle specific, information. In spite of the fact that most aftermarket TCUs are designed for monitoring only, CAN is a multi-master bus and thus any device with a CAN transceiver is able to send messages as well as receive. This presents a key security problem since as we, and others, have shown, transmit access to the CAN bus is frequently sufficient to obtain arbitrary control over all key vehicular systems (including throttle and brakes). Further, it is common that these devices, in addition to a microprocessor and a CAN transceiver, also provide a number of additional functionality including a GPS, accelerometers and, critically, external networking connectivity. This latter feature may be as simple as a short-distance Bluetooth inte...",
+  "paper_file": "papers/2015/12/03/fast-and-vulnerable.pdf",
+  "topics": [
+    "systems-security",
+    "networking",
+    "operating-systems"
+  ],
+  "tags": [
+    "automotive-security",
+    "telematics",
+    "embedded-systems",
+    "hardcoded-credentials",
+    "remote-code-execution",
+    "firmware-update-vulnerabilities",
+    "CAN-bus",
+    "SSH-default-keys",
+    "SMS-exploitation",
+    "Shodan-enumeration"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Sample CAN frame layout",
+      "caption": "The layout of a sample CAN frame is shown."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

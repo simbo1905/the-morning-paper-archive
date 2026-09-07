@@ -1,0 +1,34 @@
+{
+  "date": "20180301",
+  "file_name": "20180301",
+  "slug": "clay-codes-moulding-mds-codes-to-yield-an-msr-code",
+  "blog_url": "https://blog.acolyer.org/2018/03/01/clay-codes-moulding-mds-codes-to-yield-an-msr-code/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the Clay codes paper as a significant advancement in erasure coding for storage systems. The blog emphasizes the problem of storage node failures and the need for efficient recovery mechanisms with minimal overhead. While MDS codes like Reed-Solomon reduce storage overhead compared to replication, their repair bandwidth is a major drawback. Clay codes, an extension of theoretical MSR codes by Ye and Barg, address this by offering optimal repair bandwidth, disk I/O, and sub-packetization levels, along with uniform repair performance for data and parity nodes. The paper demonstrates practical benefits through integration with Ceph, showing substantial reductions in repair network traffic, disk reads, and repair times (e.g., 2.9x, 3.4x, and 3x improvements respectively with 1.25x storage overhead). The key insight is the 'coupled-layer' design of Clay codes, which enables efficient repairs while maintaining MDS properties.",
+  "paper_title": "Clay codes: moulding MDS codes to yield an MSR code",
+  "paper_authors": [
+    "Vajha et al."
+  ],
+  "paper_year": 2018,
+  "paper_venue": "FAST'18",
+  "paper_url": "https://www.usenix.org/conference/fast18/presentation/vajha",
+  "paper_abstract": "With increase in scale, the number of node failures in a data center increases sharply. To ensure availability of data, failure-tolerance schemes such as ReedSolomon (RS) or more generally, Maximum Distance Separable (MDS) erasure codes are used. However, while MDS codes offer minimum storage overhead for a given amount of failure tolerance, they do not meet other practical needs of today’s data centers. Although modern codes such as Minimum Storage Regenerating (MSR) codes are designed to meet these practical needs, they are available only in highly-constrained theoretical constructions, that are not sufficiently mature enough for practical implementation. We present Clay codes that extract the best from both worlds. Clay (short for CoupledLayer) codes are MSR codes that offer a simplified construction for decoding/repair by using pairwise coupling across multiple stacked layers of any single MDS code. In addition, Clay codes provide the first practical implementation of an MSR code that offers (a) low storage overhead, (b) simultaneous optimality in terms of three key parameters: repair bandwidth, sub-packetization level and disk I/O, (c) uniform repair performance of data and parity nodes and (d) support for both single and multiple-node repairs, while permitting faster and more efficient repair. While all MSR codes are vector codes, none of the distributed storage systems support vector codes. We have modified Ceph to support any vector code, and our contribution is now a part of Ceph’s master codebase. We have implemented Clay codes, and integrated it as a plugin to Ceph. Six example Clay codes were evaluated on a cluster of Amazon EC2 instances and code parameters were carefully chosen to match known erasure-code deployments in practice. A particular example code, with storage overhead 1.25x, is shown to reduce repair network traffic by a factor of 2.9 in comparison with RS codes and similar reductions are obtained for both repair time and disk read. USENIX As...",
+  "paper_file": "papers/2018/03/01/clay-codes-moulding-mds-codes-to-yield-an-msr-code.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "erasure-codes",
+    "MDS-codes",
+    "MSR-codes",
+    "repair-bandwidth",
+    "Ceph",
+    "Reed-Solomon",
+    "sub-packetization",
+    "data-recovery"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

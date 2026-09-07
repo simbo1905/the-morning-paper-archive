@@ -1,0 +1,42 @@
+{
+  "date": "20180808",
+  "file_name": "20180808",
+  "slug": "hhvm-jit-a-profile-guided-region-based-compiler-for-php-and-hack",
+  "blog_url": "https://blog.acolyer.org/2018/08/08/hhvm-jit-a-profile-guided-region-based-compiler-for-php-and-hack/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the HHVM JIT, a second-generation virtual machine for PHP and Hack that delivered a 21.7% performance boost for Facebook’s website. Adrian Colyer highlights the novel combination of four principles in the HHVM JIT: type specialization, profile-guided optimizations, side exits, and region-based compilation. The JIT leverages dynamic type information from profiling to generate specialized code for common types while using side exits to handle less common cases. Region-based compilation allows for efficient code generation by breaking functions into regions based on control-flow and profiling data. The paper also details whole-program optimizations like function sorting and huge pages, as well as region-level and HHIR-level optimizations such as guard relaxation and partial inlining. The key insight is the synergistic integration of these techniques to optimize dynamic languages like PHP/Hack at scale.",
+  "paper_title": "HHVM JIT: A profile-guided, region-based compiler for PHP and Hack",
+  "paper_authors": [
+    "Guilherme Ottoni"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "PLDI'18",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3192374",
+  "paper_abstract": "—The processor front-end has become an increasingly important bottleneck in recent years due to growing application code footprints, particularly in data centers. First-level instruction caches and branch prediction engines have not been able to keep up with this code growth, leading to more front-end stalls and lower Instructions Per Cycle (IPC). Proﬁle-guided optimizations performed by compilers represent a promising approach, as they rearrange code to maximize instruction cache locality and branch prediction efﬁciency along a relatively small number of hot code paths. However, these optimizations require continuous proﬁling and rebuilding of applications to ensure that the code layout matches the collected proﬁles. If an application’s code is frequently updated, it becomes challenging to map proﬁling data from a previous version onto the latest version, leading to ignored proﬁling data and missed optimization opportunities. In this paper, we propose O COLOS, the ﬁrst online code layout optimization system for unmodiﬁed applications written in unmanaged languages. O COLOS allows proﬁle-guided optimization to be performed on a running process, instead of being performed ofﬂine and requiring the application to be relaunched. By running online, proﬁle data is always relevant to the current execution and always maps perfectly to the running code. O COLOS demonstrates how to achieve robust online code replacement in complex multithreaded applications like MySQL and MongoDB, without requiring any application changes. Our experiments show that O COLOS can accelerate MySQL by up to 1.41×, the Verilator hardware simulator by up to 2.20×, and a build of the Clang compiler by up to 1.14×. Joseph Devietti∗ † {takh, barisk}@umich.edu § hlitz@ucsc.edu Fig. 1: AMD & Intel per-core L1i capacity over time turned to Proﬁle-Guided Optimizations1 (PGO) from the compiler community that reorganize code within a binary to optimize the utilization of the limited L1i for the common-case c...",
+  "paper_file": "papers/2018/08/08/hhvm-jit-a-profile-guided-region-based-compiler-for-php-and-hack.pdf",
+  "topics": [
+    "compilers",
+    "programming-languages",
+    "distributed-systems"
+  ],
+  "tags": [
+    "just-in-time-compilation",
+    "profile-guided-optimization",
+    "type-specialization",
+    "region-based-compilation",
+    "side-exits",
+    "dynamic-languages",
+    "php",
+    "hack",
+    "facebook"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "AMD & Intel per-core L1i capacity over time",
+      "caption": "Figure 1: AMD & Intel per-core L1i capacity over time"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

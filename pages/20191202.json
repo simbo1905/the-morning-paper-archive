@@ -1,0 +1,39 @@
+{
+  "date": "20191202",
+  "file_name": "20191202",
+  "slug": "efficient-lock-free-durable-sets",
+  "blog_url": "https://blog.acolyer.org/2019/12/02/efficient-lock-free-durable-sets/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer reviews a paper from OOPSLA'19 that tackles the challenge of designing efficient lock-free durable sets for non-volatile memory (NVRAM). The author highlights the core problem: while NVRAM provides persistence, caches and registers remain volatile, leading to potential inconsistencies after a crash due to reordered or incomplete writes. Traditional solutions like write-ahead logs are expensive, so the paper introduces log-free data structures that minimize the number of psync operations (the memory equivalent of disk flushes). The key insight is to separate the durable data plane (nodes storing key-value pairs) from the ephemeral control plane (pointers and structure), trading slightly longer recovery times for improved normal-case performance. The paper presents two implementations: a straightforward 'link-free' approach and a more complex 'SOFT' method that reduces psync operations to the theoretical minimum. Both designs use validity bits to track node states and recover consistency after crashes. The evaluation shows significant performance improvements (up to 3.3x) over state-of-the-art log-free sets, with SOFT generally outperforming link-free except in long-list traversals.",
+  "paper_title": "Efficient lock-free durable sets",
+  "paper_authors": [
+    "Ohad Ben-Baruch",
+    "Maya Arbel-Raviv",
+    "Trevor Brown",
+    "Michael D. Mitzenmacher",
+    "Martin Vechev"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "OOPSLA'19",
+  "paper_url": "https://arxiv.org/abs/1909.02852",
+  "paper_abstract": "arXiv:1909.02852v2 [cs.DC] 9 Sep 2019\n\nEfficient Lock-Free Durable Sets∗\nYOAV ZURIEL, Technion, Israel\nMICHAL FRIEDMAN, Technion, Israel\nGALI SHEFFI, Technion, Israel\nNACHSHON COHEN† , Amazon, Israel\nEREZ PETRANK, Technion, Israel\nNon-volatile memory is expected to co-exist or replace DRAM in upcoming architectures. Durable concurrent\ndata structures for non-volatile memories are essential building blocks for constructing adequate software for\nuse with these architectures. In this paper, we prop",
+  "paper_file": "papers/2019/12/02/efficient-lock-free-durable-sets.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "non-volatile-memory",
+    "durability",
+    "lock-free-data-structures",
+    "psync",
+    "recovery",
+    "epoch-based-reclamation",
+    "validity-bits",
+    "SOFT",
+    "link-free"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

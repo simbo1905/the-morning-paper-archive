@@ -1,0 +1,36 @@
+{
+  "date": "20161007",
+  "file_name": "20161007",
+  "slug": "incremental-knowledge-base-construction-using-deepdive",
+  "blog_url": "https://blog.acolyer.org/2016/10/07/incremental-knowledge-base-construction-using-deepdive/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights DeepDive, a system from Stanford that sits at the intersection of distributed systems, database systems, machine learning, and stream processing. The paper focuses on incremental knowledge base construction (KBC) from semi-structured and unstructured data (\"dark data\"), aiming to extract high-quality structured data with high precision and recall. DeepDive has been used to build dozens of KBC systems and won competitions. The author emphasizes the system's iterative development process and its incremental techniques for grounding and inference, which improved performance by two orders of magnitude in real scenarios while maintaining high quality. The blog post also provides a detailed overview of the KBC pipeline, including ingestion, extraction, supervised learning, and inference using factor graphs and Gibbs sampling.",
+  "paper_title": "Incremental Knowledge Base Construction Using DeepDive",
+  "paper_authors": [
+    "Kyu-Young Shin",
+    "Christopher Ré"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.vldb.org/pvldb/vol8/p1310-shin.pdf",
+  "paper_abstract": "complex relationships. Typically, quality is assessed using two complementary measures: precision (how often a claimed tuple is correct) and recall (of the possible tuples to extract, how many are actually extracted). These systems can ingest massive numbers of documents–far outstripping the document counts of even well-funded human curation efforts. Industrially, KBC systems are constructed by skilled engineers in a months-long (or longer) process–not a oneshot algorithmic task. Arguably, the most important question in such systems is how to best use skilled engineers’ time to rapidly improve data quality. In its full generality, this question spans a number of areas in computer science, including programming languages, systems, and HCI. We focus on a narrower question, with the axiom that the more rapid the programmer moves through the KBC construction loop, the more quickly she obtains high-quality data. This paper presents DeepDive, our open-source engine for knowledge base construction.1 DeepDive’s language and execution model are similar to other KBC systems: DeepDive uses a high-level declarative language [11, 28, 30]. From a database perspective, DeepDive’s language is based on SQL. From a machine learning perspective, DeepDive’s language is based on Markov Logic [13, 30]: DeepDive’s language inherits Markov Logic Networks’ (MLN’s) formal semantics.2 Moreover, it uses a standard execution model for such systems [11, 28, 30] in which programs go through two main phases: grounding, in which one evaluates a sequence of SQL queries to produce a data structure called a factor graph that describes a set of random variables and how they are correlated. Essentially, every tuple in the database or result of a query is a random variable (node) in this factor graph. The inference phase takes the factor graph from grounding and performs statistical inference using standard techniques, e.g., Gibbs sampling [42, 44]. The output of inference is the marginal probability of ...",
+  "paper_file": "papers/2016/10/07/incremental-knowledge-base-construction-using-deepdive.pdf",
+  "topics": [
+    "data-engineering",
+    "machine-learning",
+    "distributed-systems"
+  ],
+  "tags": [
+    "knowledge-base-construction",
+    "incremental-learning",
+    "factor-graphs",
+    "distant-supervision",
+    "NLP",
+    "semi-structured-data",
+    "unstructured-data",
+    "Gibbs-sampling"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

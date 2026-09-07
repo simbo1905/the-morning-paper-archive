@@ -1,0 +1,34 @@
+{
+  "date": "20150302",
+  "file_name": "20150302",
+  "slug": "viewstamped-replication-a-new-primary-copy-method-to-support-highly-available-distributed-systems",
+  "blog_url": "https://blog.acolyer.org/2015/03/02/viewstamped-replication-a-new-primary-copy-method-to-support-highly-available-distributed-systems/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes the 1988 paper by Oki and Liskov on Viewstamped Replication, a protocol for maintaining consistency in distributed systems through replication. The paper introduces the concept of 'views'—a group of cohorts with a designated primary—and 'viewstamps' (view ID + timestamp) to track state changes. The protocol ensures one-copy serializability by forcing state updates to a majority of cohorts before committing transactions. Colyer highlights the paper's theoretical rigor, noting that the authors proposed the method without a full implementation, yet it became foundational for later systems like Raft. The key insight is the use of view changes to handle failures while preserving consistency, leveraging the majority-quorum property to ensure state continuity across views. The paper also discusses client-server coordination for two-phase commit (2PC) and addresses message delivery challenges within the view framework.",
+  "paper_title": "Viewstamped Replication: A New Primary Copy Method to Support Highly Available Distributed Systems",
+  "paper_authors": [
+    "Brian M. Oki",
+    "Barbara H. Liskov"
+  ],
+  "paper_year": 1988,
+  "paper_venue": "",
+  "paper_url": "http://www.cs.princeton.edu/courses/archive/fall09/cos518/papers/viewstamped.pdf",
+  "paper_abstract": "One of the potential benefits of distributed systems is their use in providing highly-available services that are likely to be usable when needed. Availabilay is achieved through replication. By having inore than one copy of information, a service continues to be usable even when some copies are inaccessible, for example, because of a crash of the computer where a copy was stored. This paper presents a new replication algorithm that has desirable performance properties. Our approach is based on the primary copy technique. Computations run at a primary. which notifies its backups of what it has done. If the primary crashes, the backups are reorganized, and one of the backups becomes the new primary. Our method works in a general network with both node crashes and partitions. Replication causes little delay in user computations and little information is lost in a reorganization; we use a special kind of timestamp called a viewstamp to detect lost information. Our replication method assumes a model of computation in which a distributed program consists of modu/es, each of which resides at a single node of the network. Each module contains within it both data objects and code that manipulates the objects; modules can recover from crashes with some of their state intact. No other module can access the data objects of another module directly. instead, each module provides procedures that can b8 used to access its objects; modules communicate by means of remote pfoceduf8 calls. Modules that make calls (are called clients; the called module is a server.",
+  "paper_file": "papers/2015/03/02/viewstamped-replication-a-new-primary-copy-method-to-support-highly-available-distributed-systems.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "consensus-protocols",
+    "viewstamped-replication",
+    "primary-backup-replication",
+    "two-phase-commit",
+    "quorum-protocols",
+    "fault-tolerance",
+    "view-changes"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

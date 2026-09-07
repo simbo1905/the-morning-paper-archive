@@ -1,0 +1,46 @@
+{
+  "date": "20160324",
+  "file_name": "20160324",
+  "slug": "cliffhanger-scaling-performance-cliffs-in-web-memory-caches",
+  "blog_url": "https://blog.acolyer.org/2016/03/24/cliffhanger-scaling-performance-cliffs-in-web-memory-caches/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses 'Cliffhanger', a paper from NSDI 2016 that addresses the challenge of efficiently allocating memory in shared web memory caches like Memcached. The key problem is determining the optimal division of memory among slabs (or applications) to maximize hit rates without increasing memory usage. The paper highlights that current systems allocate memory greedily without considering request size or application requirements. Cliffhanger introduces a hill-climbing algorithm that uses shadow queues to approximate hit-rate curves and dynamically adjusts memory allocation based on gradient estimates. The algorithm is particularly effective at handling 'performance cliffs'—sudden changes in hit rates when data fits into the cache—by maintaining multiple shadow queues to approximate second derivatives and simulate concave hulls of hit-rate curves. The results show significant improvements: a 1.2% increase in hit rate, a 36.7% reduction in cache misses, and a 45% reduction in required memory capacity, with negligible overhead.",
+  "paper_title": "Cliffhanger: Scaling Performance Cliffs in Web Memory Caches",
+  "paper_authors": [
+    "Asaf Cidon",
+    "Michael Mitzenmacher",
+    "Haoqiang Zheng",
+    "Vijay Kumar",
+    "K.V. Rashmi",
+    "Garth A. Gibson",
+    "Gregory R. Ganger"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "NSDI",
+  "paper_url": "https://people.csail.mit.edu/alizadeh/papers/cliffhanger-nsdi16.pdf",
+  "paper_abstract": "much slower than a memory cache. For instance, the hit rate of one of Facebook’s Memcached pools is 98.2% [5]. Assuming the average read latency from the cache and MySQL is 200µs and 10ms, respectively, increasing the hit rate by just 1% would reduce the read latency by over 35% (from 376µs at 98.2% hit rate to 278µs at 99.2% hit rate). The end-to-end speedup is even greater for user queries, which often wait on hundreds of reads [26]. Web caching systems are generally simple: they have a key-value API, and are essentially an in-memory hashtable spread across multiple servers. The servers do not have any centralized control and coordination. In particular, memory caches are oblivious to application request patterns and requirements. Memory allocation across slab classes1 and across different applications sharing a cache server is based on fixed policies like first-comefirst-serve or static reservations. The eviction policy, Least-Recently-Used (LRU), is also fixed. By analyzing a week-long trace of a popular caching service, Memcachier, we show that existing first-comefirst-serve cache allocation techniques can be greatly improved by applying workload aware resource policies. We show that for certain applications, the number of misses can be reduced by 99%. We propose Cliffhanger, a lightweight iterative algorithm that runs on memory cache servers. Cliffhanger runs across multiple eviction queues. For each eviction queue, it determines the gradient of the hit rate curve at the current working point of the queue. It then incrementally allocates memory to the queues that would benefit the most from increased memory, and removes memory from the queues that would benefit the least. Cliffhanger determines the hit rate curve gradient of each queue by leveraging shadow queues. Shadow queues are an extension of the eviction queue that only contain the keys of the requests, without the values. We show that the rate of hits in the shadow queue approxi- Web-scale applications ...",
+  "paper_file": "papers/2016/03/24/cliffhanger-scaling-performance-cliffs-in-web-memory-caches.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "caching",
+    "memory-allocation",
+    "hit-rate-optimization",
+    "performance-cliffs",
+    "LRU",
+    "shadow-queues",
+    "hill-climbing",
+    "convex-solver"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Hit rate curve for Application 3, Slab Class 9",
+      "caption": "Hitrate\n\n0.8\n\n0.6\n\n0.4\n\n0.2\n\n0\n0\n\n200\n400\n600\n800\nNumber of Items in LRU Queue\n\n1000"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

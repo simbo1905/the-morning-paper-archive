@@ -1,0 +1,44 @@
+{
+  "date": "20180116",
+  "file_name": "20180116",
+  "slug": "spectre-attacks-exploiting-speculative-execution",
+  "blog_url": "https://blog.acolyer.org/2018/01/16/spectre-attacks-exploiting-speculative-execution/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Spectre as a terrifying yet technically fascinating attack that combines side-channel attacks, fault attacks, and return-oriented programming (ROP) to read arbitrary memory from a victim's process. Unlike Meltdown, Spectre works on AMD and ARM processors, making it a widespread threat across billions of devices. The attack exploits speculative execution in modern CPUs, particularly branch prediction mechanisms like the Branch Target Buffer (BTB), to trick the CPU into executing malicious instruction sequences. Colyer emphasizes the attack's practicality, noting it can be mounted with just a few lines of JavaScript delivered via trusted websites (e.g., ads) and can exfiltrate data through cache side channels. The paper's key insight is the exploitation of speculative execution and branch misprediction to bypass security boundaries, even in well-written software.",
+  "paper_title": "Spectre Attacks: Exploiting Speculative Execution",
+  "paper_authors": [
+    "Paul Kocher",
+    "Daniel Genkin",
+    "Daniel Gruss",
+    "Yuval Yarom",
+    "Mike Hamburg",
+    "Moritz Lipp",
+    "Stefan Mangard",
+    "Thomas Prescher",
+    "Werner Haas"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "",
+  "paper_url": "https://spectreattack.com/spectre.pdf",
+  "paper_abstract": "—Modern processors use branch prediction and speculative execution to maximize performance. For example, if the destination of a branch depends on a memory value that is in the process of being read, CPUs will try to guess the destination and attempt to execute ahead. When the memory value finally arrives, the CPU either discards or commits the speculative computation. Speculative logic is unfaithful in how it executes, can access the victim’s memory and registers, and can perform operations with measurable side effects. Spectre attacks involve inducing a victim to speculatively perform operations that would not occur during correct program execution and which leak the victim’s confidential information via a side channel to the adversary. This paper describes practical attacks that combine methodology from side channel attacks, fault attacks, and return-oriented programming that can read arbitrary memory from the victim’s process. More broadly, the paper shows that speculative execution implementations violate the security assumptions underpinning numerous software security mechanisms, including operating system process separation, containerization, just-in-time (JIT) compilation, and countermeasures to cache timing and side-channel attacks. These attacks represent a serious threat to actual systems since vulnerable speculative execution capabilities are found in microprocessors from Intel, AMD, and ARM that are used in billions of devices. While makeshift processor-specific countermeasures are possible in some cases, sound solutions will require fixes to processor designs as well as updates to instruction set architectures (ISAs) to give hardware architects and software developers a common understanding as to what computation state CPU implementations are (and are not) permitted to leak. I. I NTRODUCTION Computations performed by physical devices often leave observable side effects beyond the computation’s nominal outputs. Side-channel attacks focus on exploiting t...",
+  "paper_file": "papers/2018/01/16/spectre-attacks-exploiting-speculative-execution.pdf",
+  "topics": [
+    "systems-security",
+    "operating-systems"
+  ],
+  "tags": [
+    "speculative-execution",
+    "side-channel-attacks",
+    "branch-prediction",
+    "cache-attacks",
+    "return-oriented-programming",
+    "ROP",
+    "Meltdown",
+    "hardware-vulnerabilities",
+    "JavaScript-exploits",
+    "branch-target-buffer"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

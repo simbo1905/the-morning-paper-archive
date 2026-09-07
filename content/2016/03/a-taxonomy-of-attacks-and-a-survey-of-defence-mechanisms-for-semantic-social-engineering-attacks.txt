@@ -1,0 +1,271 @@
+URL: https://blog.acolyer.org/2016/03/15/a-taxonomy-of-attacks-and-a-survey-of-defence-mechanisms-for-semantic-social-engineering-attacks/
+Title: A Taxonomy of Attacks and a Survey of Defence Mechanisms for Semantic Social Engineering&nbsp;Attacks
+---
+
+A Taxonomy of Attacks and a Survey of Defence Mechanisms for Semantic Social Engineering Attacks - Heartfield and Loukas 2015
+
+This paper is concerned with semantic social engineering: the manipulation of the user-computer interface to deceive a user and ultimately breach a computer system's information security. Semantic attack exploits include phishing, file masquerading (disguising file types etc.), application masquerading, bogus web pop-ups, 'malvertisements' (infected ads or other subversions via adverts), social networking attacks (friend injection, game requests,...), removable media attacks (USB devices etc.) and wireless attacks (rogue access points and the like). Heartfield and Loukas present a taxonomy of such semantic attacks based on the mechanisms that they use. There are three distinct control stages for attacks:
+
+- Orchestration - how targets are found and how the attack reaches the target
+
+- Exploitation - the means used to achieve the deception
+
+- Execution - is the attack single-step or multi-step, does it persist or is it a one-shot deal?
+
+If you want to craft a semantic social engineering attack, just choose one option from each of the boxes in the figure below!
+
+Explicit targeting is the practice of choosing a particular individual or group of individuals (e.g. based on an attribute such as the company they work at). Promiscuous targeting is simply sending the attack to as many people as you can find! Within the world of explicit targeting, spear phishing is a phishing attack crafted for a particular individual or organisation, and whaling is spear phishing for a highly valuable target (e.g. a senior executive). A watering hole attack is the targeted version of a drive-by download, where a malicious script is implanted on the websites that a particular individual or company is known to visit.
+
+> 
+
+ The deception vector is a focal point of this taxonomy. It defines the mechanism by which the user is deceived into facilitating a security breach and can be categorised as cosmetic, behaviour-based, or a combination of the two...
+
+Cosmetic attacks involve manipulating the appearance of UI components. For example, a file' document.txt.exe' that shows in the Windows File Explorer as 'document.txt'. Cosmetic attacks are prevalent in attacks on web-based user interfaces and on social media platforms (e.g. malicious links imitating videos). Behavioural-based deception mimic the behaviour of a legitimate system rather than its looks - for example, setting up a rogue access point that appears like any other AP on the user's computer. Hybrid approaches combine both elements. For example, phishing sites that copy not only images and text but also actual code from the legitimate website.
+
+In the IM (Interface Manipulation) category, user interface manipulations abuse existing functionality provided by the UI. A good example is malvertisements:
+
+> 
+
+ In malvertisement exploitations [Li et al. 2012], attackers (ab)use the user functionality of an advertisement system on a website, by first posting a legitimate advertisement and then replacing it with a malicious version once it has gained popularity/trust on the host platform.
+
+The most prominent example of programmatic interface manipulation is the drive-by download attack where the attacker injects malicious scripts (e.g. JavaScript) into vulnerable websites to redirect users to a malicious download/installation.
+
+If you're lacking in imagination as to how you might be able to combine these various methods, fear not! The authors provide four extended and 30 summarised attack examples from attacks that have been observed in the wild, and map them back to the taxonomy we've just been looking at.
+
+Here's WiFi evil twin phishing:
+
+And the wonderfully named 'Tabnabbing' :
+
+See the full paper for all the other examples.
+
+The second half of the paper is concerned with Defence against the Dark Arts, or as the authors put it, "an overview of mechanisms that can protect users against semantic attacks." These include organisational policies and process control, conducting awareness training, sandboxing mechanisms, implementing an 'authorisation, authentication, and accounting (AAA) framework' (which just sounds like a particular version of policy and process control to me), monitoring, integrity checking and malware detection via machine learning. In the latter category, I thought this example was pretty neat:
+
+> 
+
+ Stringhini and Thonnard [2015] have recently developed a system for classifying and blocking spear phishing emails from compromised email accounts by training a support vector machine–based system with a behavioural model based on a user’s email habits. The system collects and profiles behavioural features associated to writing (e.g., character/word frequency, punctuation, stylus), composition and sending (e.g., time/date, URL characterises, email chain content), and interaction (e.g., email contacts). These features are used to create an email behaviour profile linked to the user, which is continually updated whenever a user sends a new email. Testing showed that the bigger the email history of a user, the lower the rate of false positives, dropping below 0.05% for 7,000 emails and over.
+
+Although I'm also reminded that this is really just an arms race since some of the machine learning papers I've been reading concerning natural language generation with RNNs indicate an attacker could also learn to generate an email that looks like it has been written by the 'sender'.
+
+For those that want to dig into the research, table III on page 37 of the paper is a giant matrix showing each attack element from the taxonomy, and each defence mechanism. Here's an excerpt so that you can get the idea... (click to enlarge).
+
+A number of challenges in semantic attack research remain:
+
+- "The lack of publicly available, up-to-date, relevant, and reliable datasets is a pervasive issue in computer security research. In semantic attacks, the human factor makes the acquisition of datasets even more difficult."
+
+- Predicting susceptibility to semantic attacks in real time. "For instance, an interesting real-world study by Halevi et al. has identified conscientiousness as a personality trait that is highly correlated to a user's susceptibly to spear-phishing attacks" But since you can't measure conscientiousness in a software system, that's of little use - are their other measures?
+
+- How do you 'patch the user?' Software applications can be patched when new vulnerabilities and exposures are discovered, but what is the equivalent for semantic attacks when it is the user that has to learn how to recognise and protect against new deception mechanisms. 
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousSecrets, Lies, and Account Recovery: Lessons from the Use of Personal Knowledge Questions at GoogleNext &rsaquo;MacroBase: Analytic Monitoring for the Internet of Things
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;A Taxonomy of Attacks and a Survey of Defence Mechanisms for Semantic Social Engineering Attacks&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Big Analytics Roundup (March 21, 2016) | The Big Analytics Blog 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

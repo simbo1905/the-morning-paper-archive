@@ -1,0 +1,39 @@
+{
+  "date": "20190902",
+  "file_name": "20190902",
+  "slug": "ipa",
+  "blog_url": "https://blog.acolyer.org/2019/09/02/ipa/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer reviews the paper 'IPA: invariant-preserving applications for weakly consistent replicated databases' by Balegas et al., presented at VLDB'19. The paper builds on the concept of invariant confluence (I-Confluence) and introduces Invariant-Preserving Applications (IPAs), which leverage CRDTs to avoid and repair invariant violations in weakly consistent replicated databases. The key insight is that invariant violations can be prevented or automatically repaired by including additional operations (e.g., 'touch') and conflict resolution policies in the merge semantics. The paper also proposes a developer workflow where a static analysis tool iteratively identifies and resolves conflicting operations, enabling higher throughput and lower latency without sacrificing correctness. The author highlights the novel mechanisms for coordination avoidance and repair, as well as the integrated tooling that guides developers through the process.",
+  "paper_title": "IPA: invariant-preserving applications for weakly consistent replicated databases",
+  "paper_authors": [
+    "Vitor Enes",
+    "Diogo Serra",
+    "Sérgio Duarte",
+    "Carla Ferreira",
+    "Marc Shapiro",
+    "Nuno Preguiça"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.vldb.org/pvldb/vol12/p404-balegas.pdf",
+  "paper_abstract": "49, 20]. To provide these guarantees, systems often adopt weak consistency. This approach can expose temporary state divergence to clients, making application development more difficult. Many techniques have been proposed to make these systems easier to program: conflict-free replicated data types [45] (CRDTs) ensure state convergence; causal consistency [39, 12, 57] enforces that operations are made visible respecting the happens-before relation; and, finally, highly available transactions [8, 11, 40, 49, 57] can group multiple operations that must take effect all at once. Despite these proposals, it remains difficult to develop applications under weak consistency. Several studies [10, 32, 53] show that, in many applications, concurrent executions lead to the violation of application invariants, resulting in inconsistent states. To give an example, consider an online e-games platform, and assume that the application is correct when executed under strong consistency. Consider that a user enrolls in some tournament and concurrently the organizer decides to cancel the tournament. The first operation creates a new reference between the user and the tournament, while the second removes the tournament, and all references to it. Since these operations are concurrent, the remove operation does not delete the newly created reference, which now points to a tournament that no longer exists, thus breaking referential integrity. To prevent invariant violations efficiently, some systems provide primitives for executing operations synchronously [49, 37], paying the cost of coordination only when necessary. However, it is difficult to identify the problematic executions, especially because inconsistencies may occur only for some combinations of operations and in some specific states. The result is that programmers often end up constraining concurrency too much to preserve correctness, with an impact on the availability and latency of systems [14, 19]. This paper proposes a novel a...",
+  "paper_file": "papers/2019/09/02/ipa.pdf",
+  "topics": [
+    "distributed-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "crash-consistency",
+    "replication",
+    "consensus-protocols",
+    "crdt",
+    "weak-consistency",
+    "invariant-confluence",
+    "static-analysis",
+    "transactional-systems"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

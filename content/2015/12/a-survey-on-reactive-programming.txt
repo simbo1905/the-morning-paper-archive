@@ -1,0 +1,442 @@
+URL: https://blog.acolyer.org/2015/12/08/a-survey-on-reactive-programming/
+Title: A Survey on Reactive&nbsp;Programming
+---
+
+A Survey on Reactive Programming - Bainomugisha et al. 2012
+
+Update: fixed broken link to Fran paper, thanks to Josef B for pointing it out.
+
+> 
+
+ Today’s applications are increasingly becoming highly interactive, driven by all sorts of events originating from within the applications and their outside environment. Such event-driven applications maintain continuous interaction with their environment, processing events and performing corresponding tasks such as updating the application state and displaying data... These applications are difficult to program using conventional sequential programming approaches, because it is impossible to predict or control the order of arrival of external events and as such control jumps around event handlers as the outside environment changes unexpectedly (inverted control, i.e., the control flow of a program is driven by external events and not by an order specified by the programmer). Moreover, when there is a state change in one computation or data, the programmer is required to manually update all the others that depend on it. Such manual management of state changes and data dependencies is complex and error-prone (e.g., performing state changes at a wrong time or in a wrong order).
+
+Today's choice comes from the ACM Computing Surveys collection. It's a long read at 35 pages, but we're just going to focus on the first part which provides an overview and taxonomy of reactive programming. Very helpful for navigating the space!
+
+> 
+
+ Reactive programming tackles issues posed by event-driven applications by providing abstractions to express programs as reactions to external events and having the language automatically manage the flow of time (by conceptually supporting simultaneity), and data and computation dependencies. This yields the advantage that programmers need not to worry about the order of events and computation dependencies. Hence, reactive programming languages abstract over time management, just as garbage collectors abstract over memory management.
+
+As we saw yesterday, reactive programming introduces the notions of behaviours for representing continuous time-varying value and events for representing discrete values. Most of the research on reactive programming descends from Fran.
+
+The basic idea is this: express your program in terms of the desired outcome, and let the language/reactive runtime manage when and how to do it.
+
+> 
+
+ In this paradigm, state changes are automatically and efficiently propagated across the network of dependent computations by an underlying execution model.
+
+Here's a simple example:
+
+var1 = 1
+var2 = 2
+var3 = var1 + var2
+
+In a traditional imperative language, var3 will have the value 3 - determined by the values of var1 and var2 at the point at which it was assigned. But in reactive programming the value of var3 will be automatically updated whenever the value of var1 or var2 changes. We say that var3 is dependent on var1 and var2.
+
+A behaviour is a continuous time-varying value. Time itself being the basic example.
+
+> 
+
+ Most reactive programming languages provide a behaviour primitive to represent time (e.g., a primitive seconds to represent the value of the current seconds of a minute). Other behaviours can easily be expressed as a function of the time primitive provided by the language. For instance, a behaviour whose value is 10 times the current seconds can be expressed in terms of seconds as seconds*10.
+
+Events refer to streams of value changes. Events occur at discrete points in time (e.g. a button press).
+
+> 
+
+ Like behaviours, events are first-class values and are composable.
+
+Going a level deeper, the authors split out six properties that help to differentiate amongst reactive languages and frameworks:
+
+- The supported basic abstractions
+
+- The evaluation model
+
+- Glitch avoidance
+
+- Lifting operations
+
+- Multi-directionality
+
+- Support for distribution
+
+## Basic Abstractions
+
+The basic abstractions in a reactive language are reactive primitives that facilitate the writing of reactive programs. Most languages provide behaviours and events.
+
+> 
+
+ Behaviours that represent continuously changing values present a significant implementation challenge. Their continuous nature implies that when the internal clock rate of a reactive program is increased, these behaviours yield more precise values.
+
+The literature on reactive programming languages sometimes uses slightly different terminology for behaviours and events, and sometimes the abstractions truly differ. Yampa - an FRP language based on Fran - using signal functions and events as its primitives.
+
+> 
+
+ Signal functions differ from behaviours in the sense that they are functions that encapsulate time-varying values, but are similar in the sense that they are first-class.
+
+## Evaluation Model
+
+As we've seen before when looking at streaming programming models, there is a fundamental choice between push-based pull-based models for value propagation.
+
+> 
+
+ The evaluation model of a reactive programming language is concerned with how changes are propagated across a dependency graph of values and computations. From the programmer’s point of view, propagation of changes happens automatically. Indeed, this is the essence of reactive programming. A change of a value should be automatically propagated to all dependent computations. When there is an event occurrence at an event source, dependent computations need to be notified about the changes, possibly triggering a recomputation. At the language level, the design decision that needs to be taken into account is who initiates the propagation of changes. That is, whether the source should “push” new data to its dependents (consumers) or the dependents should “pull” data from the event source (producer).
+
+Pull-based models can suffer from space and time leaks. There can be (by design) significant latency between an event occurrence and when its reaction happens. First, someone needs to pull, and second, all delayed computations must suddenly be performed to lead to the reaction. Lazy languages more naturally suit a pull-based model.
+
+> 
+
+ A time-leak in a real-time system occurs whenever a time-dependent computation falls behind the current time because its value or effect is not needed yet, but then requires catching up at a later point in time. This catching up can take an arbitrarily long time (time-leak) and may or may not consume space as well (space-leak) [Hudak 2003].
+
+In the push-based model space and time leaks are avoided by pushing data to dependent computations as soon as a source has new data. Reactions therefore happen as soon as possible, and the trade-off is that you perform potentially wasteful recomputations every time input sources change.
+
+> 
+
+ Some reactive programming languages use either a pull-based or push-based model while others employ both. Another issue with push-based evaluation is glitches, which are discussed in the next section. The approaches that combine the two models reap the benefits of the push-based model (efficiency and low latency) and those of the pull-based model (flexibility of pulling values based on demand). The combination of the two models has been demonstrated in the Lula system [Sperber 2001b] and the most recent implementation of Fran [Elliott 2009].
+
+## Glitches
+
+Consider this program:
+
+var1 = 1
+var2 = var1 * 1
+var3 = var1 + var2
+
+We'd like to treat these statements as invariants. But in a naive reactive implementation it would be possible to see an inconsistent intermediate state. Consider the case when the value of var1 changes to 2. If var3 is recomputed on this change ahead of recomputing var2, then var3 will be updated to the value 3. Once var2 has been updated, var3 will be once more recomputed and yield the correct value, 4. The intermediate inconsistent result is known as a glitch.
+
+> 
+
+ In the reactive programming literature, such a momentary view of inconsistent data is known as a glitch [Cooper and Krishnamurthi 2006]. Glitches result in incorrect program state and wasteful recomputations and therefore should be avoided by the language. Most reactive programming languages eliminate glitches by arranging expressions in a topologically sorted graph [Cooper and Krishnamurthi 2006]; [Meyerovich et al. 2009]; [Maier et al. 2010], thus ensuring that an expression is always evaluated after all its dependents have been evaluated.
+
+Glitch avoidance is considerably harder in a distributed reactive progam.
+
+## Lifting
+
+> 
+
+ When reactive programming is embedded in host languages (either as a library or as a language extension), existing language operators (e.g., +, *) and user defined functions or methods must be converted to operate on behaviours. In the reactive programming literature the conversion of an ordinary operator to a variant that can operate on behaviours is known as lifting.
+
+In statically typed languages lifting must be explicit - though techniques such as operator overloading can help to reduce the ceremony. In dynamically typed languages, lifting usually happens implicitly. Implicit lifting makes reactive programming transparent, since programmers can freely use existing operators on behaviours.
+
+## Multidirectionality
+
+> 
+
+ Another property of reactive programming languages is whether propagation of changes happens in one direction (unidirectional) or in either direction (multidirectional).With multidirectionality, changes in derived values are propagated back to the values from which they were derived. For example, writing an expression F = (C * 1.8) + 32 for converting temperature between Fahrenheit and Celsius, implies that whenever a new value of either F or C is available the other value is updated. This property is similar to the multidirectional constraints in the constraint programming paradigm [Steele 1980].
+
+Most reactive languages limit propagation of changes to happen in one direction.
+
+## Distribution
+
+> 
+
+ This property is concerned with whether a reactive language provides support for writing distributed reactive programs. The support for distribution enables one to cre- ate dependencies between computations or data that are distributed across multiple nodes. For example, in an expression var3 = var1 + var2, var1, var2 and var3 can be located on different nodes. The need for support for distribution in a reactive language is motivated by the fact that interactive applications (e.g., Web applications, mobile applications, etc.) are becoming increasingly distributed. However, there is a catch in adding support for distribution to a reactive language. It is more difficult to ensure consistency in a dependency graph that is distributed across multiple nodes...
+
+And later on we find this:
+
+> 
+
+ Glitches occur because of dependent code that is executed in the wrong order. This can easily happen in a distributed setting where events are communicated over the network and are hence delivered with a delay of which the severity depends on different factors, such as the underlying network technology, network congestion, network failures, etc. Hence, time-stamping of events is necessary to allow them to be correctly ordered at the receiver side. The problem here is that distributed clocks can diverge, which can be problematic for ordering events that happen in close succession.
+
+Regular readers of #themorningpaper may well be thinking that perhaps the distributed systems community has something to offer here with notions such as causal consistency!
+
+## State of the Art (circa 2012)
+
+- For efficiency reasons (instantaneous reactions), most recent implementations are purely push-based.
+
+- Most reactive languages limit propagation of changes to happen in one direction.
+
+- Most reactive languages achieve glitch freedom.
+
+- Distribution is not well supported, and even in those that do support it, glitches are avoided only in a local setting.
+
+Ideas from reactive programming inspired the ReactiveX family of libraries, React.js, and Elm among others. Note that the Reactive Manifesto (most recent version dated Sept. 16th 2014 at time of writing), and thus much of the discussion around it, addresses a different kind of reactive to the reactive of 'reactive programming.'
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Programming Languages 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousFunctional Reactive AnimationNext &rsaquo;Asynchronous Functional Reactive Programming for GUIs
+ 
+ 
+
+ 
+ 
+## 
+ 6 thoughts on &ldquo;A Survey on Reactive Programming&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ josefB says: 
+
+ 
+ December 9, 2015 at 5:48 pm 
+
+ 
+
+ 
+ 
+The inline link in text, Fran, is pointing to this blog post.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ December 10, 2015 at 1:37 pm 
+
+ 
+
+ 
+ 
+Fixed, thank you!
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ Pingback: We Have a DREAM: Distributed Reactive Programming with Consistency Guarantees | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Links & Reads from 2015 Week 50 - Martin&#039;s Weekly Curations 
+ 
+ 
+- 
+ 
+ Pingback: Debugging data flows in reactive programs | the morning paper 
+ 
+ 
+- 
+ 
+ 
+ 
+ Kat says: 
+
+ 
+ July 1, 2018 at 10:19 am 
+
+ 
+
+ 
+ 
+Where are the mathematicians and Category Theorists when you need them!? Surely, if distribution is an algebra including CRDTs as a subset, and 'reactive' is algebra over streams, and DAG dataflow is a partial order, and multidirectional flows are cyclic graphs, then they can all be merged into a single algebra with many useful results for push/pull local/distributed glitchy/smooth cyclic/DAGgy flat/lifted systems.
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

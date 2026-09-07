@@ -1,0 +1,44 @@
+{
+  "date": "20151006",
+  "file_name": "20151006",
+  "slug": "dapper-a-large-scale-distributed-systems-tracing-infrastructure",
+  "blog_url": "https://blog.acolyer.org/2015/10/06/dapper-a-large-scale-distributed-systems-tracing-infrastructure/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Google's Dapper as a foundational paper for understanding distributed systems tracing in large-scale cloud platforms and microservices deployments. He emphasizes the necessity of automatic instrumentation over manual trace points, given the scale and continuous deployment nature of modern systems. The blog praises Dapper's adaptive sampling, low overhead (using BigTable for storage and asynchronous batching), and the provision of an API that enabled numerous tools to be built on top. Colyer notes how Dapper's trace tree structure (with spans and causality tracking) and optional annotations provide actionable insights into system behavior, even across thousands of machines and teams. The paper's relevance extends beyond Google, illustrating the need for ubiquitous, low-overhead tracing in microservices architectures where manual instrumentation is impractical.",
+  "paper_title": "Dapper, a Large-Scale Distributed Systems Tracing Infrastructure",
+  "paper_authors": [
+    "Benjamin Sigelman",
+    "Luiz André Barroso",
+    "Mike Burrows",
+    "Patrice R. Godefroid",
+    "Jeffrey Dean",
+    "Wolfgang Mühlbauer"
+  ],
+  "paper_year": 2010,
+  "paper_venue": "USENIX",
+  "paper_url": "http://research.google.com/pubs/archive/36356.pdf",
+  "paper_abstract": "Modern Internet services are often implemented as complex, large-scale distributed systems. These applications are constructed from collections of software modules that may be developed by different teams, perhaps in different programming languages, and could span many thousands of machines across multiple physical facilities. Tools that aid in understanding system behavior and reasoning about performance issues are invaluable in such an environment. Here we introduce the design of Dapper, Google’s production distributed systems tracing infrastructure, and describe how our design goals of low overhead, application-level transparency, and ubiquitous deployment on a very large scale system were met. Dapper shares conceptual similarities with other tracing systems, particularly Magpie [3] and X-Trace [12], but certain design choices were made that have been key to its success in our environment, such as the use of sampling and restricting the instrumentation to a rather small number of common libraries. The main goal of this paper is to report on our experience building, deploying and using the system for over two years, since Dapper’s foremost measure of success has been its usefulness to developer and operations teams. Dapper began as a self-contained tracing tool but evolved into a monitoring platform which has enabled the creation of many different tools, some of which were not anticipated by its designers. We describe a few of the analysis tools that have been built using Dapper, share statistics about its usage within Google, present some example use cases, and discuss lessons learned so far.",
+  "paper_file": "papers/2015/10/06/dapper-a-large-scale-distributed-systems-tracing-infrastructure.pdf",
+  "topics": [
+    "distributed-systems",
+    "cloud-computing"
+  ],
+  "tags": [
+    "distributed-tracing",
+    "microservices",
+    "sampling",
+    "BigTable",
+    "RPC",
+    "latency-analysis",
+    "performance-diagnostics"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "The path taken through a simple serving system",
+      "caption": "The path taken through a simple serving system on behalf of user request X. The letter-labeled nodes represent processes in a distributed system."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

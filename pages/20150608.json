@@ -1,0 +1,34 @@
+{
+  "date": "20150608",
+  "file_name": "20150608",
+  "slug": "a-bridging-model-for-parallel-computation",
+  "blog_url": "https://blog.acolyer.org/2015/06/08/a-bridging-model-for-parallel-computation/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Valiant's 1990 paper introducing the Bulk Synchronous Parallel (BSP) model as a unifying bridging model for parallel computation, analogous to the von Neumann model for sequential computation. The BSP model aims to decouple hardware and software development by providing a common abstraction where hardware designers optimize for BSP efficiency and software developers write programs mapped to BSP machines. The key insight is that BSP can achieve near-optimal efficiency across diverse contexts, provided programs exhibit 'sufficient parallel slackness' (i.e., virtual processors v >> physical processors p). Colyer emphasizes the model's three attributes (components, router, synchronization), its parameters (L, g, p, v), and its relevance to modern parallel systems, noting parallels with distributed systems recommendations (e.g., more partitions than nodes). The paper's analysis shows how hashing and combining networks can handle memory access patterns efficiently under BSP.",
+  "paper_title": "A Bridging Model for Parallel Computation",
+  "paper_authors": [
+    "Leslie G. Valiant"
+  ],
+  "paper_year": 1990,
+  "paper_venue": "",
+  "paper_url": "http://web.mit.edu/6.976/www/handout/valiant2.pdf",
+  "paper_abstract": "the necessary number of parallel streams of computation. Highly synchronized languages written in the PRAM style are clearly compatible. The model is consistent, however, with a number of other situations also. For example, in transaction processing where the length of transactions is statistically predictable a random allocation of processors would suffice. The arguments given in this article in support of the BSP model are of three kinds. First it is argued that if the computational and communication bandwidth are suitably balanced (i.e., g is a small constant such as one) the model has a major advantage regarding programmability, as least for programs with sufficient slack. In that case the memory and communication management required to implement a virtual shared memory can be achieved with only a constant factor loss in processor utilization. The constants needed in the simulations are known to be small, except in the case that concurrent accesses are made with high levels of concurrency to each of many single locations simultaneously. We note that existing machines have higher values of g than is ideal for a BSP computer. The arguments of this article can be interpreted as saying that if the relative investment in com- munication hardware were suitably increased, machines with a new level of programmability would be obtained. We note that for certain programs in which automatic memory allocation is useful,the effective value of g can be made smaller than the physical value by exploiting locality and viewing the computation at a higher level of granularity. For example, in finite element methods the virtual memory can be regarded as partitioned into segments, each of which is to be stored in a single memory component. The number of computation steps per segment may then greatly exceed the number of nonlocal memory accesses. The second kind of argument given in this article is that several important algorithms can be implemented directly on this model. Such an i...",
+  "paper_file": "papers/2015/06/08/a-bridging-model-for-parallel-computation.pdf",
+  "topics": [
+    "algorithms",
+    "distributed-systems"
+  ],
+  "tags": [
+    "bulk-synchronous-parallel",
+    "parallel-computation",
+    "bridging-model",
+    "parallel-slackness",
+    "supersteps",
+    "global-synchronization",
+    "combining-networks",
+    "hashing"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

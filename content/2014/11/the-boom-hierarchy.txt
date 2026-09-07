@@ -1,0 +1,227 @@
+URL: https://blog.acolyer.org/2014/11/06/the-boom-hierarchy/
+Title: The Boom Hierarchy
+---
+
+The Boom Hierarchy - Bunkenberg 
+
+In honour of the CodeMesh conference this week, and as recommended in a recent tweet by Eric Meijer, today's paper gives insight on some of our most fundamental data structures and the operations on them.
+
+> 
+
+The Boom Hierarchy is the family of data structures tree, list, bag, and set, to be used with the functions reduce, map, filter. ... the relations between the data structures are explained. No category theory required!
+
+Bunkenberg does use the word 'homomorphism' a lot though ;) I find these sometimes intimidating sounding words a lot easier to get along with by picking apart them apart. So 'homo' meaning 'the same' (as in homogeneous), and 'morph' meaning 'shape or form'. So homomorphism is things that have the same shape - or more precisely a relation between their shapes/forms such that you can translate from one to the other and back again. 
+
+At the core of the paper is a really simple idea: consider a binary operation (something that takes two arguments, such as '+'). There are four laws of interest that the operation may or may not obey. Using ++ to stand in for the binary operator, these are:
+
+- The unit law - does the operation have a unit value U such that x++U = x and U ++ x = x. For sum, the unit value is 0.
+
+- The associative law - (a ++ b) ++ c = a ++ (b++c)
+
+- The commutative law - a ++ b = b ++ a
+
+- Idempotency - a ++ a = a. (For example, set union)
+
+A data structure (algebra) can either follow the restrictions implied by a given law, or not. If '1' represents 'follows the law' and '0' represents 'does not follow the law', and we code for each law in sequence, then we can characterise a data structure as e.g. 1100 (lists : obey the unit and associative laws, but not the commutative and idempotency ones). Thus there are 16 different combinations, and each one represents a different data structure! This collection of data structures is 'the Boom Hierarchy'.
+
+Reduce, map, and filter can be applied to all data structures in the hierarchy. 
+
+> 
+Any homomorphism from a free algebra (a data structure) can be defined as a combination of a map and a reduce. 
+
+The paper then goes on to highlight some of the data structures formed by the combinations of the laws, and some neat operations that can be formed using map and reduce. 
+
+For example, a set has code 1111, and existential qualification ('there exists'), isEmpty, size, membership and more can all be defined using simple map and reduce translations.
+
+A really neat introduction to the power of 'algebraic thinking'.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Algorithms and data structures 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousRoute planning in transportation networksNext &rsaquo;Highly Available Transactions: Virtues and Limitations
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

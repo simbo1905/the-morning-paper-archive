@@ -1,0 +1,344 @@
+URL: https://blog.acolyer.org/2019/02/11/exfakt-a-framework-for-explaining-facts-over-knowledge-graphs-and-text/
+Title: ExFaKT: a framework for explaining facts over knowledge graphs and&nbsp;text
+---
+
+ExFaKT: a framework for explaining facts over knowledge graphs and text Gad-Elrab et al., WSDM'19
+
+Last week we took a look at Graph Neural Networks for learning with structured representations. Another kind of graph of interest for learning and inference is the knowledge graph.
+
+> 
+ Knowledge Graphs (KGs) are large collections of factual triples of the form (SPO) about people, companies, places etc. 
+
+Today’s paper choice focuses on the topical area of fact-checking : how do we know whether a candidate fact, which might for example be harvested from a news article or social media post, is likely to be true? For the first generation of knowledge graphs, fact checking was performed manually by human reviewers, but this clearly doesn’t scale to the volume of information published daily. Automated fact checking methods typically produce a numerical score (probability the fact is true), but these scores are hard to understand and justify without a corresponding explanation.
+
+> 
+
+ To better support KG curators in deciding the correctness of candidate facts, we propose a novel framework for finding semantically related evidence in Web sources and the underlying KG, and for computing human—comprehensible explanations for facts. We refer to our framework as ExFaKT (Explaining Facts over KGs and Text resources).
+
+There could be multiple ways of producing evidence for a given fact. Intuitively we prefer a short concise explanation to a long convoluted one. This translates into explanations that use as few atoms and rules as possible. Furthermore, we prefer evidence from trusted sources to evidence over less trusted sources. In this setting, the sources available to us are the existing knowledge graph and external text resources. The assumption is that we have some kind of quality control over the addition of facts to the knowledge graph, and so we prefer explanations making heavy use of knowledge graph facts to those than rely mostly on external texts.
+
+In addition to the facts in the knowledge base, we have at our disposal a collection of rules. These rules may have been automatically harvested from unstructured documents (see e.g. DeepDive), or they might be provided by human authors. In the evaluation 10 students are given a short 20 minute tutorial on how to write rules, and then asked to pick 5 predicates from a list of KG predicates and write at least one supporting rule and one refuting rule for each. It took 30 minutes for the students to produce 96 rules between them. More than half of the rules were strong (represent causality and generalise), and more than 80% were either strong or valid (valid rules capture a correlation but may be tied to specific cases). The remaining incorrect rules were filtered out by having the same participants judge each others rules using a voting scheme. The authors conclude that manual creation of rules is not a bottleneck, and could be informed by crowdsourcing at a fairly low cost.
+
+A rule is specified using the implication form of Horn clauses: . H is the head, which we can infer if all of the body clauses are true. For example,
+
+- citizenOf(X,Y) mayorOf(X,Z), locatedIn(Z,Y)
+
+E.g., if London is located in England, and Sadiq Khan is the mayor of London, then we can infer that Sadiq Khan is a citizen of England.
+
+One technique we could try is to iterate from known facts and rules to a fixpoint. The challenge here is that we are including an external text corpus as part of the resources available to us. That text corpus could be, e.g. ‘the Web’. Finding every possible deducible fact across the entire web, and then checking to see if our candidate fact is among them isn’t going to be very efficient!
+
+So what ExFaKT does instead is to work backwards from the candidate fact, recursively using query rewriting to break the query down into a set of simpler queries, until we arrive at body atoms. The recursion stops when either no rules can be found or all atoms are instantiated either by facts in the KG or by text.
+
+For example, suppose we have a knowledge graph with three facts:
+
+directed(lucas, star_wars)
+isDirector(nolan)
+directed(lucas, amer_graffiti)
+
+And two rules:
+
+influencedBy(X,Y) <- isDirector(X), directed(Y,Z),
+inspiredBy(X,Z)
+inspiredBy(X,Y) <- liked(X,Y), isArtist(X)
+
+For out text corpus we’ll assume all Wikipedia articles. The query we want to fact check is influencedBy(nolan, lucas).
+
+Expanding the initial query we have three things to check: isDirector(nolan), directed(lucas,Z) and inspiredBy(nolan, Z). We know that isDirector(nolan) directly from the fact base. Now we can ground the second directed(lucas, Z) from the fact base, leading us to two candidate explanations:
+
+- isDirector(nolan), directed(lucas, star_wars), inspiredBy(nolan, star_wars)
+- isDirector(nolan), directed(lucas, amer_graffiti), inspiredBy(nolan, amer_graffiti)
+
+Starting with the first candidate, inspired(nolan, star_wars) is found in wikipedia, so we add this explanation to the output set. Since text is a noisy resource, we can also break down inspiredBy(nolan, star_wars) into the two subgoals liked(nolan, star_wars), isArtist(nolan). If these two atoms are also spotted in the text corpus, we can add this as an additional explanation to the output set.
+
+Using bind to refer to the operation of retrieving answers to a given query from underlying data sources, the overall ExFaKT algorithm looks like this:
+
+We keep track of the depth of recursion to limit the total number of rewritings and ensure termination. The algorithm can be stopped whenever it has uncovered satisfactory explanations, but we want to ensure that we find good explanations meeting the criteria we laid out earlier. Thus when picking a promising explanation to explore (line 4), we favour shorter explanations and explanations with fewer rewritings. When picking an atom to search for (line 9), atoms without variables are preferred, then those with some constants, and atoms with only variables are sent to the back of the queue. Atoms with KG substitutions are preferred to those that can only be backed up by text.
+
+Key results from the evaluation shows that:
+
+- Combining both KG and textual resources results in superior predicate recall than relying solely on just the KG or just the text corpus.
+- When the evidence produced by ExFaKT is presented to a human, they are able to judge the truthfulness of a fact candidate in 27 seconds on average. Using just standard web searches it took them on average 51 seconds. 
+
+> 
+
+ This illustrates the benefits of using our method for increasing the productivity and accuracy of human fact-checkers.
+
+One of the things I wondered when working through the paper is that the system seems very vulnerable to confirmation bias. I.e., it deliberately goes looking for confirming facts, and declares the candidate true if it finds them. But maybe there is an overwhelming body of evidence to the contrary, which the system is going to ignore? The answer to this puzzle is found in section 4.5, where the authors evaluate the use of ExFaKT in automated fact checking. For each candidate fact ExFaKT is used to generate two sets of supporting explanations: one set confirming the fact, and one set refuting it. By scoring the evidence presented (roughly, the trust level of the sources used, over the depth of the explanation) it’s possible to come to a judgement as to which scenario is the more likely.
+
+> 
+
+ The conducted experiments demonstrate the usefulness of our method for supporting human curators in making accurate decisions about the truthfulness of facts as well as the potential of our explanations for improving automated fact-checking systems.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Graph 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousGraph neural networks: a review of methods and applicationsNext &rsaquo;Beyond news contents: the role of social context for fake news detection
+ 
+ 
+
+ 
+ 
+## 
+ 6 thoughts on &ldquo;ExFaKT: a framework for explaining facts over knowledge graphs and text&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 11 February 2019 - MasMaz 
+ 
+ 
+- 
+ 
+ 
+ 
+ Martin Lercher says: 
+
+ 
+ February 11, 2019 at 8:55 pm 
+
+ 
+
+ 
+ 
+Reminds me of Prolog using Resolution to proof questions it is asked. E.g. described in http://web.cse.ohio-state.edu/~stiff.4/cse3521/prolog-resolution.html. However, Prolog deals with more variables than the at max three in SPOs.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 11 February 2019 - sportsguru 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 11 February 2019 - Dinezh.com 
+ 
+ 
+- 
+ 
+ 
+ 
+ Ryan Streur (@RJStreur) says: 
+
+ 
+ February 16, 2019 at 3:28 am 
+
+ 
+
+ 
+ 
+I thought of prolog too! I'd be interested in seeing if this algorithm could be applied to a system which provides rich citation / attribution management support. Something like a combination citation-manager/knowledgebase. On the off chance anyone reads this and has any ideas, hmu
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Distilled News | AnalytiXon 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ %d

@@ -1,0 +1,46 @@
+{
+  "date": "20160719",
+  "file_name": "20160719",
+  "slug": "sharing-aware-outlier-analytics-over-high-volume-data-streams",
+  "blog_url": "https://blog.acolyer.org/2016/07/19/sharing-aware-outlier-analytics-over-high-volume-data-streams/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the Sharing-aware Outlier Processing (SOP) algorithm by Cao et al., which addresses the challenge of handling large-scale outlier detection queries over high-volume data streams. Traditional methods struggle with scalability when processing hundreds or thousands of concurrent outlier queries with varying parameters. SOP introduces a novel approach by leveraging a single skyband query—a generalization of skyline queries—to efficiently determine outlier status for all queries simultaneously. The key insight is that a skyband query can provide minimal yet sufficient evidence to evaluate whether a data point is an outlier across all queries in the workload. This method significantly outperforms prior state-of-the-art techniques (e.g., LEAP or MCOD) by reducing CPU usage by three orders of magnitude and scaling to workloads with thousands of queries. The algorithm also introduces K-SKY, an optimized skyband query processing technique that efficiently handles sliding window semantics, further improving performance.",
+  "paper_title": "Sharing-aware Outlier Analytics over High-volume Data Streams",
+  "paper_authors": [
+    "Yongxin Cao",
+    "Cheqing Jin",
+    "Aoying Zhou"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "SIGMOD",
+  "paper_url": "http://dl.acm.org/citation.cfm?id=2882920",
+  "paper_abstract": "Users Real-time outlier detection from a data stream has become increasingly important in the current hyperconnected world. This paper focuses on an important yet unaddressed challenge in continuous outlier detection—the multiplicity and dynamicity of queries. This challenge arises from various contexts of outliers evolving over time, but the state-of-the-art algorithms cannot handle the challenge effectively, as they can only process a fixed set of outlier detection queries for each data point separately. In this paper, we propose a novel algorithm, abbreviated as MDUAL, based on a new idea called duality-based unified processing. The underlying rationale is to exploit the duality of data and queries so that a group of similar data points are processed together by a group of similar queries incrementally. Two main techniques embodying the idea, data-query grouping and prioritized group processing, are employed. Comprehensive experiments showed that MDUAL runs 216 to 221 times faster while consuming 11 to 13 times less memory than the state-of-the-art algorithms through its efficient and effective handling of the multiplicity–dynamicity challenge. Multiplicity t1 t2 Add/Remove Add/Remove Dynamicity Continuous outlier detection queries Query 1, Query 2, Query 3, … , Query N Real-time outlier detection algorithm Data stream source Detected outliers Figure 1: Real-time outlier detection with multiple and dynamic outlier detection queries. increasing attention [11, 16, 32, 36]. Outliers are data instances with unusual characteristics that cannot be found in the majority of other data instances [2], and detecting them in real time is crucial in many applications, such as detecting fraudulent activities in financial transactions [1] or monitoring for abnormal beats in a patient’s ECG [25]. Real-time outlier detection from a data stream typically involves continuously running queries that filter out data points that satisfy outlier conditions defined on parameters, and in ...",
+  "paper_file": "papers/2016/07/19/sharing-aware-outlier-analytics-over-high-volume-data-streams.pdf",
+  "topics": [
+    "data-engineering",
+    "algorithms"
+  ],
+  "tags": [
+    "outlier-detection",
+    "stream-processing",
+    "skyband-query",
+    "skyline-query",
+    "sliding-window",
+    "distance-based-outliers",
+    "K-SKY"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Real-time outlier detection with multiple and dynamic outlier detection queries",
+      "caption": "Real-time outlier detection with multiple and dynamic outlier detection queries."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Two approaches for processing multiple and dynamic outlier detection queries",
+      "caption": "Two approaches for processing multiple and dynamic outlier detection queries.\n(a) Data points and continuous outlier detection queries.\n(b) Separate processing.\n(c) Duality-based unified processing."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

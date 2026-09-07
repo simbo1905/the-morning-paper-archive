@@ -1,0 +1,69 @@
+URL: https://blog.acolyer.org/2019/12/11/a-tale-of-two-abstractions/
+Title: A tale of two abstractions: the case for object&nbsp;space
+---
+
+A tale of two abstractions: the case for object space, Bittman et al., HotStorage 2019.
+
+This is a companion paper to the "persistent problem" piece that we looked at earlier this week, going a little deeper into the object pointer representation choices and the mapping of a virtual object space into physical address spaces.
+
+> 
+
+...software operating on persistent data structures requires "global" pointers that remain valid after a process terminates, while hardware requires that a diverse set of devices all have the same mappings they need for bulk transfers to and from memory, and that they be able to do so for a potentially heterogeneous memory system. Both abstractions must be implemented in a way that is efficient using existing hardware.
+
+## Application requirements
+
+In-memory data structures are notable for the rich inter-weaving of pointer references between them. If we take those data structures and make them also be the persistent representation, "then applications need a way to refer to data such that references have the same lifetime as the referenced data." Epheremal virtual addresses don't cut it as the basis for persistent pointers.
+
+> 
+
+Applications running on BNVM (byte-addressable non-volatile memory) must have a way to create pointers that outlast a process's virtual address space and are valid in other address spaces.
+
+A bit like the promise of object stores (for a brief period in the mid-late nineties I remember these being all the rage) the ideal is that programmers don't need to think about two different representations for volatile (in-memory) and persistent data representations. If all of the access mechanisms and data conversions go away (or at least, fade into the background) then perhaps systems programming will become data-centric instead of being process-centric as it is today:
+
+> 
+
+Instead of structuring computation in a process-centric manner, persistent data references and objects let us build our programs around data, a design goal known to all (programming is all about data), but realized by few, since traditional persistent data access requires significant overhead in terms of programming complexity and OS involvement.
+
+For what it's worth, I actually wonder if the persistent objects envisioned by Twizzler might pair very well as the the foundation for a persistent actor model. In which case we'd actually have a multitude of fine-grained concurrent entities.
+
+## The hardware perspective
+
+At the hardware level we want to able to move data into, out of , and around memory, without consideration for persistence and reference lifetimes. On the other hand though:
+
+> 
+
+... today's hardware must worry about physical location of data, which (with BNVM) is now more likely to change over time.
+
+Pages of memory may very well move between different types of physical memory in a physical address space.
+
+## Object spaces
+
+To accomodate the differing needs of hardware and software, Twizzler introduces the notions of global and logical object spaces.
+
+> 
+
+The global object space contains all objects (potentially across multiple systems), allowing persistent pointers to refer to data with long lifetimes and giving software the ability to operate directly on persistent structures. The logical object space is an abstraction over physical memory that contains the working set of actively used objects local to one system.
+
+In the global object space, as we saw on Monday, Twizzler represents data references as (object_id, offset) pairs, with indirection through a Foreign Object Table (FOT). That's a good model for applications, but not for hardware.
+
+The logical object space maps contiguous objects within it to physical memory pages. Drawing inspiration from work on single-address-space (SAS) operating systems a single system-wide mapping is maintained by the OS which all devices use for accessing memory. The address space is broken up into an array of fixed-size object slots, which are in turn mapped to physical memory.
+
+## A prototype implementation
+
+It's the job of the operating system to manage the global and logical object space abstractions. The OS contains a library operating system component that lives in userspace and assists programs with peristent data access, and a kernel responsible for mediating between hardware and software. Threads run in a virtual address space, which as we just examined, is mapped into logical object space before finally being translated to physical addresses.
+
+> 
+
+We implement these abstractions in part by repurposing virtualization hardware to provide an abstraction over physical memory - an ability that is underused outside of full-system virtualization.
+
+The two level mapping is managed using Extended Page Tables (EPTs) on Intel processors (AMD has a similar concept called Nested Page Tables). CPU addresses are no longer directly translated by the IOMMU, instead virtualization hardware is (re-)purposed to do the needed address translations.
+
+The kernel acts as its own hypervisor, creating an Extended Page Table with an identity map of physical memory, and a virtual CPU. Using the vmfunc call the kernel can switch EPTs efficiently without VM exits. Virtualization exceptions act as the equivalent of page faults.
+
+A preliminary evaluation showed that deferencing a pointer to a different object costs around 2.4ns, and dereferencing a pointer within the same object costs around 0.4ns, exclusive of the final deference which is required under all models. Compared to traditional approaches to persisting data which rely on forms of serialisation, this is significantly faster. Since the proposal here though is that we gain significant simplifications by using the same data structure for both the persistent form and the 'operational' form, object space pointers also have to be competitive with traditional in-memory pointers and data structures. At 0.4ns, we're in the same ballpark as regular L1 cache reference latency. That makes sense, because the test 'repeatedly deferenced a persistent pointer,' so we'd expect everything to be in L1.
+
+## The last word
+
+> 
+
+As BNVM becomes commonplace in computer systems, the abstractions governing how software and hardware view memory must change to allow programmers and hardware to efficiently utilize and manage persistent memory. By breaking memory into objects and providing object-based mappings for both applications and devices, software will be able to use a simpler, more efficient programming model while still providing manageability and security for persistent random access memory.

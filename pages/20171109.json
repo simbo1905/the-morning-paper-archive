@@ -1,0 +1,36 @@
+{
+  "date": "20171109",
+  "file_name": "20171109",
+  "slug": "type-test-scripts-for-typescript-testing",
+  "blog_url": "https://blog.acolyer.org/2017/11/09/type-test-scripts-for-typescript-testing/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the challenges of maintaining TypeScript declaration files for JavaScript libraries, which are manually written and prone to errors. The paper introduces TSTest, a tool that uses feedback-directed random testing to automatically generate type test scripts for JavaScript libraries and their corresponding TypeScript declarations. These scripts dynamically exercise the library code and perform runtime type checking to detect mismatches between declarations and implementations. The approach is shown to find more errors with fewer false positives than prior static analysis tools. Colyer notes the clever adaptation of Randoop's feedback-directed testing to TypeScript, along with the novel design choices required to handle structural types, function contracts, and recursion. The evaluation on 54 real-world libraries finds type mismatches in 49 of them, demonstrating the tool's practical utility despite theoretical limitations in soundness and completeness.",
+  "paper_title": "Type test scripts for TypeScript testing",
+  "paper_authors": [
+    "Magnus Madsen",
+    "Mikkel Kjærgaard",
+    "Andreas Pavlogiannis",
+    "Anders Møller"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "OOPSLA'17",
+  "paper_url": "https://cs.au.dk/~amoeller/papers/tstest/paper.pdf",
+  "paper_abstract": "ing with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org. © 2017 Copyright held by the owner/author(s). Publication rights licensed to Association for Computing Machinery. 2475-1421/2017/10-ART90 https://doi.org/10.1145/3133914 Proc. ACM Program. Lang., Vol. 1, No. OOPSLA, Article 90. Publication date: October 2017. 90 90:2 Erik Krogh Kristensen and Anders Møller JavaScript implementations evolve [Kristensen and Møller 2017]. However, those techniques rely on unsound static analysis and consequently often overlook errors and report spurious warnings. Gradual typing [Siek and Taha 2006] provides another approach to find this kind of type errors. Type annotations are ignored in ordinary TypeScript program execution, but with gradual typing, runtime type checks are performed at the boundaries between dynamically and statically typed code [Rastogi et al. 2015]. This can be adapted to check TypeScript declaration files [Williams et al. 2017] by wrapping the JavaScript implementation in a higher-order contract [Keil and Thiemann 2015b], which is then tested by executing application code against the wrapped JavaScript implementation. That approach has a significant performance overhead and is therefore unlikely to be used in production. For use in a development setting, a type error can only be found if a test case provokes it. The results by Williams et al. [2017] also question whether it is feasible to implement a higher-order contract system that guarantees non-interference. In this work we present a new method for detecting mismatches between JavaScript libraries and their TypeScript declaration files. Compared to the approaches by Feldthaus and Møller [2014] and Kristensen and Møller [2017] that rely on static analysis, our method finds more actual errors and also reports fewer false positives. It additionally has the adva...",
+  "paper_file": "papers/2017/11/09/type-test-scripts-for-typescript-testing.pdf",
+  "topics": [
+    "programming-languages"
+  ],
+  "tags": [
+    "type-systems",
+    "testing",
+    "typescript",
+    "javascript",
+    "dynamic-analysis",
+    "feedback-directed-testing",
+    "type-declarations",
+    "structural-types"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

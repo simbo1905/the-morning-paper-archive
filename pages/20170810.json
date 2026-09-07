@@ -1,0 +1,44 @@
+{
+  "date": "20170810",
+  "file_name": "20170810",
+  "slug": "enabling-signal-processing-over-data-streams",
+  "blog_url": "https://blog.acolyer.org/2017/08/10/enabling-signal-processing-over-data-streams/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights TrillDSP, a system that deeply integrates digital signal processing (DSP) operations with the Trill streaming analytics engine from Microsoft. The key insight is to overcome the 'impedance mismatch' between relational query processing and numerical signal processing tools like MATLAB or R, which traditionally suffer from inefficiencies due to format translation overheads. TrillDSP provides a unified query language for processing both tempo-relational and signal data, achieves performance comparable to best-of-breed DSP systems (e.g., MATLAB, R), and outperforms loosely-coupled systems (e.g., SparkR, SciDB-R) by up to 146x for mixed workloads. The system supports custom DSP operators, incremental computation, and efficient grouped processing for IoT applications. Notable features include functional signal payloads for continuous signals, flexible interpolation policies, and native support for windowing and digital filters.",
+  "paper_title": "TrillDSP: Enabling Signal Processing over Data Streams",
+  "paper_authors": [
+    "Milos Nikolic",
+    "Badrish Chandramouli",
+    "Jonathan Goldstein"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "SIGMOD '17",
+  "paper_url": "https://www.cs.ox.ac.uk/files/9135/sigmod2017-trilldsp.pdf",
+  "paper_abstract": "Internet of Things applications analyze the data coming from large networks of sensor devices using relational and signal processing operations and running the same query logic over groups of sensor signals. To support such increasingly important scenarios, many data management systems integrate with numerical frameworks like R. Such solutions, however, incur significant performance penalties as relational data processing engines and numerical tools operate on fundamentally different data models with expensive intercommunication mechanisms. In addition, none of these solutions supports efficient real-time and incremental analysis. In this paper, we advocate a deep integration of signal processing operations and general-purpose query processors. We aim to reconcile the disparate data models and provide a common query language that allows users to seamlessly interleave tempo-relational and signal operations for both online and offline processing. Our approach is extensible and offers frameworks for quick and easy integration of user-defined operations while supporting incremental computation. Our system that deeply integrates relational and signal operations, called T RILL DSP, achieves up to two orders of magnitude better performance than popular loosely-coupled data management systems on grouped signal processing workflows.",
+  "paper_file": "papers/2017/08/10/enabling-signal-processing-over-data-streams.pdf",
+  "topics": [
+    "data-engineering",
+    "machine-learning"
+  ],
+  "tags": [
+    "stream-processing",
+    "signal-processing",
+    "dsp",
+    "fft",
+    "windowing",
+    "interpolation",
+    "digital-filters",
+    "iot",
+    "query-language",
+    "incremental-computation"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Spectrum analysis in TrillDSP, R, and SparkR",
+      "caption": "Spectrum analysis in TrillDSP, R, and SparkR"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,295 @@
+URL: https://blog.acolyer.org/2016/01/15/non-volatile-storage/
+Title: Non-volatile Storage
+---
+
+Non-volatile Storage: Implications of the Datacenter's shifting center - Nanavati et al. 2016
+
+Strictly this is an article, not a paper, but it's a great piece from this month's ACM Queue magazine and very closely related to the discussion on the implications of non-volatile memory that we looked at yesterday. It's also highly quotable! It's hard to do better than the authors' own introduction to the subject matter:
+
+> 
+
+ For the entire careers of most practicing computer scientists, a fundamental observation has consistently held true: CPUs are significantly more performant and more expensive than I/O devices. The fact that CPUs can process data at extremely high rates, while simultaneously servicing multiple I/O devices, has had a sweeping impact on the design of both hardware and software for systems of all sizes, for pretty much as long as we have been building them. This assumption, however, is in the process of being completely invalidated.
+
+This invalidation is due to the arrival of high-speed, non-volatile storage devices, typically referred to as storage class memories (SCM). The performance of an SCM, at hundreds of thousands of iops, requires one or more many-core CPUs to saturate it. The most visible type of SCMs today are PCIe SSDs (SSDs attached via the PCI-express bus). Beyond PCI SSDs there are NVDIMMS, which have the performance characteristics of DRAM while simultaneously offering persistence - these tend to couple DRAM and flash on a DIMM and use a super-capacitor to provide enough power to flush the volatile contents of DRAM out to disk on a loss of power. And then of course there's the even cheaper battery-backed distributed UPS solutions that we looked at yesterday...
+
+For more details on the emerging NVRAM scene, I recommend the Better Memory article in CACM.
+
+> 
+
+ The age-old assumption that I/O is slow and computation is fast is no longer true: this invalidates decades of design decisions that are deeply embedded in today's systems.
+
+We've discussed previously on The Morning Paper how it's important to watch not just the absolute changes in performance (the "numbers every programmer should know"), but also the relative performance ratios across layers. If everything improves at the same rate, the system gets faster without needing to change its design, but when different layers improve at radically different rates, the trade-offs you need to make may look very different.
+
+> 
+
+ Current PCIe-based SCMs represent an astounding three-order-of-magnitude performance change relative to spinning disks (~100K I/O operations per second versus ~100). For computer scientists, it is rare the performance assumptions that we make about an underlying hardware component change by 1,000x or more. This change is punctuated by the fact the performance and capacity of non-volatile memories continue to outstrip CPUs in year-on-year performance improvements, closing and potentially even inverting the I/O gap.
+
+This huge change means that much existing software is about to become very inefficient. When I/O is the bottleneck it makes sense to cache heavily (at multiple layers), and spend CPU cycles to reduce I/O through compression and deduplication. The performance of SCMs means that systems must no longer hide them via caching and data reduction in order to achieve high-throughput. (We saw the extreme end of this spectrum yesterday, where one-sided RDMA bypasses the CPU altogether). We're no longer in the position where simply upgrading to this new faster storage will give commensurate benefits in overall system performance:
+
+> 
+
+ To maximize the value derived from high-cost SCMs, storage systems must consistently be able to saturate these devices. This is far from trivial: for example, moving MySQL from SATA RAID to SSDs improves performance only by a factor of 5–7 —significantly lower than the raw device differential. In a big data context, recent analyses of SSDs by Cloudera were similarly mixed: “we learned that SSDs offer considerable performance benefit for some workloads, and at worst do no harm.”
+
+Getting the most out of these new devices requires that we build balanced systems with contention-free I/O centric scheduling, horizontal scaling, and workload-aware storage tiering.
+
+## Balancing systems
+
+With SCMs, the ideal ratio of CPUs: RAM: Disk changes. Simply replacing existing disks with SCMs will lead to an unbalanced system whereby there isn't enough CPU horsepower to saturate the disks. Sufficient CPU cores must be available, and the network must provide enough connectivity for data to be served out of storage at full capacity. If SCMs are the most expensive components in your data center, this is economically important too.
+
+> 
+
+ Underutilized and idle SCMs constitute waste of an expensive resource, and suggest an opportunity for consolidation of workloads. Interestingly, this is the same reasoning that was
+
+ used, over a decade ago, to motivate CPU virtualization as a means of improving utilization of compute resources. Having been involved in significant system-building efforts for both CPU and now SCM virtualization, we have found achieving sustained utilization for SCMs to be an even more challenging goal than it was for CPUs. It is not simply a matter of virtualizing the SCM hardware on a server and adding more VMs or applications: We may encounter CPU or memory bottlenecks long before the SCM is saturated. Instead, saturating SCMs often requires using a dedicated machine for the SCM and spreading applications across other physical machines.
+
+## I/O centric scheduling
+
+> 
+
+ Even if the hardware resources and the workload are perfectly balanced, the temporal dimension of resource sharing matters just as much. For a long time, interrupt-driven I/O has been the model of choice for CPU-disk interaction. This was a direct consequence of the mismatch in their speeds.
+
+For low-latency 'microsecond era' devices this model must change drastically. An I/O-centric scheduler in a storage subsystem must recognise that the primary goal of the CPU is to drive I/O devices. Scheduling quotas should be based on the number of iops performed rather than CPU cycles consumed.
+
+> 
+
+ At 100K IOPS for a uniform random workload, a CPU has approximately 10 microseconds to process an I/O request. Because current SCMs are often considerably faster at processing sequential or read-only workloads, this can drop to closer to 2.5 microseconds on commodity hardware. Even worse, since these requests usually originate from a remote source, network devices have to be serviced at the same rate, further reducing the available per-request processing time. To put these numbers in context, acquiring a single uncontested lock on today’s systems takes approximately 20ns, while a non-blocking cache invalidation can cost up to 100ns, only 25x less than an I/O operation. Current SCMs can easily overwhelm a single core; they need multiple cores simultaneously submitting requests to achieve saturation.
+
+## Horizontal scaling
+
+> 
+
+ A single controller is simply not capable of mediating access to large numbers of SCMs simultaneously. Doing so would require processing an entire request in around 100ns—the latency of a single memory access. A centralized controller would thus leave storage hardware severely underutilized, providing a poor return on the investment in these expensive devices.
+
+Horizontal scale-out approaches are a better fit. Maintaining high performance across a cluster requires careful attention to load balancing, which can require moving files from one machine to another. "Distributed storage systems have faced these issues for years, but the problems are much more acute under the extremely high load that an SCM-based enterprise storage system experiences."
+
+## Workload-aware storage tiering
+
+A 10TB dataset with an expected load of 500K iops is only 50% utilised when all the data is stored in 1TB SCMs capable of 100K iops...
+
+> 
+
+ The takeaway here is that unless the majority of data in the system is hot, it is extremely inefficient to store it all in high-speed flash devices. Many workloads, however, are not uniformly hot, but instead follow something closer to a Pareto distribution: 80% of data accesses are concentrated in 20% of the dataset. A hybrid system with different tiers of storage media, each with different performance characteristics, is a better option for a mixture of hot and cold data. SCMs act as a cache for slower disks and are filled with hot data only.... Despite the obvious benefits of tiering, it is fraught with complications. The difference in granularity of access at different storage tiers causes an impedance mismatch.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Hardware 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousNo Compromises: Distributed Transactions with Consistency, Availability, and PerformanceNext &rsaquo;The RAMCloud Storage System
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;Non-volatile Storage&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Střeva databází | Funkcionálně.cz 
+ 
+ 
+- 
+ 
+ Pingback: Big Analytics Roundup (January 18, 2016) | The Big Analytics Blog 
+ 
+ 
+- 
+ 
+ Pingback: All Change Please | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

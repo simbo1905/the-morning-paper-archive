@@ -1,0 +1,34 @@
+{
+  "date": "20171110",
+  "file_name": "20171110",
+  "slug": "a-model-for-reasoning-about-javascript-promises",
+  "blog_url": "https://blog.acolyer.org/2017/11/10/a-model-for-reasoning-about-javascript-promises/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this OOPSLA'17 paper as an important step toward taming the complex semantics of JavaScript Promises. The core contribution is the introduction of a formal calculus (a promise calculus) that precisely models the behavior of promises, including their states (Pending, Fulfilled, Rejected) and operations (resolve, reject, then). This formalism enables the construction of promise graphs, which visually represent control- and dataflow in promise-based programs. The blog post emphasizes how these graphs can detect a wide range of common bugs in promise code, such as dead promises, missing resolve/reject reactions, double resolves, and broken chains. Colyer particularly enjoys the promise graph visualization, which provides both forward and backward reasoning about promise flows. The paper also demonstrates practical utility by analyzing real StackOverflow questions, showing how promise graphs could have helped diagnose issues faster.",
+  "paper_title": "A Model for Reasoning about JavaScript Promises",
+  "paper_authors": [
+    "Mads Madsen",
+    "Fabio Strocco",
+    "Olivier Danvy"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "OOPSLA",
+  "paper_url": "http://www.franktip.org/pubs/oopsla2017promises.pdf",
+  "paper_abstract": "ing with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org. © 2017 Association for Computing Machinery. 2475-1421/2017/10-ART86 https://doi.org/10.1145/3133910 Proceedings of the ACM on Programming Languages, Vol. 1, No. OOPSLA, Article 86. Publication date: October 2017. 86 86:2 Magnus Madsen, Ondřej Lhoták, and Frank Tip different event handlers, and when an exception occurs during the execution of one event handler, other event handlers may still be scheduled for execution. As a result, the effects of errors may not manifest themselves until much later during a program’s execution, making the debugging of event-based code extremely challenging. Furthermore, several types of errors may occur that are specific to the event-driven programming model, such as lost events (situations where an event is emitted before a handler is registered) and dead listeners (situations where an event handler is never executed because the handler was registered too late or on the wrong object) [Madsen et al. 2015], and event race errors, i.e., situations where program behavior fails non-deterministically depending on the order in which event handlers are scheduled for execution [Adamsen et al. 2017; Hong et al. 2014; Jensen et al. 2015; Mutlu et al. 2015; Petrov et al. 2012; Raychev et al. 2013; Zhang and Wang 2017; Zheng et al. 2011]. In response to these problems, the JavaScript community has adopted promises, a programming model for asynchronous computing that was originally proposed by Friedman and Wise [1976]. A promise represents the value of an asynchronous computation, and is in one of three states (pending, fulfilled, or rejected). Promises come equipped with two functions, resolve and reject, which are used to resolve or reject the promise with a particular value, respectively. The then operation creates a new promise whose value i...",
+  "paper_file": "papers/2017/11/10/a-model-for-reasoning-about-javascript-promises.pdf",
+  "topics": [
+    "programming-languages"
+  ],
+  "tags": [
+    "javascript",
+    "promises",
+    "formal-calculus",
+    "program-analysis",
+    "bug-detection",
+    "control-flow",
+    "data-flow"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

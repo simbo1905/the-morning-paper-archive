@@ -1,0 +1,228 @@
+URL: https://blog.acolyer.org/2014/10/09/certificate-transparency/
+Title: Certificate Transparency
+---
+
+Certificate Transparency
+
+Laurie 2014
+
+This is a paper about DNS, certificates, and how to build trust in Certificate Authorities. But beyond that application, it's also a paper about how to build a publicly verifiable append-only log (without using a blockchain) - and that's an idea that could have lots of potential applications.
+
+> 
+
+The core idea behind Certificate Transparency is the public, verifiable, append-only log. Creating a log of all certificates issued that does not need to be trusted because it is cryptographically verifiable (and it turns out this is possible, as explained in more detail later) allows clients to check that certificates are in the log, and servers can monitor the log for misissued certificates. If clients decline to connect to sites whose certificates have not been logged, then this is a complete solution. It becomes impossible to misissue a certificate without detection.
+
+Laurie is certainly not a fan of bitcoin for this application:
+
+> 
+
+I have written extensively on what is wrong with Bitcoin (for example, it is the least green invention ever, and all of its history could be destroyed by a sufficiently powerful adversary if it were truly decentralized, which it is not). Nevertheless, people continue to worship irrationally at the altar of Bitcoin, and this worship extends to DNS and keys—for example, DNSChain (https://github.com/okTurtles/dnschain). 
+
+Apart from being an extremely costly solution (in terms of wasted energy, in perpetuity), it also introduces new trusted third parties (those who establish the “consensus” in the block chain) and has no mechanism for verification.
+
+The second half of the paper addresses the important question "How do you build a verifiable append-only log?" Merkle trees, an anti-entropy protocol, and an eventual consistency model that tolerates large inconsistency windows are all parts of the answer. 
+
+Here's an interesting idea too - instead of a fixed answer to how many logs need to be written to, the answer varies according to how long the data item is going to live for:
+
+> 
+
+Our current thinking is that each certificate should be logged in at least two logs and an increasing number as the certificate lifetime goes up—five logs for certificates with lifetimes of more than 39 months. The reasons for reducing the number of logs are straightforward: increased size of the TLS handshake; increased time taken to create certificates (though note that where the number of logs exceeds the required number of SCTs, firing off requests to all logs in parallel and taking the first n to respond should generally be fast); and the increased size and bandwidth requirements of individual logs caused by redundant logging.
+
+At the end of the paper, Laurie discuss other possible applications for verifiable logs. A particularly interesting use case for me is 'binary transparency.' That is, could you use these ideas to create e.g. a trusted registry of images for Docker et al.??
+
+> 
+
+Binary Transparency: This allows you to make logs of applications that are downloadable on the Internet. Like Certificate Transparency, Binary Transparency does not prevent the binaries from being malicious, but it does reassure users that the binaries they are getting are visible to the world for analysis, making the deployment of targeted malware much harder.
+
+As ever, read the paper for more details...
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ BlockchainSecurity 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousOutperforming LRU with an Adaptive Replacement Cache AlgorithmNext &rsaquo;Consistency, Availability, and Convergence
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,99 @@
+{
+  "date": "20150619",
+  "file_name": "20150619",
+  "slug": "discretized-streams-fault-tolerant-stream-computing-at-scale",
+  "blog_url": "https://blog.acolyer.org/2015/06/19/discretized-streams-fault-tolerant-stream-computing-at-scale/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the Spark Streaming paper by Zaharia et al. (2013), which introduces Discretized Streams (D-Streams) to address challenges in fault tolerance and straggler handling for large-scale stream processing. Traditional continuous operator models rely on replication or upstream backup for recovery, both of which are inefficient in large clusters—replication incurs 2× hardware costs, while upstream backup leads to slow recovery due to serial state rebuilding. D-Streams overcome these limitations by structuring streaming computations as a series of stateless, deterministic batch computations using Resilient Distributed Datasets (RDDs), which maintain data lineage for recovery without replication. This approach achieves sub-second end-to-end latencies and sub-second recovery times, making it suitable for applications like social media trend analysis, monitoring, and spam detection. The authors demonstrate linear scalability up to 100 nodes, processing over 60M records/second with per-node throughput comparable to commercial streaming databases. The D-Streams model also enables seamless integration with batch and interactive queries, enhancing Spark's versatility.",
+  "paper_title": "Discretized Streams: Fault Tolerant Stream Computing at Scale",
+  "paper_authors": [
+    "Matei Zaharia",
+    "Tathagata Das",
+    "Haoyuan Li",
+    "Scott Shenker",
+    "Ion Stoica"
+  ],
+  "paper_year": 2013,
+  "paper_venue": "SOSP",
+  "paper_url": "http://www.cs.berkeley.edu/~matei/papers/2013/sosp_spark_streaming.pdf",
+  "paper_abstract": "Discretized Streams: Fault-Tolerant Streaming\nComputation at Scale\"\nMatei Zaharia, Tathagata Das, Haoyuan Li, Timothy\nHunter, Scott Shenker, Ion Stoica\nUniversity of California, Berkeley\nPublished in SOSP ‘13\n\nSlide 1/30\n\nMotivation\"\n• Faults and stragglers inevitable in large clusters running\n“big data” applications.\n• Streaming applications must recover from these quickly.\n• Current distributed streaming systems, including Storm,\nTimeStream, MapReduce Online provide fault recovery\nin an expens",
+  "paper_file": "papers/2015/06/19/discretized-streams-fault-tolerant-stream-computing-at-scale.pdf",
+  "topics": [
+    "distributed-systems",
+    "data-engineering",
+    "cloud-computing"
+  ],
+  "tags": [
+    "stream-processing",
+    "fault-tolerance",
+    "straggler-handling",
+    "RDDs",
+    "micro-batching",
+    "lineage-graph",
+    "Spark"
+  ],
+  "figures": [
+    {
+      "number": "Figure 5",
+      "title": "D-Stream processing model",
+      "caption": null
+    },
+    {
+      "number": "Figure 6",
+      "title": "High-level overview of Spark Streaming system",
+      "caption": null
+    },
+    {
+      "number": "Figure 9",
+      "title": "Lineage graph for RDDs",
+      "caption": null
+    },
+    {
+      "number": "Figure 12",
+      "title": "reduceByWindow execution",
+      "caption": null
+    },
+    {
+      "number": "Figure 13",
+      "title": "Components of Spark Streaming",
+      "caption": null
+    },
+    {
+      "number": "Figure 16",
+      "title": "Parallel recovery vs upstream backup",
+      "caption": null
+    },
+    {
+      "number": "Figure 19",
+      "title": "Maximum throughput attainable under a given latency bound (1 s or 2 s) by Spark Streaming",
+      "caption": null
+    },
+    {
+      "number": "Figure 20",
+      "title": "Throughput vs Storm on 30 nodes",
+      "caption": null
+    },
+    {
+      "number": "Figure 21",
+      "title": "Interval processing times for WordCount(WC) and Grep under failures",
+      "caption": null
+    },
+    {
+      "number": "Figure 22",
+      "title": "Effect of checkpoint in WordCount",
+      "caption": null
+    },
+    {
+      "number": "Figure 23",
+      "title": "Recovery of WordCount on 20 & 40 nodes",
+      "caption": null
+    },
+    {
+      "number": "Figure 24",
+      "title": "Processing time of intervals in Grep & WordCount in normal operation as well as in the presence of a straggler, with and without speculation",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

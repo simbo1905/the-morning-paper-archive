@@ -1,0 +1,48 @@
+{
+  "date": "20141209",
+  "file_name": "20141209",
+  "slug": "why-threads-are-a-bad-idea",
+  "blog_url": "https://blog.acolyer.org/2014/12/09/why-threads-are-a-bad-idea/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes John Ousterhout's 1995 presentation arguing that threads are generally a poor choice for most programming purposes, favoring event-driven models instead. The author highlights several key pain points with threads: the need for explicit lock coordination leading to potential data corruption, deadlock risks from circular lock dependencies, debugging difficulties due to subtle timing issues, incompatibility with callbacks, performance challenges, and poor library support in the mid-1990s. In contrast, event-based systems are presented as simpler to start with, faster, and more portable, as they minimize concurrency. Ousterhout's recommendation is to avoid threads except where true CPU concurrency is required, suggesting isolation of threaded code in a kernel while keeping the rest single-threaded. The blog post contrasts this with the later book 'Java Concurrency in Practice,' which dedicates over 350 pages to demonstrating the complexities of thread-based programming, particularly in GUI frameworks where deadlocks are common due to inconsistent lock ordering.",
+  "paper_title": "Why Threads Are a Bad Idea (for most purposes)",
+  "paper_authors": [
+    "John Ousterhout"
+  ],
+  "paper_year": 1995,
+  "paper_venue": "USENIX Conference Presentation",
+  "paper_url": "http://web.stanford.edu/~ouster/cgi-bin/papers/threads.pdf",
+  "paper_abstract": "Why Threads Are A Bad Idea\n(for most purposes)\nJohn Ousterhout\nSun Microsystems Laboratories\njohn.ousterhout@eng.sun.com\nhttp://www.sunlabs.com/~ouster\n\nIntroduction\nThreads:\n– Grew up in OS world (processes).\n– Evolved into user-level tool.\n– Proposed as solution for a variety of problems.\n– Every programmer should be a threads programmer?\nυ Problem: threads are very hard to program.\nυ Alternative: events.\nυ Claims:\n– For most purposes proposed for threads, events are\nbetter.\n– Threads should b",
+  "paper_file": "papers/2014/12/09/why-threads-are-a-bad-idea.pdf",
+  "topics": [
+    "operating-systems",
+    "concurrency"
+  ],
+  "tags": [
+    "event-driven-programming",
+    "threading",
+    "locks",
+    "deadlocks",
+    "GUI-frameworks",
+    "concurrency-models"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Thread Deadlock Example",
+      "caption": null
+    },
+    {
+      "number": "Figure 2",
+      "title": "Event Loop Architecture",
+      "caption": null
+    },
+    {
+      "number": "Figure 3",
+      "title": "Events vs Threads Architecture",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

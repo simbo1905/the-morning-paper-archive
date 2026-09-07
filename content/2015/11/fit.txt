@@ -1,0 +1,331 @@
+URL: https://blog.acolyer.org/2015/11/25/fit/
+Title: FIT: A Distributed Database Performance&nbsp;Trade-off
+---
+
+FIT: A Distributed Database Performance Trade-off - Faleiro & Abadi, 2015
+
+If the CAP FITs...
+
+This paper presents the FIT trade-off for distributed transactions: you can have any two of Fairness, (strong) Isolation, and Throughput, but not all three. Which also implies you can have both strong isolation and high throughput!
+
+> 
+
+ As a consequence of the unavoidable coordination involved in distributed transactions, database lore dictates that there exists a tradeoff between strong isolation and throughput. The intuition for this tradeoff is that in a system which guarantees isolation among conflicting transactions, distributed coordination severely impacts the amount of concurrency achievable by the system by extending the time for which conflicting transactions are unable to make meaningful progress... In this article, we put this intuition under the microscope, and find that there exists another variable, fairness, that influences the interplay between strong isolation and throughput. We make the case that weakening isolation is not the only way to “defeat” distributed coordination; if a system is given the license to selectively prioritize or delay transactions, it can find a way to pay the cost of distributed coordination without severely impacting throughput.
+
+Instead of the common perception of an isolation-throughput trade-off, there actually exists a threeway trade-off between isolation, throughput, and fairness. A system that foregoes one of these three can provide the other two.
+
+> 
+
+ In this way, designers who are comfortable reasoning about the three-way tradeoff behind the CAP theorem can use the same type of reasoning to comprehend the FIT tradeoff for distributed database systems.
+
+We're not talking about individual data items here, we're discussing distributed transactions. The assumed model is data sharded across a number of node, with each node being responsible for a partition of the data. A distributed transaction refers to a transaction with read and write sets that span more than one partition. We require safety, liveness, and atomicity.
+
+- Safety: "The partitions involved in a distributed transaction must agree to either commit or abort a transaction. A transaction is allowed to commit if all partitions can commit, otherwise, it must abort."
+
+- Liveness: "If a distributed transaction is always re-submitted whenever it experiences a system-induced abort, then it is guaranteed to eventually commit."
+
+- Atomitity: "If a transaction commits, then all of its updates must be reflected in database state. Otherwise, none of its updates must be reflected in the database’s state."
+
+Isolation and throughput are well-defined and understood, but what exactly is 'fairness?' We're not going to see a proof of the FIT-theorem any time soon, because we don't have a formal definition of what fairness is. But the informal definition is that every submitted transaction is processed without introducing any artificial delays before doing so....
+
+> 
+
+ Fairness corresponds to the idea that a database system does not deliberately prioritize nor delay certain transactions. When a transaction is received by the database, the system immediately attempts to process the transaction, and never artificially adds latency to a transaction (i.e. blocking the transaction for reasons other than waiting for data or for conflicting transactions to finish) for the purpose of facilitating the execution of other transactions.
+
+Why might a database deliberately prioritize or delay transactions?? In De Witt et al.'s 'group commit' model log records from multiple transactions are batched in memory and then written to disk in a single write (improving throughput). Therefore certain transactions cannot commit until the set of buffered logs reaches an appropriate threshold. The authors prior work on lazy transaction evaluation offers another example:
+
+> 
+
+ Lazy transaction evaluation exploits spatial locality by amortizing the cost of bringing database records into the processor cache and main-memory buffer pool over several transactions. In order to achieve this, we proposed that a lazy database system defer the execution of transactions in order to obtain batches of unexecuted transactions whose read- and write-sets overlapped.
+
+Note that just as with the CAP theorom we have to pay careful attention to the definitions. We might consider a system to be fair in which every submitted transaction had an equal chance of being prioritized or delayed, but that's not what fairness means here.
+
+With regards to isolation, the authors distinguish between strong isolation (the I in FIT) and weak isolation based on the notion of synchronization independence.
+
+> 
+
+ Synchronization independence is the property that one transaction cannot cause another transaction to block or abort, even in the presence of conflicting data accesses. Synchronization independence effectively decouples the execution of concurrently executing transactions. As a consequence, systems which allow transactions to run with synchronization independence are susceptible to race conditions due to conflicts. Intuitively, synchronization independence implies that a system is unable to guarantee any form of isolation among conflicting transactions. We thus classify a system as providing weak isolation if it allows transactions to run with synchronization independence. If a system does not allow transactions to run with synchronization independence, it is classified as providing strong isolation.
+
+## FIT intuitions
+
+Here's one thing I've just discovered about FIT: it's harder to talk about 'IT Systems' in the same way we talk about 'AP Systems' since IT systems already means something :). So does 'FT' come to think of it... I guess we'll have to avoid abbreviating!
+
+> 
+
+ The safety and liveness requirements of Section 2 necessitate some form of coordination in processing a distributed transaction. The partitions involved in a transaction need to agree on whether or not to commit a transaction (safety), and cannot cheat by deliberately aborting transactions (liveness). In order to reach agreement, partitions require some form of coordination. The coordination involved in distributed transaction processing is at the heart of the FIT tradeoff.
+
+Strong isolation and fairness (FI) is the traditionally discussed combination. As is well understood, these systems have lower throughput in return for the guarantees they offer. To improve throughput we have two moves we can make: we can reduce the amount of coordination required by allowing forms of synchronization independence (FT), or we can reduce the overheads of coordination by allowing the database to choose opportune moments to pay it (variations on batching) - IT. The latter is really just the well understood latency/throughput trade-off. And perhaps that's an easier way of viewing it from an external perspective - you can have a distributed transaction system with any two of low(er) latency, strong isolation, and throughput (LIT). I'll stick with FIT per the paper though.
+
+> 
+
+ In summary, the choice of how a system chooses to pay the cost of coordination entailed in supporting distributed transactions divides systems into three categories: 1) Systems that guarantee strong isolation and fairness at the expense of good throughput, 2) Systems that guarantee strong isolation and good throughput at the expense of fairness, and 3) Systems that guarantee good throughput and fairness at the expense of strong isolation.
+
+(And don't forget that as long as we're coordinating, there's no magic answer for partition tolerance. But again, the devil is in the details since that doesn't mean that as soon as there's a partition everything has to grind to a halt - we can continue to make progress in a majority partition for example).
+
+## Isolation-Throughput Systems
+
+IT systems are interesting because that's the category most of us have been taught we can't have: high throughput distributed transactions. These are systems that minimize coordination costs by shifting them in time. The authors give two examples: G-Store and Calvin.
+
+> 
+
+ G-Store is a system which extends a (non-transactional) distributed key-value store with support for multi-key transactions. G-Store’s design is tailored for applications that exhibit temporal locality, such as online multi-player games. During the course of a game instance, players interact with each other and modify each other’s state. Transactions pertaining to a particular instance of a game will operate on only the keys corresponding to the game’s participants.
+
+G-Store is an interesting example because it doesn't really defer coordination costs so much as pay them up-front. Transactions are scoped to key groups which must be created in advance. When a key group is created, all of the keys in the group are migrated to a single leader node for the group, and then transactions involving subsets of keys in that group can execute on that node without any distributed coordination. Obviously this works best if you have multiple transactions on the same group of keys. The expensive coordination cost is the key migration involved in forming a key group.
+
+> 
+
+ Calvin is a database system designed to reduce the impact of coordination required while processing distributed transactions. Prior to their execution, Calvin runs transactions through a preprocessing layer, which imposes a total order on the transactions. The database’s partitions then process transactions such that their serialization order is consistent with the total order, which implies that Calvin guarantees serializable isolation (satisfying our criteria for strong isolation).
+
+The work done in the preprocessing layer is based on Paxos, and is designed to minimize subsequent coordination costs. This layer is logically centralized, so at risk of becoming a bottleneck. To mitigate this, Calvin runs each Paxos instance over a large batch of transactions.
+
+> 
+
+ In batching the input to each Paxos instance, the preprocessing layer sacrifices fairness; the transaction at the beginning of the batch must wait for enough transactions to accumulate before it can be processed. The fair strategy would be to run a Paxos instance on every transaction, however, its throughput would not be enough to fully utilize Calvin’s partitions.
+
+## Fairness-Isolation Systems
+
+The example given here is Google's Spanner.
+
+> 
+
+ Spanner uses multiversioning to support non-blocking read-only transactions, and a combination of two-phase locking (2PL) and two-phase commit (2PC) for transactions which perform updates.... Spanner’s 2PC protocol negatively impacts concurrency. In order to avoid cascading rollbacks and to guarantee strict serializable isolation, a transaction cannot release its locks until after it has obtained a commit decision, which implies that a transaction whose execution is blocked due to lock conflicts must wait for at least the duration of two synchronous replications, for every transaction that precedes it in the lock queue, for every lock it has not yet acquired. The end result is that Spanner’s overall throughput is severely limited.
+
+## Fairness-Throughput Systems
+
+These are systems that accept various forms of weakened isolation. To qualify for consideration under the FIT trade-off, a system must support distributed transactions - and most eventually consistent stores don't.
+
+To quote Bailis et al. from the RAMP paper:
+
+> 
+
+ In recent years, many 'NoSQL' designs have avoided cross-partition transactions entirely, effectively providing Read Uncommitted isolation...
+
+Cassandra's batching support just about scrapes through the distributed transaction test according to the FIT authors:
+
+> 
+
+ Cassandra supports the notion of a “batch” — a “transaction” containing multiple INSERT, UPDATE, or DELETE statements that are performed as single logical operation—either the entire batch succeeds or none of it will. Thus, a Cassandra batch supports the minimum level of atomicity to be within the scope of this article. However, there is no batch isolation. Other clients are able to read the partial results of the batch, even though these partial results may end up being undone if the batch were to abort. Thus, Cassandra’s batch functionality clearly gives up isolation according to our definition in this article.
+
+The second example cited in this category is RAMP Transactions. RAMP transactions do provide atomic visibility - you either see all of the effects of a transaction or none of them, but they fail the full atomic isolation test that is the "I" in FIT:
+
+> 
+
+ RA isolation is implemented via Read Atomic Multi-Partition (RAMP) transactions. RAMP transactions guarantee synchronization independence, which means that a transaction never blocks others, even in the presence of read-write or write-write conflicts. Because conflicting transactions are allowed to concurrently update the same record(s), RAMP transactions cannot enforce value constraints (e.g., number of on call doctors must be greater than zero). We thus classify RAMP transactions as guaranteeing weak isolation.
+
+## Fairness, Isolation, and Throughput???
+
+If we're careful to pay the price of full coordination only when we have constraints (invariants to be maintained) that truly need it, it seems to me that we can get pretty close to systems that in aggregate do provide fairness, isolation, and throughput. Sychronisation independence when you don't need to synchronise is a good thing! Yes, for such systems you could construct pathological workloads that always requires strong coordination and thus don't give good throughput (thus perhaps they are not strictly FIT), but many real-world systems, including the canonical TPC-C benchmark don't look like that it turns out. Not FIT, but fit-for-purpose perhaps? See the work of Bailis et al. on Coordination Avoidance.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Distributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousGD-Wheel: A Cost-Aware Replacement Policy for Key-Value StoresNext &rsaquo;Asynchronous Complex Analytics in a Distributed Dataflow Architecture
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;FIT: A Distributed Database Performance Trade-off&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: FairRide: Near-Optimal, Fair Cache Sharing | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

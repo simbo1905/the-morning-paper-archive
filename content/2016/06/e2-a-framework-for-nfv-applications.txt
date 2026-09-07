@@ -1,0 +1,329 @@
+URL: https://blog.acolyer.org/2016/06/17/e2-a-framework-for-nfv-applications/
+Title: E2: A framework for NFV&nbsp;applications
+---
+
+E2: A Framework for NFV Applications Palkar et al. SOSP 2015
+
+Today we move into the second part of the Research for Practice article, which is a selection of papers from Justine Sherry on Network Function Virtualization. We start with 'E2,' which seeks to address the proliferation and duplication of network function (NF) specific management systems. As Spark is for data processing, so E2 is for network functions... sort of.
+
+Network Function Virtualization refers to the idea of replacing dedicated physical boxes performance network functions with virtualized software applications that can be run on commodity general purpose processors. Unfortunately, "NFV is currently replacing, on a one-to-one basis, monolithic hardware with monolithic software."  An operator therefore ends up with lots of disparate NF management systems, and NF developers have to roll-their-own solutions to common problems such as dynamic scaling and fault tolerance. What would be really handy, is some kind of framework or platform so that developers could focus on writing their own NF logic, and the platform could take care of the rest...
+
+> 
+
+ Inspired by the success of data analytic frameworks (e.g., MapReduce, Hadoop and Spark), we argue that NFV needs a framework, by which we mean a software environment for packet-processing applications that implements general techniques for common issues. Such issues include: placement (which NF runs where), elastic scaling (adapting the number of NF instances and balancing load across them), service composition, resource isolation, fault-tolerance, energy management, monitoring, and so forth. Although we are focusing on packet-processing applications, the above are all systems issues, with some aiding NF development (e.g., fault-tolerance), some NF management (e.g., dynamic scaling) and others orchestration across NFs (e.g., placement, service interconnection).
+
+A motivating example is the Central Offices (COs) of carrier networks. These are facilities in metropolitan areas to which business and residential lines connect.  AT&T has 5,000 such facilities in the US, with 10-100K subscribers per CO. Currently COs are packed with specialized hardware devices. Moving to an NFV approach would enable them to switch to commodity hardware, and an NF platform might even enable them to open up their infrastructure to third-party services opening up new business models.
+
+> 
+
+ Carrier incentives aside, we note that a CO’s workload is ideally suited to NFV’s software-centric approach. A perusal of broadband standards and BNG datasheets reveals that COs currently support a range of higher-level traffic processing functions – e.g., content caching, Deep Packet Inspection (DPI), parental controls, WAN and application acceleration, traffic scrubbing for DDoS prevention and encryption – in addition to traditional functions for firewalls, IPTV multicast, DHCP, VPN, Hierarchical QoS, and NAT. As CO workloads grow in complexity and diversity, so do the benefits of transitioning to general-purpose infrastructure, and the need for a unified and application-independent approach to dealing with common management tasks.
+
+The assumption for E2 is that COs reside within an overall network architecture in which a global SDN controller is given a set of network policies to operate. The SDN controller turns these into instructions for each CO, and an E2 cluster (running on commodity hardware) is responsible for carrying them out within the CO.
+
+## E2 interface
+
+E2 supports the deployment of pipelets, each of which describe a traffic class and a corresponding DAG to capture how the traffic should be processed by NFs. Nodes in the DAG are Network Functions (NFs) or external ports of the switch, and the edges describe the type of traffic that can flow along them. Edges may be annotated with one or more filters, which can refer to the contents of the packet itself, and to associated metadata.
+
+Here's an annotated example of a policy with two pipelets:
+
+Each NF has an associated deployment descriptor (called an NF description in the paper). The NF descriptor contains five pieces of information:
+
+- Whether the NF uses E2's native API, or the raw socket interface
+
+- The method to be used for associating packets with attribute values for derived attributes. For attributes that can take on one of a small number of fixed values, the port method associated one virtual port with each value. The metadata method allows per-packet annotations (tags) to be added, and is well suited for attributes that can take many possible values.
+
+- Scaling constraints  - can the NF be scaled across multiple servers/cores or not.
+
+- Affinity constraints - for NFs that can be scaled, how should traffic be split across NF instances? (E.g. by port, or by flow).
+
+- An estimate of the per-core , per GHz traffic rate the NF can sustain (optional).
+
+E2 is also configured with a basic description of the hardware resources available to it for running NFs.
+
+An E2 Manager (written in F#) orchestrates overall operation of the cluster, a Server Agent (written in Python) runs on each node, and the E2 Dataplane (E2D, written as an extension to SoftNIC) acts as a software traffic processing layer underlying the NFs at each server.
+
+## E2 dataplane
+
+The E2D implementation is based on SoftNIC, "a high performance programmable software switch that allows arbitrary packet processing modules to be dynamically configured as a data flow graph."
+
+> 
+
+ Given the widespread adoption of Open vSwitch (OVS), it is reasonable to ask why we adopt a different approach. In a nutshell, it is because NFV does not share many of the design considerations that (at least historically) have driven the architecture of OVS/Openflow and hence the latter may be unnecessarily restrictive or even at odds with our needs.
+
+Internally SoftNIC uses Intel DPDK for low-overhead I/O to NICs, and pervasive batch processing within the pipeline to amortize per-packet processing costs. E2D includes a number of SoftNIC modules written to support load balancing, flow tracking, load monitoring, packet classification, and tunneling across NFs.  E2D also supports a zero-copy native API, and rich message abstractions.
+
+> 
+
+   Examples of rich messages include: (i) reconstructed TCP bytestreams (to avoid the redundant overhead at each NF), (ii) per-packet metadata tags that accompany the packet even across NF boundaries, and (iii) inter-NF signals (e.g., a notification to block traffic from an IPS to a firewall). The richer cross-NF communication enables not only various performance optimizations but also better NF design by allowing modular functions – rather than full-blown NFs– from different vendors to be combined and reused in a flexible yet efficient manner.
+
+## E2 control plane
+
+The E2 control plane provisions pipelets on servers, sets up and configures the interconnections between NFs, and scales instances in respone to changing load while honouring any affinity constraints.
+
+For the initial placement, E2 combines all of the pipelets to be deployed into a single logical policy graph. Based on estimates of load (which can be approximate, the system will dynamically adapt), this is turned into an instance graph in which each node represents an instance of a NF. If a logical node in the policy graph is split into multiple instance nodes, then the input traffic must be distributed between them in a way that respects all of the affinity constraints - this is done by generating the appropriate edge filters. The ideal placement of NF instances would minimize the amount of traffic traversing the switch. To approximate this the placement algorithm starts out by bin-packing NF instances into nodes, and then iterating until no further improvement can be made. In each iteration a pair of NF instances from two different nodes are swapped - the pair selected is the one that leads to the greatest reduction in cross-partition traffic.
+
+For subsequent incremental placement, E2 simply considers all possible nodes where the new NF instance may be placed, and choosing the one that will incur the least cross-partition traffic. NFs report their instantaneous load, and E2D itself also detects overloads based on queues and processing delays. When the current number of NF instances is no longer sufficient for some NF, then an instance must be split.
+
+> 
+
+ We say we split an instance when we redistribute its load to two or more instances (one of which is the previous instance) in response to an overload. This involves placing the new instances, setting up new interconnection state, and must consider the affinity requirements of flows, so it is not to be done lightly.
+
+New instances are placed incrementally as described above, and then traffic is split across the old and new instances...
+
+> 
+
+ Most middleboxes are stateful and require affinity, where traffic for a given flow must reach the instance that holds that flow’s state. In such cases, splitting a NF’s instance (and correspondingly, input traffic) requires extra measures to preserve affinity.
+
+E2 implements a migration avoidance strategy with the hardware and software switch acting in concert to maintain affinity.  Consider a NF with a corresponding range filter [X,Y) &rarr; A. When A is split into A and A', the range can be partitioned into [X,M) &rarr; A, [M,Y) &rarr; A'. Additionally, to maintain affinity any existing flows in [M,Y) must also be sent to A. These exceptions can be addressed via higher priority filters, but the number of exceptions can potentially be large and the filtering tables in hardware switches can be small. E2 therefore uses a three phase strategy:
+
+- Upon splitting, the range filter [X,Y) in the hardware switch is left unchanged, and the new filters (two new ranges plus exceptions) are installed in the E2D of the server that hosts A (i.e., as software defined filters).
+
+- As existing flows gradually terminate, the corresponding exception rules are removed.
+
+- Once the number of remaining exception rules falls below some threshold, the new ranges and remaining exceptions are pushed to the switch.
+
+> 
+
+ By temporarily leveraging the capabilities of the E2D, migration avoidance achieves load distribution without the complexity of state migration and with efficient use of switch resources.
+
+## Evaluation
+
+The paper contains a detailed evaluation of the performance overheads of the E2 design. Short version: "We verified that E2 did not impose undue overheads, and enabled flexible and efficient interconnect of NFs. We also demonstrated that our placement algorithm performed substantially better than random placement and bin-packing, and our approach to splitting NFs with affinity constraints was superior to the competing approaches." Missing from the evaluation though, was any analysis of how much easier it is to develop a NF given E2, compared to writing one from scratch.
+
+Components of E2 have been approved by the ETSI standards body for NFV as an 'informative standard'  (a demonstrated solution for orchestration).
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Networking 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousShielding applications from an untrusted cloud with HavenNext &rsaquo;Multi-context TLS (mcTLS): Enabling secure in-network functionality in TLS
+ 
+ 
+
+ 
+ 
+## 
+ 2 thoughts on &ldquo;E2: A framework for NFV applications&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Vitaly says: 
+
+ 
+ June 17, 2016 at 7:46 am 
+
+ 
+
+ 
+ 
+Great article, thanks! You have a formatting error though -- &rarr; was meant to be a right arrow I guess. The paragraph about migration avoidance is barely readable :(
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: F# Weekly #25, 2016 - Sergey Tihon&#039;s Blog 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

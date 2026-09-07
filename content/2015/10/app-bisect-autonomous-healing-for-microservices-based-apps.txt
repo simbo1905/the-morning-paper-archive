@@ -1,0 +1,240 @@
+URL: https://blog.acolyer.org/2015/10/09/app-bisect-autonomous-healing-for-microservices-based-apps/
+Title: App-Bisect: Autonomous healing for microservices-based apps
+---
+
+App-Bisect: Autonomous healing for microservices-based apps - Rajagopalan & Jamjoon 2015
+
+We've become comfortable with the idea of continuous deployment across multiple microservices, but what happens when that deployment introduces a problem? The standard answer comes in two parts: (a) use a canary when rolling out a new version to detect a potential problem before all traffic is switched over, and (b) make sure you have the ability to rollback to earlier versions if needed. But the authors of today's paper, argue that this may not be suffcient:
+
+> 
+
+ A straightforward approach to restoring application performance is to identify the root cause, the exact update to a microservice that resulted in the current performance degradation. The microservice is reverted to a version prior to the update. At the same time, other dependent microservices in the application are reverted to the latest version possible while maintaining overall compatibility. Unfortunately, it is non-trivial to trace the root cause of performance degradation in a microservice-based deployment. Even well engineered data center scale applications like Facebook and LinkedIn resort to sophisticated techniques to identify the root cause. It is relatively easy to test a simple three-tiered web application where the cause and effect can be observed. For example, ordering for an item would result in changes to the database immediately. However microservice-based applications are typically event-based. Worker services take items off a task queue and service them one after another. In such a system, how does one correlate the action and the eventual result? There is no cause-effect correlation in such systems. A problem that manifests in one microservice may have been caused by another service in the call chain. At other times, a bug introduced in an update to one service may manifest only after other microservices are updated to a point where they start activating the bug prone code path.
+
+If an update introduces a problem (including a performance problem), it can take some time to debug. Instead of suffering degraded performance while waiting for a software update, the authors propose that applications be automatically reverted to an older version that was known to provide better performance.
+
+> 
+
+ Inspired by autonomous computing, we present app-bisect: an autonomous system service that can identify and heal microservice-based applications deployed in the cloud. By representing the application as a graph of microservices that evolve over time, any update to a microservice can be viewed as a mutation of the graph. Typical of canary testing, app-bisect systematically tests previous mutations by deploying them in production and diverting a portion of user traffic to the various versions. On finding the least destructive combination of versions, one that offers the desired end user experience, app-bisect diverts all user traffic to it until the human operator intervenes.
+
+Intriguing idea, but one that I find a little daunting. But then again, continuous deployment sounded like that at first too. What sense can we make of a system while app-bisect is working backwards through versions trying to find a combination that works, and at the same time new versions of services are also being continuously deployed? The paper contains no evaluation section, leading me to think this is primarily presented as an interesting idea at this point in time (it's a workshop paper, so that's entirely reasonable), rather than as something that has actually been deployed in a production system.
+
+> 
+
+ When deploying an older version of one microservice, older versions of other dependent services may need to be deployed as well. App-bisect takes a package management approach used commonly in various Linux distributions. It records the microservice dependencies and the application topology at every update to a microservice. When a previous version of one microservice is deployed, it also deploys appropriate versions of other dependent microservices with the latest version possible.
+
+App-bisect starts by identifying the most recently update microservice. It deploys the previous version of that service and routes a portion of traffic to it. "App-bisect’s philosophy is to not attempt to identify the root cause. Rather, it focuses on identifying a deployment graph that does not exhibit the performance degradation."
+
+> 
+
+ Theoretically, in an application with n microservices with m updates to each service, the search space of all possible deployment combinations is O(nm). Deploying and testing each version is infeasible and beats the purpose of a fast auto-response tool. Fortunately, the search space can be drastically pruned by taking into account the dependencies across microservices.
+
+Things get interesting when requests flow through a dependency chain...
+
+> 
+
+ At any given point in time during the search, there are two or more versions of multiple microservices in the application. Requests have to flow through a specific chain of microservices, where the dependencies are satisfied. This may not seem like a challenge as an application capable of handling canary testing would certainly have this capability built into it. However, app-bisect does not have control over the application layer code. Hence, it has to control the flow of information, such only a particular chain of specifically picked versions of microservices handle all aspects of a user request. In order to route requests through a specific chain of microservices, app-bisect leverages the software defined networking substrate in public cloud data centers networks to achieve version-aware routing. The combination of host IP address and the edge-switch port number can be used to uniquely identify a particular microservice and its respective version. App-bisect uses this information to setup flow forwarding rules that route requests through a particular chain of microservices.
+
+Two different chains may in theory have one or more microservices in common, but since app-bisect cannot alter application-level routing, multiple instances of the common microservices will be deployed - one for each chain - in the case where routing diverges from the microservice in question.
+
+> 
+
+ A version of the application needs to be available always while app-bisect deploys, tests and destroys previous versions of the candidate microservices in the application. We chose to let the original (latest) version of the application remain operational for this purpose. Alternatively, a version corresponding to the restore point version could be deployed at the risk of unnecessarily losing features and bug fixes that are unrelated to the component performing poorly. When a restore point is available, to speed up the search, app-bisect performs a binary search between the restore point and the version of the application corresponding to the latest update.
+
+If a restore point is not provided, the search can potentially take a long time. App-bisect parallelizes the search by testing multiple deployments simultaneously in a form of n-ary canary testing.
+
+An important caveat is that app-bisect requires persistent stores that can handle downgrades gracefully:
+
+> 
+
+ Microservices can have complex dependencies that span the persistent data stores. Unless the microservices are stateless and data models in the persistent stores can handle downgrades gracefully, app-bisect may not work. As discussed earlier, app-bisect’s usefulness depends on its time to discover and isolate bugs. More importantly, app-bisect should not introduce additional failures or corrupt any data.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems 
+ 
+ Distributed SystemsOperations 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; Previouslprof: A Non-intrusive Request-Flow Profiler for Distributed SystemsNext &rsaquo;Failure Sketching: A Technique for Automated Root Cause Diagnosis of In-Production Failures
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

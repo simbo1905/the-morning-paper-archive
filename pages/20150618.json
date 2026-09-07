@@ -1,0 +1,38 @@
+{
+  "date": "20150618",
+  "file_name": "20150618",
+  "slug": "spinning-fast-iterative-dataflows",
+  "blog_url": "https://blog.acolyer.org/2015/06/18/spinning-fast-iterative-dataflows/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights 'Spinning Fast Iterative Dataflows' as a foundational paper that explains how Apache Flink (originally Stratosphere) embeds iterative computation in dataflow systems. The post emphasizes the paper's clear explanations of the space, including how dataflow systems evolved from simple batch processing to support iterative and recursive algorithms like machine learning or graph analysis. Colyer notes the key distinction between bulk iteration (where each iteration produces a new full solution) and incremental iteration (where only partial updates are applied), and how sparse computational dependencies enable fine-grained parallelism. The paper introduces the concept of microsteps to optimize incremental iteration, allowing asynchronous execution and avoiding full recomputation, which can significantly outperform bulk iteration approaches.",
+  "paper_title": "Spinning Fast Iterative Dataflows",
+  "paper_authors": [
+    "Stephan Ewen",
+    "Daniel Warneke",
+    "Martin Kleen",
+    "Volker Markl",
+    "Olaf Zukunft"
+  ],
+  "paper_year": 2012,
+  "paper_venue": "VLDB",
+  "paper_url": "http://vldb.org/pvldb/vol5/p1268_stephanewen_vldb2012.pdf",
+  "paper_abstract": "While dataﬂow systems were originally built for tasks like indexing, ﬁltering, transforming, or aggregating data, their simple interface and powerful abstraction have made them popular for other kinds of applications, like machine learning [5] or graph analysis [26]. Many of these algorithms are of iterative or recursive nature, repeating some computation until a condition is fulﬁlled. Naturally, these tasks pose a challenge to dataﬂow systems, as the ﬂow of data is no longer acyclic. During the last years, a number of solutions to specify and execute iterative algorithms as dataﬂows have appeared. MapReduce extensions like Twister [18] or HaLoop [13], and frameworks like Spark [36] are able to efﬁciently execute a certain class of iterative algorithms. However, many machine learning and graph algorithms still perform poorly, due to those systems’ inability to exploit the (sparse) computational dependencies present in these tasks [28]. We refer to the recomputed state as the partial solution of the iteration, and henceforth distinguish between two different kinds of iterations: Parallel dataﬂow systems are a central part of most analytic pipelines for big data. The iterative nature of many analysis and machine learning algorithms, however, is still a challenge for current systems. While certain types of bulk iterative algorithms are supported by novel dataﬂow frameworks, these systems cannot exploit computational dependencies present in many algorithms, such as graph algorithms. As a result, these algorithms are inefﬁciently executed and have led to specialized systems based on other paradigms, such as message passing or shared memory. We propose a method to integrate incremental iterations, a form of workset iterations, with parallel dataﬂows. After showing how to integrate bulk iterations into a dataﬂow system and its optimizer, we present an extension to the programming model for incremental iterations. The extension alleviates for the lack of mutable state in da...",
+  "paper_file": "papers/2015/06/18/spinning-fast-iterative-dataflows.pdf",
+  "topics": [
+    "data-engineering",
+    "distributed-systems"
+  ],
+  "tags": [
+    "iterative-dataflows",
+    "incremental-iteration",
+    "microsteps",
+    "dataflow-model",
+    "bulk-iteration",
+    "parallelism",
+    "fixpoint-iteration",
+    "sparse-dependencies"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

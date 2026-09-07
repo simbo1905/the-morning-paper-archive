@@ -1,0 +1,37 @@
+{
+  "date": "20170831",
+  "file_name": "20170831",
+  "slug": "adding-concurrency-to-smart-contracts",
+  "blog_url": "https://blog.acolyer.org/2017/08/31/adding-concurrency-to-smart-contracts/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a PODC'17 paper that adapts techniques from software transactional memory (STM) and transactional boosting to enable parallel execution of smart contracts in blockchain systems. The key insight is to use speculative execution with abstract locks and inverse logs to detect and resolve conflicts at runtime, ensuring serializable execution. The approach allows miners to discover a concurrent schedule for block transactions that is equivalent to some sequential schedule, improving throughput. Validators can then reconstruct this schedule using lock profiles published by miners, enabling parallel validation. The paper argues correctness via analogy to transactional boosting and demonstrates speedups in experiments using JVM-based implementations with Scala STM and Solidity contracts.",
+  "paper_title": "Adding concurrency to smart contracts",
+  "paper_authors": [
+    "Michael D. Adams",
+    "Michael R. Clarkson",
+    "Maurice Herlihy",
+    "Vincent Rahli"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "PODC'17",
+  "paper_url": "https://dl.acm.org/authorize?N32677",
+  "paper_abstract": "like this: clients send transactions1 to miners, who package the transactions into blocks. Miners repeatedly propose new blocks to be applied to the ledger, and follow a global consensus protocol to agree on which blocks are chosen. Each block contains a cryptographic hash of the previous block, making it difficult to tamper with the ledger. The resulting distributed data structure, called a blockchain, defines the sequence of transactions that constitutes the distributed ledger2 . Modern blockchain systems often interpose an additional software layer between clients and the blockchain. Client requests are directed to scripts, called smart contracts, that perform the logic needed to provide a complex service, such as managing state, enforcing governance, or checking credentials. Smart contracts can take many forms, but here we will use (a simplified form of) the Ethereum model [8]. A smart contract resembles an object in a programming language. It manages long-lived state, which is encoded in the blockchain. The state is manipulated by a set of functions, analogous to methods in many programming languages. Functions can be called either directly by clients or indirectly by other smart contracts. Smart contract languages are typically Turing-complete. To ensure that function calls terminate, the client is charged for each computational step in a function call. If the charge exceeds what the client is willing to pay, the computation is terminated and rolled back. When and where is smart contract code executed? There are two distinct circumstances. Each smart contract is first executed by one or more miners, nodes that repeatedly propose new blocks to append to the blockchain. When a miner creates a block, it selects a sequence of user requests and executes the associated smart contract code for each Ethereum transaction in sequence, transforming the old contract state into a new state. It then records both the sequence of transactions and the new state in the block, a...",
+  "paper_file": "papers/2017/08/31/adding-concurrency-to-smart-contracts.pdf",
+  "topics": [
+    "distributed-systems",
+    "programming-languages"
+  ],
+  "tags": [
+    "smart-contracts",
+    "blockchain",
+    "transactional-memory",
+    "concurrency",
+    "speculative-execution",
+    "serializability",
+    "abstract-locks",
+    "inverse-logs"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

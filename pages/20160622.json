@@ -1,0 +1,40 @@
+{
+  "date": "20160622",
+  "file_name": "20160622",
+  "slug": "hacking-blind",
+  "blog_url": "https://blog.acolyer.org/2016/06/22/hacking-blind/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the BROP (Blind Return-Oriented Programming) attack, a novel technique that exploits stack buffer overflow vulnerabilities without prior knowledge of the target binary or source code. The author highlights how attackers can leverage the one-bit information of whether a server crashes or not to systematically probe and build a full attack, even against systems with modern defenses like NX (non-executable memory). The paper introduces a tool called Braille, an automated Ruby-based implementation of BROP, which can achieve remote code execution (e.g., a remote shell) in as little as a few minutes. The attack is particularly noteworthy for its ability to bypass ASLR (Address Space Layout Randomization) and stack canaries, demonstrating that obscure software distributions offer little protection against such exploits. The key insight is that automated, blind exploitation is feasible and efficient, even without binary knowledge, making it a significant threat to system security.",
+  "paper_title": "Hacking Blind",
+  "paper_authors": [
+    "George C. Necula",
+    "Cristian Cadar",
+    "Hassen Saidi",
+    "Adam Stubblefield",
+    "David Wagner",
+    "Randall J. Smith",
+    "William R. Bush"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "IEEE Symposium on Security and Privacy (S&P)",
+  "paper_url": "http://www.scs.stanford.edu/~abelay/pdf/bittau:brop.pdf",
+  "paper_abstract": "1 The widespread deployment of exploit mitigations such as CFI and shadow stacks are making code-reuse attacks increasingly difficult. This has forced adversaries to consider data-only attacks against which the venerable ASLR remains the primary deployed defense. Data-Space Randomization (DSR) techniques raise the bar against data-only attacks by making it harder for adversaries to inject malicious data flows into vulnerable applications. DSR works by masking memory load and store instructions. Masks are chosen (i) to not interfere with intended data flows and (ii) such that masking likely interferes with unintended flows introduced by malicious program inputs. In this paper, we show two new attacks that bypass all existing static DSR approaches; one that directly discloses memory and another using speculative execution. We then present CoDaRR, the first dynamic DSR scheme resilient to disclosure attacks. CoDaRR continuously rerandomizes the masks used in loads and stores, and re-masks all memory objects to remain transparent w.r.t. program execution. Our evaluation confirms that CoDaRR successfully thwarts these attacks with limited run-time overhead in standard benchmarks as well as real-world applications. Data-only attacks [14, 17, 26, 27] corrupt or leak program data without violating a control flow integrity (CFI) policy. Prior work showed that these attacks are powerful enough to escalate the program’s privileges, perform Turing-complete computation, or execute arbitrary system calls, all while bypassing code-reuse defenses such as CFI [14, 20, 22, 26, 27, 38]. To combat data-only attacks, defenders can either retrofit memory-safety techniques such as bounds checking into the program [46], rewrite the program in a safer programming language or language dialect [21, 29, 37], or apply exploit mitigations such as Data-Flow Integrity (DFI) [13], Write Integrity Testing (WIT) [2], or Data Space Randomization (DSR) [8, 11]. Historically, exploit mitigations have be...",
+  "paper_file": "papers/2016/06/22/hacking-blind.pdf",
+  "topics": [
+    "systems-security",
+    "operating-systems"
+  ],
+  "tags": [
+    "buffer-overflow",
+    "return-oriented-programming",
+    "blind-exploitation",
+    "ASLR",
+    "stack-canaries",
+    "NX",
+    "remote-code-execution",
+    "exploit-automation"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

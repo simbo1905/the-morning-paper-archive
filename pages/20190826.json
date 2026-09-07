@@ -1,0 +1,39 @@
+{
+  "date": "20190826",
+  "file_name": "20190826",
+  "slug": "snuba",
+  "blog_url": "https://blog.acolyer.org/2019/08/26/snuba/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer discusses the paper 'Snuba: automating weak supervision to label training data' from VLDB 2019, which addresses the challenge of generating labeled training data for machine learning models. Unlike Snorkel, which relies on human experts to write noisy labeling functions, Snuba automates this process by generating its own heuristics. The system iteratively synthesizes, prunes, and verifies heuristics to label a large unlabeled dataset with high confidence, even when starting from a small labeled dataset. The key insight is that Snuba's diversity-aware heuristic selection and generative modeling improve the quality of noisy labels, leading to better end model performance compared to user-defined heuristics and crowdsourced labels. The paper demonstrates significant improvements in F1 scores across various applications, including image and text-based tasks.",
+  "paper_title": "Snuba: automating weak supervision to label training data",
+  "paper_authors": [
+    "Paroma Varma",
+    "Christopher Ré"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.vldb.org/pvldb/vol12/p223-varma.pdf",
+  "paper_abstract": "benign, malignant As deep learning models are applied to increasingly diverse problems, a key bottleneck is gathering enough high-quality training labels tailored to each task. Users therefore turn to weak supervision, relying on imperfect sources of labels like pattern matching and user-defined heuristics. Unfortunately, users have to design these sources for each task. This process can be time consuming and expensive: domain experts often perform repetitive steps like guessing optimal numerical thresholds and developing informative text patterns. To address these challenges, we present Snuba, a system to automatically generate heuristics using a small labeled dataset to assign training labels to a large, unlabeled dataset in the weak supervision setting. Snuba generates heuristics that each labels the subset of the data it is accurate for, and iteratively repeats this process until the heuristics together label a large portion of the unlabeled data. We develop a statistical measure that guarantees the iterative process will automatically terminate before it degrades training label quality. Snuba automatically generates heuristics in under five minutes and performs up to 9.74 F1 points better than the best known user-defined heuristics developed over many days. In collaborations with users at research labs, Stanford Hospital, and on open source datasets, Snuba outperforms other automated approaches like semisupervised learning by up to 14.35 F1 points. Labeled Data ?, ?, ?, ? Unlabeled Data Label Aggregator 25% benign, 75%benign, ... if perim > 120: return True if perim > 80 return Abstain Heuristic Generation Terminate? Snuba Training Labels Figure 1: Snuba uses a small labeled and a large unlabeled dataset to iteratively generate heuristics. It uses existing label aggregators to assign training labels to the large dataset. pervision, or methods that can assign noisy training labels to unlabeled data, like crowdsourcing [9, 22, 60], distant supervision [8,32], and...",
+  "paper_file": "papers/2019/08/26/snuba.pdf",
+  "topics": [
+    "machine-learning",
+    "data-engineering"
+  ],
+  "tags": [
+    "weak-supervision",
+    "heuristics",
+    "labeling-functions",
+    "generative-models",
+    "snorkel",
+    "data-labeling"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Snuba system overview",
+      "caption": "Snuba uses a small labeled and a large unlabeled dataset to iteratively generate heuristics. It uses existing label aggregators to assign training labels to the large dataset."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

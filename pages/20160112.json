@@ -1,0 +1,35 @@
+{
+  "date": "20160112",
+  "file_name": "20160112",
+  "slug": "presume-abort-commit",
+  "blog_url": "https://blog.acolyer.org/2016/01/12/presume-abort-commit/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer examines the Presumed Abort (PA) and Presumed Commit (PC) optimizations to the standard two-phase commit (2PC) protocol as described in Mohan et al.'s 1986 paper. The PA protocol optimizes abort scenarios by allowing the coordinator to 'forget' a transaction immediately after deciding to abort it, eliminating the need for forced log writes, ACKs from subordinates, or recording subordinate names. It also introduces READ VOTEs for read-only transactions, further reducing overhead. The PC protocol, designed for commit-heavy workloads, reverses the assumptions: it presumes commit in the no-information case but requires a 'collecting record' to be force-written before sending PREPARE messages to handle coordinator crashes safely. The post highlights the trade-offs between these protocols, showing how PA and PC reduce message and log overhead compared to 2PC, with PA generally performing better for read-heavy or mixed workloads, while PC can save messages in certain update scenarios. The key insight is that the choice of protocol can significantly impact performance based on transaction characteristics and failure scenarios.",
+  "paper_title": "Transaction Management in the R* Distributed Database Management System",
+  "paper_authors": [
+    "C. Mohan",
+    "B. Lindsay",
+    "R. Obermarck"
+  ],
+  "paper_year": 1986,
+  "paper_venue": "ACM Transactions on Database Systems (TODS)",
+  "paper_url": "http://www.cs.cmu.edu/~natassa/courses/15-823/F02/papers/p378-mohan.pdf",
+  "paper_abstract": "Transaction Management in the R*\nDistributed Database Management System\nC. MOHAN, B. LINDSAY, and R. OBERMARCK\nIBM Almaden Research Center\n\nThis paper deals with the transaction management aspects of the R* distributed database system. It\nconcentrates primarily on the description of the R* commit protocols, Presumed Abort (PA) and\nPresumed Commit (PC). PA and PC are extensions of the well-known,\ntwo-phase (2P) commit\nprotocol. PA is optimized for read-only transactions and a class of multisite u",
+  "paper_file": "papers/2016/01/12/presume-abort-commit.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "two-phase-commit",
+    "presumed-abort",
+    "presumed-commit",
+    "transaction-management",
+    "distributed-transactions",
+    "read-only-transactions",
+    "crash-recovery"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,47 @@
+{
+  "date": "20150417",
+  "file_name": "20150417",
+  "slug": "asynchronized-concurrency-the-secret-to-scaling-concurrent-search-data-structures",
+  "blog_url": "https://blog.acolyer.org/2015/04/17/asynchronized-concurrency-the-secret-to-scaling-concurrent-search-data-structures/",
+  "blog_title": "",
+  "blog_summary": "The paper examines concurrent search data structures (CSDS) like linked lists, hash tables, skip lists, and binary search trees, evaluating how well they scale with multiple cores. Adrian Colyer highlights the authors' four derived principles for scalable concurrency, which emphasize minimizing stores, waiting, and retries in search and update operations to resemble sequential implementations. These principles, collectively termed 'asynchronized concurrency' (ASCY), are shown to improve existing algorithms and lead to the creation of new, highly scalable data structures. The evaluation across six diverse processors demonstrates that the best-performing CSDS algorithms closely match the performance of an idealized 'asynchronized' execution, with a new hash table (CLHT) outperforming the next best by 23%. The key insight is that memory access patterns resembling sequential execution—particularly minimizing cache-line transfers—are critical for portable scalability across hardware, workloads, and metrics like throughput, latency, and power consumption.",
+  "paper_title": "Asynchronized Concurrency: The Secret to Scaling Concurrent Search Data Structures",
+  "paper_authors": [
+    "David, Tudor",
+    "Kuszmaul, William",
+    "Lea, Doug",
+    "Morrison, Daniel",
+    "Shavit, Nir"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "ASPLOS '15",
+  "paper_url": "http://infoscience.epfl.ch/record/207109/files/ascy_asplos15.pdf",
+  "paper_abstract": "We introduce “asynchronized concurrency (ASCY),” a paradigm consisting of four complementary programming patterns. ASCY calls for the design of concurrent search data structures (CSDSs) to resemble that of their sequential counterparts. We argue that ASCY leads to implementations which are portably scalable: they scale across different types of hardware platforms, including single and multisocket ones, for various classes of workloads, such as readonly and read-write, and according to different performance metrics, including throughput, latency, and energy. We substantiate our thesis through the most exhaustive evaluation of CSDSs to date, involving 6 platforms, 22 state-of-the-art CSDS algorithms, 10 re-engineered state-of-the-art CSDS algorithms following the ASCY patterns, and 2 new CSDS algorithms designed with ASCY in mind. We observe up to 30% improvements in throughput in the re-engineered algorithms, while our new algorithms out-perform the state-ofthe-art alternatives.",
+  "paper_file": "papers/2015/04/17/asynchronized-concurrency-the-secret-to-scaling-concurrent-search-data-structures.pdf",
+  "topics": [
+    "data-structures",
+    "concurrent-programming",
+    "operating-systems"
+  ],
+  "tags": [
+    "concurrent-search-data-structures",
+    "scalability",
+    "lock-free",
+    "lock-based",
+    "cache-coherence",
+    "hash-tables",
+    "binary-search-trees",
+    "skip-lists",
+    "linked-lists",
+    "asynchronized-concurrency"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Search data structure interface",
+      "caption": "Search data structure interface. Updates have two phases: a parse phase, followed by a modification phase."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

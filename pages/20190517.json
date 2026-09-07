@@ -1,0 +1,46 @@
+{
+  "date": "20190517",
+  "file_name": "20190517",
+  "slug": "understanding-real-world-concurrency-bugs-in-go",
+  "blog_url": "https://blog.acolyer.org/2019/05/17/understanding-real-world-concurrency-bugs-in-go/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a systematic study on concurrency bugs in real-world Go programs, analyzing 171 bugs across six major projects (Docker, Kubernetes, etcd, CockroachDB, gRPC, and BoltDB). The paper challenges common beliefs about Go's concurrency model, showing that despite Go's design to simplify concurrent programming, many bugs stem from Go-specific issues rather than traditional shared-memory problems. The study reveals that shared memory synchronization is still heavily used (more than message passing via channels), leading to a mix of bug types. Notably, message passing—often assumed to be less error-prone—caused more blocking bugs than shared memory, while non-blocking bugs were more often tied to shared memory misuse. The paper also evaluates Go's built-in detectors (deadlock and data race detectors), finding them insufficient for many cases. The authors suggest that automated or semi-automated tools for fixing Go concurrency bugs could be promising.",
+  "paper_title": "Understanding Real-World Concurrency Bugs in Go",
+  "paper_authors": [
+    "Yanming Liu",
+    "Chang Xu",
+    "Yepang Liu",
+    "Shing-Chi Cheung",
+    "Na Meng",
+    "Jingling Xue"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "ASPLOS'19",
+  "paper_url": "https://songlh.github.io/paper/go-study.pdf",
+  "paper_abstract": "Keywords Go; Concurrency Bug; Bug Study Go is a statically-typed programming language that aims to provide a simple, efficient, and safe way to build multithreaded software. Since its creation in 2009, Go has matured and gained significant adoption in production and open-source software. Go advocates for the usage of message passing as the means of inter-thread communication and provides several new concurrency mechanisms and libraries to ease multi-threading programming. It is important to understand the implication of these new proposals and the comparison of message passing and shared memory synchronization in terms of program errors, or bugs. Unfortunately, as far as we know, there has been no study on Go’s concurrency bugs. In this paper, we perform the first systematic study on concurrency bugs in real Go programs. We studied six popular Go software including Docker, Kubernetes, and gRPC. We analyzed 171 concurrency bugs in total, with more than half of them caused by non-traditional, Go-specific problems. Apart from root causes of these bugs, we also studied their fixes, performed experiments to reproduce them, and evaluated them with two publicly-available Go bug detectors. Overall, our study provides a better understanding on Go’s concurrency models and can guide future researchers and practitioners in writing better, more reliable Go software and in developing debugging and diagnosis tools for Go. ACM Reference Format: Tengfei Tu, Xiaoyu Liu, Linhai Song, and Yiying Zhang. 2019. Understanding Real-World Concurrency Bugs in Go . In Proceedings of 2019 Architectural Support for Programming Languages and Operating Systems (ASPLOS’19). ACM, New York, NY, USA, 14 pages. https://doi.org/10.1145/3297858.3304069",
+  "paper_file": "papers/2019/05/17/understanding-real-world-concurrency-bugs-in-go.pdf",
+  "topics": [
+    "programming-languages",
+    "distributed-systems"
+  ],
+  "tags": [
+    "concurrency-bugs",
+    "goroutines",
+    "channels",
+    "shared-memory",
+    "message-passing",
+    "deadlocks",
+    "data-races",
+    "synchronization",
+    "go-programming-language"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Example of a blocking bug in Kubernetes",
+      "caption": "A blocking bug from Kubernetes demonstrating the complexity of using Go's new features. The finishReq function creates a child goroutine to handle a request. The child goroutine sends a result back to the parent through an unbuffered channel. If a timeout occurs or the select statement chooses the timeout case, the parent exits, leaving the child blocked forever. The fix involves changing the channel to a buffered one."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

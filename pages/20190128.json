@@ -1,0 +1,53 @@
+{
+  "date": "20190128",
+  "file_name": "20190128",
+  "slug": "the-case-for-network-accelerated-query-processing",
+  "blog_url": "https://blog.acolyer.org/2019/01/28/the-case-for-network-accelerated-query-processing/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the untapped potential of network-accelerated query processing in today's paper. He emphasizes how programmable network devices (specifically Match-Action Units or MAUs) can offload parts of query execution from MPP databases into the network switch, achieving significant performance improvements. The blog post underscores the promise of linear performance scaling with faster network speeds, with preliminary results showing over 2x speedup on 25Gbps networks and an estimated 8x speedup on 100Gbps networks. Colyer notes that this approach represents a paradigm shift, as network switches traditionally only route packets, while now they can actively participate in query execution. The paper introduces NetAccel, a system that extends an MPP database (Greenplum) with network-accelerated operators, a deparser for communication, and a network scheduler for managing MAU allocation and query execution.",
+  "paper_title": "The Case for Network-Accelerated Query Processing",
+  "paper_authors": [
+    "Eric Lerner",
+    "Jialin Ding",
+    "Srinivas Narayana",
+    "Ming Liu",
+    "Aurojit Panda",
+    "Sylvia Ratnasamy",
+    "Scott Shenker"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "CIDR'19",
+  "paper_url": "https://exascale.info/assets/pdf/lerner19cidr.pdf",
+  "paper_abstract": "The fastest plans in MPP databases are usually those with the least amount of data movement across nodes, as data is not processed while in transit. The network switches that connect MPP nodes are hard-wired to perform packetforwarding logic only. However, in a recent paradigm shift, network devices are becoming “programmable.” The quotes here are cautionary. Switches are not becoming general purpose computers (just yet). But now the set of tasks they can perform can be encoded in software. In this paper we explore this programmability to accelerate OLAP queries. We determined that we can offload onto the switch some very common and expensive query patterns. Thus, for the first time, moving data through networking equipment can contribute to query execution. Our preliminary results show that we can improve response times on even the best agreed upon plans by more than 2x using 25 Gbps networks. We also see the promise of linear performance improvement with faster speeds. The use of programmable switches can open new possibilities of architecting rack- and datacenter-sized database systems, with implications across the stack.",
+  "paper_file": "papers/2019/01/28/the-case-for-network-accelerated-query-processing.pdf",
+  "topics": [
+    "distributed-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "query-processing",
+    "network-acceleration",
+    "MPP-databases",
+    "programmable-switches",
+    "Match-Action-Units",
+    "hash-joins",
+    "aggregation",
+    "data-motion",
+    "TPC-H",
+    "Greenplum"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Match-action table and programmable switch dataplane",
+      "caption": "(a) A match-action table programmed to forward or to drop a packet according to its destination MAC address. (b) Architecture of a programmable switch dataplane holding that table."
+    },
+    {
+      "number": "Figure 2",
+      "title": "TPC-H Query 20 plans and offloading pattern",
+      "caption": "TPC-H Query 20 is shown in (a). Its best plan, one that minimizes data motion [24], is depicted in (b) in a simplified way. (Operators with asterisks perform scan and filtering.) We note that there is a distinct pattern that appears twice in the plan. We show in (c) how to offload that pattern onto the switch by altering the query plan and using special operators."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

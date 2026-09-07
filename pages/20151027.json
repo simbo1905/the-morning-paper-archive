@@ -1,0 +1,38 @@
+{
+  "date": "20151027",
+  "file_name": "20151027",
+  "slug": "read-log-update-a-lightweight-synchronization-mechanism-for-concurrent-programming",
+  "blog_url": "https://blog.acolyer.org/2015/10/27/read-log-update-a-lightweight-synchronization-mechanism-for-concurrent-programming/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the Read-Log-Update (RLU) mechanism introduced by Matveev et al. as a significant advancement over the Read-Copy-Update (RCU) paradigm for concurrent programming. The key innovation is RLU's ability to support multiple simultaneous writers and provide a simpler programming model, enabling bidirectional traversals in data structures where RCU was previously limited to unidirectional traversals. The blog emphasizes RLU's improved performance, concurrency, and broader applicability. The core algorithm combines RCU's quiescence mechanism with a global clock and per-thread object logs to manage concurrent reads and writes efficiently. The author also praises the paper's extensive evaluation and its reminder of the vast body of knowledge in data structures and algorithms.",
+  "paper_title": "Read-Log-Update: A Lightweight Synchronization Mechanism for Concurrent Programming",
+  "paper_authors": [
+    "Marko D. Matveev",
+    "Ori Shalev",
+    "Nir Shavit"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SOSP'15",
+  "paper_url": "http://sigops.org/sosp/sosp15/current/2015-Monterey/printable/077-matveev.pdf",
+  "paper_abstract": "‡ Patrick Marlier ‡ University of Neuchâtel data structure being modified. Readers access the unmodified data structure while updaters modify the copy. The key to RCU is that once modifications are complete, they are installed using a single pointer modification in a way that does not interfere with ongoing readers. To avoid synchronization, updaters wait until all pre-existing readers have finished their operations, and only then install the modified copies. This barrier-based mechanism allows for simple epoch-based reclamation [17] of the old copies, and the mechanism as a whole eliminates many of the atomic read-modify-write instructions, memory barriers, and cache misses that are so expensive on modern multicore systems. RCU is supported in both user-space and in the kernel. It has been widely used in operating system programming (over 6’500 API calls in the Linux kernel as of 2013 [30]) and concurrent applications (as reported at http://urcu.so/, user-space RCU is notably used in a DNS server, a networking toolkit, and a distributed storage system). Motivation. Despite its many benefits, RCU programming is not a panacea and its performance has some significant limitations. First, it is quite complex to use. It requires the programmer to implement dedicated code in order to duplicate every object it modifies, and ensure that the pointers inside the copies are properly set to point to the correct locations, before finally connecting this set of copies using a single atomic pointer assignment (or using lock-protected critical sections). This complexity is evidenced by the fact that there are not many RCU-enhanced data structures beyond simple linked-lists, and the few other RCU-ed data structures are innovative algorithms published in research papers [2, 5]. A classic example of this difficulty is the doubly linked list implementation in the Linux Kernel, in which threads are only allowed to traverse the list in the forward direction (the backward direction is uns...",
+  "paper_file": "papers/2015/10/27/read-log-update-a-lightweight-synchronization-mechanism-for-concurrent-programming.pdf",
+  "topics": [
+    "distributed-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "concurrent-programming",
+    "read-copy-update",
+    "rcu",
+    "synchronization",
+    "data-structures",
+    "quiescence-mechanism",
+    "global-clock",
+    "write-log",
+    "read-log",
+    "locking"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

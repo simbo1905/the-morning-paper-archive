@@ -1,0 +1,538 @@
+URL: https://blog.acolyer.org/2015/09/01/bolt-on-causal-consistency/
+Title: Bolt-on Causal Consistency
+---
+
+Bolt-on Causal Consistency - Bailis et al. 2013
+
+"It'll probably be OK" seems to reflect the prevailing application developer's attitude to working with eventually consistent stores. Thanks to the work of Bailis et al. on PBS, we can now quantify that 'probably.' And it looks pretty good at first glance, with 99+% probabilities achievable after a pretty short window. The greater the volume of transactions you're processing though, the more this bites you: (a) the window between transactions is shorter, increasing the probability of staleness, and (b) you're taking a percentage of a bigger absolute number. Let's say 1M transactions per day, and 99.99% probability of recency under normal conditions - that's 100 stale reads a day. Is that ok? It depends on your application semantics of course. After a year of operation you'll have 36,500 stale reads - it'll probably be ok?!
+
+Presumably you're using an eventually consistent store for reasons of Availability, Low-Latency, Partition-tolerance, and Scalability (and not because it's fun to have the occasional anomaly ;) ). Research has shown that you can achieve all those properties with an upgrade to eventual consistency known as causal consistency. Causal consistency says that if A could have caused B (A happens-before B) you're guaranteed to see A (or a more recent concurrent update of A) if you read B. The canonical example is a comment thread - you won't see a reply to a comment with also seeing the comment being replied to. Causal consistency is a pretty good match to human expectations of system behaviour.
+
+Unfortunately, most stores offer a choice of eventual consistency or strict consistency (losing the ALPS properties), even though we'd like to use causal consistency. In the protocol world, we're quite used to layering a protocol with stronger guarantees on top of a more general one. We have TCP/IP, so why not CC/EC (causal consistency layered over eventual consistency)? In "Bolt-on Causal Consistency" Bailis et al. construct exactly such a layering showing how to achieve causal consistency for clients on top of an eventually consistent underlying store such as Cassandra. It's a really intriguing idea, and the results from the evaluation show that it can actually speed-up request processing, not slow it down. Who wouldn't want faster results coupled with stronger guarantees? As far as I can tell though, the idea hasn't caught on. Which makes me wonder, "What's in a name?". The language used in the paper is full of 'bolt-ons' and 'shims.' This language conjures in my mind the impression that it's all a bit of a hack, a kludge, a bodge.... Which it isn't. Try mentally replacing 'bolt-on' with 'layered consistency' and 'shim' with 'agent' as you read the paper. What we have then is layered causal consistency via local shared-nothing agents. See, you like it more already ;).
+
+Let's go back to that comment thread example under eventual consistency. Imagine you're tasked with writing the client that's going to render the discussion. "What's the big deal about getting the comments out of order?" you might be thinking. It seems pretty straightforward: when you get a new comment, just look at its 'inResponseTo' field and if you don't already have the parent comment it is in response to you can either buffer this comment locally until you do receive the parent comment, or perhaps explicitly go off and fetch it. And of course, if that comment in turn is 'inResponseTo' a comment you don't have just repeat the process until you get back to the root or something that you do already have.
+
+Congratulations, you just discovered the concept of a causal chain! Let's generalize a little: maybe the data items you're reading don't have an 'inResponseTo' field so we can't use the delay or fetch strategies - we can solve that by keeping the 'inResponseTo' information in metadata alongside the data item. And maybe that most recent write was in response to more than just one parent item in the causal chain - perhaps I previously read three different items and they all in some way contributed to the write that I just made. So instead of keeping a single parent in the causal chain, we'll keep a set.
+
+> 
+
+ Implementations of causal consistency usually have two components: dependency tracking and local stores. Dependency tracking metadata attached to each write is used to record information about its causal history, determining the write’s happens-before relation. Processes keep a local copy of keys and values—called a local store—that is guaranteed (by design) to be causally consistent at all times. Processes serve reads from their local stores and, using dependency tracking, determine when to update their local stores with newer writes (apply them).
+
+That just leaves the problem of how to determine what the causal dependencies of a write are in the first place so that we can save that information away in the dependency metadata. There are two approaches to this. The conservative approach (potential causality) effectively says "the application logic is a black box to me, I know that the client previously read x,y, and z, therefore I have to assume that any of these could potentially be a cause of the value that is being written." The alternative is an explicit approach (explicit causality) where the client tells us what the dependencies are: "I'm writing this value in response to x and y". The layered causal consistency design in this paper uses explicit causality, which helps to keep the amount of metadata we need to track reasonable.
+
+The layered consistency approach enables a clean separation of concerns. The lower (eventually consistent) layer is responsible for liveness, handling replication, durability, and convergence. The upper (causally consistent) layer builds safety guarantees on top.
+
+> 
+
+ Today, systems do not separate safety and liveness properties. This makes reasoning about data consistency difficult, as systems often provide slightly different consistency guarantees. A bolt-on architecture can provide the same consistency model across a wide range of storage systems. A correct shim implementation should not violate the properties guaranteed by the underlying data store. For example, if, as we propose, the underlying store is tasked with providing liveness guarantees, then a correct shim should always be live as well; an incorrect shim implementation can violate liveness by blocking indefinitely, but, if it does, it will not be due to the underlying store. Similarly, if the shim is not responsible for durability or fault-tolerance, which are concerns delegated to the underlying store, then information contained in the shim should be treated as “soft state” that is reconstructible from the underlying store. If the shim needs to be available in the presence of partitions, it should not depend on other shim processes: intra-shim communication can be used as an optimization but cannot be required for availability.
+
+With very few assumptions (and these hold across nearly all eventually consistent store implementations), the causally consistent layer can be built on top of any Eventually Consistent Data Store (ECDS).
+
+There's one tricky issue with the causal chain approach when we try to layer it on top of an ECDS: a typical ECDS doesn't act like an event store, retaining every update (event), instead it typically has a register model in which a more recent write overwrites a previous value. This means a shim might miss a write and therefore the chain of causality could be broken.
+
+> 
+
+ One way to think of ECDS write propagation is as an unreliable network that is guaranteed only to deliver a single message per key. We can build a reliable network between N shim processes by using N2 keys, but this is inefficient. Alternatively, we can avoid overwrites entirely by storing a new data item for every write, but this requires storage linear in the number of writes ever performed. These solutions are both expensive.
+
+Instead, the authors introduce the notion of causal cuts.:
+
+> 
+
+ To understand when it is safe to apply writes, we reformulate the correctness criteria for causal consistency as a more general, declarative specification that is inspired by the clarity provided by declarative translations of (operational) isolation level definitions.... the dependencies for each write in a causal cut should either i.) be in the cut, ii.) happen-before a write to the same key that is already in the cut, or iii.) be concurrent with a write to the same key that is already in the cut. This means that a cut contains the “latest” version of each key along at least one concurrent branch of the history ending along the cut’s frontier. A causally consistent system maintains the invariant that each local store is a causal cut.
+
+Given the history
+
+then {w1,x1,y1}, {x1,w2,y1}, {w1,x1,y1,z1}, {w2,x1,y1,z1}, {w1}, {w2}, {w1,x1} and {w2,x1} are all examples of causal cuts, but {w1,z1}, {x1, z1}, and {y1,z1} are not.
+
+Given this definition of causal cuts, ...
+
+> 
+
+ The basic premise of bolt-on causal consistency is straightforward: before revealing a write w to a client, a shim needs to ensure that w, along with the set of writes in its local store L (i.e., {w}∪L) is a causal cut (w is covered by L). If so, it can apply w to L. The write propagation of the ECDS means shims need to take care in performing this check....
+
+We'll need a way of tracking the dependencies for writes:
+
+> 
+
+ To compute causal covers, we need to know the dependencies for each write and to be able to compare them. In the event of overwritten histories, we must store the dependency set with every write. We do not need to store the entire history but the expected size of the dependency set is the number unique of keys in the causal history (not the number of unique versions or writes). Each write in the dependency set requires metadata about the writing processes, which can be represented by a vector clock (requiring space proportional to the number of writers to the write’s key in the history.
+
+When a client performs a write, the shim updates the local store and sends the update along with the dependency metadata to the underyling ECDS. The write in conjunction with the local store must form a causal cut because clients are only allowed to read values that are in the local store.
+
+For reads, if a shim already has the data item in its local store, it can be safely returned. All reads can therefore complete locally, and data items in the local store can be kept updated asynchronously via a resolver. There is no assumption that the underlying ECDS supports notifications, so this is done via polling.
+
+> 
+
+ Suppose the resolver reads w from the ECDS. If we wish to maintain the invariant that our local store L is always a causal cut of writes, then the resolver needs to check w’s dependencies. The resolver process iterates through each of w’s dependencies and ensures that the local store contains either the dependency itself, a later (happens-after) write to the dependency’s key, or a concurrent write to the dependency’s key. If a dependency is missing, the resolver can either attempt to read the dependency from the ECDS (as in the implementation) or defer further checking and move on to the next key.
+
+In a pessimistic alternative strategy, writes proceed as before but for reads shims attempt to read the latest value from the ECDS and cover it. This requires synchronous checking in the request path.
+
+> 
+
+ The trade-off here— which we have not observed in prior literature—is between staleness of values (liveness) and read operation speed. There are a variety of policies one can use to tune this trade-off (e.g., limit the number of synchronous ECDS reads to some constant number), but, for the purposes of this paper, we focus on the two extremes: bolt-on causal consistency, with all local reads, and pessimistic bolt-on causal consistency, in which, when reading from the ECDS, shims synchronously chase the entire dependency chain.
+
+The whole algorithm is easy to understand, and the evaluation implementation comes in at only 2000 lines of Java code.
+
+The shim model has a couple of nice properties: fate-sharing means that shims don't need to keep any durable state; and the model is easily extended to causal transactions.
+
+> 
+
+ If a shim crashes, its client will crash as well (Section 3.2), and so losing shim state is safe. The ECDS handles all propagation, and shims need not (and do not) communicate to ensure safety or liveness....
+
+and,
+
+> 
+
+ Recent work introduces the notion of causal read-only and write-only transactions [34, 35]. A bolt-on shim can provide these transactions with high availability with minor modifications. To perform a read-only “get transaction,” and return a causally consistent set of write, the shim needs to read a causal cut across the specified keys from the local store (note that the causal cut definition again simplifies the semantics of the operation). This is easily accomplished by employing a local store supporting “snapshot” reads at an equivalent of snapshot isolation, repeatable read isolation, or stronger [3]. Similarly, causal write-only transactions can be accomplished via transactionally applying groups of related updates to the local store.
+
+The evaluation was done using the Yahoo! Cloud Serving Benchmark, and Cassandra as the underlying ECDS.
+
+> 
+
+ We evaluate the performance of bolt-on causal consistency using a shim implementation and a production-ready eventually consistent data store. We find that providing explicit causality for several online service traces easily scales to tens of thousands of operations per second. The local read property of causal consistency allows bolt-on causal consistency to outperform eventual consistency, while pessimistic bolt-on causal consistency is often within 25% to 50% of eventual consistency’s peak through-
+
+ put.
+
+Not bad for 2000 loc! The resulting system performs better while giving stronger consistency guarantees.
+
+The main consideration seems to be the cost of storing the additional metadata:
+
+> 
+
+ We observe that, in general, the efficiency of the bolt-on strategy depends on metadata overheads. For many datasets, overhead is less than 500B but, for datasets likeMetafilter, can exceed 19KB. Thus, typical metadata overheads are inexpensive, but, for long histories, the cost of causality must be weighed against end-user benefits.
+
+The authors conclude:
+
+> 
+
+ In light of our experiences, we believe that bolt-on and layered approaches to data storage can provide a useful and modular alternative to often monolithic existing data storage infrastructure. In this work, we have taken a fairly restrictive approach, with an eye towards interoperability and broad applicability; the key challenge of overwritten histories and the metadata overheads required by our solution are artifacts of this decision. However, a less restrictive set of assumptions (as is reasonable in future data storage systems) offers the possibility ofmore harmonious cross-layer coordination. In particular, we believe that the opportunity to revisit the data storage interface and its interaction with higher layers of data management functionality is especially ripe.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems 
+ 
+ ConsistencyDistributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousProbabilistically Bounded Staleness for Practical Partial QuorumsNext &rsaquo;The Potential Dangers of Causal Consistency and an Explicit Solution
+ 
+ 
+
+ 
+ 
+## 
+ 10 thoughts on &ldquo;Bolt-on Causal Consistency&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: The Potential Dangers of Causal Consistency and an Explicit Solution | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Out of the Fire Swamp - Part II, Peering into the mist | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Implementing Linearizability at Large Scale and Low Latency | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Building Consistent Transactions with Inconsistent Replication | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: A Survey on Reactive Programming | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: A Distributed Systems Seminar Reading List... | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: 'Cause I'm Strong Enough: Reasoning About Consistency Choices in Distributed Systems | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: ‘Cause I’m Strong Enough: Reasoning About Consistency Choices in Distributed Systems-IT大道 
+ 
+ 
+- 
+ 
+ 
+ 
+ simbo1905 says: 
+
+ 
+ February 3, 2016 at 11:00 am 
+
+ 
+
+ 
+ 
+Reblogged this on slash dev slash null and commented:
+
+Eventual consistency forces complexity onto an application. Consider a comments system on a blog site where users are discussing with each other. What every user would like to see is "causal consistency" whereby they don't see a comment until they can also see all the comments that it is "in reply-to". In the general case an eventually consistent data store (ECDS) like Cassandra won't give causual consistency: you can see a comment before you see what the user is replying to. The Morning Paper has an excellent discussion of a paper that shows how 2k lines of code can layer Causual Consistency over the top of Cassandra using a separate local data store at each node and a vector clocks to track ordering. 
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Cloudburst: stateful functions-as-a-service - the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Loading Comments...
+ 
+ 
+ 
+ 
+
+ 
+ 
+ Write a Comment...
+ 
+ 
+ 
+ 
+ Email (Required)
+ 
+ 
+ 
+ Name (Required)
+ 
+ 
+ 
+ Website
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ %d

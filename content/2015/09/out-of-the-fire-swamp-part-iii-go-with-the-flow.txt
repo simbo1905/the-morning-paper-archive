@@ -1,0 +1,308 @@
+URL: https://blog.acolyer.org/2015/09/10/out-of-the-fire-swamp-part-iii-go-with-the-flow/
+Title: Out of the Fire Swamp &#8211; Part III, Go with the&nbsp;flow.
+---
+
+## Go with the flow
+
+At the conclusion of Part II we introduced the notion of a (micro)service owning exclusive access to a set of data in order to manage application invariants. Once we start to break things down this way, we need to start thinking about the flow of data between microservices.
+
+## A better paradigm?
+
+So far we've been discussing the adaptation of traditional ORM-style patterns to cloud native applications, retaining the register-based view of data. By introducing microservices responsible for their own data, we observed that now we need to think about the flow of data between microservices - aka. dataflow. That's interesting because dataflow-based approaches operate at a level of abstraction above object/entity based approaches. Putting this together with immutability (which changes everything) leads to thinking about append-only storage mechanisms and events as the unit of currency that are stored and flow between services. We therefore have an event store (as a specialism of the more general datastore), and an event flow as a specialism of the more general dataflow. Events are generated as a result of processing Commands (transactions). This style of thinking has led to architectures such as CQRS.
+
+With ever cheaper storage and the rise of data science, the event store is a great fit because it lets us ask so many retrospective questions of the data. We genuinely retain more value for the business because of the options that keeps open to us. Here's an analogy: the register model is a bit like a banking application that simply maintains an account balance - all we can ask is how much money is currently in an account; the event store model is like retaining the transaction ledger - which lets us perform all sorts of historical analyses concerning account behaviour, as well as being able to derive the current balance.
+
+In the usual terminology, services facing the outside world may receive Commands (requests to perform some action) and Queries. Processing a Command may generate zero or more Events which tell us information about something that has happened. An example command could be "add item X to shopping basket", and assuming the add is successful we might generate an event "X added to shopping basket". If we want to know the current state of the shopping basket we can replay its event log.
+
+Hmm, that should ring a bell. We want the ALPS properties so we'll have multiple replicas that can process commands. If we're creating the state as a result of processing a series of events then we essentially have a state machine where events represent operations. Unless we've taken great care, the order of events typically matters. This is a hard problem! In fact it's the problem that consensus algorithms are designed to solve, and they're notorious for being hard to understand and tricky to get right. Take a look for example at Viewstamped Replication Revisited where the parallels are very clear.
+
+If we try to solve the problem by making it so that event ordering doesn't matter, we are back at commutativity and monotonicity. The same shopping basket example is modelled with an Observed-Remove Set CRDT in 'A Comprehensive Study of Convergent and Commutative Replicated Data Types'.
+
+Event sourcing can be a useful technique and help maintain flexibility and agility in a system, but it's no silver bullet when it comes to reasoning about consistency and application invariants.
+
+A short word on CQRS, which is an optional architectural style often associated with event sourcing. In CQRS one part of the system (a service) handles commands, and the events that are produced as a result flow to other services that maintain materialized views optimised for answering queries. In the typical embodiment, we're offering only eventually consistent guarantees for those views. But we want them to be causally consistent - the view should represent a causal cut. To achieve this we need to track causal dependencies of events, and since they originate from commands, which can be influenced by information that has been viewed, the causal loop has to start with explicit specification of cause when commands are issued and the metadata needs to flow all through the system. We probably want to respect the atomicity of causal transactions too. CQRS can be a useful technique, but if we're trying to raise the bar to the strongest possible consistency available to us, it's no silver bullet either.
+
+But we can't just duck the problem:
+
+> 
+
+ Reasoning about the consistency properties of applications composed from a variety of services requires reasoning both about the semantic properties of components and how these properties are preserved across compositions with other components. Hence it requires a model that captures both component semantics and the dependencies between interacting components. One approach is to view the distributed system as an asynchronous dataflow, in which streams of inputs pass through a graph of components that filter, transform, and combine them into streams of outputs.
+
+(Alvaro et. al, Consistency without Borders)
+
+Confluence analysis can be applied at the dataflow level, and depends once again on application level annotations. The Blazes paper explores some of these ideas, as well as some interesting hints when it comes to composing microservice-based dataflows. For example, put replication upstream of confluent components, and caching downstream (we can view the CQRS style materialized view as a form of cache in this model).
+
+The event model has a lot of merit, and following the lead of Blazes we could categorise microservices as either confluent or order-sensistive, and as either read-only or a write-path. This facilitates the same kind of 'just enough coordination' approach that we looked at with ADM.
+
+Suppose we have a cluster of microservices within a bounded context. Commands and Queries arrive from outside of the context, and Events flow within it. The microservices are joined together by a dataflow. Viewed through a different lens, this looks like an unbounded stream processing problem! And that's an interesting insight because we've studied systems designed to support dataflow processing over unbounded streams in previous editions of The Morning Paper. For example, see the Google Cloud Dataflow Model and Apache Flink.
+
+Keep following this logic, and a microservice ends up looking like a function processing events at a node in a dataflow graph. Which is also very reminiscent of the design of AWS Lambda.
+
+If we can dynamically update the dataflow graph, we have ourselves a very interesting agile platform. Not all applications (or parts of applications) will be constructed this way, but it's a powerful new tool in the toolbox for those cases where it can be a fit.
+
+## Summary
+
+We have a data crisis - applications face data corruption (integrity violations) and data loss, often silently. The mechanisms popular today seem powerless to prevent it, and if we keep using them as we move towards cloud-native style applications, things will only get worse.
+
+It's time to put the application considerations back at the centre, and by starting with application invariants and a collaboration between application and datastore provide just-enough coordination up to the point of causal+ consistency, and an apology mechanism beyond that point. An Application Datastore Mapper (ADM) can layer this on top of an underlying eventually consistent store.
+
+When we start looking at microservices, we need to bring the dataflow of events between microservices to the fore. This then becomes amenable to dataflow analysis and optimisation, and the use of dataflow platforms designed for unbounded stream processing as a fabric connecting microservices. (The roll-your-own alternative could perhaps be described as 'feral dataflow coordination'). Events by themselves are no consistency silver bullet though.
+
+## Coda: R.O.U.S.
+
+I didn't address the problem of the Rodents Of Unusual Size, frankly I don't think they exist.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems 
+ 
+ Distributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousOut of the Fire Swamp - Part II, Peering into the mistNext &rsaquo;Jupiter Rising: A Decade of Clos Topologies and Centralized Control in Google's Datacenter Network
+ 
+ 
+
+ 
+ 
+## 
+ 5 thoughts on &ldquo;Out of the Fire Swamp - Part III, Go with the flow.&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ swaroop says: 
+
+ 
+ September 16, 2015 at 12:30 am 
+
+ 
+
+ 
+ 
+Adrian, you've managed to combine microservices, distributed systems, queues, stream processing, functional programming, cloud into one article!
+
+The only way to scale microservices in an organization is to have queues between them which would mean usage of append-only data pipeline. And it follows that we get into stream processing and hence functional programming.
+
+I agree with the sentiment because of the uptake of Kafka & Apache Spark, and in my own job, microservices + AWS SQS + AWS DynamoDB.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: L’architecture microservices sans la hype : qu’est-ce que c’est, à quoi ça sert, est-ce qu’il m’en faut ? | OCTO talks ! 
+ 
+ 
+- 
+ 
+ Pingback: Microservices architecture without the hype: what it is, what's the point, do I need one? | OCTO talks ! 
+ 
+ 
+- 
+ 
+ Pingback: A Year in Papers | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: The many faces of consistency | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

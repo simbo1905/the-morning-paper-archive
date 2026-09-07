@@ -1,0 +1,44 @@
+{
+  "date": "20161130",
+  "file_name": "20161130",
+  "slug": "firmament-fast-centralized-cluster-scheduling-at-scale",
+  "blog_url": "https://blog.acolyer.org/2016/11/30/firmament-fast-centralized-cluster-scheduling-at-scale/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses Firmament, a centralized cluster scheduler designed to achieve high-quality task placements while maintaining low latency and scalability. Adrian Colyer highlights the challenge of balancing centralized schedulers (which optimize for utilization and load balancing but struggle with speed) and distributed schedulers (which are fast but make lower-quality decisions). Firmament addresses this by using a flow-based scheduling approach, mapping task placement into a flow network solved via min-cost, max-flow algorithms. The paper demonstrates that Firmament can place 75% of tasks with sub-second latency in a large-scale Google cluster trace and outperforms other schedulers (e.g., Sparrow, Mesos, Kubernetes) in tail response times for short tasks. The key insight is that centralized schedulers can scale effectively by leveraging flow-based optimization and pragmatic algorithm selection, achieving both high-quality placements and low latency.",
+  "paper_title": "Firmament: Fast, centralized cluster scheduling at scale",
+  "paper_authors": [
+    "Malte Schwarzkopf",
+    "Andy Konwinski",
+    "Michael Abd-El-Malek",
+    "Vijay Vasudevan",
+    "Laurent Massoulié",
+    "Michael Isard"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/system/files/conference/osdi16/osdi16-gog.pdf",
+  "paper_abstract": "Centralized datacenter schedulers can make high-quality placement decisions when scheduling tasks in a cluster. Today, however, high-quality placements come at the cost of high latency at scale, which degrades response time for interactive tasks and reduces cluster utilization. This paper describes Firmament, a centralized scheduler that scales to over ten thousand machines at subsecond placement latency even though it continuously reschedules all tasks via a min-cost max-flow (MCMF) optimization. Firmament achieves low latency by using multiple MCMF algorithms, by solving the problem incrementally, and via problem-specific optimizations. Experiments with a Google workload trace from a 12,500-machine cluster show that Firmament improves placement latency by 20× over Quincy [22], a prior centralized scheduler using the same MCMF optimization. Moreover, even though Firmament is centralized, it matches the placement latency of distributed schedulers for workloads of short tasks. Finally, Firmament exceeds the placement quality of four widely-used centralized and distributed schedulers on a real-world cluster, and hence improves batch task response time by 6×.",
+  "paper_file": "papers/2016/11/30/firmament-fast-centralized-cluster-scheduling-at-scale.pdf",
+  "topics": [
+    "distributed-systems",
+    "cloud-computing"
+  ],
+  "tags": [
+    "cluster-scheduling",
+    "flow-networks",
+    "min-cost-max-flow",
+    "task-placement",
+    "scalability",
+    "latency-optimization",
+    "load-balancing"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Task lifecycle phases",
+      "caption": "Figure 1: Task lifecycle phases, state transition"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

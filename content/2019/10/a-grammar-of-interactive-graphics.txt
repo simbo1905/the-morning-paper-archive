@@ -1,0 +1,353 @@
+URL: https://blog.acolyer.org/2019/10/21/a-grammar-of-interactive-graphics/
+Title: Vega-Lite: a grammar of interactive&nbsp;graphics
+---
+
+Vega-lite: a grammar of interactive graphics Satyanarayan et al., IEEE transactions on visualization and computer graphics, 2016
+
+From time to time I receive a request for more HCI (human-computer interaction) related papers in The Morning Paper. If you’ve been a follower of The Morning Paper for any time at all you can probably tell that I naturally gravitate more towards the feeds-and-speeds end of the spectrum than user experience and interaction design. But what good is a super-fast system that nobody uses! With the help of Aditya Parameswaran, who recently received a VLDB Early Career Research Contribution Award for his work on the development of tools for large-scale data exploration targeting non-programmers, I’ve chosen a selection of data exploration, visualisation and interaction papers for this week. Thank you Aditya! Fingers crossed I’ll be able to bring you more from Aditya Parameswaran in future editions.
+
+Vega and Vega-lite follow in a long line of work that can trace its roots back to Wilkinson’s ‘The Grammar of Graphics.’ It’s all the way back to 2015 since we last looked at the Vega-family on The Morning Paper (see ‘Declarative interaction design for data visualization’ and ‘[Reactive Vega: a streaming dataflow architecture for declarative interactive visualisation][ReactiveVega’). Since then [Vega-Lite]VegaLite has come into existence, bringing high-level specification of interactive visualisations to the Vega-Lite world. From the look of the github repository it remains a very actively developed project to this day.
+
+## Grammars for graphics
+
+You can think of a ‘grammar of graphics’ as a bit like the ultimate DSL for creating charts and visualisations. Vega-Lite using JSON structures to describe visualisations and interactions, which are compiled down to full Vega specifications.
+
+Compared to base Vega, Vega-Lite introduces a view algebra for composing multiple views (including merging scales, aligning views etc. - massive time-saver!), and a novel grammar of interaction. The implementation compiles interaction grammars down to the Reactive Vega runtime.
+
+## Unit views
+
+The unit in the Vega-Lite world is a view.
+
+> 
+A unit specification describes a single Cartesian plot, with a backing data set, a given mark-type, and a set of one or more encoding definitions for visual channels such as position (x, y), color, size, etc..
+
+For example:
+
+Encodings determine how data attributes map to the properties of visual marks.
+
+## View composition
+
+> 
+Given multiple unit specifications, composite views can be created using a set of composition operators.
+
+There are four basic composition operators; layer, concatenate, facet, and repeat. It’s also possible to nest these (i.e., a composite view serve as a unit in a higher level composition) to create more complex views and dashboards.
+
+## Layering
+
+The layer operator takes multiple unit specifications as input, and produces a view with charts plotted on top of each other. By default Vega-Lite will produce shared scales and merge guides, when merging scales doesn’t make sense, you can override this behaviour to produce a dual-axis chart instead.
+
+## Concatenation
+
+Vega-Lite provides both horizontal (charts side-by-side) and vertical (stacked charts) concatenation operators. A shared scale and axis will be used where possible.
+
+## Faceting
+
+The facet operator produces trellis plots with one chart for each distinct value of a given field. Scales and guides are shared across all plots.
+
+## Repetition
+
+Repeat also generates multiple plots, but allows full replication of a data set in each cell.
+
+> 
+For example, repeat can be used to create a scatterplot matrix (SPLOM), where each cell shows a different 2D projection of the same data table.
+
+## Interaction grammar
+
+So far we’ve just been making pretty pictures, but the interaction grammar is where we can make those visualisations come alive. The interaction grammar is concerned with selections and transformations.
+
+> 
+The end result is an enumerable, combinatorial design space of interactive statistical graphics, with concise specification of not only linking interactions, but panning, zooming, and custom techniques as well.
+
+## Selections
+
+Selections map user actions to a set of points a user is interested in manipulating. The simplest selection is the point selection, which selects an individual datum. E.g., you click on a point, and it becomes highlighted. In a list selection the user can select multiple points, with points inserted, removed, or modified as events fire. Interval selections are similar to lists, but membership is determined by range predicates rather than selection points individually.
+
+By default selections are made over data values, facilitating reuse across views, but it is also possible to define selections over a visual range (e.g., choosing colours for a heatmap) if needed.
+
+> 
+The particular events that update a selection are determined by the platform a Vega-Lite specification is compiled on, and the input modalities it supports. By default we use mouse events on desktops, and touch events on mobile and tablet devices.
+
+## Transformations
+
+Once a selection has been made, it is the job of transformations to manipulate the selected components. There are five atomic transformation types, "the minimal set to support both common and custom interaction techniques."
+
+- Projection alters the predicate governing selection inclusion. In the previous figure for example, plot (d) shows projecting a selection to all points with matching Origin field values.
+
+- Toggling adds or removes elements in a list selection when the corresponding event occurs
+
+- Translation offsets spatial properties by an amount determined by the associated events (e.g. drag events). It works by default with interval selections, enabling movement of brushed regions or panning.
+
+- Zooming applies a scale factor
+
+- Nearest causes the data value or visual element nearest the selection’s triggering event to be selected.
+
+## Linking selections to visual encodings
+
+Selections, as defined by the combination of selection types and transforms, can then be used to parameterise visual encodings and make them interactive. For example, setting the fill colour of points that are selected to a given highlight colour, and to grey otherwise.
+
+Selected points can also be used as input data to further encodings. This enables linked interactions, including displaying tooltips or labels, and cross-filtering.
+
+## Putting it all together
+
+The example visualisations in section 6 of the paper cover all seven categories of interaction techniques in [Yi et al.’s taxonomy][YiEtAl]:
+
+- select to mark items of interest
+
+- explore to examine subsets of the data
+
+- connect to highlight related items
+
+- abstract/elaborate to vary the level of detail
+
+- reconfigure to show different arrangements of the data
+
+- filter to show elements conditionally
+
+- encode to change the visual representations used
+
+Here’s a representative example showing layered cross-filtering:
+
+Since of course one of the key points is that these visualisations are interactive, you might like to explore the interactive demos available online.
+
+## The last word
+
+> 
+Vega-Lite is an open source system available at http://vega.github.io/vega-lite. By offering a multi-view grammar of graphics tightly integrated with a grammar of interaction, Vega-Lite facilitates rapid exploration of design variations. Ultimately, we hope that it enables analysts to produce and modify interactive graphics with the same ease with which they currently construct static plots.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Data ScienceHCI 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousHackPPL: a universal probabilistic programming languageNext &rsaquo;Futzing and moseying: interviews with professional data analysts on exploration practices
+ 
+ 
+
+ 
+ 
+## 
+ 2 thoughts on &ldquo;Vega-Lite: a grammar of interactive graphics&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Kevin says: 
+
+ 
+ October 21, 2019 at 3:31 pm 
+
+ 
+
+ 
+ 
+Hey, love the papers, but would be nice if they were more mobile friendly! I tend to read them on the way to work and it's a bit cumbersome ATM.
+
+Currently running on Firefox on Android 10 on Pixel XL, generally an easy combo to support. About 20% of the horizontal space is taken by padding, and the images are unviewable. They're small with no way to expand except by zooming the whole site, and they're too low rez to see anything that way.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Linkdump #123 | WZB Data Science Blog 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

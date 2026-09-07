@@ -1,0 +1,35 @@
+{
+  "date": "20161205",
+  "file_name": "20161205",
+  "slug": "rex-a-development-platform-and-online-learning-approach-for-runtime-emergent-software-systems",
+  "blog_url": "https://blog.acolyer.org/2016/12/05/rex-a-development-platform-and-online-learning-approach-for-runtime-emergent-software-systems/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses REX, a development platform and online learning approach for runtime emergent software systems. The core idea is to dynamically select the best-performing combination of system components (e.g., different implementations of interfaces like RequestHandler or HTTPHandler) based on real-time workload characteristics. The authors demonstrate this with a web server example, where over 40 possible configurations exist due to variations in caching, compression, and threading strategies. The system uses machine learning (Thompson sampling, a multi-armed bandit approach) to adapt configurations in real-time, reducing 'regret' (difference from optimal performance) as it learns. The paper highlights the challenges of runtime exploration and debugging in such systems, but shows promising results with real-world workload traces like the NASA server trace.",
+  "paper_title": "REX: A Development Platform and Online Learning Approach for Runtime Emergent Software Systems",
+  "paper_authors": [
+    "Landon Porter",
+    "Michael D. Bond",
+    "Jonathan Aldrich"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "OSDI",
+  "paper_url": "",
+  "paper_abstract": "into user space [19, 22, 54]. Although commercially unsuccessful at the time, the virtualization market has now led hardware vendors to revive the idea [6, 38, 48], and also extend it to disks [52, 53]. This paper explores the OS implications of removing the kernel from the data path for nearly all I/O operations. We argue that doing this must provide applications with the same security model as traditional designs; it is easy to get good performance by extending the trusted computing base to include application code, e.g., by allowing applications unfiltered direct access to the network/disk. We demonstrate that operating system protection is not contradictory with high performance. For our prototype implementation, a client request to the Redis persistent NoSQL store has 2× better read latency, 5× better write latency, and 9× better write throughput compared to Linux. We make three specific contributions: Recent device hardware trends enable a new approach to the design of network server operating systems. In a traditional operating system, the kernel mediates access to device hardware by server applications, to enforce process isolation as well as network and disk security. We have designed and implemented a new operating system, Arrakis, that splits the traditional role of the kernel in two. Applications have direct access to virtualized I/O devices, allowing most I/O operations to skip the kernel entirely, while the kernel is re-engineered to provide network and disk protection without kernel mediation of every operation. We describe the hardware and software changes needed to take advantage of this new abstraction, and we illustrate its power by showing improvements of 2-5× in latency and 9× in throughput for a popular persistent NoSQL store relative to a well-tuned Linux implementation. 1 • We give an architecture for the division of labor between the device hardware, kernel, and runtime for direct network and disk I/O by unprivileged processes, and we show h...",
+  "paper_file": "papers/2016/12/05/rex-a-development-platform-and-online-learning-approach-for-runtime-emergent-software-systems.pdf",
+  "topics": [
+    "distributed-systems",
+    "machine-learning"
+  ],
+  "tags": [
+    "online-learning",
+    "multi-armed-bandit",
+    "thompson-sampling",
+    "component-based-systems",
+    "runtime-configuration",
+    "web-servers",
+    "performance-optimization"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

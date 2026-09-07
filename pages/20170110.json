@@ -1,0 +1,41 @@
+{
+  "date": "20170110",
+  "file_name": "20170110",
+  "slug": "shasta-interactive-reporting-at-scale",
+  "blog_url": "https://blog.acolyer.org/2017/01/10/shasta-interactive-reporting-at-scale/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Shasta, a system developed by Google to address challenges in handling vast database schemas with complex OLTP/OLAP workloads, particularly in their advertising campaign management system. The paper describes how Shasta replaces tangled business logic with a new Relational View Language (RVL), enabling developers to define views and queries more succinctly and efficiently. Shasta achieves significant performance improvements—2.5-7.5x faster on large queries and 2-4x faster on medium queries—by leveraging optimizations in its underlying data infrastructure, including TableCache, an in-memory cache that accelerates read access. The key insight is the introduction of RVL, which simplifies complex queries through implicit aggregation and view templates, reducing boilerplate and enabling better optimization than SQL alone. The system also supports diverse data stores, immediate data updates, and low-latency responses, making it suitable for user-facing applications.",
+  "paper_title": "Shasta: Interactive Reporting At Scale",
+  "paper_authors": [
+    "Manoharan et al."
+  ],
+  "paper_year": 2016,
+  "paper_venue": "SIGMOD",
+  "paper_url": "https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45394.pdf",
+  "paper_abstract": "We describe Shasta, a middleware system built at Google to support interactive reporting in complex user-facing applications related to Google’s Internet advertising business. Shasta targets applications with challenging requirements: First, user query latencies must be low. Second, underlying transactional data stores have complex “read-unfriendly” schemas, placing significant transformation logic between stored data and the read-only views that Shasta exposes to its clients. This transformation logic must be expressed in a way that scales to large and agile engineering teams. Finally, Shasta targets applications with strong data freshness requirements, making it challenging to precompute query results using common techniques such as ETL pipelines or materialized views. Instead, online queries must go all the way from primary storage to userfacing views, resulting in complex queries joining 50 or more tables. Designed as a layer on top of Google’s F1 RDBMS and Mesa data warehouse, Shasta combines language and system techniques to meet these requirements. To help with expressing complex view specifications, we developed a query language called RVL, with support for modularized view templates that can be dynamically compiled into SQL. To execute these SQL queries with low latency at scale, we leveraged and extended F1’s distributed query engine with facilities such as safe execution of C++ and Java UDFs. To reduce latency and increase read parallelism, we extended F1 storage with a distributed read-only in-memory cache. The system we describe is in production at Google, powering critical applications used by advertisers and internal sales teams. Shasta has significantly improved system scalability and software engineering efficiency compared to the middleware solutions it replaced.",
+  "paper_file": "papers/2017/01/10/shasta-interactive-reporting-at-scale.pdf",
+  "topics": [
+    "storage-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "olap",
+    "oltp",
+    "rvl",
+    "query-optimization",
+    "view-language",
+    "materialized-views",
+    "caching",
+    "f1-database",
+    "spanner"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Shasta in the AdWords data processing architecture",
+      "caption": "Figure 1: Shasta as part of the AdWords data processing architecture."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

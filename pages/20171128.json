@@ -1,0 +1,36 @@
+{
+  "date": "20171128",
+  "file_name": "20171128",
+  "slug": "popularity-predictions-of-facebook-videos-for-higher-quality-streaming",
+  "blog_url": "https://blog.acolyer.org/2017/11/28/popularity-predictions-of-facebook-videos-for-higher-quality-streaming/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses a paper from USENIX ATC'17 that tackles the challenge of predicting the popularity of videos on Facebook to optimize streaming quality and resource allocation. Adrian Colyer highlights the paper's key insight: Facebook's video popularity follows a power law, meaning a small fraction of videos (e.g., top 1%) account for the majority of watch time. This allows targeted optimization efforts, such as using the QuickFire engine to re-encode popular videos at higher quality with less storage overhead. The authors propose CHESS, a scalable and near-real-time popularity prediction algorithm that combines exponential decay kernels with a simple neural network to balance accuracy and computational efficiency. CHESS outperforms existing heuristics by improving watch time coverage by 8%-30% while reducing CPU overhead, and it operates in minutes rather than days, enabling timely decisions. The approach is generalizable beyond videos to other popularity prediction scenarios.",
+  "paper_title": "Popularity prediction of Facebook videos for higher quality streaming",
+  "paper_authors": [
+    "Tang",
+    "H."
+  ],
+  "paper_year": 2017,
+  "paper_venue": "USENIX ATC'17",
+  "paper_url": "https://www.usenix.org/conference/atc17/technical-sessions/presentation/tang",
+  "paper_abstract": "Streaming video algorithms dynamically select between different versions of a video to deliver the highest quality version that can be viewed without buffering over the client’s connection. To improve the quality for viewers, the backing video service can generate more and/or better versions, but at a significant computational overhead. Processing all videos uploaded to Facebook in the most intensive way would require a prohibitively large cluster. Facebook’s video popularity distribution is highly skewed, however, with analysis on sampled videos showing 1% of them accounting for 83% of the total watch time by users. Thus, if we can predict the future popularity of videos, we can focus the intensive processing on those videos that improve the quality of the most watch time. To address this challenge, we designed Chess, the first popularity prediction algorithm that is both scalable and accurate. Chess is scalable because, unlike the state-ofthe-art approaches, it requires only constant space per video, enabling it to handle Facebook’s video workload. Chess is accurate because it delivers superior predictions using a combination of historical access patterns with social signals in a unified online learning framework. We have built a video prediction service, ChessVPS, using our new algorithm that can handle Facebook’s workload with only four machines. We find that re-encoding popular videos predicted by ChessVPS enables a higher percentage of total user watch time to benefit from intensive encoding, with less overhead than a recent production heuristic, e.g., 80% of watch time with one-third as much overhead.",
+  "paper_file": "papers/2017/11/28/popularity-predictions-of-facebook-videos-for-higher-quality-streaming.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems",
+    "algorithms"
+  ],
+  "tags": [
+    "popularity-prediction",
+    "video-streaming",
+    "neural-networks",
+    "self-exciting-processes",
+    "exponential-kernels",
+    "social-signals",
+    "real-time-systems",
+    "feature-engineering"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

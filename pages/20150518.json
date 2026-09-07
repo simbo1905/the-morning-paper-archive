@@ -1,0 +1,33 @@
+{
+  "date": "20150518",
+  "file_name": "20150518",
+  "slug": "practical-byzantine-fault-tolerance",
+  "blog_url": "https://blog.acolyer.org/2015/05/18/practical-byzantine-fault-tolerance/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer introduces the paper 'Practical Byzantine Fault Tolerance' by Castro & Liskov as a significant contribution to Byzantine fault tolerance (BFT), a model that accounts for arbitrary deviations from expected behavior, including malicious attacks. While acknowledging the steep practical costs (e.g., requiring 3f+1 replicas to tolerate f faults, diverse implementations, and complex coordination), Colyer highlights the paper's impressive runtime overhead of just 3% slower than non-Byzantine systems. The blog emphasizes the algorithm's efficiency and practicality despite the Byzantine model's inherent challenges. Colyer also notes the broader applicability of BFT beyond security, such as handling independent software errors, as demonstrated by a real-world bug the authors encountered. The core insight is a four-phase protocol (pre-prepare, prepare, commit, execute) that ensures linearizability and liveness in asynchronous systems, even with faulty or malicious replicas.",
+  "paper_title": "Practical Byzantine Fault Tolerance",
+  "paper_authors": [
+    "Miguel Castro",
+    "Barbara Liskov"
+  ],
+  "paper_year": 1999,
+  "paper_venue": "OSDI",
+  "paper_url": "http://pmg.csail.mit.edu/papers/osdi99.pdf",
+  "paper_abstract": "Our growing reliance on online services accessible on the Internet demands highly-available systems that provide correct service without interruptions. Byzantine faults such as software bugs, operator mistakes, and malicious attacks are the major cause of service interruptions. This thesis describes a new replication algorithm, BFT, that can be used to build highly-available systems that tolerate Byzantine faults. It shows, for the first time, how to build Byzantine-fault-tolerant systems that can be used in practice to implement real services because they do not rely on unrealistic assumptions and they perform well. BFT works in asynchronous environments like the Internet, it incorporates mechanisms to defend against Byzantine-faulty clients, and it recovers replicas proactively. The recovery mechanism allows the algorithm to tolerate any number of faults over the lifetime of the system provided fewer than 1 \u0001 3 of the replicas become faulty within a small window of vulnerability. The window may increase under a denial-of-service attack but the algorithm can detect and respond to such attacks and it can also detect when the state of a replica is corrupted by an attacker. BFT has been implemented as a generic program library with a simple interface. The BFT library provides a complete solution to the problem of building real services that tolerate Byzantine faults. We used the library to implement the first Byzantine-fault-tolerant NFS file system, BFS. The BFT library and BFS perform well because the library incorporates several important optimizations. The most important optimization is the use of symmetric cryptography to authenticate messages. Public-key cryptography, which was the major bottleneck in previous systems, is used only to exchange the symmetric keys. The performance results show that BFS performs 2% faster to 24% slower than production implementations of the NFS protocol that are not replicated. Therefore, we believe that the BFT library can be used...",
+  "paper_file": "papers/2015/05/18/practical-byzantine-fault-tolerance.pdf",
+  "topics": [
+    "distributed-systems",
+    "systems-security"
+  ],
+  "tags": [
+    "byzantine-fault-tolerance",
+    "consensus-protocols",
+    "state-machine-replication",
+    "crash-consistency",
+    "malicious-faults",
+    "asynchronous-systems"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

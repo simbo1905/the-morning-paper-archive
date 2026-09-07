@@ -1,0 +1,266 @@
+URL: https://blog.acolyer.org/2017/08/14/cardiologist-level-arrhythmia-detection-with-convolutional-neural-networks/
+Title: Cardiologist-level arrhythmia detection with convolutional neural&nbsp;networks
+---
+
+Cardiologist-level arrythmia detection with convolutional neural networks Rajpurkar, Hannun, et al., arXiv 2017
+
+See also https://stanfordmlgroup.github.io/projects/ecg.
+
+This is a story very much of our times: development and deployment of better devices/sensors (in this case an iRhythm Zio) leads to collection of much larger data sets than have been available previously. Apply state of the art deep learning techniques trained on those data sets, and you get a system that outperforms human experts.
+
+> 
+
+ We develop a model which can diagnose irregular heart rhythms, also known as arrhythmias, from single-lead ECG signals better than a cardiologist.
+
+## Diagnosing arrhythmias
+
+Detecting arrhythmias from ECG records has traditionally been challenging for computer systems, with accuracy rates ranging from 50% to just 1 in 7 correct diagnoses. Thus arrhythmia detection is usually performed by expert technicians and cardiologists.
+
+> 
+
+ To automatically detect heart arrhythmias in an ECG, an algorithm must discern the complex relationships between them over time. This is difficult due to the variability in wave morphology between patients as well as the presence of noise.
+
+The model developed by the authors can identify 12 different heart arrythmias, sinus rhythm, and noise, for a total of 14 output classes. The morphology of the ECG during a single heart-beat, as well as the pattern of the activity of the heart over time determine the underlying rhythm. There are subtle differences in rhythms that can be hard to detect yet are critical for treatment.
+
+## Collecting the data
+
+> 
+
+ Machine learning models based on deep neural networks have consistently been able to approach and often exceed human agreement rates when large annotated datasets are available. These approaches have also proven to be effective in healthcare applications...
+
+The iRhythm Zio device is much smaller and simpler to wear than previous general Holter monitors. It captures beat-to-beat heart rhythms for up to 14 days (traditional monitoring systems are usually only used for one or two days), continuously recording. The data is kept on-device, and downloaded at the end of the assessment period, yielding up to 57% more data than traditional monitoring (source: iRhythm ZioXT web page). Off the back of the Zio device, iRhythm Technologies have built a company valued just shy of $1B (IRTC).
+
+> 
+
+ We construct a dataset 500 times larger than other datasets of its kind. One of the most popular previous datasets, the MIT-BIH corpus contains ECG recordings from 47 unique patients. In contrast, we collect and annotate a dataset of about 30,000 unique patients from a pool of nearly 300,000 patients who have used the Zio patch monitor.
+
+Every record in the training set is 30 seconds long, and can contain more than one rhythm type. Each record is annotated by a clinical ECG expert, who marks segments of the signal as corresponding to one of 14 rhythm classes.
+
+> 
+
+ Label annotations were done by a group of Certified Cardiographic Technicians who have completed extensive training in arrhythmia detection and a cardiographic certification examination by Cardiovascular Credentialing International.
+
+For testing, 336 records from 328 unique patients are used (the test and validation sets are separate to the training set). For these records, ground truth annotations were obtained by a committee of three board-certified cardiologists. For each record in the group, six individual cardiologists also provided annotations (without any collaboration) - this data is used to asses performance of the trained model as compared to an individual cardiologist.
+
+## Building and training a model
+
+> 
+
+ We draw on work in automatic speech recognition for processing time-series with deep convolutional neural networks and recurrent neural networks, and techniques in deep learning to make the optimization of these models tractable.
+
+ECG arrhythmia detection is a sequence-to-sequence task. The input is a an ECG signal, and the output is a sequence of rhythm class labels. Each label corresponds to one segment of the output.
+
+The model has 33 layers of convolution followed by a fully-connected layer and softmax, all trained using a log-likelihood objective function. To make optimisation tractable the network also contains shortcut connections and uses batch normalisation. Dropout is also used, and Adam as the optimiser.
+
+> 
+
+ The network consists of 16 residual blocks with 2 convolutional layers per block. The convolutional layers all have a filter length of 16 and have 64_k_ filters, where k starts out as 1 and is incremented every 4th residual block. Every alternate residual block subsamples its inputs by a factor of 2, thus the original input unit is ultimately subsampled by a factor of 2^8.
+
+## Beating the experts
+
+The model is evaluated using two metrics: sequence level accuracy and set level accuracy. Sequence level accuracy compares predictions against the ground truth annotations. Set level accuracy just takes the set of arrhythmias present in each 30 second record as the ground truth (i.e., it does not penalise for time misalignment.
+
+Here we can see how well the model performs on each class, compared to an expert cardiologist:
+
+Note that when the scores are taken in aggregate, the model outperforms the cardiologists both in precision and recall.
+
+> 
+
+ The model outperforms the average cardiologist performance on must rhythms, noticeably outperforming the cardiologists in the AV Block set of arrhythmias... This is especially useful given the severity of Mobitz II and complete heart block and the importance of distinguishing these two from Wenckebach which is usually considered benign.
+
+Where the model does make mistakes, these 'make sense' given that the confused classes often have very similar ECG morphologies.
+
+> 
+
+ Given that more than 300 million ECGs are recorded annually, high-accuracy diagnosis from ECG can save expert clinicians and cardiologists considerable time and decrease the number of misdiagnoses. Furthermore, we hope that this technology coupled with low-cost ECG devices enables more widespread use of the ECG as a diagnostic tool in places where access to a cardiologist is difficult.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Deep LearningIoT 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousAutomatic database management system tuning through large-scale machine learningNext &rsaquo;Writing parsers like it is 2017
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

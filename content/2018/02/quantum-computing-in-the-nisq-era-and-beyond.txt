@@ -1,0 +1,363 @@
+URL: https://blog.acolyer.org/2018/02/05/quantum-computing-in-the-nisq-era-and-beyond/
+Title: Quantum computing in the NISQ era and&nbsp;beyond
+---
+
+Quantum computing in the NISQ era and beyond Preskill, Q2B 2017
+
+Today’s paper is based on the keynote address given by John Preskill at the December 2017 ‘Quantum computing for business’ conference. It provides a great overview of the state of quantum computing today, and what we might reasonably expect to see over the coming years.
+
+## The NISQ era and the quantum chasm
+
+> 
+
+ ... we are now entering a pivotal new era in quantum technology. For this talk, I needed a name to describe this impending new era, so I made up a word: NISQ. This stands for Noisy Intermediate Scale Quantum.
+
+“Intermediate scale” refers to computers with between 50 and a few hundred qubits. The 50 qubit milestone is significant because that takes us beyond what we can simulate by brute force using the most powerful existing supercomputers. “Noisy” emphasises that we’ll have imperfect control over those qubits. Because of the noise, we expect a limit of about 1000 gates in a circuit - i.e., 1000 fundamental two-qubit operations. Executing a single gate is about 1000 times slower on an ion trap quantum processor than on a superconducting circuit.
+
+> 
+
+ Eventually we expect to be able to protect quantum systems and scale up quantum computers using the principle of quantum error correction... Unfortunately, there is a significant overhead cost for doing quantum error correction, so reliable quantum computers using quantum error correction are not likely to be available very soon.
+
+For example, using quantum error correction we would need physical systems with millions of qubits in order to run algorithms involving thousands of protected (fault-tolerant) qubits. For the next few years, our limit is on the order of a hundred physical qubits.
+
+> 
+
+ Crossing the “quantum chasm,” from hundreds of physical qubits to millions of physical qubits, is going to take some time, but we’ll get there eventually... It is important to realize that we will need significant advances — in basic science as well as in systems engineering — to attain fully scalable fault-tolerant quantum computers.
+
+What about those D-Wave machines available today then, which already have 2000 qubits? It’s complicated, but these are not circuit-based quantum computers, rather they are quantum annealers. We’ll take more about those later.
+
+## Quantum potential
+
+If quantum error correction is our basis for thinking that quantum computers will be scalable to large devices solving hard problems, quantum complexity is our basis for thinking that quantum computing is powerful. We have at least three good reasons for thinking that quantum computers have capabilities surpassing classical computers:
+
+- We know of problems believed to be hard for classical computers, but for which quantum algorithms have been discovered which can solve these problems easily. The best known example is Shor’s algorithm for prime factorisation. 
+
+- Theoretical computer scientists have proved that quantum states which are easy to prepare with a quantum computer have super-classical properties; “specifically, if we measure all the qubits in such a state we are sampling from a correlated probability distribution that can’t be sampled from by any efficient classical means.”
+
+- No known classical algorithm can simulate a quantum computer, even after many decades of trying. 
+
+> 
+
+ It’s a remarkable claim — one of the most amazing ideas I’ve encountered in my scientific life — that there is a distinction between problems that are classically hard and problems that are quantumly hard. And it is a compelling challenge to understand better what problems are classically hard but quantumly easy.
+
+We don’t expect quantum computers to be able to solve the hard instances of NP-hard problems. But when will quantum computers be able to solve problems we care about faster than classical computers, and for what problems?
+
+## Quantum speedups
+
+Quantum speedup refers to a quantum computer solving a problem faster than competing classical computers using the best available hardware and running the best algorithm which performs the same task.
+
+> 
+
+ A few years ago I spoke enthusiastically about quantum supremacy as an impeding milestone for human civilization. I suggested this term as a way to characterize computational tasks performable by quantum devices, where one could argue persuasively that no existing (or easily foreseeable) classical device could perform the same task, disregarding whether the task is useful in any other respect... But from a commercial perspective, obviously we should pay attention to whether the task is useful!
+
+Preskill then goes on to outline several areas where quantum computers hold promise for outperforming their classical cousins, including optimisation, deep learning, matrix inversion, recommendation systems, semidefinite programming, and quantum simulation. Let’s take a brief look at each of them.
+
+## Optimisers
+
+We don’t expect quantum computers to be able to efficiently solve worst case instances of NP-hard problems (such as combinatorial optimisation), but they might be better than classical computers at finding approximate solutions. That is, they might find better approximations, and/or they might find approximations faster.
+
+> 
+
+ For many problems there is a big gap between the approximation achieved by the best classical algorithm we currently know and the barrier of NP-hardness. So it would not be shocking to discover that quantum computers have an advantage over classical ones for the task of finding approximate solutions, an advantage some users might find quite valuable.
+
+The emerging approach is a hybrid quantum-classical algorithm where a quantum processor prepares an n-qubit state, and a classical optimiser processes the measurement outcomes, instructing the quantum processor how to alter the n-qubit state for the next iteration. Iteration continues until the algorithm converges on a quantum state from which the approximate solution can be extracted.
+
+If applied to classical approximation problems, this goes by the name Quantum Approximate Optimization Algorithm (QAOA), when applied to quantum problems it is called a Variation Quantum Eigensolver (VQE).
+
+Quantum annealers (such as the DWave 2000Q machine) are noisy versions of something called adiabatic quantum computing, and we don’t have a convincing theoretical argument indicating that they can outperform the best classical hardware. (We do in the noiseless version). So far quantum annealers have mostly been applied to cases where the annealing is stochastic, which means it is relatively easy for a classical computer to simulate what the quantum annealer is doing.
+
+> 
+
+ What’s coming soon are non-stochastic quantum annealers, which may have greater potential for achieving speedups over what the best classical algorithms can do.
+
+## Deep learning
+
+In quantum deep learning (or just quantum machine learning) we can construct quantum analogs of e.g. a restricted Boltzmann machine, but with the spins represented by qubits rather than classical bits.
+
+> 
+
+ It may be that quantum deep learning networks have advantages over classical ones; for example they might be easier to train for some purposes. But we don’t really know — it’s another opportunity to try it and see how well it works. One possible reason for being hopeful about the potential of quantum machine learning rests on the concept known as QRAM — quantum random access memory.
+
+QRAM can represent a large amount of classical data very succinctly, encoding a vector with_N_ components in just log N qubits. Even with QRAM though, we have to take into account the costs of encoding the input into QRAM in the first place. Moreover, when reading the results we can recover only log N classical bits (not N) from a single shot measurement of log N qubits.
+
+Thus quantum deep learning has most advantage in scenarios where both the input and output are quantum states. “... quantum deep learning networks might be very well suited for quantum tasks, but for applications of deep learning that are widely pursued today it is unclear why quantum networks would have an advantage.”
+
+## Matrix inversion
+
+QRAM also helps with matrix inversion, where the HHL algorithm gives an exponential quantum speedup, running in time O(log N). Once again, we have to pay encoding costs though if applying it to classical data.
+
+> 
+
+ We do have good reason to believe this quantum matrix inversion algorithm is powerful, because it solves what we call a BQP-complete problem. That is, any problem that can be solved efficiently with a quantum computer can be encoded as an instance of this matrix inversion problem.
+
+Unfortunately, HHL is not likely to be feasible in the NISQ era, “the algorithm is probably just too expensive to be executed successfully by a quantum computer which doesn’t use error correction.”
+
+## Recommendation systems
+
+A quantum algorithm has been proposed which gives an exponential speedup over the best currently known classical algorithm for the task of making high-value recommendations.
+
+> 
+
+ The goal is to recommend a product to a customer that the customer will probably like, based on limited knowledge of the preferences of that customer and other customers.
+
+Whereas the classical algorithm attempts to reconstruct the full recommendation matrix, the quantum one samples efficiently from a low-rank approximation to the preference matrix.
+
+> 
+
+ This is a significant quantum speedup for a real-world application of machine learning, encouraging the hope that other such speedups will be discovered. However, we don’t currently have a convincing theoretical argument indicating that the task performed by quantum recommendation systems (returning a high-quality recommendation in polylog(mn) time) is impossible classically.
+
+Alas, the algorithm is also probably too costly to be convincingly validated in the NISQ era.
+
+## Semidefinite programming
+
+Semidefinite programming is the task of optimising a linear function subject to matrix inequality constraints. Convex optimization problems of this type have widespread applications. “A recently discovered quantum algorithm finds an approximate solutions to the problem in time polylog(N), an exponential speedup.”
+
+The good news: a quantum solver for semidefinite programs might be within reach of NISQ technology!
+
+## Quantum simulation
+
+Finally, quantum computers should be really good for running quantum simulations! We can get started in the NISQ era, but the most exciting discoveries are perhaps beyond it. The theory of classical chaos advanced rapidly once we could simulate chaotic dynamical systems. Quantum simulation may promote similar advances in our understanding of quantum chaos.
+
+> 
+
+ Valuable insights might already be gleaned using noisy devices with of order 100 qubits.
+
+## The last word
+
+> 
+
+ Quantum technology is rife with exhilarating opportunities, and surely many rousing surprises lie ahead. But the challenges we face are still formidable. All quantumists should appreciate that our field can fulfill its potential only through sustained, inspired effort over decades. If we pay that price, the ultimate rewards will more than vindicate our efforts.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ quantum 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousPolynomial-time algorithms for prime factorization and discrete logarithms on a quantum computerNext &rsaquo;Quantum algorithms: an overview
+ 
+ 
+
+ 
+ 
+## 
+ 5 thoughts on &ldquo;Quantum computing in the NISQ era and beyond&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Quantum computing in the NISQ era and beyond - Tech + Hckr News 
+ 
+ 
+- 
+ 
+ Pingback: Quantum computing in the NISQ era and beyond - posted at February 05, 2018 at 09:21AM by bello - Startup News 2018 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Quantum computing in the NISQ era and beyond - ÇlusterAssets Inc., 
+ 
+ 
+- 
+ 
+ Pingback: Quantum algorithms: an overview | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: End of Term | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

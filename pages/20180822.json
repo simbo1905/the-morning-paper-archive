@@ -1,0 +1,44 @@
+{
+  "date": "20180822",
+  "file_name": "20180822",
+  "slug": "snorkel-rapid-training-data-creation-with-weak-supervision",
+  "blog_url": "https://blog.acolyer.org/2018/08/22/snorkel-rapid-training-data-creation-with-weak-supervision/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Snorkel, a system from the Stanford Dawn project that addresses the critical challenge of generating large-scale training datasets for supervised machine learning, particularly deep learning models which require massive labeled datasets. The paper introduces 'data programming,' a principled approach to combining weak supervision sources—such as heuristics, external knowledge bases, and crowd-sourced workers—into probability-weighted labels. Unlike traditional feature engineering, Snorkel treats weak supervision as the primary interaction method for machine learning, enabling users to write labeling functions that capture patterns or connect to external resources. The system then learns a generative model over these labeling functions to estimate their accuracies and correlations, producing probabilistic labels for training downstream models. The key insight is that this approach can match or exceed the performance of traditional hand-labeled datasets while drastically reducing the time and effort required.",
+  "paper_title": "Snorkel: Rapid Training Data Creation with Weak Supervision",
+  "paper_authors": [
+    "Alexander Ratner",
+    "Stephen H. Bach",
+    "Henry R. Ehrenberg",
+    "Jason Fries",
+    "Sen Wu",
+    "Christopher Ré"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "VLDB'18",
+  "paper_url": "https://arxiv.org/abs/1711.10160",
+  "paper_abstract": "Labeling training data is increasingly the largest bottleneck in deploying machine learning systems. We present Snorkel, a first-of-its-kind system that enables users to train stateof-the-art models without hand labeling any training data. Instead, users write labeling functions that express arbitrary heuristics, which can have unknown accuracies and correlations. Snorkel denoises their outputs without access to ground truth by incorporating the first end-to-end implementation of our recently proposed machine learning paradigm, data programming. We present a flexible interface layer for writing labeling functions based on our experience over the past year collaborating with companies, agencies, and research labs. In a user study, subject matter experts build models 2.8× faster and increase predictive performance an average 45.5% versus seven hours of hand labeling. We study the modeling tradeoffs in this new setting and propose an optimizer for automating tradeoff decisions that gives up to 1.8× speedup per pipeline execution. In two collaborations, with the U.S. Department of Veterans Affairs and the U.S. Food and Drug Administration, and on four open-source text and image data sets representative of other deployments, Snorkel provides 132% average improvements to predictive performance over prior heuristic approaches and comes within an average 3.60% of the predictive performance of large hand-curated training sets. PVLDB Reference Format: A. Ratner, S. H. Bach, H. Ehrenberg, J. Fries, S. Wu, C. Ré. Snorkel: Rapid Training Data Creation with Weak Supervision. PVLDB, 11 (3): xxxx-yyyy, 2017. DOI: 10.14778/3157794.3157797",
+  "paper_file": "papers/2018/08/22/snorkel-rapid-training-data-creation-with-weak-supervision.pdf",
+  "topics": [
+    "machine-learning",
+    "data-engineering"
+  ],
+  "tags": [
+    "weak-supervision",
+    "data-programming",
+    "labeling-functions",
+    "generative-models",
+    "crowdsourcing",
+    "distant-supervision",
+    "probabilistic-labels"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Weak supervision sources with differing accuracy and coverage",
+      "caption": "In Example 1.1, training data is labeled by sources of differing accuracy and coverage. Two key challenges arise in using this weak supervision effectively. First, we need a way to estimate the unknown source accuracies to resolve disagreements. Second, we need to pass on this critical lineage information to the end model being trained."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

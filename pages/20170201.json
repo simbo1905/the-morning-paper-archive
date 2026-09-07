@@ -1,0 +1,40 @@
+{
+  "date": "20170201",
+  "file_name": "20170201",
+  "slug": "explaining-outputs-in-modern-data-analytics",
+  "blog_url": "https://blog.acolyer.org/2017/02/01/explaining-outputs-in-modern-data-analytics/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this paper as a significant contribution to the problem of explaining outputs in dataflow systems, an area where provenance tracking is non-trivial. The authors propose a general method for identifying sufficient explanations to reproduce outputs in arbitrary computations, addressing a gap where no viable solution existed previously. The paper introduces backward tracing approaches that produce concise explanations for outputs in iterative computations, even with non-monotonic operators. Colyer emphasizes the clever use of differential dataflow to efficiently compute and update provenance explanations in a streaming fashion, leveraging shadow dataflow graphs and joins to avoid specialized data structures. The work is notable for its scalability and low overhead, even during incremental updates, and includes evaluations across tasks like datalog provenance, connected components, and stable matching.",
+  "paper_title": "Explaining outputs in modern data analytics",
+  "paper_authors": [
+    "Chothia et al."
+  ],
+  "paper_year": 2016,
+  "paper_venue": "",
+  "paper_url": "http://e-collection.library.ethz.ch/eserv/eth:48721/eth-48721-01.pdf",
+  "paper_abstract": "We report on the design and implementation of a general framework for interactively explaining the outputs of modern data-parallel computations, including iterative data analytics. To produce explanations, existing works adopt a naive backward tracing approach which runs into known issues; naive backward tracing may identify: (i) too much information that is difficult to process, and (ii) not enough information to reproduce the output, which hinders the logical debugging of the program. The contribution of this work is twofold. First, we provide methods to effectively reduce the size of explanations based on the first occurrence of a record in an iterative computation. Second, we provide a general method for identifying explanations that are sufficient to reproduce the target output in arbitrary computations – a problem for which no viable solution existed until now. We implement our approach on differential dataflow, a modern high-throughput, low-latency dataflow platform. We add a small (but extensible) set of rules to explain each of its data-parallel operators, and we implement these rules as differential dataflow operators themselves. This choice allows our implementation to inherit the performance characteristics of differential dataflow, and results in a system that efficiently computes and updates explanatory inputs even as the inputs of the reference computation change. We evaluate our system with various analytic tasks on real datasets, and we show that it produces concise explanations in tens of milliseconds, while remaining faster – up to two orders of magnitude – than even the best implementations that do not support explanations.",
+  "paper_file": "papers/2017/02/01/explaining-outputs-in-modern-data-analytics.pdf",
+  "topics": [
+    "data-engineering",
+    "distributed-systems"
+  ],
+  "tags": [
+    "data-provenance",
+    "dataflow-systems",
+    "differential-dataflow",
+    "backward-tracing",
+    "non-monotonic-operators",
+    "explanation-logic",
+    "shadow-dataflow",
+    "incremental-updates"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Examples for the discussion of challenges",
+      "caption": "Examples for the discussion of challenges"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

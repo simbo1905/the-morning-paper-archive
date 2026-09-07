@@ -1,0 +1,455 @@
+URL: https://blog.acolyer.org/2015/04/24/the-scalable-commutativity-rule-designing-scalable-software-for-multicore-processors/
+Title: The Scalable Commutativity Rule: Designing Scalable Software for Multicore&nbsp;Processors
+---
+
+The Scalable Commutativity Rule: Designing Scalable Software for Multicore Processors - Clements et al. 2013
+
+The way you design your interface (API) has a significant impact on the scalability you can achieve with any implementation. Clements et al. define the Scalable Commutativity Rule - which will look familiar to those who study distributed systems - and a tool called COMMUTER, which together can guide your API design. Using these techniques they were able to redesign 18 file-system related POSIX calls and greatly increase scalability. Two aspects I really like in this work are (a) the focus on the impact of your API design on ultimate scalability (vs. implementation optimisations and techniques), and (b) the notion that while not all operations may commute all of the time, there can be significant regions in the execution history where they can. This is useful information we can exploit...
+
+If all this sounds interesting, I highly recommend reading the full paper. My copy is extensively highlighted and I can only give you a flavour here.
+
+> 
+
+ At the core of our approach is this scalable commutativity rule: In any situation where several operations commute—meaning there’s no way to distinguish their execution order using the interface—they have an implementation whose memory accesses are conflict-free during those operations. Or, more concisely, whenever interface operations commute, they can be implemented in a way that scales.
+
+Clements et al. study SIM commutativity: State dependent, Interface-based, and monotonic.
+
+> 
+
+ When operations commute in the context of a specific system state, specific operation arguments, and specific concurrent operations, we show that an implementation exists that is conflict-free for that state and those arguments and concurrent operations. This exposes many more opportunities to apply the rule to real interfaces—and thus discover scalable implementations—than a more conventional notion of commutativity would.
+
+Consider Unix system calls. Very few unconditionally commute in every state and history - getpid() is one such example. But many more can conditionally commute based on state and arguments etc. For example, calls to open("a", O_CREATE|O_EXCL) when called from processes with different working directories.
+
+The COMMUTER tool takes an interface model, and determines the precise conditions under which sets of operations commute. "The tool can be integrated into the development process to drive initial design and implementation, to incrementally improve existing implementations, or to help developers understand the commutativity of an interface."
+
+> 
+
+ To reason about implementation scalability, we need to model implementations in enough detail to tell whether different threads’ “memory accesses” are conflict-free...conflict freedom is our proxy for scalability.
+
+This requires just enough modelling of the state behind the interface to check for access conflicts. An important result of the formally defined scalable commutativity rule (see section 3.4) is that in a region of history which SIM commutes, there exists a correct implementation in that region whose steps are conflict free. You just have to find that implementation! The authors show one way of constructing it as a proof that it is always possible, but this is not recommended as an actual implementation technique.
+
+> 
+
+ We believe it is easier to create practical scalable implementations for operations that commute in more situations. The arguments and system states for which a set of operations commutes often collapse into fairly well-defined classes (e.g., file creation might commute whenever the containing directories are different). In practice, implementations scale for whole classes of states and arguments, not just for specific histories... In the end, a system designer must decide which situations involving commutative operations are most important, and find practical implementation strategies that scale in those situations.
+
+## COMMUTER
+
+The user expresses a symbolic model of the interface in Python, and the ANALYZER component of COMMUTER generates expressions in terms of arguments and state that indicate exactly when sets of operations commute. These expressions can be directly inspected, and also passed to TESTGEN which can convert these conditions into real test cases.
+
+> 
+
+ To capture different conflict conditions as well as path conditions, we introduce a new notion called conflict coverage. Conflict coverage exercises all possible access patterns on shared data structures: looking up two distinct items from different operations, looking up the same item, etc. TESTGEN approximates conflict coverage...
+
+For a model of 18 POSIX system calls, TESTGEN produces a total of 13,664 test cases, and these find scalability issues in the Linux ramfs file system and virtual memory system.
+
+MTRACE uses a modified version of qemu and guest Linux kernel to run the test cases generated by TESTGEN against a real implementation, and checks that the implementation is conflict-free in each case.
+
+## Applying COMMUTER in the design of a file system interface
+
+The authors used COMMUTER to guide the design of a new file system called ScaleFS:
+
+> 
+
+ Given that Linux does not scale in many cases, how hard is it to implement scalable file systems and virtual memory systems? To answer this question, we designed and implemented a ramfs-like in-memory file system called ScaleFS and a virtual memory system called RadixVM for sv6, our research kernel based on xv6...
+
+Figure 6 below shows the scalability of system call pairs as achieved by ramfs (left) and ScaleFS (right). A big reduction in the number of conflicting cases.
+
+> 
+
+ COMMUTER, sv6, and a browser for the data in this
+
+ paper are available at http://pdos.csail.mit.edu/commuter
+
+Through the understanding gained from working with the COMMUTER tool, Clements et al. present us with four guidelines for designing commutative interfaces, and four patterns for designing scalable implementations...
+
+## 4 Guidelines for designing commutative interfaces
+
+- Decompose compound operations (i.e., each operation should only do one thing). For example, 'fork' both creates a new process and snapshots state and properties of the current process. This combination means it fails to commute with several other operations. 'posix_spawn' on the other hand gets it right...
+
+- Embrace specification non-determinism - allow freedom of implementation. For example, allowing 'open' to return any unused file descriptor rather than the lowest available one.
+
+- Permit weak ordering. For example, many systems order messages sent via a local Unix domain socket, even when using datagrams. In multi-reader and multi-writer scenarios allowing send and recv to commute would give greater scalability.
+
+- Release resources asynchronously - many POSIX operations have global effects that must be visible before the operation returns. This is generally good design, but stricter than needed for releasing resources and expensive to ensure.
+
+## 4 Patterns for designing scalable implementations
+
+- Layer scalability. For example, ScaleFS itself builds on data structures that naturally satisfy the commutativity rule such as linear arrays, radix arrays, and hash tables.
+
+- Defer work. When releasing a resource is not time sensitive, ScaleFS uses Refcache to batch reference count reconciliation and zero detection. Within Refcache epochs commutative operations can be conflict-free.
+
+- Precede pessimism with optimism. Many operations in ScaleFS have an optimistic check stage followed by a pessimistic update stage, a generalized sort of double-checked locking. 
+
+- Don't read unless necessary. For example, checking whether a path name exists can happen without having to read the inode for the path.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Operating Systems 
+ 
+ Software Engineering 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousFrom the Aether to the Ethernet - Attacking the Internet using Broadcast Digital TelevisionNext &rsaquo;Musketeer - Part I : What's the best data processing system?
+ 
+ 
+
+ 
+ 
+## 
+ 2 thoughts on &ldquo;The Scalable Commutativity Rule: Designing Scalable Software for Multicore Processors&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: A Year in Papers | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Arrakis: the operating system is the control plane | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Loading Comments...
+ 
+ 
+ 
+ 
+
+ 
+ 
+ Write a Comment...
+ 
+ 
+ 
+ 
+ Email (Required)
+ 
+ 
+ 
+ Name (Required)
+ 
+ 
+ 
+ Website
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,34 @@
+{
+  "date": "20160204",
+  "file_name": "20160204",
+  "slug": "crash-recoverability",
+  "blog_url": "https://blog.acolyer.org/2016/02/04/crash-recoverability/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this 2016 paper by Koskinen and Yang as introducing a formal definition of crash recoverability and a method to prove whether a program can correctly recover from a crash. The authors developed a tool called Eleven82 that can analyze C (and soon Java) programs to detect recoverability bugs or prove their absence. The paper formalizes crash recovery as a reachability problem, reducing the need to prove complex recovery logic directly. Instead, the tool transforms programs into control flow automata and checks for non-reachability of error states, which implies crash recoverability. The approach was applied to real-world systems like PostgreSQL, SQLite, and ZooKeeper, demonstrating its practicality by either proving recoverability or uncovering bugs within minutes. The key insight is that recovered programs should not introduce new behaviors not present in the original program, and this can be verified through observational equivalence.",
+  "paper_title": "Reducing Crash Recoverability to Reachability",
+  "paper_authors": [
+    "E. R. Koskinen",
+    "Y. Yang"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "",
+  "paper_url": "http://www.erickoskinen.com/papers/cr.pdf",
+  "paper_abstract": "1. Software applications run on a variety of platforms (filesystems, virtual slices, mobile hardware, etc.) that do not provide 100% uptime. As such, these applications may crash at any unfortunate moment losing volatile data and, when re-launched, they must be able to correctly recover from potentially inconsistent states left on persistent storage. From a verification perspective, crash recovery bugs can be particularly frustrating because, even when it has been formally proved for a program that it satisfies a property, the proof is foiled by these external events that crash and restart the program. In this paper we first provide a hierarchical formal model of what it means for a program to be crash recoverable. Our model captures the recoverability of many real world programs, including those in our evaluation which use sophisticated recovery algorithms such as shadow paging and write-ahead logging. Next, we introduce a novel technique capable of automatically proving that a program correctly recovers from a crash via a reduction to reachability. Our technique takes an input control-flow automaton and transforms it into an encoding that blends the capture of snapshots of pre-crash states into a symbolic search for a proof that recovery terminates and every recovered execution simulates some crashfree execution. Our encoding is designed to enable one to apply existing abstraction techniques in order to do the work that is necessary to prove recoverability. We have implemented our technique in a tool called E LEVEN 82, capable of analyzing C programs to detect recoverability bugs or prove their absence. We have applied our tool to benchmark examples drawn from industrial file systems and databases, including GDBM, LevelDB, LMDB, PostgreSQL, SQLite, VMware and ZooKeeper. Within minutes, our tool is able to discover bugs or prove that these fragments are crash recoverable. Storage systems such as file systems, databases, and version control store valuable user data,...",
+  "paper_file": "papers/2016/02/04/crash-recoverability.pdf",
+  "topics": [
+    "storage-systems",
+    "formal-methods"
+  ],
+  "tags": [
+    "crash-recovery",
+    "reachability",
+    "formal-verification",
+    "Eleven82",
+    "write-ahead-logging",
+    "shadow-paging",
+    "observational-equivalence"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

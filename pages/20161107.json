@@ -1,0 +1,38 @@
+{
+  "date": "20161107",
+  "file_name": "20161107",
+  "slug": "a-comprehensive-formal-security-analysis-of-oauth-2-0",
+  "blog_url": "https://blog.acolyer.org/2016/11/07/a-comprehensive-formal-security-analysis-of-oauth-2-0/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the importance of formal methods in security analysis, demonstrating their value through a comprehensive formal security analysis of OAuth 2.0 by Fett et al. The paper presents the first extensive formal model of OAuth 2.0 in a web context, identifying four previously unknown vulnerabilities in the widely deployed protocol. These vulnerabilities—307 redirect attack, IdP mix-up attack, state leak attack, and naïve RP session integrity attack—were confirmed by the OAuth and OpenID Connect working groups, who also adopted fixes for at least one of the attacks. The authors propose simple fixes and prove that, with these alterations, OAuth can provide strong guarantees for authorization, authentication, and session integrity. The blog post emphasizes the rigor of the approach, built on the FKS web model and Dolev-Yao style formalism, and notes the practical implications of the findings for real-world OAuth deployments.",
+  "paper_title": "Comprehensive Formal Security Analysis of OAuth 2.0",
+  "paper_authors": [
+    "Fett",
+    "Küsters",
+    "Schmitz"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "CCS",
+  "paper_url": "https://infsec.uni-trier.de/people/publications/paper/FettKuestersSchmitz-CCS-2016.pdf",
+  "paper_abstract": "representation of a user’s identity at a certain issuer. Note that while this id technically models a user’s identity, it just serves as a placeholder for arbitrary claims about the credential 3 subject. And finally, following the assumption “that a Verifiable Credential is always presented with a cryptographic proof of possession” from [OID4VP, Section 14.1], a valid credential in our model contains a public key, the holder key, to facilitate such a proof of possession. To validate a given credential, the verifier of course also needs some idea of which issuer to expect, i.e., we need a way for the verifier to determine which issuer(s) it is willing to accept for a given credential. In our model, the aforementioned id contains an issuer-local part, and a domain, similar to an email address. The domain then identifies the expected issuer for a credential for id , i.e., the verifier selects the key to validate the issuer’s signature based on that domain. In our model, these validation keys are preconfigured, i.e., verifiers are initialized with public keys for the issuers they trust. 2.2. Credential Issuance As agreed upon with the OIDF, for this first Deliverable, we do not model the issuance protocol(s). Instead, we initialize the wallets in our model such that they already hold a set of (valid) credentials at the beginning of a model run. In this initial state, all credentials in all wallets’ states are valid and signed by the “correct” issuer (see Section 2.1). However, in a real ecosystem, an honest wallet may of course also contain corrupt credentials; we distinguish the following types of such corrupt credentials: (1) Structurally sound credentials signed by a corrupted issuer; these follow the correct credential format, but may contain any id and public key. (2) Structurally unsound credentials. (3) Credentials for an attackercontrolled identity/claims about the attacker that are signed by an honest issuer; we assume that the credential issuance process ensur...",
+  "paper_file": "papers/2016/11/07/a-comprehensive-formal-security-analysis-of-oauth-2-0.pdf",
+  "topics": [
+    "systems-security",
+    "formal-methods"
+  ],
+  "tags": [
+    "oauth2.0",
+    "web-security",
+    "protocol-analysis",
+    "formal-verification",
+    "authentication",
+    "authorization",
+    "session-integrity",
+    "idp-mix-up",
+    "307-redirect-attack",
+    "state-leak-attack"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

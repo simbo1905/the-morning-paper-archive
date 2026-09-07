@@ -1,0 +1,43 @@
+{
+  "date": "20161102",
+  "file_name": "20161102",
+  "slug": "memc3-compact-and-concurrent-memcache-with-dumber-caching-and-smarter-hashing",
+  "blog_url": "https://blog.acolyer.org/2016/11/02/memc3-compact-and-concurrent-memcache-with-dumber-caching-and-smarter-hashing/",
+  "blog_title": "",
+  "blog_summary": "The blog post highlights MemC3, a system that improves Memcached through two key innovations: an optimized cuckoo hashing algorithm (optimistic cuckoo hashing) and a CLOCK-based eviction policy. The author emphasizes the elegance of the hashing scheme, which introduces tags to reduce key comparisons and enable efficient concurrent access with minimal overhead. The paper demonstrates significant performance gains—up to 30% memory reduction and 3x higher queries per second—on read-heavy workloads with small objects, typical of Facebook's use case. The evaluation section is praised for its thorough breakdown of contributions, though the blog focuses more on the algorithmic insights. The concurrent access support is particularly noteworthy, as it achieves high space efficiency (>90% occupancy) while enabling multi-reader, single-writer operations through clever use of version counters and shared locks.",
+  "paper_title": "MemC3: Compact and Concurrent MemCache with Dumber Caching and Smarter Hashing",
+  "paper_authors": [
+    "Bin Fan",
+    "David G. Andersen",
+    "Michael Kaminsky",
+    "Michael D. Mitzenmacher"
+  ],
+  "paper_year": 2013,
+  "paper_venue": "NSDI",
+  "paper_url": "https://www.cs.cmu.edu/~binfan/papers/nsdi13_memc3.pdf",
+  "paper_abstract": "Standard Memcached, at its core, uses a typical hash table design, with linked-list-based chaining to handle collisions. Its cache replacement algorithm is strict LRU, also based on linked lists. This design relies on locking to ensure consistency among multiple threads, and leads to poor scalability on multi-core CPUs [11]. This paper presents MemC3 (Memcached with CLOCK and Concurrent Cuckoo Hashing), a complete redesign of the Memcached internals. This re-design is informed by and takes advantage of several observations. First, architectural features can hide memory access latencies and provide performance improvements. In particular, our new hash table design exploits CPU cache locality to minimize the number of memory fetches required to complete any given operation; and it exploits instruction-level and memory-level parallelism to overlap those fetches when they cannot be avoided. Second, MemC3’s design also leverages workload characteristics. Many Memcached workloads are predominately reads, with few writes. This observation means that we can replace Memcached’s exclusive, global locking with an optimistic locking scheme targeted at the common case. Furthermore, many important Memcached workloads target very small objects, so per-object overheads have a significant impact on memory efficiency. For example, Memcached’s strict LRU cache replacement requires significant metadata—often more space than the object itself occupies; in MemC3, we instead use a compact CLOCK-based approximation. The specific contributions of this paper include: This paper presents a set of architecturally and workloadinspired algorithmic and engineering improvements to the popular Memcached system that substantially improve both its memory efficiency and throughput. These techniques—optimistic cuckoo hashing, a compact LRU-approximating eviction algorithm based upon CLOCK, and comprehensive implementation of optimistic locking—enable the resulting system to use 30% less memory for smal...",
+  "paper_file": "papers/2016/11/02/memc3-compact-and-concurrent-memcache-with-dumber-caching-and-smarter-hashing.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "cuckoo-hashing",
+    "concurrent-data-structures",
+    "memcached",
+    "eviction-policies",
+    "hash-tables",
+    "caching",
+    "versioning",
+    "lock-free"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Memcached data structures",
+      "caption": "Memcached data structures."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

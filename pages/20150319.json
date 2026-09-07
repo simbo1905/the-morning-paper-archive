@@ -1,0 +1,42 @@
+{
+  "date": "20150319",
+  "file_name": "20150319",
+  "slug": "coordination-avoidance-in-database-systems",
+  "blog_url": "https://blog.acolyer.org/2015/03/19/coordination-avoidance-in-database-systems/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this paper's focus on reducing coordination in distributed database systems to improve scalability and performance. The authors present a formal framework called invariant confluence (I-confluence) that determines when transactions can safely execute without coordination while maintaining application correctness. A key result is a system that scales linearly to 200 servers, processing 12.7M tps on the TPC-C benchmark—25x better than prior systems—without violating TPC-C invariants. The paper argues that minimizing coordination is crucial for high availability and performance, but unchecked coordination-free execution risks correctness. I-confluence provides a way to analyze invariants and transactions to identify when coordination can be avoided, offering a principled approach to designing scalable, correct distributed databases. Colyer notes that while the analysis is powerful, it relies on developers correctly specifying invariants and may require future language-level support for automation.",
+  "paper_title": "Coordination Avoidance in Database Systems",
+  "paper_authors": [
+    "Peter Bailis",
+    "Alan Fekete",
+    "Michael J. Franklin",
+    "Ali Ghodsi",
+    "Joseph M. Hellerstein",
+    "Ion Stoica"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "PVLDB (Proceedings of the VLDB Endowment)",
+  "paper_url": "http://www.vldb.org/pvldb/vol8/p185-bailis.pdf",
+  "paper_abstract": "level correctness, or consistency.1 In canonical banking application examples, concurrent, coordination-free withdrawal operations can result in undesirable and “inconsistent” outcomes like negative account balances—application-level anomalies that the database should prevent. To ensure correct behavior, a database system must coordinate the execution of these operations that, if otherwise executed concurrently, could result in inconsistent application state. This tension between coordination and correctness is evidenced by the range of database concurrency control policies. In traditional database systems, serializable isolation provides concurrent operations (transactions) with the illusion of executing in some serial order [15]. As long as individual transactions maintain correct application state, serializability guarantees correctness [30]. However, each pair of concurrent operations (at least one of which is a write) can potentially compromise serializability and therefore will require coordination to execute [9, 21]. By isolating users at the level of reads and writes, serializability can be overly conservative and may in turn coordinate more than is strictly necessary for consistency [29, 39, 53, 58]. For example, hundreds of users can safely and simultaneously retweet Barack Obama on Twitter without observing a serial ordering of updates to the retweet counter. In contrast, a range of widely-deployed weaker models require less coordination to execute but surface read and write behavior that may in turn compromise consistency [2, 9, 22, 48]. With these alternative models, it is up to users to decide when weakened guarantees are acceptable for their applications [6], leading to confusion regarding (and substantial interest in) the relationship between consistency, scalability, and availability [1, 9, 12, 18, 21, 22, 28, 40]. In this paper, we address the central question inherent in this tradeoff: when is coordination strictly necessary to maintain applicatio...",
+  "paper_file": "papers/2015/03/19/coordination-avoidance-in-database-systems.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "consistency-models",
+    "coordination-avoidance",
+    "invariant-confluence",
+    "scalability",
+    "transaction-processing",
+    "TPC-C",
+    "merge-semantics",
+    "distributed-databases",
+    "correctness-criteria",
+    "last-writer-wins"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

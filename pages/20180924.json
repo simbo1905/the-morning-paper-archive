@@ -1,0 +1,44 @@
+{
+  "date": "20180924",
+  "file_name": "20180924",
+  "slug": "smoke-fine-grained-lineage-at-interactive-speed",
+  "blog_url": "https://blog.acolyer.org/2018/09/24/smoke-fine-grained-lineage-at-interactive-speed/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the paper 'Smoke: fine-grained lineage at interactive speed' as an innovative approach to data lineage in interactive systems like visualization tools. The author emphasizes Smoke's ability to achieve both negligible lineage capture overhead and fast lineage query execution, addressing the traditional space/time trade-offs in lineage systems. Colyer notes that Smoke integrates lineage capture directly into query execution using write-efficient data structures and workload-aware optimizations, such as pruning and push-down techniques, which leverage prior knowledge of lineage queries. The paper demonstrates significant performance improvements over existing systems, with lineage capture and query evaluation outperforming state-of-the-art approaches by up to two orders of magnitude. The evaluation includes real-world applications like Crossfilter visualization and data profiling, showing that lineage can replace hand-written implementations while maintaining or improving performance.",
+  "paper_title": "Smoke: fine-grained lineage at interactive speed",
+  "paper_authors": [
+    "Paraschos Koutris",
+    "Bailu Ding",
+    "Sujaya Maiyya",
+    "Ashwin Machanavajjhala",
+    "Chris Riederer",
+    "Eugene Wu"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.vldb.org/pvldb/vol11/p719-psallidas.pdf",
+  "paper_abstract": "Price Price Profit forward_trace(X’ ⊆ X, V2 ) V1 Product V2 Product Figure 1: Two workflows generate visualizations V1 and V2 . A linked brushing interaction highlights in red bars in V2 that share the same input records with selected circles of V1 . Logically, it is expressed as a backward query from selected circles in V1 to input tuples followed by a forward query to V2 to highlight bars. by corrupted input records can help prevent erroneous conclusions. These operations are expressed as lineage queries over the workflow: backward queries return the subset of input records that contributed to a given subset of output records while forward queries return the subset of output records that depend on a given subset of input records. Any workflow-based application that relies on logic over the input-output relationships can be expressed in lineage terms. As such, lineage is (or can be) integral across many domains, including debugging [12, 31, 34, 40, 59]; data integration [15]; auditing [19]; security [10, 34]; explaining query results [16, 53, 57, 58]; cleaning [8, 25]; and interactive visualizations [60]. This ubiquity highlights the importance of lineage-enabled systems for both traditional as well as emergent domains. To illustrate, consider the interactive visualization in Figure 1: E XAMPLE 1. Figure 1 shows two views V1 and V2 generated from queries over a database. Linked brushing is an interaction technique where users select a set of marks in one view and marks derived from the same records are highlighted in the other views. This functionality is typically implemented imperatively in ad-hoc ways [60]. However, it can be expressed declaratively as lineage queries (i.e., as a backward query from selected circles in V1 to input records, followed by a forward query to highlight corresponding bars in V2 ) and optimized as such by lineage-enabled systems. Lineage-enabled systems answer lineage queries by automatically capturing record-level relationships through...",
+  "paper_file": "papers/2018/09/24/smoke-fine-grained-lineage-at-interactive-speed.pdf",
+  "topics": [
+    "data-engineering",
+    "distributed-systems"
+  ],
+  "tags": [
+    "data-lineage",
+    "query-optimization",
+    "visualization",
+    "workload-aware-optimization",
+    "in-memory-databases",
+    "lineage-indexes",
+    "provenance"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Two workflows generating visualizations with linked brushing",
+      "caption": "Two workflows generate visualizations V1 and V2 . A linked brushing interaction highlights in red bars in V2 that share the same input records with selected circles of V1 . Logically, it is expressed as a backward query from selected circles in V1 to input tuples followed by a forward query to V2 to highlight bars."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

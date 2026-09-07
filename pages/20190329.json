@@ -1,0 +1,40 @@
+{
+  "date": "20190329",
+  "file_name": "20190329",
+  "slug": "calvin-fast-distributed-transactions-for-partitioned-database-systems",
+  "blog_url": "https://blog.acolyer.org/2019/03/29/calvin-fast-distributed-transactions-for-partitioned-database-systems/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer reviews the Calvin paper, highlighting its goal of restoring ACID properties to distributed databases through a transaction processing and replication layer. He notes Calvin's ability to support horizontal scalability and distributed transactions without traditional distributed commit protocols, achieving impressive performance (500K TPC-C transactions/sec on a 100-node cluster). The key insight is Calvin's approach to minimize contention by agreeing on transaction plans *before* execution, ensuring deterministic execution and avoiding aborts even under node failures. Colyer contrasts Calvin with systems like Aurora and Spanner, emphasizing its unique architecture that separates sequencing, scheduling, and storage layers, and its reliance on deterministic locking and global transaction ordering to eliminate distributed commit bottlenecks.",
+  "paper_title": "Calvin: Fast Distributed Transactions for Partitioned Database Systems",
+  "paper_authors": [
+    "Daniel Abadi",
+    "Alexander Thomson",
+    "Quoc Pham",
+    "Andrew Pavlo"
+  ],
+  "paper_year": 2012,
+  "paper_venue": "SIGMOD",
+  "paper_url": "http://cs.yale.edu/homes/thomson/publications/calvin-sigmod12.pdf",
+  "paper_abstract": "1. BACKGROUND AND INTRODUCTION Many distributed storage systems achieve high data access throughput via partitioning and replication, each system with its own advantages and tradeoffs. In order to achieve high scalability, however, today’s systems generally reduce transactional support, disallowing single transactions from spanning multiple partitions. Calvin is a practical transaction scheduling and data replication layer that uses a deterministic ordering guarantee to significantly reduce the normally prohibitive contention costs associated with distributed transactions. Unlike previous deterministic database system prototypes, Calvin supports disk-based storage, scales near-linearly on a cluster of commodity machines, and has no single point of failure. By replicating transaction inputs rather than effects, Calvin is also able to support multiple consistency levels—including Paxosbased strong consistency across geographically distant replicas—at no cost to transactional throughput. One of several current trends in distributed database system design is a move away from supporting traditional ACID database transactions. Some systems, such as Amazon’s Dynamo [13], MongoDB [24], CouchDB [6], and Cassandra [17] provide no transactional support whatsoever. Others provide only limited transactionality, such as single-row transactional updates (e.g. Bigtable [11]) or transactions whose accesses are limited to small subsets of a database (e.g. Azure [9], Megastore [7], and the Oracle NoSQL Database [26]). The primary reason that each of these systems does not support fully ACID transactions is to provide linear outward scalability. Other systems (e.g. VoltDB [27, 16]) support full ACID, but cease (or limit) concurrent transaction execution when processing a transaction that accesses data spanning multiple partitions. Reducing transactional support greatly simplifies the task of building linearly scalable distributed storage solutions that are designed to serve “embarrassi...",
+  "paper_file": "papers/2019/03/29/calvin-fast-distributed-transactions-for-partitioned-database-systems.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "distributed-transactions",
+    "acid",
+    "deterministic-execution",
+    "calvin-protocol",
+    "two-phase-locking",
+    "paxos",
+    "consensus",
+    "transaction-processing",
+    "scalability",
+    "locking-protocols"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

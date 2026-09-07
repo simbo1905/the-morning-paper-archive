@@ -1,0 +1,41 @@
+{
+  "date": "20191113",
+  "file_name": "20191113",
+  "slug": "scaling-symbolic-evaluation-serval",
+  "blog_url": "https://blog.acolyer.org/2019/11/13/scaling-symbolic-evaluation-serval/",
+  "blog_title": "",
+  "blog_summary": "Serval is a framework designed to reduce the high costs of formal verification by enabling 'push-button verification' for systems software. Adrian Colyer highlights that traditional formal verification is prohibitively expensive, often requiring person-years of effort and producing proofs much larger than the original code. Serval aims to automate the verification process by leveraging symbolic evaluation and satisfiability solvers like Z3, allowing developers to focus on writing specifications rather than manually proving correctness. The paper introduces a general-purpose approach with reusable and interoperable verifiers, demonstrating its effectiveness by porting and verifying CertiKOS and Komodo to RISC-V in just four-person weeks each. The key insight is that by constraining implementations to finite operations and using symbolic evaluation, automated verification becomes tractable and scalable. The blog also provides a primer on symbolic evaluation, explaining how it explores all possible execution paths symbolically, and discusses how Serval's use of the Rosette language simplifies writing specifications and generating counter-examples for debugging.",
+  "paper_title": "Scaling symbolic evaluation for automated verification of systems code with Serval",
+  "paper_authors": [
+    "Nelson, Theodoros",
+    "Bornholt, James",
+    "Torlak, Emina",
+    "Cook, Dan",
+    "Hawblitzel, Galen"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "SOSP'19",
+  "paper_url": "https://dl.acm.org/authorize?N695029",
+  "paper_abstract": "But the benefits of formal verification come at a considerable cost. Writing proofs requires a time investment that is usually measured in person-years, and the size of proofs can be several times or even more than an order of magnitude larger than that of implementation code [49: §7.2]. The push-button verification approach [65, 74, 75] frees developers from such proof burden through co-design of systems and verifiers to achieve a high degree of automation, at the cost of generality. This approach asks developers to design interfaces to be finite so that the semantics of each interface operation (such as a system call) is expressible as a set of traces of bounded length (i.e., the operation can be implemented without using unbounded loops). Given the problem of verifying a finite implementation against its specification, a domain-specific automated verifier reduces this problem to a satisfiability query using symbolic evaluation [32] and discharges the query with a solver such as Z3 [31]. While promising, this co-design approach raises three open questions: How can we write automated verifiers that are easy to audit, optimize, and retarget to new systems? How can we identify and repair verification performance bottlenecks due to path explosion? How can we retrofit systems that were not designed for automated verification? This paper aims to answer these questions. First, we present Serval, an extensible framework for writing automated verifiers. In prior work on push-button verification [65, 74, 75], a verifier implements symbolic evaluation for specific systems, which both requires substantial expertise and makes the resulting verifiers difficult to reuse. In contrast, Serval developers write an interpreter for an instruction set using Rosette [80, 81], an extension of the Racket language [35] for symbolic reasoning. Serval leverages Rosette to “lift” an interpreter into a verifier; we use the term “lift” to refer to the process of transforming a regular program t...",
+  "paper_file": "papers/2019/11/13/scaling-symbolic-evaluation-serval.pdf",
+  "topics": [
+    "programming-languages",
+    "formal-methods",
+    "operating-systems"
+  ],
+  "tags": [
+    "symbolic-evaluation",
+    "formal-verification",
+    "push-button-verification",
+    "satisfiability-modulo-theories",
+    "serval",
+    "rosette",
+    "z3",
+    "risc-v",
+    "state-machine-refinement",
+    "non-interference"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

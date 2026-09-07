@@ -1,0 +1,35 @@
+{
+  "date": "20180123",
+  "file_name": "20180123",
+  "slug": "why-is-random-testing-effective-for-partition-tolerance-bugs",
+  "blog_url": "https://blog.acolyer.org/2018/01/23/why-is-random-testing-effective-for-partition-tolerance-bugs/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the surprising effectiveness of random testing in uncovering partition tolerance bugs in distributed systems, as demonstrated by tools like Jepsen. While academic wisdom often dismisses random testing as ineffective for such complex fault scenarios, the paper provides a theoretical foundation explaining why random testing works in practice. The author emphasizes the paper's contribution to defining coverage criteria (k-splitting, (k,l)-separation, minority isolation) that capture a large class of partition tolerance bugs and shows how random tests can probabilistically cover these criteria with high likelihood. The key insight is the application of the probabilistic method to prove the existence of small covering families of tests that can expose bugs with high probability, even without deterministic guarantees. The paper also extends these results to other domains like multi-threaded programs and VLSI circuits.",
+  "paper_title": "The Unreasonable Effectiveness of Random Testing for Partition Tolerance Bugs",
+  "paper_authors": [
+    "Rupak Majumdar",
+    "Filip Niksic"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "POPL",
+  "paper_url": "https://people.mpi-sws.org/~fniksic/popl2018/paper.pdf",
+  "paper_abstract": "Random testing has proven to be an effective way to catch bugs in concurrent and distributed systems. This is surprising, as the space of executions is enormous and conventional formal methods intuition would suggest that bad behaviors would only be found by extremely unlikely coincidences. Empirically, many bugs in distributed systems can be explained by interactions among only a small number of features. Thus, one can attempt to explain the effectiveness of random testing under various “small depth” hypotheses. In particular, it may be possible to test all interactions of k features for a small constant k by executing a family of tests that is exponentially or even doublyexponentially smaller than the family of all tests. Moreover, under certain conditions, a randomly chosen small set of tests is sufficient to cover all k-wise interactions with high probability. I will describe two concrete scenarios. First, I will describe bugs in distributed systems caused by network partition faults. In many practical instances, these bugs occur due to two or three key nodes, such as leaders or replicas, not being able to communicate, or because the leading node finds itself in a block of the partition without quorum. In this case, I will show using the probabilistic method that a small set of randomly chosen tests will cover all “small partition” scenarios with high probability. Second, I will consider bugs that arise due to unexpected schedules (interleavings) of concurrent events. Again, many bugs depend only on the relative ordering of a small number of events (the “bug depth” of the bug). In this case, I will show a testing algorithm that prioritizes low depth interleavings and a randomized testing algorithm that bounds the probability of sampling any behavior of bug depth k for a fixed k. The testing algorithm is based on combinatorial insights from the theory of partial orders, such as the notion of dimension and its generalization to d-hitting families as well as result...",
+  "paper_file": "papers/2018/01/23/why-is-random-testing-effective-for-partition-tolerance-bugs.pdf",
+  "topics": [
+    "distributed-systems",
+    "formal-methods"
+  ],
+  "tags": [
+    "random-testing",
+    "partition-tolerance",
+    "coverage-criteria",
+    "probabilistic-method",
+    "chaos-engineering",
+    "fault-injection",
+    "jepsen",
+    "distributed-bugs"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

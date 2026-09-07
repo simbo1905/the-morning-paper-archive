@@ -1,0 +1,41 @@
+{
+  "date": "20190301",
+  "file_name": "20190301",
+  "slug": "large-scale-gan-training-for-high-fidelity-natural-image-synthesis",
+  "blog_url": "https://blog.acolyer.org/2019/03/01/large-scale-gan-training-for-high-fidelity-natural-image-synthesis/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the rapid progress in GAN-based image generation, focusing on this paper's breakthrough in large-scale class-conditional GAN training for high-fidelity natural image synthesis. The paper achieves state-of-the-art results by scaling up models (2-4x parameters, 8x batch size) and introduces architectural and regularization innovations to maintain training stability. Key techniques include increasing model width (not depth), hierarchical latent space design, orthogonal regularization, and a 'truncation trick' for sampling that improves sample quality at the cost of diversity. The author notes the paper's success stems from a combination of scaling and clever engineering rather than a single silver bullet. The generated images show impressive quality for well-represented classes (e.g., dogs) but still reveal artifacts in others (e.g., butterflies, burgers).",
+  "paper_title": "Large Scale GAN Training for High Fidelity Natural Image Synthesis",
+  "paper_authors": [
+    "Andrew Brock",
+    "Jeffrey Donahue",
+    "Karen Simonyan"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "ICLR",
+  "paper_url": "https://openreview.net/pdf?id=B1xsqj09Fm",
+  "paper_abstract": "Adversarially trained generative models (GANs) have recently achieved compelling image synthesis results. But despite early successes in using GANs for unsupervised representation learning, they have since been superseded by approaches based on self-supervision. In this work we show that progress in image generation quality translates to substantially improved representation learning performance. Our approach, BigBiGAN, builds upon the state-of-the-art BigGAN model, extending it to representation learning by adding an encoder and modifying the discriminator. We extensively evaluate the representation learning and generation capabilities of these BigBiGAN models, demonstrating that these generation-based models achieve the state of the art in unsupervised representation learning on ImageNet, as well as in unconditional image generation. Pretrained BigBiGAN models – including image generators and encoders – are available on TensorFlow Hub1 .",
+  "paper_file": "papers/2019/03/01/large-scale-gan-training-for-high-fidelity-natural-image-synthesis.pdf",
+  "topics": [
+    "machine-learning"
+  ],
+  "tags": [
+    "generative-adversarial-networks",
+    "image-synthesis",
+    "scaling-laws",
+    "truncation-trick",
+    "orthogonal-regularization",
+    "class-conditional-generation",
+    "Inception-Score",
+    "Fréchet-Inception-Distance"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "BigBiGAN framework structure",
+      "caption": "The structure of the BigBiGAN framework. The joint discriminator D is used to compute the loss `. Its inputs are data-latent pairs, either (x ∼ Px , ẑ ∼ E(x)), sampled from the data distribution Px and encoder E outputs, or (x̂ ∼ G(z), z ∼ Pz ), sampled from the generator G outputs and the latent distribution Pz . The loss ` includes the unary data term sx and the unary latent term sz , as well as the joint term sxz which ties the data and latent distributions."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

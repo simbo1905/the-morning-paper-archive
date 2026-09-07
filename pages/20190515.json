@@ -1,0 +1,49 @@
+{
+  "date": "20190515",
+  "file_name": "20190515",
+  "slug": "seer",
+  "blog_url": "https://blog.acolyer.org/2019/05/15/seer/",
+  "blog_title": "",
+  "blog_summary": "Seer is an online system designed to predict and prevent Quality of Service (QoS) violations in cloud microservices by leveraging big data and deep learning. The paper highlights Seer's ability to anticipate QoS violations with 91% accuracy and proactively avoid them in 84% of cases by cooperating with a cluster manager. The system uses lightweight RPC-level tracing to collect request traces and a deep neural network (DNN) to recognize patterns in space and time that lead to QoS violations. Seer can also identify application-level design bugs and provide architectural insights. The blog author emphasizes Seer's low overhead (less than 0.1% on latency and 0.15% on throughput) and its adaptability to evolving microservices architectures through incremental retraining and transfer learning. The system's hybrid CNN-LSTM model balances inference time and accuracy, making real-time predictions 10-100ms ahead of potential violations.",
+  "paper_title": "Seer: leveraging big data to navigate the complexity of performance debugging in cloud microservices",
+  "paper_authors": [
+    "Gan",
+    "Yu",
+    "Delimitrou"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "ASPLOS",
+  "paper_url": "http://www.csl.cornell.edu/~delimitrou/papers/2019.asplos.seer.pdf",
+  "paper_abstract": "Performance unpredictability is a major roadblock towards cloud adoption, and has performance, cost, and revenue ramifications. Predictable performance is even more critical as cloud services transition from monolithic designs to microservices. Detecting QoS violations after they occur in systems with microservices results in long recovery times, as hotspots propagate and amplify across dependent services. We present Seer, an online cloud performance debugging system that leverages deep learning and the massive amount of tracing data cloud systems collect to learn spatial and temporal patterns that translate to QoS violations. Seer combines lightweight distributed RPC-level tracing, with detailed low-level hardware monitoring to signal an upcoming QoS violation, and diagnose the source of unpredictable performance. Once an imminent QoS violation is detected, Seer notifies the cluster manager to take action to avoid performance degradation altogether. We evaluate Seer both in local clusters, and in large-scale deployments of end-to-end applications built with microservices with hundreds of users. We show that Seer correctly anticipates QoS violations 91% of the time, and avoids the QoS violation to begin with in 84% of cases. Finally, we show that Seer can identify applicationlevel design bugs, and provide insights on how to better architect microservices to achieve predictable performance. Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than the author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org. A...",
+  "paper_file": "papers/2019/05/15/seer.pdf",
+  "topics": [
+    "distributed-systems",
+    "cloud-computing"
+  ],
+  "tags": [
+    "microservices",
+    "QoS-violations",
+    "performance-debugging",
+    "deep-neural-networks",
+    "distributed-tracing",
+    "cluster-management",
+    "resource-allocation",
+    "hardware-monitoring",
+    "transfer-learning",
+    "online-prediction"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Microservices dependency graphs",
+      "caption": "Fig. 1 shows three instances of real large-scale production deployments of microservices [2, 9, 11]. The perimeter of the circle (or sphere surface) shows the different microservices, and edges show dependencies between them. We also show these dependencies for Social Network, one of the large-scale graphs in three large cloud services used in the evaluation of this work (see Sec. 3)."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Performance impact of a posteriori diagnostics",
+      "caption": "Figure 2. The performance impact of a posteriori performance diagnostics for a monolith and for microservices."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,37 @@
+{
+  "date": "20150903",
+  "file_name": "20150903",
+  "slug": "quantifying-isolation-anomalies",
+  "blog_url": "https://blog.acolyer.org/2015/09/03/quantifying-isolation-anomalies/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the paper's exploration of isolation anomalies in database systems, particularly focusing on the trade-offs between serializability and weaker isolation levels like Read Committed and Snapshot Isolation (SI). The author notes that while serializability ensures data integrity, it often comes at a performance cost due to strict locking mechanisms. Weaker isolation levels improve throughput but introduce risks of anomalies such as write-skew, inconsistent reads, and phantoms. The paper demonstrates that even stronger isolation levels like SI can sometimes permit more anomalies than Read Committed, challenging common assumptions. The authors construct a microbenchmark and predictive model to quantify integrity violations under different transaction mixes, helping developers understand the correctness-performance trade-offs. The work also suggests future extensions to model arbitrary transaction mixes using static dependency graphs.",
+  "paper_title": "Quantifying Isolation Anomalies",
+  "paper_authors": [
+    "Alan Fekete",
+    "Dennis Shasha",
+    "Elizabeth O'Neil",
+    "Patrick O'Neil"
+  ],
+  "paper_year": 2009,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.vldb.org/pvldb/2/vldb09-185.pdf",
+  "paper_abstract": "The isolation level Multiversion Read Committed (RC), offered by many database systems, is known to trade consistency for increased transaction throughput. Sometimes, transaction workloads can be safely executed under RC obtaining the perfect isolation of serializability at the lower cost of RC. To identify such cases, we introduce an expressive model of transaction programs to better reason about the serializability of transactional workloads. We develop tractable algorithms to decide whether any possible schedule of a workload executed under RC is serializable (referred to as the robustness problem). Our approach yields robust subsets that are larger than those identified by previous methods. We provide experimental evidence that workloads that are robust against RC can be evaluated faster under RC compared to stronger isolation levels. We discuss techniques for making workloads robust against RC by promoting selective read operations to updates. Depending on the scenario, the performance improvements can be considerable. Robustness testing and safely executing transactions under the lower isolation level RC can therefore provide a direct way to increase transaction throughput without changing DBMS internals. PVLDB Reference Format: Brecht Vandevoort, Bas Ketsman, Christoph Koch, and Frank Neven. Robustness against Read Committed for Transaction Templates. PVLDB, 14(11): 2141 - 2153, 2021. doi:10.14778/3476249.3476268",
+  "paper_file": "papers/2015/09/03/quantifying-isolation-anomalies.pdf",
+  "topics": [
+    "storage-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "isolation-levels",
+    "serializability",
+    "snapshot-isolation",
+    "read-committed",
+    "integrity-constraints",
+    "concurrency-control",
+    "anomalies",
+    "transaction-processing"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,417 @@
+URL: https://blog.acolyer.org/2016/09/06/no-silver-bullet-essence-and-accident-in-software-engineering/
+Title: No Silver Bullet &#8211; essence and accident in software&nbsp;engineering
+---
+
+No Silver Bullet: Essence and Accident in Software Engineering Fred Brooks, 1987
+
+> 
+
+ We hear desperate cries for a silver bullet - something to make software costs drop as rapidly as computer hardware costs do.... Not only are there no silver bullets now in view, the very nature of software makes it unlikely that there will be any.
+
+Today's choice must be one of the best-known essays on software engineering of all time. Everyone knows the "no silver bullet" line, but how long is it since you last acquainted yourself with the details of the argument? This is a very readable (and very quotable!) piece, so if this post catches your interest I encourage you to follow the link at the top of the post and read the original for yourself.
+
+Why is software engineering so hard? And why shouldn't we expect that to change any time soon?
+
+"Following Aristotle," Brooks considers the difficulties encountered in building software and divides them into two kinds: essential difficulties, those inherent in the nature of software; and accidental difficulties, where we make things harder for ourselves than we need to, but that are not inherent to the process. Accidental difficulties we can chip away at, but essential difficulties will always remain.
+
+> 
+
+ The essence of a software entity is a construct of interlocking concepts: data sets, relationships among data items, algorithms, and invocations of functions. This essence is abstract in that such a conceptual construct is the same under many different representations... I believe the hard part of building software to be the specification, design, and testing of this conceptual construct, not the labour of representing it and testing the fidelity of the representation.
+
+And if you believe the above to be true, says Brooks, then building software will always be hard, and there is inherently no silver bullet.
+
+## Sources of Essential Difficulty
+
+> 
+
+ Let us consider the inherent properties of this irreducible essence of modern software systems: complexity, conformity, changeability, and invisibility.
+
+## Complexity:
+
+When a software entity is scaled up, we get a corresponding increase in the number of different elements. In most cases, these interact with each other in some non-linear fashion, such that the complexity of the whole increases much more than linearly. But since this complexity is an essential one, we can't simply 'abstract it away' - such an abstract description of a software entity would also abstract away its essence.
+
+> 
+
+ Many of the classic problems of developing software products derive from this essential complexity and its nonlinear increases with size."
+
+## Conformity:
+
+Physics also deals with terribly complex objects, but in physics there is always the belief that there are unifying principles to be found. A software engineer can harbour no such belief: "much of the complexity that he must master is arbitrary complexity, forced without rhyme or reason by the many human institutions and systems to which his interfaces must conform."
+
+## Changeability:
+
+Software is constantly subjected to pressures for change. A software product is embedded in a cultural matrix of applications, users, laws, and hardware - all of which change continually and force changes upon the software.
+
+## Invisibility:
+
+> 
+
+ Software is invisible and unvisualizable...
+
+Buildings have floor plans, mechanical parts can have scale drawings - the geometric realities can be captured in geometric abstractions. The reality of software though is not inherently embedded in space, and thus has no ready geometric representation. "As soon as we attempt to diagram software structure, we find it to constitute not one, but several, general directed graphs superimposed one upon another."
+
+This difficulty in visualizing software impedes understanding within a single mind, and severely hinders communication among minds.
+
+## So what can be done?
+
+If the conceptual components of the software development task are now taking most of the time, then we must consider attacks that address the essence of the software problem. Brooks offers us three recommendations that still speak to us today: reuse, incremental development, and investing in your software developers. And remember that Brooks was writing almost 30 years ago!
+
+## Reuse
+
+Reuse of existing software components (build vs buy as Brooks describes it in his essay) takes advantage of the fact that the cost of software is primarily a development cost, not a replication cost. "Sharing the development cost among even a few users radically cuts the per-user cost." Today we would add operational costs to the list of considerations. I was struck by Brook's discussion of why reuse didn't seem to happen during the 50's and 60's, but took off in the 80's - one of those passages I seem to have missed on previous readings!
+
+> 
+
+ During the 1950's and 1960's, study after study showed that users would not use off the shelf packages for payroll, inventory control, accounts receivable, and so on. The requirements were too specialized, the case-to-case variation too high. During the 1980's we find such packages in high demand and widespread use. What has changed?  Not the packages, really. They may be somewhat more generalized and somewhat more customizable than formerly, but not much. Not the applications, either. If anything, the business and scientific needs of today are more diverse and complicated than those of 20 years ago...
+
+What changed, it turns out, was the relative cost of building your software compared to the overall cost of the system. In 1960, someone buying a $2M computer could swallow $250K for a customized payroll program. But the buyer of a 1980's $50K computer would be much less ready to do so. It strikes me that a similar argument could be made for why we see such a big acceptance of third-party services (the API economy) today: both in terms of time and money, the cost of building your own customized solution stands out like a sore thumb in today's as-a-service world.
+
+## Incremental development
+
+> 
+
+ The hardest single part of building a software system is deciding precisely what to build... Therefore the most important function that the software builder performs for the client is the iterative extraction and refinement of the product requirements.
+
+And the best way to do this extraction and refinement says Brooks, is to build working software.  Therefore approaches and tools that support rapid iterative development are some of the most promising advances.
+
+The thing that most radically changed Brooks' own practice of software development, and its effectiveness, was growing software incrementally.
+
+> 
+
+ Some years ago Harlan Mills proposed that any software system should be grown by incremental development. That is, the system should first be made to run, even if it does nothing useful except call the proper set of dummy subprograms. Then, bit by bit, it should be fleshed out... I have seen most dramatic results since I began urging this technique on the project builders in my Software Engineering Laboratory class. Nothing in the past decade has so radically changed my own practice, or its effectiveness... I find that teams can grow much more complex entities in four months than they can build.
+
+## Nurture your software developers
+
+Reuse and incremental, iterative development we've certainly embraced. But many organisations have still yet to fully embrace Brooks' third recommendation. I'm pretty sure @Monkchips would like it: http://redmonk.com/jgovernor/2016/08/16/spring-won-platform-the-big-switch-just-happened/.
+
+> 
+
+ The central question in how to improve the software art, centers, as it always has, on people... I think the most important single effort we can mount is to develop ways to grow great designers (software developers?). No software organization can ignore this challenge. Good managers, scarce though they be, are no scarcer than good designers. Great designers and great managers are both very rare. Most organizations spend considerable effort in finding and cultivating the management prospects; I know of none that spends equal effort in finding and developing the great designers upon whom the technical excellence of the products will ultimately depend.
+
+## Do Not Put Your Faith In...
+
+- High level language advances. These can make incremental advances into accidental complexity, but will not be a silver bullet.
+
+- Object-oriented programming: "such advances can do no more than remove all the accidental difficulties from the expression of the design. The complexity of the design itself is essential, and such attacks make no change whatever in that."
+
+- AI (expert systems, in their 1987 guise). AI can help to narrow the gap between the inexperienced programmer and the accumulated wisdom of the best programmers... This is no small contribution, but it's also no silver bullet. Brooks is prescient on the power of data:
+
+> 
+
+ The power of such systems does not come from ever-fancier inference mechanisms, but rather from ever-richer knowledge bases that reflect the real world more accurately. I believe that the most important advance offered by the technology is the separation of the application complexity from the program itself.  How can this technology be applied to the software-engineering task? In many ways: such systems can suggest interface rule, advise on testing strategies, remember bug-type frequencies, and offer optimization hints.
+
+- Automatic programming (program generation): "it is hard to see how such techniques generalize to the wider world of the ordinary software system..."
+
+- Graphical programming: "nothing even convincing, much less exciting, has yet emerged from such efforts. I am persuaded that nothing will."
+
+- Program verification: "I do not believe we will find productivity magic here. Program verification is a very powerful concept, and it will be very important for such things as secure operating-system kernels. The technology does not promise, however, to save labor. Verifications are so much work that only a few substantial programs have ever been verified."
+
+## Optional exercise for the reader
+
+Take pretty much any couple of paragraphs from this paper, grab a group of your colleagues over lunch / coffee and have a discussion along the lines of: "30 years ago Fred Brooks said..... Was he right? Does that still hold? What did he miss?" It's my hunch you could generate a lot of really interesting and thought-provoking conversations this way.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Software Engineering 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousOn the criteria to be used in decomposing systems into modulesNext &rsaquo;The Emperor's Old Clothes
+ 
+ 
+
+ 
+ 
+## 
+ 8 thoughts on &ldquo;No Silver Bullet - essence and accident in software engineering&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ edlich (@edlich) says: 
+
+ 
+ September 6, 2016 at 7:47 am 
+
+ 
+
+ 
+ 
+This reminds me of the old "Out of the Tar Pit" from Moseley and Marks (1) (2006) and their approach. Unfortunately I do not see any separation of accidental and essential in the industry. Nevertheless I highly recommend the writings and videos from Rick Hickey on topics as complexity, simplicity, etc... and HDD of course (Hammock Driven Development ;-).
+
+(1) http://shaffner.us/cs/papers/tarpit.pdf
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ pressron says: 
+
+ 
+ September 6, 2016 at 8:52 am 
+
+ 
+
+ 
+ 
+I tried to give a mathematical justification to Brooks's prediction: http://blog.paralleluniverse.co/2016/07/23/correctness-and-complexity/
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Marcos says: 
+
+ 
+ September 6, 2016 at 2:41 pm 
+
+ 
+
+ 
+ 
+"High level language advances. These can make incremental advances into accidental complexity, but will not be a silver bullet."
+
+He says there are still a few order of magnitude gains on those. They'll just come from the slow accumulation of small gains, not from a few silver bullets.
+
+I do think that, 30 years later, we probably still have an order of magnitude or two to take from our tools.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Getting early feedback applying Test-Driven Development - Things about software development 
+ 
+ 
+- 
+ 
+ Pingback: Co se urodilo na síti #2 - Wrent.cz 
+ 
+ 
+- 
+ 
+ Pingback: Keeping CALM: when distributed consistency is easy | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: O que são Frameworks de Fundação? 
+ 
+ 
+- 
+ 
+ Pingback: STELLA: report from the SNAFU-catchers workshop on coping with complexity - the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

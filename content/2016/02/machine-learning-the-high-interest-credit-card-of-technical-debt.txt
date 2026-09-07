@@ -1,0 +1,393 @@
+URL: https://blog.acolyer.org/2016/02/29/machine-learning-the-high-interest-credit-card-of-technical-debt/
+Title: Machine Learning:  The High-Interest Credit Card of Technical&nbsp;Debt
+---
+
+Machine Learning: The High-Interest Credit Card of Technical Debt - Sculley et al. 2014
+
+Today's paper offers some pragmatic advice for the developers and maintainers of machine learning systems in production. It's easy to rush out version 1.0 the authors warn us, but making subsequent improvements can be unexpectedly difficult. You very much get the sense as you read through the paper that the lessons contained within are the results of hard-won experience at Google. Some of the lessons fall under the general category of 'just because there's machine learning involved it doesn't mean you can forget good software engineering practices,' but others, and the more interesting ones to me, point out traps that are particular to machine learning systems. Given the rush of startup companies all looking to build "X + AI" based businesses, this feels like very timely advice.
+
+The major categories of technical debt outlined in the paper are: challenges in information hiding and encapsulation of change impact; lurking data dependencies that come back to bite; glue-code and configuration; and drift between the changing external world and the understanding of that world as it is captured in some model.
+
+> 
+
+ Perhaps the most important insight to be gained is that technical debt is an issue that that both engineers and researchers need to be aware of. Research solutions that provide a tiny accuracy benefit at the cost of massive increases in system complexity are rarely wise practice. Even the addition of one or two seemingly innocuous data dependencies can slow further progress. Paying down technical debt is not always as exciting as proving a new theorem, but it is a critical part of consistently strong innovation. And developing holistic, elegant solutions for complex machine learning systems is deeply rewarding work.
+
+## Information Hiding and Encapsulation of Change
+
+> 
+
+ ...machine learning models are machines for creating entanglement and making the isolation of improvements effectively impossible. To make this concrete, imagine we have a system that uses features x1, ... xn in a model. If we change the input distribution of values in x1, the importance, weights, or use of the remaining features may all change—this is true whether the model is retrained fully in a batch style or allowed to adapt in an online fashion. Adding a new feature xn+1 can cause similar changes, as can removing any feature xj. No inputs are ever really independent. We refer to this here as the CACE principle: Changing Anything Changes Everything.
+
+If we knew what was important a priori we wouldn't need to use machine learning to discover it! Thus a model is a bit like a giant mixing machine into which we throw lots of information and get out results, but the sensitivity to various changes in inputs is very hard to predict and almost impossible to isolate. So what can you do? There is no silver bullet here, but the authors do offer three tactics that may be of help.
+
+- You can isolate models and instead serve ensembles. The issues of entanglement remain within any one model of course, and in addition, "in large-scale setting such a strategy may prove unscalable."
+
+- Develop methods of gaining deep insights into the behaviour of model predictions. You need to invest in making the model less of a black box to you - for example through visualization tools. Going even further, I've spoken with a number of companies where it's an important part of their business model that they be able to explain the decisions taken by their ML models - and in some instances even a regulatory requirement. If that could be you, this is something you need to consider very carefully right up front. 
+
+- Use more sophisticated regularization methods so that any increase in performance prediction cost is reflected in the objective function used in training. " this kind of approach can be useful but is far from a guarantee and may add more debt via increased system complexity than is reduced via decreased entanglement."
+
+Another place to look for accidental coupling is hidden feedback loops, especially in connection with undeclared consumers. By undeclared consumers, the authors simply mean systems consuming the outputs of your model without you even being aware that they are doing so. A hidden feedback loop can easily arise if they than take some action based on this information that influences one of the input parameters to the model:
+
+> 
+
+ Imagine in our news headline CTR (click-through rate) prediction system that there is another component of the system in charge of “intelligently” determining the size of the font used for the headline. If this font-size module starts consuming CTR as an input signal, and font-size has an effect on user propensity to click, then the inclusion of CTR in font-size adds a new hidden feedback loop. It’s easy to imagine a case where such a system would gradually and endlessly increase the size of all headlines.
+
+## Data Dependencies that Bite
+
+> 
+
+ ...while code dependencies can be relatively easy to identify via static analysis, linkage graphs, and the like, it is far less common that data dependencies have similar analysis tools. Thus, it can be inappropriately easy to build large data-dependency chains that can be difficult to untangle.
+
+Some input signals, for example, change behaviour over time. Following the CACE principle, these changes, even if intended as improvements, can have hard to predict consequences.
+
+Another kind of data dependency is a build up of features in a model, some of which provide little incremental value in terms of accuracy. There are many roads to ending up with under-utilized dependencies - legacy features that were important early on but are no longer, adding bundles of features all at once and not teasing out just the ones that really make a difference, or features that have been added in a quest for incremental accuracy improvement but that don't really justify the complexity. It's important to prune such features periodically.
+
+> 
+
+ As an example, suppose that after a team merger, to ease the transition from an old product numbering scheme to new product numbers, both schemes are left in the system as features. New products get only a new number, but old products may have both. The machine learning algorithm knows of no reason to reduce its reliance on the old numbers. A year later, someone acting with good intent cleans up the code that stops populating the database with the old numbers. This change goes undetected by regression tests because no one else is using them any more. This will not be a good day for the maintainers of the machine learning system...
+
+Tools that can understand data dependencies can be a big aid in feature pruning. A team at Google built an automated feature management tool:
+
+> 
+
+ Since its adoption, this approach has regularly allowed a team at Google to safely delete thousands of lines of feature-related code per quarter, and has made verification of versions and other issues automatic. The system has on many occasions prevented accidental use of deprecated or broken features in new models.
+
+A final data dependency smell is repurposing an existing model by building a 'correction' on top of it. This can give a quick initial win, but makes it significantly more expensive to analyze improvements to that model in the future.
+
+## The other 95% (glue code and configuration)
+
+> 
+
+ It may be surprising to the academic community to know that only a tiny fraction of the code in many machine learning systems is actually doing “machine learning”. When we recognize that a mature system might end up being (at most) 5% machine learning code and (at least) 95% glue code, reimplementation rather than reuse of a clumsy API looks like a much better strategy...
+
+The issue being addressed here is that many machine learning libraries are packaged as self-contained artefacts, which can result in a lot of glue code (e.g. in translating from Java to R or matlab). If you really can't find something that fits naturally within your broader system architecture, you may be better of re-implementing the algorithm (the 5%) to avoid the pain of more glue code.
+
+A related symptom is pipeline jungles - overly convoluted data preparation pipelines.
+
+> 
+
+ Pipeline jungles can only be avoided by thinking holistically about data collection and feature extraction. The clean-slate approach of scrapping a pipeline jungle and redesigning from the ground up is indeed a major investment of engineering effort, but one that can dramatically reduce ongoing costs and speed further innovation.
+
+Once a system starts to ossify with glue code and pipeline jungles, the temptation is to perform additional experiments simply by tweaks and experimental code paths within the main production code. Do this too often of course, and you just make an even bigger mess.
+
+> 
+
+ As a real-world anecdote, in a recent cleanup effort of one important machine learning system at Google, it was found possible to rip out tens of thousands of lines of unused experimental codepaths. A follow-on rewrite with a tighter API allowed experimentation with new algorithms to be performed with dramatically reduced effort and production risk and minimal incremental system complexity.
+
+Finally in this section, "configuration tends to be the place where real-world messiness intrudes on beautiful algorithms:"
+
+> 
+
+ Consider the following examples. Feature A was incorrectly logged from 9/14 to 9/17. Feature B is not available on data before 10/7. The code used to compute Feature C has to change for data before and after 11/1 because of changes to the logging format. Feature D is not in production, so a substitute features D′ and D" must be used when querying the model in a live setting. If feature
+
+ Z is used, then jobs for training must be given extra memory due to lookup tables or they will train inefficiently. Feature Q precludes the use of feature R because of latency constraints. All this messiness makes configuration hard to modify correctly and hard to reason about. However, mistakes in configuration can be costly, leading to serious loss of time, waste of computing resources, or production issues.
+
+Configuration changes should be treated with the same level of care as code changes, and be carefully reviewed by peers. (See also, 'Holistic Configuration Management at Facebook').
+
+## What happens when the world moves on?
+
+> 
+
+ Experience has shown that the external world is rarely stable. Indeed, the changing nature of the world is one of the sources of technical debt in machine learning.
+
+Instead of manually set decision thresholds (for example, to show an ad, or not to show an ad), consider learning thresholds via evaluation on held-out validation data. Correlated features where cause-and-effect is unclear can also cause problems:
+
+> 
+
+ This may not seem like a major problem: if two features are always correlated, but only one is truly causal, it may still seem okay to ascribe credit to both and rely on their observed co-occurrence. However, if the world suddenly stops making these features co-occur, prediction behavior may change significantly. The full range of ML strategies for teasing apart correlation effects is beyond our scope; some excellent suggestions and references are given in [Bottou 2013]. For the purpose of this paper, we note that non-causal correlations are another source of hidden debt.
+
+Finally, live monitoring of a system in real-time is critical. Measuring prediction bias and alerting when the number of actions the system is taking crosses some threshold are both recommended.
+
+> 
+
+ In a system that is working as intended, it should usually be the case that the distribution of predicted labels is equal to the distribution of observed labels. This is by no means a comprehensive test, as it can be met by a null model that simply predicts average values of label occurrences without regard to the input features. However, it is a surprisingly useful diagnostic, and changes in metrics such as this are often indicative of an issue that requires attention...
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ GoogleMachine LearningOperations 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousDistributed Consistency and Session AnomaliesNext &rsaquo;Ad Click Prediction: A View from the Trenches
+ 
+ 
+
+ 
+ 
+## 
+ 9 thoughts on &ldquo;Machine Learning: The High-Interest Credit Card of Technical Debt&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Ad Click Prediction: A View from the Trenches | the morning paper 
+ 
+ 
+- 
+ 
+ 
+ 
+ Vic Ripa (@riparello) says: 
+
+ 
+ June 13, 2016 at 11:17 am 
+
+ 
+
+ 
+ 
+Found a link to your post through Kevlin Henney, a great read and I've immediately followed you on twitter. 
+
+About the paper, I agree wholeheartedly with all the points the authors make. I've been surprised by their usage of "entanglement" as if it was an established term in software design. AFAIK entanglement (as opposed to "tangling", commonly used in AOP with a different meaning) has been introduced by Carlo Pescio in his work on the Physics of Software (where the "Changing Anything Changes Everything" effect would be called Update/Update entanglement) but the authors are not providing any reference to that work. Being a fan :-), I'd like to provide a pointer for those who want to know more: http://physicsofsoftware.com
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Goods: organizing Google's datasets | the morning paper 
+ 
+ 
+- 
+ 
+ 
+ 
+ mario says: 
+
+ 
+ January 18, 2017 at 9:51 am 
+
+ 
+
+ 
+ 
+I wish I understood 50% of this post. Looks important
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Ground: A data context service | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Goods | What I learned 
+ 
+ 
+- 
+ 
+ Pingback: TFX: A TensorFlow-based production scale machine learning platform | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: 搭建容易維護難！谷歌機器學習系統血淚教訓 - 明日世界 
+ 
+ 
+- 
+ 
+ Pingback: Applying deep learning to Airbnb search - the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,121 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

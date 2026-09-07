@@ -1,0 +1,537 @@
+URL: https://blog.acolyer.org/2018/01/17/some-thoughts-on-security-after-ten-years-of-qmail-1-0/
+Title: Some thoughts on security after ten years of qmail&nbsp;1.0
+---
+
+Some thoughts on security after ten years of qmail 1.0 Bernstein, 2007
+
+> 
+I find security much more important than speed. We need invulnerable software systems, and we need them today, even if they are ten times slower than our current systems. Tomorrow we can start working on making them faster.
+
+That was written by Daniel Bernstein, over ten years ago. And it rings just as true today as it did on the day he wrote it — especially with Meltdown and Spectre hanging over us. Among his many accomplishments, Daniel Bernstein is the author of qmail. Bernstein created qmail because he was fed us with all of the security vulnerabilities in sendmail. Ten years after the launch of qmail 1.0, and at a time when more than a million of the Internet’s SMTP servers ran either qmail or netqmail, only four known bugs had been found in the qmail 1.0 releases, and no security issues. This paper lays out the principles which made this possible. (With thanks to Victor Yodaiken who pointed the paper out to me last year).
+
+> 
+How was qmail engineered to achieve its unprecedented level of security? What did qmail do well from a security perspective, and what could it have done better? How can we build other software projects with enough confidence to issue comparable security guarantees?
+
+Bernstein offers three answers to these questions, and also warns of three distractions: things that we believe are making things better, but may actually be making things worse. It seems a good time to revisit them. Let’s get the distractions out of the way first.
+
+## Three distractions from writing secure software
+
+The first distraction is ‘chasing attackers’ - ending up in a reactive mode whereby you continually modify the software to prevent disclosed attacks. That’s not to say you shouldn’t patch against discovered attacks, but this is a very different thing to writing secure software in the first place:
+
+> 
+For many people, “security” consists of observing current attacks and changing something — anything! — to make those attacks fail... the changes do nothing to fix the software engineering deficiencies that led to the security holes being produced in the first place. If we define success as stopping yesterday’s attacks, rather than as making progress towards stopping all possible attacks, then we shouldn’t be surprised that our systems remain vulnerable to tomorrow’s attacks.. (Emphasis mine).
+
+The second distraction is more surprising: it’s the principle of least privilege! This states that every program and user of the system should operate using the least set of privileges necessary to complete the job. Surely that’s a good thing? We don’t to give power where it doesn’t belong. But the reason Bernstein calls it a distraction is that assigning least privilege can lull us into a false sense of security:
+
+> 
+Minimizing privilege is not the same as minimizing the amount of trusted code, and does not move us any closer to a secure computer system... The defining feature of untrusted code is that it cannot violate the user’s security requirements.
+
+I’m not sure I agree that least privilege does not move us any closer to a secure computer system, but I do buy the overall argument here. My opinion might carry more weight though if I had also managed to write sophisticated software deployed on millions of systems with only four known bugs and no security issues over ten years of operation!
+
+The third distraction is very topical: speed. We know about the wasted time and programming effort through premature optimisation, but our veneration of speed has other more subtle costs. It causes us to reject out of hand design options that would be more secure (for example, starting a new process to handle a task) — they don’t even get tried.
+
+> 
+Anyone attempting to improve programming languages, program architectures, system architectures etc. has to overcome a similar hurdle. Surely some programmer who tries (or considers) the improvement will encounter (or imagine) some slowdown in some context, and will then accuse the improvement of being “too slow” — a marketing disaster... But I find security much more important than speed.
+
+Make it secure first, then work on making it faster.
+
+## How can we make our software more secure?
+
+> 
+The first answer, and surely the most obvious answer, is to reduce the bug rate.
+
+Security holes are bugs in our software. If we can reduce or eliminate bugs (across the board) then we should also reduce or eliminate security holes.
+
+Getting the bug rate down will help, but notice that it’s a rate: bugs per line of code. This suggests a second answer: reduce the amount of code in the system:
+
+> 
+Software-engineering processes vary not only in the number of bugs in a given volume of code, but also in the volume of code used to provide features that the user wants... we can meta-engineer processes that do the job with lower volumes of code.
+
+Note here the importance of fewer lines of code per required feature. As we saw last year when looking at safety-related incidents (‘Analyzing software requirements errors’, ‘The role of software in spacecraft accidents’), many problems occur due to omissions - a failure to do things that you really should have done. And that requires more code, not less.
+
+If we just stop at lowering the bug rate and reducing the number of lines of code, we should have fewer security holes. Unfortunately, the end result of just one exploited security hole is the same in software with only one hole as it is in software with multitudes. There’s probably some exponential curve that could be drawn plotting software engineering effort against number of bugs, whereby early gains come relatively easily, but chasing out the last few becomes prohibitively expensive. (I’m reminded of, for example, ‘An empirical study on the correctness of formally verified distributed systems.’) Now the effort we have to make in reaching the highest levels of assurance must in some way be a function of the size of the code to be assured. So it’s desirable to eliminate the need to reach this level of assurance in as many places as possible. Thus,
+
+> 
+The third answer is to reduce the amount of trusted code in the computer system. We can architect computer systems to place most of the code into untrusted prisons. “Untrusted” means that code in these prisons — no what the code does, no matter how badly it behaves, no matter how many bugs it has — cannot violate the user’s security requirements... There is a pleasant synergy between eliminating trusted code and eliminating bugs: we can afford relatively expensive techniques to eliminate the bugs in trusted code, simply because the volume of code is smaller.
+
+## Meta-engineering to reduce bugs
+
+The section on techniques for eliminating bugs contains a paragraph worth mediating on for a while. I strongly suspect the real secret to Bernstein’s success with qmail is given to us right here:
+
+> 
+For many years I have been systematically identifying error-prone programming habits — by reviewing the literature, analyzing other people’s mistakes, and analyzing my own mistakes — and redesigning my programming environment to eliminate those habits.
+
+Some of the techniques recommended include ensuring data flow is explicit (designing large portions of qmail to run in separate processes connected through pipelines made much of qmail’s internal data flow easier to see for example), simplifying integer semantics (using big integers and regular arithmetic rather than the conventional modular arithmetic), and factoring code in order to make it easier to test error cases.
+
+> 
+Most programming environments are meta-engineered to make typical software easier to write. They should instead be meta-engineered to make incorrect software harder to write.
+
+## Eliminating code
+
+To reduce code volume we can change programming languages and structures, and reuse existing facilities where possible.
+
+> 
+When I wrote qmail I rejected many languages as being much more painful than C for the end user to compile and use. I was inexplicably blind to the possibility of writing code in a better language and then using an automated translator to convert the code into C as a distribution language.
+
+Here’s an interesting example of design enabling reuse: instead of implementing its own permissions checks to see whether a user has permission to read a file, qmail simply starts a delivery program under the right uid. This means there’s an extra process involved (see the earlier discussion on the ‘speed’ distraction), but avoids a lot of other hassle.
+
+## Thinking about the TCB
+
+> 
+Programmers writing word processors and music players generally don’t worry about security. But users expect those programs to be able to handle files received by email or downloaded from the web. Some of those files are prepared by attackers. Often the programs have bugs that can be exploited by the attackers...
+
+Bernstein offers as an example of better practice moving the processing of user input (in this case for converting jpegs to bitmaps) from inside the same process, to what is essentially a locked-down container.
+
+> 
+I don’t know exactly how small the ultimate TCB will be, but I’m looking forward to finding out. Of course, we still need to eliminate bugs from the code that remains!
+
+Meltdown and Spectre should give us cause to reflect on what we’re doing and where we’re heading. If the result of that is a little more Bernstein-style meta-engineering to improve the security of the software produced by our processes, then maybe some good can come out of them after all.
+
+With thanks to Vlad Brown at HTR a Russian translation of this post is now available: Некоторые соображения по безопасности после десяти лет qmail 1.0
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousSpectre attacks: exploiting speculative executionNext &rsaquo;RustBelt: securing the foundations of the Rust programming language
+ 
+ 
+
+ 
+ 
+## 
+ 21 thoughts on &ldquo;Some thoughts on security after ten years of qmail 1.0&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Some thoughts on security after ten years of Qmail 1.0 - ÇlusterAssets Inc., 
+ 
+ 
+- 
+ 
+ 
+ 
+ Zteve says: 
+
+ 
+ January 17, 2018 at 11:30 am 
+
+ 
+
+ 
+ 
+Please include an explanation of the acronym TCB (presumably 'trusted computing base'?). A simple reference on first mention of reducing the amount of trusted code would do.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ jlforrest says: 
+
+ 
+ January 17, 2018 at 2:52 pm 
+
+ 
+
+ 
+ 
+"because he was fed us" -> "because he was fed up"
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Andrew Kreps says: 
+
+ 
+ January 18, 2018 at 4:08 am 
+
+ 
+
+ 
+ 
+I was using qmail back in 1999, so aren't we at ~20 years of it?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ onewheelskyward says: 
+
+ 
+ January 18, 2018 at 4:09 am 
+
+ 
+
+ 
+ 
+I was using qmail back in 1999, so aren't we at more like ~20 years of it?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: RustBelt: securing the foundations of the Rust programming language | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Some thoughts on security after ten years of #qmail 1.0 https://blo... | Dr. Roy Schestowitz (罗伊) 
+ 
+ 
+- 
+ 
+ 
+ 
+ Sebastian Redl says: 
+
+ 
+ January 18, 2018 at 11:51 am 
+
+ 
+
+ 
+ 
+You left out the most interesting quote in the light of Spectre:
+
+"I am also assuming that the CPU does not leak secret
+
+information from one process to another. This assumption
+
+is debatable. Perhaps access to CPU instructions needs to
+
+be limited, for example with the interpreter discussed in
+
+Section 2.3."
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Lev Lazinskiy (@levlaz) says: 
+
+ 
+ January 18, 2018 at 4:11 pm 
+
+ 
+
+ 
+ 
+Great article. Found a small typo in case you care ;) 
+
+"fed us" should be "fed up" in first paragraph.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Links for January 2018 - foreXiv 
+ 
+ 
+- 
+ 
+ Pingback: Interesting articles Jan-Mar 2018 - ProgBlog 
+ 
+ 
+- 
+ 
+ Pingback: Google, Oracle, and Apple – Application Security Weekly #02 - Cyber Sercuirty 
+ 
+ 
+- 
+ 
+ Pingback: Some thoughts on security after ten years of qmail 1.0 - Eriks Links 
+ 
+ 
+- 
+ 
+ Pingback: The paradigms of programming | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: The paradigms of programming | Digitators 
+ 
+ 
+- 
+ 
+ Pingback: The paradigms of programming - Startupon.net 
+ 
+ 
+- 
+ 
+ Pingback: The paradigms of programming | A1A 
+ 
+ 
+- 
+ 
+ Pingback: The paradigms of programming | Softwares Bloggers | Softwares Reviews | Best Online Softwares 
+ 
+ 
+- 
+ 
+ 
+ 
+ Lee Harding says: 
+
+ 
+ January 29, 2018 at 7:05 pm 
+
+ 
+
+ 
+ 
+"designing large portions of qmail to run in separate processes connected through pipelines made much of qmail’s internal data flow easier to see for example"
+
+Is this an example of common sense, but not common practice? It is, after all, an very common concept in *nix based systems, but far from all. It's a pattern I've felt a little unsophisticated for employing (send text between processes? -- how droll) but have found the systems in which I did long-lasting and reliable.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: End of Term | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Security Resources - Random Ramblings 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

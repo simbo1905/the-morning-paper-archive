@@ -1,0 +1,42 @@
+{
+  "date": "20190322",
+  "file_name": "20190322",
+  "slug": "slim-os-kernel-support-for-a-low-overhead-container-overlay-network",
+  "blog_url": "https://blog.acolyer.org/2019/03/22/slim-os-kernel-support-for-a-low-overhead-container-overlay-network/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the paper 'Slim: OS kernel support for a low-overhead container overlay network' from NSDI'19, which proposes a novel approach to container overlay networking to reduce CPU, throughput, and latency overheads. Traditional container overlay networks require packets to traverse the OS kernel's network stack twice, leading to significant performance penalties. The authors of Slim ask whether it's possible to design a container overlay network where packets traverse the network stack only once by eliminating per-packet transformations and instead manipulating connection-level metadata at connection setup time. This approach yields impressive performance gains, including a 71% increase in Memcached throughput, 42% reduction in latency, and 56% reduction in CPU utilization, as well as notable improvements for Nginx, PostgreSQL, and Apache Kafka. However, Slim comes with caveats: it requires a kernel module for secure deployment, has longer connection establishment times, does not support packet-based network policies, and only handles TCP traffic, relying on Weave Net for other protocols and service discovery.",
+  "paper_title": "Slim: OS kernel support for a low-overhead container overlay network",
+  "paper_authors": [
+    "Zhuo",
+    "Unknown (additional authors not listed in the blog post)"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "NSDI",
+  "paper_url": "https://www.usenix.org/conference/nsdi19/presentation/zhuo",
+  "paper_abstract": "Container Containers have become the de facto method for hosting large-scale distributed applications. Container overlay networks are essential to providing portability for containers, yet they impose significant overhead in terms of throughput, latency, and CPU utilization. The key problem is a reliance on packet transformation to implement network virtualization. As a result, each packet has to traverse the network stack twice in both the sender and the receiver’s host OS kernel. We have designed and implemented Slim, a lowoverhead container overlay network that implements network virtualization by manipulating connection-level metadata. Our solution maintains compatibility with today’s containerized applications. Evaluation results show that Slim improves the throughput of an in-memory key-value store by 71% while reducing the latency by 42%. Slim reduces the CPU utilization of the in-memory key-value store by 56%. Slim also reduces the CPU utilization of a web server by 22%-24%, a database server by 22%, and a stream processing framework by 10%.",
+  "paper_file": "papers/2019/03/22/slim-os-kernel-support-for-a-low-overhead-container-overlay-network.pdf",
+  "topics": [
+    "distributed-systems",
+    "networking"
+  ],
+  "tags": [
+    "container-networking",
+    "overlay-networks",
+    "kernel-module",
+    "tcp",
+    "connection-setup",
+    "performance-optimization",
+    "network-virtualization",
+    "weave-net",
+    "posix-socket"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Packet flow comparison",
+      "caption": "Packet flow in: (a) today’s container overlay networks, (b) overlay networks for virtual machines."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

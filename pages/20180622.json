@@ -1,0 +1,43 @@
+{
+  "date": "20180622",
+  "file_name": "20180622",
+  "slug": "automated-localization-for-unreproducible-builds",
+  "blog_url": "https://blog.acolyer.org/2018/06/22/automated-localization-for-unreproducible-builds/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the importance of reproducible builds in maintaining software integrity, highlighting how non-determinism in build processes can lead to different binaries from the same source, complicating security and validation. The author notes the significant effort required to diagnose unreproducible builds, citing a persistent number of unreproducible packages in Debian. The paper introduces RepLoc, a tool designed to automate the localization of root causes of unreproducible builds. RepLoc combines query augmentation, heuristic filtering, and ranking to identify likely problematic files, achieving a Top-10 accuracy of 79.28% in tests on 671 Debian packages. The tool also successfully identified and fixed issues in multiple packages from Debian and Guix. The author praises RepLoc's ability to significantly aid developers in diagnosing complex build issues.",
+  "paper_title": "Automated localization for unreproducible builds",
+  "paper_authors": [
+    "Zhaopeng Ren",
+    "Ming Wen",
+    "Rongxin Wu",
+    "Qingwei Lin",
+    "Shing-Chi Cheung",
+    "Chao Wang"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "ICSE'18",
+  "paper_url": "https://arxiv.org/abs/1803.06766",
+  "paper_abstract": "Reproducibility is the ability of recreating identical binaries under pre-defined build environments. Due to the need of quality assurance and the benefit of better detecting attacks against build environments, the practice of reproducible builds has gained popularity in many open-source software repositories such as Debian and Bitcoin. However, identifying the unreproducible issues remains a labour intensive and time consuming challenge, because of the lacking of information to guide the search and the diversity of the causes that may lead to the unreproducible binaries. In this paper we propose an automated framework called RepLoc to localize the problematic files for unreproducible builds. RepLoc features a query augmentation component that utilizes the information extracted from the build logs, and a heuristic rule-based filtering component that narrows the search scope. By integrating the two components with a weighted file ranking module, RepLoc is able to automatically produce a ranked list of files that are helpful in locating the problematic files for the unreproducible builds. We have implemented a prototype and conducted extensive experiments over 671 real-world unreproducible Debian packages in four different categories. By considering the topmost ranked file only, RepLoc achieves an accuracy rate of 47.09%. If we expand our examination to the top ten ranked files in the list produced by RepLoc, the accuracy rate becomes 79.28%. Considering that there are hundreds of source code, scripts, Makefiles, etc., in a package, RepLoc significantly reduces the scope of localizing problematic files. Moreover, with the help of RepLoc, we successfully identified and fixed six new unreproducible packages from Debian and Guix.",
+  "paper_file": "papers/2018/06/22/automated-localization-for-unreproducible-builds.pdf",
+  "topics": [
+    "software-engineering",
+    "build-systems"
+  ],
+  "tags": [
+    "reproducible-builds",
+    "build-localization",
+    "diffoscope",
+    "non-determinism",
+    "software-integrity",
+    "package-repositories"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Trend of reproducible builds in Debian",
+      "caption": "Figure 1 presents the trend of the reproducible builds in Debian [14]. As of August 2017, over 85% of Debian’s packages could be reproducibly built."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,38 @@
+{
+  "date": "20161206",
+  "file_name": "20161206",
+  "slug": "the-snow-theorem-and-latency-optimal-read-only-transactions",
+  "blog_url": "https://blog.acolyer.org/2016/12/06/the-snow-theorem-and-latency-optimal-read-only-transactions/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes the paper's exploration of the trade-offs between reads and writes in distributed systems, focusing on read-only transactions. The key insight is the SNOW Theorem, which proves that it is impossible for a read-only transaction algorithm to simultaneously provide Strict serializability (S), Non-blocking operations (N), One response per shard (O), and compatibility with conflicting Write transactions (W). The paper demonstrates that any three of these four properties can be achieved, offering a lens to evaluate existing systems. The author highlights the theoretical and practical implications of this trade-off, noting that systems can be optimized for latency or consistency but not both simultaneously. The paper also introduces new algorithms (e.g., COPS-SNOW and Rococo) that leverage the insight that making reads cheaper often requires making writes more expensive.",
+  "paper_title": "The SNOW theorem and latency-optimal read-only transactions",
+  "paper_authors": [
+    "Lu",
+    "Sheng",
+    "Cheng",
+    "Yan",
+    "Zheng",
+    "Yin"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/system/files/conference/osdi16/osdi16-lu.pdf",
+  "paper_abstract": "Scalable storage systems where data is sharded across many machines are now the norm for Web services as their data has grown beyond what a single machine can handle. Consistently reading data across different shards requires transactional isolation for the reads. Yet a Web service may read from its data store hundreds or thousands of times for a single page load and must minimize read latency to keep response times low. Examining the read-only transaction algorithms for many recent academic and industrial scalable storage systems suggests there is a tradeoff between their power—expressed as the consistency they provide and their compatibility with other types of transactions—and their latency. We show that this tradeoff is fundamental by proving the SNOW Theorem, an impossibility result that states that no read-only transaction algorithm can provide both the lowest latency and the highest power. We then use the tight boundary from the theorem to guide the design of new read-only transaction algorithms for two scalable storage systems, COPS and Rococo. We implement our new algorithms and then evaluate them to demonstrate they provide lower latency for read-only transactions and to understand their impact on overall throughput.",
+  "paper_file": "papers/2016/12/06/the-snow-theorem-and-latency-optimal-read-only-transactions.pdf",
+  "topics": [
+    "distributed-systems"
+  ],
+  "tags": [
+    "read-only-transactions",
+    "consistency-models",
+    "serializability",
+    "latency-optimization",
+    "trade-offs",
+    "SNOW-theorem",
+    "non-blocking-operations",
+    "consensus-protocols"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,43 @@
+{
+  "date": "20141107",
+  "file_name": "20141107",
+  "slug": "highly-available-transactions-virtues-and-limitations",
+  "blog_url": "https://blog.acolyer.org/2014/11/07/highly-available-transactions-virtues-and-limitations/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this 2014 paper by Bailis et al. as a seminal work that challenges the common misconception that high availability (HA) in distributed systems requires sacrificing ACID properties or transactional isolation. The paper demonstrates that systems like Oracle 11g or PostgreSQL with default isolation levels (e.g., read committed) can achieve HA without radical application redesign. The authors define HA as guaranteeing responses from non-failing servers even under network partitions, and introduce 'sticky availability' (affinity) to ensure clients read their own writes. The paper systematically explores which isolation levels are achievable under HA and sticky availability, showing that many practical semantics (e.g., read committed, monotonic atomic view) can coexist with HA, while stronger guarantees (e.g., serializability) require sacrificing availability. A key insight is that HAT systems can match eventual consistency in throughput while avoiding WAN latency penalties, though durability trade-offs remain (e.g., requiring W>1 for fault tolerance). The authors also emphasize the need for better programming models to leverage HAT systems effectively.",
+  "paper_title": "Highly Available Transactions: Virtues and Limitations",
+  "paper_authors": [
+    "Peter Bailis",
+    "Aaron Davidson",
+    "Alan Fekete",
+    "Ali Ghodsi",
+    "Joseph M. Hellerstein",
+    "Ion Stoica"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.bailis.org/papers/hat-vldb2014.pdf",
+  "paper_abstract": "To minimize network latency and remain online during server failures and network partitions, many modern distributed data storage systems eschew transactional functionality, which provides strong semantic guarantees for groups of multiple operations over multiple data items. In this work, we consider the problem of providing Highly Available Transactions (HATs): transactional guarantees that do not suffer unavailability during system partitions or incur high network latency. We introduce a taxonomy of highly available systems and analyze existing ACID isolation and distributed data consistency guarantees to identify which can and cannot be achieved in HAT systems. This unifies the literature on weak transactional isolation, replica consistency, and highly available systems. We analytically and experimentally quantify the availability and performance benefits of HATs—often two to three orders of magnitude over wide-area networks—and discuss their necessary semantic compromises.",
+  "paper_file": "papers/2014/11/07/highly-available-transactions-virtues-and-limitations.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "high-availability",
+    "transactions",
+    "isolation-levels",
+    "CAP-theorem",
+    "consistency-models",
+    "read-committed",
+    "serializability",
+    "durability",
+    "network-partitions",
+    "sticky-availability",
+    "ACID-properties"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

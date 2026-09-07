@@ -1,0 +1,40 @@
+{
+  "date": "20150616",
+  "file_name": "20150616",
+  "slug": "heracles-improving-resource-efficiency-at-scale",
+  "blog_url": "https://blog.acolyer.org/2015/06/16/heracles-improving-resource-efficiency-at-scale/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Google's Heracles system as a breakthrough in datacenter resource efficiency, demonstrating how to achieve 90% average server utilization without violating latency Service Level Objectives (SLOs) for latency-critical (LC) workloads. The key insight is that by carefully managing interference between LC and best-effort (BE) batch tasks across shared resources (CPU cores, caches, memory bandwidth, network, and power), Heracles can significantly improve energy efficiency (2.3-3.4x gains at 20% load) and reduce Total Cost of Ownership (TCO) by up to 306% compared to traditional approaches. The system leverages new hardware isolation features like Intel's Cache Allocation Technology (CAT) and fine-grained power control, combined with software mechanisms like core scheduling and network traffic control, to enable aggressive colocation while maintaining strict latency guarantees. The paper underscores the importance of coordinated multi-resource isolation, as interference sources interact in complex ways, making naive approaches ineffective.",
+  "paper_title": "Heracles: Improving Resource Efficiency at Scale",
+  "paper_authors": [
+    "Yingying Li",
+    "David Lo",
+    "Chengdu Huang",
+    "John Wilkes"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "OSDI",
+  "paper_url": "http://static.googleusercontent.com/media/research.google.com/en/us/pubs/archive/43792.pdf",
+  "paper_abstract": "User-facing, latency-sensitive services, such as websearch, underutilize their computing resources during daily periods of low traffic. Reusing those resources for other tasks is rarely done in production services since the contention for shared resources can cause latency spikes that violate the service-level objectives of latency-sensitive tasks. The resulting under-utilization hurts both the affordability and energy-efficiency of large-scale datacenters. With technology scaling slowing down, it becomes important to address this opportunity. We present Heracles, a feedback-based controller that enables the safe colocation of best-effort tasks alongside a latencycritical service. Heracles dynamically manages multiple hardware and software isolation mechanisms, such as CPU, memory, and network isolation, to ensure that the latency-sensitive job meets latency targets while maximizing the resources given to best-effort tasks. We evaluate Heracles using production latencycritical and batch workloads from Google and demonstrate average server utilizations of 90% without latency violations across all the load and colocation scenarios that we evaluated.",
+  "paper_file": "papers/2015/06/16/heracles-improving-resource-efficiency-at-scale.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "resource-management",
+    "latency-critical-workloads",
+    "colocation",
+    "isolation",
+    "cache-partitioning",
+    "power-control",
+    "scheduling",
+    "interference-mitigation",
+    "SLO-violation",
+    "datacenter-efficiency"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

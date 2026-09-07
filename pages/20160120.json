@@ -1,0 +1,39 @@
+{
+  "date": "20160120",
+  "file_name": "20160120",
+  "slug": "from-aries-to-mars",
+  "blog_url": "https://blog.acolyer.org/2016/01/20/from-aries-to-mars/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this paper as a concrete example of how non-volatile memory (NVM) and fast storage technologies (like NVMe) fundamentally alter traditional system design assumptions. The authors revisit the classic ARIES write-ahead logging (WAL) and recovery protocol, originally designed for spinning disks, and redesign it for NVM-based storage (MARS). Colyer emphasizes the paper's exploration of how performance characteristics of NVM (e.g., byte-addressability, in-place updates, and near-DRAM latency) eliminate the need for many ARIES optimizations like append-only logs, no-force policies, and steal policies. The key insight is that NVM enables simpler, more efficient transaction support by leveraging hardware capabilities such as editable atomic writes (EAW), which allow in-place updates and eliminate the need for undo logging. The paper demonstrates how storage-class memory can 'turn traditional system design assumptions on their head.'",
+  "paper_title": "From ARIES to MARS: Transaction Support for Next-Generation Solid State Drives",
+  "paper_authors": [
+    "J. Coburn",
+    "V. Bhatt",
+    "A. C. Myers",
+    "S. P. K. Gupta"
+  ],
+  "paper_year": 2013,
+  "paper_venue": "SOSP",
+  "paper_url": "http://cseweb.ucsd.edu/~swanson/papers/SOSP2013-MARS.pdf",
+  "paper_abstract": "Transaction-based systems often rely on write-ahead logging (WAL) algorithms designed to maximize performance on disk-based storage. However, emerging fast, byte-addressable, non-volatile memory (NVM) technologies (e.g., phase-change memories, spin-transfer torque MRAMs, and the memristor) present very different performance characteristics, so blithely applying existing algorithms can lead to disappointing performance. This paper presents a novel storage primitive, called editable atomic writes (EAW), that enables sophisticated, highly-optimized WAL schemes in fast NVM-based storage systems. EAWs allow applications to safely access and modify log contents rather than treating the log as an append-only, write-only data structure, and we demonstrate that this can make implementating complex transactions simpler and more efficient. We use EAWs to build MARS, a WAL scheme that provides the same as features ARIES [26] (a widely-used WAL system for databases) but avoids making disk-centric implementation decisions. We have implemented EAWs and MARS in a nextgeneration SSD to demonstrate that the overhead of EAWs is minimal compared to normal writes, and that they provide large speedups for transactional updates to hash tables, B+trees, and large graphs. In addition, MARS outperforms ARIES by up to 3.7× while reducing software complexity. ∗Now working at Google Inc. Permission to make digital or hard copies of part or all of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for thirdparty components of this work must be honored. For all other uses, contact the Owner/Author. Copyright is held by the Owner/Author(s). SOSP’13, Nov. 3–6, 2013, Farmington, Pennsylvania, USA. ACM 978-1-4503-2388-8/13/11. http://dx.doi.org/10.1145/2517349.2522724",
+  "paper_file": "papers/2016/01/20/from-aries-to-mars.pdf",
+  "topics": [
+    "storage-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "transaction-processing",
+    "write-ahead-logging",
+    "non-volatile-memory",
+    "NVMe",
+    "PCIe",
+    "editable-atomic-writes",
+    "ARIES",
+    "MARS",
+    "crash-consistency",
+    "byte-addressable-storage"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,368 @@
+URL: https://blog.acolyer.org/2019/11/18/formal-foundations-of-serverless-computing/
+Title: Formal foundations of serverless&nbsp;computing
+---
+
+Formal foundations of serverless computing Jangda et al., OOPSLA'19
+
+Jangda et al. won a distinguished paper award at OOPSLA this year for their work on ‘Formal foundations of serverless computing.’ Central to the paper is their observation that the serverless execution environment has a number of unique properties (such as warm starting / reuse of execution environments) that can make it harder to build correct applications. They show the conditions under which a serverless function can safely ignore these peculiarities, and thus become much simpler to reason about. They also introduce a composition language based on arrows for function composition.
+
+## Things to be aware of when going serverless
+
+> 
+The serverless computing abstraction, despite its many advantages, exposes several low-level operational details that make it hard for programmers to write and reason about their code. For example, to reduce latency, serverless platforms try to reuse the same function instance to process multiple requests. However, this behaviour is not transparent and it is easy to write a serverless function that produces incorrect results or leaks confidential data when reused. A related problem is that serverless platforms abruptly terminate function instances when they are idle...
+
+These first problems are related to mis-using / misunderstanding state in a serverless environment. Serverless functions are stateless, but can opportunistically reuse cached state across invocations to speed up start times.
+
+The example of ‘doing it wrong’ in the paper has a code sample that in essence looks like this:
+
+let accounts = new Map(); // account_name -> balance
+exports.bank = function(req, res) {
+ if (req.body.type == ‘deposit’) {
+ ...
+ }
+}
+
+Well, yes— if you’re trying to keep ‘persistent’ state in a serverless function that’s not going to work out well! Don’t do that! A more likely to fall into trap is caching some state to opportunistically reuse across function executions, but where that state is e.g. tied to given user and there’s no guarantee at all that the next execution will be for the same user.
+
+A second consideration is that many instances of a function may execute in parallel (isn’t that kind of the point?!). There is no notion of function affinity, so requests from the same source may be processed by different function instances too. Therefore you may need a coordination mechanism for shared state that is outside of the function execution environment (e.g. a persistent store with transaction support).
+
+So far it feels a bit like much ado about nothing to me, but the third consideration can definitely be more tricky to get right. It concerns the need for idempotency given the at-least-once-execution semantics (i.e., events may be retried, depending on how you have configured your retry policy).
+
+> 
+Most platforms run functions at least once in response to a single event, which can cause problems when functions have side-effects.
+
+If your function is not naturally idempotent, you may need to resort to tactics such as remembering previously seen event ids. What the authors don’t mention here is that this only really works if the non-idempotency concerns operations undertaken by transactional resource managers that you’re also using to store the processed event ids, and you’re using transactions. If the side-effect is sending an email, good luck with that!
+
+## Lambda operational semantics
+
+ is an operational semantics that captures these subtleties of a serverless platform. A serverless function itself is defined by three functions:
+
+- init defines the initial state
+- recv defines the behaviour upon receipt of a request, and
+- step defines a processing step taken by the function that may produce a command for the serverless platform to execute. The only valid command at this point in our journey is return.
+
+The serverless platform itself consists of a collection of running or idle function instances, pending requests, and responses.
+
+The associated semantics consists of six rules:
+
+- REQ assigns each request a globally unique identifier
+- At some time later, the platform may perform a COLD start of a new instance of the associated function
+- Or it may choose to reuse an existing idle (WARM) function instance
+- The internal steps taken by a function are HIDDEN
+- A function step that produces a return command leads to a RESPonse being sent and the function instance being marked as idle
+- A function instance (idle or not) may DIE at any time without warning
+
+Note that:
+
+- Instance launches are not observable
+- State is reused during warm starts
+- Function instance termination is not observable
+- Function instances may start to process a pending request at any time, even if an existing function is processing the request
+- Each request receives at most one response from a single function instance, other instances processing the same request eventually get stuck and will be terminated.
+
+## A naive semantics, and when it is safe to use
+
+Given the subtleties of programming in such an environment, the authors ask if there is a way to simplify things...
+
+> 
+First, we define a simpler naive semantics of serverless computing that eliminates most unintuitive behaviors of . Second, using a weak bisimulation theorem we precisely characterize when the naive semantics and coincide. This theorem address the low-level details of serverless execution once and for all, thus allowing programmers to reason using the naive semantics, even when their code is running on a full-fledged serverless platform.
+
+In the naive semantics, the platform runs a single function f on one request at a time, abstracting away the details of concurrent execution and warm starts. Programmers can reason in this simpler world iff they can define a safety relation as an equivalence relation over program states such that:
+
+- The serverless function is deterministic in its outputs: it produces the same observable command (if any) on any equivalent states
+- All final states are equivalent to the initial state 
+
+Note that a single naive state may be equivalent to multiple distinct states, and vice-versa. Given the above conditions, the weak bisimulation theorem in section 4 of the paper allows programmers to justifiably ignore the low-level details of the platform.
+
+Some of the subtleties have simply moved into defining the equivalence relation though! Initially for example I thought the meaning of rule 2 was that all transient state must be wiped out at the end of every execution (which removes differences between warm and cold starts, but isn’t terribly useful). But actually it all boils down to how you define the relation: two program states can be specified to be equivalent even when their cache state is different.
+
+## What about external services
+
+Functions on their own aren’t terribly exciting - to get things done in the real world they will typically need to interact with external services.
+
+> 
+Unfortunately, it is completely up to programmers to ensure that their code is idempotent, and platforms do not provide a clear explanation of what idempotence means, given that serverless functions perform warm-starts, execute concurrency, and may fail at any time.
+
+Section 5 adds transaction semantics to the model for a hypothetical key-value store. The semantics allow for functions using such a store to be made idempotent if they save each output value to the store, keyed by request id, within a transaction update. Any subsequent request with the same request id should get the value saved in the store. A real-world deployment will at the very least have to deal with some expiry mechanism for request results, so that the state does not grow indefinitely.
+
+Once again, this only covers the cases where all of the ‘side-effects’ are actually writes to the key-value store. Any interactions with other services, or any other observable side-effects, and you’re on your own again.
+
+## SPL, a serverless composition language
+
+The last part of the paper introduces SPL, a ‘Serverless Programming Language’ for function composition (c.f. AWS Step Functions, or OpenWhisk Conductor). SPL is based on Hughes’ arrows, and supports three basic arrow combinators:
+
+- Invoking a serverless function
+- Run two sub-programs in a sequence
+- Running a sub-program on the first component of a tuple, and returning the second component unchanged.
+
+> 
+These three operations are sufficient to describe loop- and branch- free compositions of serverless functions. It is straightforward to add support for bounded loops and branches...
+
+SPL programs expressed directly using the arrow combinators are hard for programmers to comprehend, so a surface syntax based on Paterson’s notation for arrows can be used, that looks a bit like this:
+
+x <- invoke f(in[0]); y <- invoke g(in[1]); ret [y, x];
+
+> 
+We have built a portable implementation of SPL (1156 LOC of Rust) that can invoke serverless functions in public clouds... the portable implementation has helped us to ensure that the design of SPL is independent of the design and implementation of Open Whisk, and we have used it to explore other kinds of features that a serverless platform may wish to provide.
+
+One nice thing that SPL gets right here (and that e.g. AWS Lambda / Step Functions get wrong imho!) is the composition property. So it’s trivial to build higher-order SPL programs. Whereas on AWS for example, when a lambda gets a bit too big, and you want to evolve it into a step function, far too much has to change.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Formal methods 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousTaiji: managing global user traffic for large-scale Internet services at the edgeNext &rsaquo;Local-first software: you own your data, in spite of the cloud
+ 
+ 
+
+ 
+ 
+## 
+ 2 thoughts on &ldquo;Formal foundations of serverless computing&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Arjun Guha says: 
+
+ 
+ November 18, 2019 at 2:15 pm 
+
+ 
+
+ 
+ 
+Thank you for the writeup! I do want to point out that the "composition property" of SPL, that the post mentions at the very end, comes from Apache OpenWhisk, and is studied in more depth in this Onward! paper:
+
+https://dl.acm.org/citation.cfm?id=3133855
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Zteve says: 
+
+ 
+ January 29, 2020 at 9:17 am 
+
+ 
+
+ 
+ 
+Hi Adrian.
+
+The example of ‘doing it wrong’ that you quote in the first code snippet, is so redacted in your version that it makes little sense. Could you expand it a little to make the ‘faults’ appear more compelling?
+
+Just re-reading this one as a reference from a much later Morning Paper review.
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ %d

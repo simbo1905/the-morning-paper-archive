@@ -1,0 +1,425 @@
+URL: https://blog.acolyer.org/2015/03/19/coordination-avoidance-in-database-systems/
+Title: Coordination Avoidance in Database&nbsp;Systems
+---
+
+Coordination Avoidance in Database Systems - Bailis et al. 2014
+
+The very title of this paper speaks to the theme we've been looking at so far this week - how to reduce the amount of coordination needed in a distributed system. (Which seems fitting having just spent the prior two weeks looking at how costly and complex that coordination can be when it is needed). There's a particularly stunning result with respect to the TPC-C benchmark - after looking at the problem from a fresh perspective, and without breaking any of the invariants required by TPC-C, the authors were able to create a linearly scalable system with 200 servers processing 12.7M tps - about 25x the next-best system.
+
+One of the things that strikes me when I read the large-scale systems papers from the likes of Google and Amazon is that distributed system design involves many trade-offs, and these companies are operating at a scale whereby they can build custom distributed systems which make those trade-offs in such a manner as to best fit their workloads. Not all of us have the same luxury of being able to do that! But as we've seen with Bloom and CALM, and with CRDTs, we can try to build our applications in such a way as to minimise coordination requirements. This collaboration between application and underlying datastore seems to be key to unlocking the next level of progress. And it's the area that Bailis et al. focus on in this paper.
+
+> 
+
+ Minimizing coordination, or blocking communication between concurrently executing operations, is key to maximizing scalability, availability, and high performance in database systems. However,uninhibited coordination-free execution can compromise application correctness, or consistency. When is coordination necessary for correctness? The classic use of serializable transactions is sufficient to maintain correctness but is not necessary for all applications, sacrificing potential scalability. In this paper, we develop a formal framework, invariant confluence, that determines whether an application requires coordination for correct execution.
+
+When an application programmer expresses their correctness criteria in the form of invariants, the invariant confluence framework is able to determine which operations can safely be executed without coordination.
+
+Section 2 of the paper contains a nice demonstration of just how costly coordination can be - and becomes ever more so as the RTT between coordinating peers increases and the number of participants increases. A system that can do over 1000 tps coordinating between two servers on a local network can see performance drop-off to only 2 tps when coordinating across all 8 EC2 availability zones. I'm going to assume you're already convinced that coordination is costly, and move onto the parts of the paper looking at what we can do to safely avoid it.
+
+An invariant is defined as a predicate over the state of the database at a replica - given the state of the database, it can be true or false. For example, a foreign-key constraint. We call a replica invariant-valid (I-valid) if all invariants are true at the replica, and a system is globally I-valid if all replicas always contain I-valid state. In the system model, ...
+
+> 
+
+ Each transaction commits on its local replica, and the result of each transaction is reflected in the transaction’s local server state. After the transactions have completed, the servers exchange state and, after applying the merge operator, converge to the same state. Any transactions executing later on either server will obtain a replica that includes the effects of both transactions.
+
+When an application requires coordination for correctness depends on both its invariants, and its transactions. Take an invariant I, and a set of transactions T. Assume a starting state in which the invariant holds (I-valid). Each transaction should take us to a new state in which the invariant also holds. By chaining these together, we can reason about the states the database can get into - including when transactions initiated at different replicas are merged.
+
+> 
+
+ We say that Si is a I-T-reachable state if, given an invariant I and set of transactions T (with merge function t), there exists a (partially ordered) sequence of transaction and merge function invocations that yields Si, and each intermediate state produced by transaction execution or merge invocation is also I-valid. We call these previous states ancestor states. Note that each ancestor state is either I-T-reachable or is instead the initial state.
+
+The central notion in the paper, I-confluence, can now be defined:
+
+> 
+
+ A set of transactions T is I-confluent with respect to invariant I if, for all I-T-reachable states Di, Dj with a common ancestor state, Di merged with Dj is I-valid.
+
+Roughly translated, we can let state diverge and then later on bring it back together with the merge operation, and the invariant will always hold as we do this. And if we have I-confluence, then we don't need coordination:
+
+> 
+
+ A globally I-valid system can execute a set of transactions T with coordination-freedom, transactional availability, (and) convergence if and only if T is I-confluent with respect to I... If I-confluence holds, there exists a correct, coordination-free execution strategy for the transactions; if not, no possible implementation can guarantee these properties for the provided invariants and transactions.
+
+If I-confluence does not hold, then at least one of the transaction sequences will have to forego availability or coordination-freedom, or the system will have to forego convergence. Given those choices, adding in some coordination seems like the best option! The informal rule is "coordination can only be avoided if all local commit decisions are globally valid."
+
+> 
+
+ I-confluence analysis is independent of any given implementation, and effectively “lifts” prior discussions of scalability, availability, and low latency to the level of application (i.e., not “I/O”) correctness. This provides a useful handle on the implications of coordination-free execution without requiring reasoning about low-level properties such as physical data location and the number of servers.
+
+This does of course rely on the developer correctly specifying invariants:
+
+> 
+
+ I-confluence analysis only guards against violations of any provided invariants. If invariants are incorrectly or incompletely specified, an I-confluent database system may violate application-level correctness. If users cannot guarantee the correctness and completeness of their invariants and operations, they should opt for a more conservative analysis or mechanism such as employing serializable transactions. Accordingly, our development of I-confluence analysis provides developers with a powerful option—but only if used correctly. If used incorrectly, I-confluence allows incorrect results, or, if not used at all, developers must resort to existing alternatives.
+
+Language design to support more automated I-confluence analysis is an area for future research. The authors found I-confluence analysis by hand to be 'non-trivial, but feasible in practice.'
+
+Several SQL constraints are analyzed with respect to I-confluence. A NOT NULL constraint for example is easily shown to be I-confluent. PRIMARY KEY and UNIQUE constraints are not I-confluent under insertion, but they are under reads and deletes. If the creation of unique values is delegated to the database, and it has a scheme that guarantees uniqueness across replicas (e.g. by including unique replica ids), then inserting can be made I-confluent too. Insertions under FOREIGN KEY constraints are I-confluent, as are cascading deletes, but arbitrary deletion of records is unsafe.
+
+To avoid ever growing immutable sets, many databases have used alternate strategies such as last-writer-wins:
+
+> 
+
+ ...if we implement a user’s account balance using a “last writer wins” merge policy, then performing two concurrent withdrawal transactions might result in a database state reflecting only one transaction (a classic example of the Lost Update anomaly). To avoid variants of these anomalies, many optimistic, coordination-free database designs have proposed the use of abstract data types (ADTs), providing merge functions for a variety of uses such as counters, sets, and maps that ensure that all updates are reflected in final database state. For example, a database can represent a simple counter ADT by recording the number of times each transaction performs an increment operation on the counter. I-confluence analysis is also applicable to these ADTs and their associated invariants.
+
+For example, a row level 'greater than' threshold invariant is I-confluent for counter increment and assign, but not for decrement.
+
+> 
+
+ If users wish to “read their writes” or desire stronger “session” guarantees (e.g., maintaining recency on a per-user or per-session basis), they must maintain affinity or “stickiness” with a given (set of) replicas. These guarantees are also expressible in the I-confluence model and do not require coordination between different users’ or sessions’ transactions.
+
+So much for the theory, what happened when the authors tried out these ideas on the TPC-C New Order benchmark workload?
+
+> 
+
+ The TPC-C benchmark is the gold standard for database concurrency control both in research and in industry, and in recent years has been used as a yardstick for distributed database concurrency control performance. How much coordination does TPC-C actually require a compliant execution?
+
+Of the 12 invariants found in TPC-C, 10 of them are I-confluent! This means that there exists some execution strategy for these ten that does not require coordination. Of course, you still have to build an implementation that achieves this.
+
+> 
+
+ As one coordination-free execution strategy that respects the foreign key and materialized view invariants, we can use RAMP transactions, which provide atomically visible transactional updates across servers without relying on coordination for correctness. In brief, RAMP transactions employ limited multi-versioning and metadata to ensure that readers and writers can always proceed concurrently: any client whose reads overlap with another client’s writes to the same item(s) can use metadata stored in the items to fetch any “missing” writes from the respective servers.
+
+(We'll look at RAMP transactions in more detail in a future edition of The Morning Paper).
+
+For the 2 remaining invariants in TPC-C, one of these is related to a transaction that the benchmark allows to be run asynchronously and in batch mode. That leaves the constraint that New Order IDs are sequentially assigned. It is always possible to fall back to serializable isolation here, but as a more efficient solution the authors introduce a layer of indirection and defer New-Order ID assignment until commit time.
+
+> 
+
+ In effect, the New-Order ID assignment can use a nested atomic transaction upon commit, and all coordination between any two transactions is confined to a single server.
+
+Sounds like a plan...
+
+> 
+
+ We subsequently implemented the above execution strategy in a distributed database prototype to quantify the overheads associated with coordination in TPC-C New-Order. In brief, the coordination-avoiding query plan scales linearly to over 12.7M transactions per second on 200 servers while substantially outperforming distributed two-phase locking.
+
+In conclusion:
+
+> 
+
+ These results begin to quantify the effects of coordination-avoiding concurrency control. If considering application-level invariants, databases only have to pay the price of coordination when necessary. We were surprised that the “current industry standard for evaluating the performance of OLTP systems” was so amenable to coordination-avoiding execution—at least for compliant execution as defined by the official TPC-C specification.... Anecdotally, our conversations and experiences with real-world application programmers and database developers have not identified invariants that are radically different than those we have studied here. A simple thought experiment identifying the invariants required for a social networking site yields a number of invariants but none that are particularly exotic (e.g., username uniqueness, foreign key constraints between updates, privacy settings). Nonetheless, we view the further study of real-world invariants to be a necessary area for future investigation. In the interim, these preliminary results hint at what is possible with coordination-avoidance as well as the costs of coordination if applications are not I-confluent.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Datastores, Distributed Systems 
+ 
+ DatastoresTransaction processing 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousA Comprehensive study of Convergent and Commutative Replicated Data TypesNext &rsaquo;Out of the Tar Pit
+ 
+ 
+
+ 
+ 
+## 
+ 23 thoughts on &ldquo;Coordination Avoidance in Database Systems&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Building on quicksand | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Scalable Atomic Visibility with RAMP Transactions | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Putting Consistency Back into Eventual Consistency | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Feral Concurrency Control: An Empirical Investigation of Modern Application Integrity | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Consistency Without Borders | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Out of the Fire Swamp* - Part I, 'The Data Crisis' | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Out of the Fire Swamp - Part II, Peering into the mist | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Existential Consistency: Measuring and Understanding Consistency at Facebook | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Fast In-memory Transaction Processing using RDMA and HTM | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: FIT: A Distributed Database Performance Trade-off | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Asynchronous Complex Analytics in a Distributed Dataflow Architecture | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: A Year in Papers | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: A Year in Papers-IT大道 
+ 
+ 
+- 
+ 
+ Pingback: Granularity of Locks and Degree of Consistency in a Shared Data Base - Part II | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: 'Cause I'm Strong Enough: Reasoning About Consistency Choices in Distributed Systems | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Transactional data structure libraries | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Transactional data structure libraries | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Anna: A KVS for any scale | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Anna: A KVS for any scale | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Keeping CALM: when distributed consistency is easy | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Interactive checks for coordination avoidance - the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Interactive checks for coordination avoidance - Slacker News 
+ 
+ 
+- 
+ 
+ Pingback: IPA: invariant-preserving applications for weakly consistent replicated databases - the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,47 @@
+{
+  "date": "20151106",
+  "file_name": "20151106",
+  "slug": "monocular-slam-supported-object-recognition",
+  "blog_url": "https://blog.acolyer.org/2015/11/06/monocular-slam-supported-object-recognition/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the paper 'Monocular SLAM Supported Object Recognition' by Pillai & Leonard (2015), which addresses the challenge of object recognition in robotics by integrating SLAM (Simultaneous Localization and Mapping) with object detection. Adrian Colyer highlights the key insight: robots observe objects from multiple viewpoints over time, and leveraging this temporal and spatial context can significantly improve object recognition robustness. The paper contrasts traditional object recognition methods (e.g., sliding-window templates, feature encoding like BoVW or VLAD) with a SLAM-aware approach that uses monocular SLAM (ORB-SLAM) to generate 'object seeds' and refine proposals across multiple views. The author praises the paper for its clear overview of related work and its practical demonstration of how integrating SLAM and object recognition can overcome limitations of per-frame methods. The blog also emphasizes the difficulty of basic tasks like object recognition in robotics, despite advances in AI and open-source tools.",
+  "paper_title": "Monocular SLAM Supported Object Recognition",
+  "paper_authors": [
+    "Pillai",
+    "Leonard"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "",
+  "paper_url": "http://arxiv.org/pdf/1506.01732.pdf",
+  "paper_abstract": "Monocular SLAM Supported\nObject Recognition\nSudeep Pillai and John J. Leonard\n\narXiv:1506.01732v1 [cs.RO] 4 Jun 2015\n\nComputer Science and Artificial Intelligence Laboratory\nMassachusetts Institute of Technology\n{spillai, jleonard}@csail.mit.edu\n\nAbstract—In this work, we develop a monocular SLAMaware object recognition system that is able to achieve\nconsiderably stronger recognition performance, as compared\nto classical object recognition systems that function on a\nframe-by-frame basis. By inco",
+  "paper_file": "papers/2015/11/06/monocular-slam-supported-object-recognition.pdf",
+  "topics": [
+    "robotics",
+    "computer-vision",
+    "machine-learning"
+  ],
+  "tags": [
+    "object-recognition",
+    "slam",
+    "monocular-vision",
+    "feature-encoding",
+    "object-proposals",
+    "vlad",
+    "sift",
+    "orb-slam"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "SLAM-aware object recognition system",
+      "caption": "The proposed SLAM-aware object recognition system is able to robustly localize and recognize several objects in the scene, aggregating detection evidence across multiple views. Annotations in white are provided for clarity and are actual predictions proposed by our system."
+    },
+    {
+      "number": "Figure 2",
+      "title": "SLAM-aware object recognition pipeline",
+      "caption": "Outline of the SLAM-aware object recognition pipeline. Given an input RGB image stream I, we first reconstruct the scene in a semi-dense fashion using an existing monocular visual-SLAM implementation (ORB-SLAM) with a semi-dense depth estimator, and subsequently extract relevant map M, keyframe K and pose information ξ. We perform multi-scale density-based segmentation on the reconstructed scene to obtain object proposals O that are consistent across multiple views. On each of the images in the input RGB image stream I, we compute Dense-SIFT (R128 ) + RGB (R3 ) and reduce it to Φ ∈ R80 via PCA. The features Φ are then used to efficiently encode each of the projected object proposals O (bounding boxes of proposals projected on to each of the images with known poses ξ) using VLAD with FLAIR, to obtain Ψ. The resulting feature vector Ψ is used to train and predict likelihood of target label/category p(xi | y) of the object contained in each of the object proposals. The likelihoods for each object o ∈ O are aggregated across each of the viewpoints ξ to obtain robust object category prediction."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

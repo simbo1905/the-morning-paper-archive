@@ -1,0 +1,706 @@
+URL: https://blog.acolyer.org/2018/01/26/a-practitioners-guide-to-reading-programming-languages-papers/
+Title: A practitioner’s guide to reading programming languages&nbsp;papers
+---
+
+Last week I jokingly said that POPL papers must pass an ‘intellectual intimidation’ threshold in order to be accepted. That’s not true of course, but it is the case that programming languages papers can look especially intimidating to the practitioner (or indeed, the academic working in a different sub-discipline of computer science!). They are full of dense figures with mathematical symbols, and phrases thrown around such as “judgements”, “operational semantics”, and the like. There are many subtle variations in notation out there, but you can get a long way towards following the gist of a paper with an understanding of a few basics. So instead of covering a paper today, I thought I’d write a short practitioner’s guide to decoding programming languages papers. I’m following Pierce’s ‘Types and Programming Languages’ as my authority here.
+
+## Syntax
+
+Let’s start from a place of familiarity: syntax. The syntax tells us what sentences are legal (i.e., what programs we can write) in the language. The syntax comprises a set of terms, which are the building blocks. Taking the following example from Pierce:
+
+ t ::= 
+ true
+ false
+ if t then t else t
+ 0
+ succ t
+ pred t
+ iszero t
+
+Wherever the symbol t appears we can substitute any term. When a paper is referring to terms, the letter is often used, many times with subscripts to differentiate between different terms (e.g., , ). The set of all terms is often denoted by . This is not to be confused with , traditionally used to represent types.
+
+Notice in the above that if on it’s own isn’t a term (it’s a token, in this case, a keyword token). The term is the if-expression if t then t else t.
+
+Terms are expressions which can evaluated, and the ultimate results of evaluation in a well-formed environment should be a value. Values are a subset of terms. In the above example the values are true, false, 0 together with the values that can be created by successive application of succ to 0 (succ 0, succ succ 0, ...).
+
+## Semantics
+
+We want to give some meaning to the terms in the language. This is the semantics. There are different ways of defining what programs mean. The two you’ll see referred to most often are operational semantics and denotational semantics. Of these, operational semantics is the most common, and it defines the meaning of a program by giving the rules for an abstract machine that evaluates terms. The specification takes the form of a set of evaluation rules — which we’ll look at in just a moment. The meaning of a term t, under this world view is the final state (the value) that the machine reaches when started with t as its initial state. In denotational semantics the meaning of a term is taken to be some mathematical object (e.g., a number or a function) in some preexisting semantic domain, and an interpretation function maps terms in the language to their equivalents in the target domain. (So we are specifying what each term represents, or denotes, in the domain).
+
+You might also see authors refer to ‘small-step’ operational semantics and ‘big-step’ operational semantics. As the names imply, these refer to how big a leap the abstract machine makes with each rule that it applies. In small-step semantics terms are rewritten bit-by-bit, one small step at a time, until eventually they become values. In big-step semantics (aka ‘natural semantics’) we can go from a term to its final value in one step.
+
+In small-step semantics notation, you’ll see something like this: , which should be read as evaluates to . (You’ll also see primes used instead of subscripts, e.g. ). This is also known as a judgement. The represents a single evaluation step. If you see then this means ‘by repeated application of single-step evaluations, eventually evaluates to ’.
+
+In big-step semantics a different arrow is used. So you’ll see to mean that term evaluates to the final value . If we had both small-step and big step semantics for the same language, then and both tell us the same thing.
+
+Rules are by convention named in CAPS. And if you’re lucky the authors will prefix evaluation rules with ‘E-‘ as an extra aid to tell you what you’re looking at.
+
+For example:
+
+if true then t2 else t3 t2 (E-IFTRUE)
+
+Most commonly, you’ll see evaluation rules specified in the inference rule style. For example (E-IF):
+
+These should be read as “Given the things above the line, then we can conclude the thing below the line.” In this particular example therefore, “Given that evaluates to then ‘’ evaluates to ‘’.”
+
+## Types
+
+A programming language doesn’t have to have a specified type system (it can be untyped), but most do.
+
+> 
+
+ A type system is a tractable syntactic method for proving the absence of certain program behaviours by classifying phrases according to the kinds of values they compute - Pierce, ‘Types and Programming Languages.’
+
+The colon is used to indicate that a given term has a particular type. For example, . A term is well-typed (or typable) if there is some T such that . Just as we had evaluation rules, we can have typing rules. These are also often specified in the inference rule style, and may have names beginning with ‘T-‘. For example (T-IF):
+
+Which should be read as “Given that term 1 has type Bool, and term 2 and term 3 have type T, then the term ‘if term 1 then term 2 else term 3’ has type T”.
+
+For functions (lambda abstractions) we also care about the type of the argument and the return value. We can annotate bound variables to specify their type, so that instead of just ‘’ we can write ‘’. The type of a lambda abstraction (single argument function) is written , meaning it takes an argument of type and returns a result of type .
+
+You’ll see the turnstile operator, , a lot in typing inference rules. ‘P Q’ should be read as “From P, we can conclude Q”, or “P entails Q”. For example, ‘’ says “From the fact that x has type T1, it follows that term t2 has type T2.”
+
+We need to keep track of variable bindings for the types of the free variables in a function. And to do that we use a typing context (aka typing environment). Think of it like the environment you’re familiar with that maps variable names to values, only here we’re mapping variable names to types. By convention Gamma () is the symbol used for the typing environment. It will often pop up in papers by convention with no explanation given. I remember what it represents by thinking of a gallows capturing the variables, with their types swinging from the rope. YMMV!! This leads to the three place relation you’ll frequently see, of the form . It should be read, “From the typing context it follows that term t has type T.” The comma operator extends by adding a new binding on the right (e.g., ‘’).
+
+Putting it all together, you get rules that look like this one (for defining the type of a lambda abstraction in this case)
+
+Let’s decode it: “If (the part above the line), from a typing context with x bound to T1 it follows that t2 has type T2, then (the part below the line) in the same typing context the expression has the type .”
+
+## Type Safety
+
+If Jane Austen were to have written a book about type systems, she’d probably have called it “Progress and Preservation.” (Actually, I think you could write lots of interesting essays under that title!). A type system is ‘safe’ (type safety) if well-typed terms always end up in a good place. In practice this means that when we’re following a chain of inference rules we never get stuck in a place where we don’t have a final value, but neither do we have any rules we can match to make further progress. (You’ll see authors referring to ‘not getting stuck’ - this is what they mean). To show that well-typed terms don’t get stuck, it suffices to prove progress and preservation theorems.
+
+- Progress: a well-typed term is not stuck (either it is a value or it can take a step according to the evaluation rules).
+
+- Preservation: if a well-typed term takes a step of evaluation, then the resulting term is also well typed. 
+
+Sometimes you’ll see authors talking about progress and preservation without explicitly saying why they matter. Now you know!
+
+## Church, Curry, Howard, Hoare
+
+A few other things you might come across that it’s interesting to be aware of:
+
+- In a Curry-style language definition, first terms are defined, then a semantics is given showing how they behave, and then a type system is layered on top that ‘rejects some terms whose behaviours we don’t like.’ Semantics comes before typing.
+
+- In a Church-style language definition typing comes before semantics, so we never have to ask what the behaviour of an ill-typed term is. 
+
+- The Curry-Howard correspondence is a mapping between type theory and logic in which propositions in logic are treated like types in a type system. (aka, propositions as types). The correspondence can be used to transfer developments between the fields (e.g. linear logic and linear type sytems).
+
+- Hoare logic, or Hoare triples refers to statements of the kind {P}C{Q}. Which should be read as “If the pre-condition P is true, then when C is executed (and if it terminates), the post-condition Q will be true.” 
+
+I’m really just an interested outsider looking on at what’s happening in the community. If you’re reading this as a programming languages expert, and there are more things that should go into a practitioner’s crib sheet, please let us all know in the comments!
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Programming Languages 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousA static verification framework for message passing in Go using behavioural typesNext &rsaquo;The paradigms of programming
+ 
+ 
+
+ 
+ 
+## 
+ 26 thoughts on &ldquo;A practitioner’s guide to reading programming languages papers&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Michael Schwarz (@93mSchwarz) says: 
+
+ 
+ January 26, 2018 at 8:37 am 
+
+ 
+
+ 
+ 
+I think there might be a small typo in the last rule?
+
+\displaystyle \frac{\Gamma, x : \mathrm{T_1} \vdash t_2 : \mathrm{T_2}}{\Gamma \vdash \lambda x:\mathrm{T-1}.t_2 : \mathrm{T_1} \rightarrow \mathrm{T_2}}
+
+should probably be
+
+\displaystyle \frac{\Gamma, x : \mathrm{T_1} \vdash t_2 : \mathrm{T_2}}{\Gamma \vdash \lambda x:\mathrm{T_1}.t_2 : \mathrm{T_1} \rightarrow \mathrm{T_2}}
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: A practitioner’s guide to reading programming languages papers - NEWS TODAY 
+ 
+ 
+- 
+ 
+ Pingback: John Jason Fallows &raquo; Blog Archive New top story on Hacker News: A practitioner’s guide to reading programming languages papers - John Jason Fallows 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: A practitioner’s guide to reading programming languages papers - Tech + Hckr News 
+ 
+ 
+- 
+ 
+ 
+ 
+ Zteve says: 
+
+ 
+ January 26, 2018 at 9:26 am 
+
+ 
+
+ 
+ 
+Typo in the rule: \displaystyle \frac{\Gamma, x : \mathrm{T_1} \vdash t_2 : \mathrm{T_2}}{\Gamma \vdash \lambda x:\mathrm{T-1}.t_2 : \mathrm{T_1} \rightarrow \mathrm{T_2}}
+
+it should be:
+
+\displaystyle \frac{\Gamma, x : \mathrm{T_1} \vdash t_2 : \mathrm{T_2}}{\Gamma \vdash \lambda x:\mathrm{T_1}.t_2 : \mathrm{T_1} \rightarrow \mathrm{T_2}}
+
+that is, a hyphen should be an underscore.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: John Jason Fallows &raquo; Blog Archive New top story on Hacker News: A practitioner’s guide to reading programming languages papers - John Jason Fallows 
+ 
+ 
+- 
+ 
+ Pingback: John Jason Fallows &raquo; Blog Archive New top story on Hacker News: A practitioner’s guide to reading programming languages papers - John Jason Fallows 
+ 
+ 
+- 
+ 
+ Pingback: John Jason Fallows &raquo; Blog Archive New top story on Hacker News: A practitioner’s guide to reading programming languages papers - John Jason Fallows 
+ 
+ 
+- 
+ 
+ Pingback: John Jason Fallows &raquo; Blog Archive New top story on Hacker News: A practitioner’s guide to reading programming languages papers - John Jason Fallows 
+ 
+ 
+- 
+ 
+ 
+ 
+ drj11 says: 
+
+ 
+ January 26, 2018 at 10:55 am 
+
+ 
+
+ 
+ 
+\lambda x:\mathrm{T_1} . t_2
+
+should be
+
+\lambda x:\mathrm{T_1} . t_2:\mathrm{T_2}
+
+?
+
+when talking about the types of lambda arguments and return values?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Zteve says: 
+
+ 
+ January 26, 2018 at 10:56 am 
+
+ 
+
+ 
+ 
+As to what else you could have said: I think it would be nice to say a bit more about (Scott-Strachey style) _Denotational Semantics_. In the (excellent) operational overviews the emphasis is on the _syntactic_ structure: all the Rules are expressed using terms (or abstract forms of terms) in the syntax and the value and/or changes of state that a program (fragment) calculates is determined by 'running' the rules until they terminate. Showing that this does terminate (and produces consistent values when it does) is what progress and preservation is about.
+
+By contrast a Denotational Semantics defines the "meaning" of a program fragment as a higher-order (mathematical) function "directly" — you don't have to execute any algorithm to define it, and so the "rules" aren't necessary. Of course, the way these functions are defined are normally structurally related to terms in the syntax just like the Rules are. They are highly recursive definitions, which means that proving them "well-founded" is similar to the requirements of progress and preservation. The meanings expressed in the Rules are described (often in a different form) in the clauses of the definitions. The Rules themselves now become statements about the language which can be "proven" (or not!): if the two semantics descriptions are consistent, the Rules are _theorems_ derived from the "meaning" functions.
+
+Hoare triples also become (potential) theorems in the D-S world.
+
+The precise conditions under which these theorems hold provide another way of 'validating' the Rules themselves, important if an implementation of the language is attempted with an expectation of completeness.
+
+D-S definitions and explanations can be quite different in form from operational ones and take a bit of getting used to (I seem to remember — it was a long time ago for me). I'm not sure to what extent (Scott-Strachey) Denotational Semantics appears in POPL papers these days.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Zteve says: 
+
+ 
+ January 26, 2018 at 10:57 am 
+
+ 
+
+ 
+ 
+Adrian: Great addition to the 'Morning Paper' blog. Well done!
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Derek Jones says: 
+
+ 
+ January 26, 2018 at 2:45 pm 
+
+ 
+
+ 
+ 
+Our host has been drinking the cool aid. The contents of many POPL papers are not intended for intellectual intimidation, but for intellectual self gratification; the committee contains a strong contingent of the computer science as a source of mathematical orgasms community.
+
+Every now and again something interesting accidentally slips through.
+
+In practical terms, reading papers requires a different mindset compared to reading books:
+
+http://shape-of-code.coding-guidelines.com/2017/01/01/understanding-where-one-academic-paper-fits-in-the-plot-line/
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Andreas says: 
+
+ 
+ January 26, 2018 at 3:59 pm 
+
+ 
+
+ 
+ 
+In the typing rule after "(for defining the type of a lambda abstraction in this case)" it says `T-1` where it should have said `T_1`.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ AnhydroGlucopyr-Unit (@agumonkey) says: 
+
+ 
+ January 26, 2018 at 8:02 pm 
+
+ 
+
+ 
+ 
+Wonderful, I wish I had that on my table in college.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ AnhydroGlucopyr-Unit (@agumonkey) says: 
+
+ 
+ January 26, 2018 at 8:03 pm 
+
+ 
+
+ 
+ 
+ps: what's interesting these days in PL land ? gradual types ? session types ? quotient types ?
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ 
+ 
+ meta0 says: 
+
+ 
+ January 26, 2018 at 8:05 pm 
+
+ 
+
+ 
+ 
+Hi Adrian! I believe there is an error in latex in the expression after "or defining the type of a lambda abstraction in this case..."
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ joskid says: 
+
+ 
+ January 27, 2018 at 2:53 pm 
+
+ 
+
+ 
+ 
+Reblogged this on josephdung.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Guide: Programming Language Papers | Math Online Tom Circle 
+ 
+ 
+- 
+ 
+ 
+ 
+ Kevin Taylor says: 
+
+ 
+ January 28, 2018 at 3:28 pm 
+
+ 
+
+ 
+ 
+Very useful to a non-computer-languages academic.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Newsy programistyczne 2018-01-28 - DevNation 
+ 
+ 
+- 
+ 
+ Pingback: Sci/Math/Prog Summary: January 2018 - Abacus Noir Form 
+ 
+ 
+- 
+ 
+ 
+ 
+ E says: 
+
+ 
+ February 19, 2018 at 2:32 pm 
+
+ 
+
+ 
+ 
+I can't even begin to express how helpful this blog post was to me.
+
+I've been looking into the innards of XQuery implementations so I can embed one in an application framework I'm working on but quickly realised that it's hard to make sense of the code without understanding the XQuery Formal Semantics guide [1]. My first attempts at reading that doc left me very confused. Now I know what the hell Wadler and his colleagues were talking about.
+
+Thanks.
+
+[1] https://www.w3.org/TR/xquery-semantics/
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Hacker Bits, Issue 26 - Hacker Bits 
+ 
+ 
+- 
+ 
+ Pingback: B급 프로그래머 4월 1주 소식(개발/관리도구, 고성능 서버/ 데이터베이스 부문) | simple note 
+ 
+ 
+- 
+ 
+ 
+ 
+ Beni Cherniavsky-Paskin says: 
+
+ 
+ February 9, 2020 at 9:36 am 
+
+ 
+
+ 
+ 
+For semantics, I highly recommend chapter 2 of Tom Stuart's book "Understanding Computation", it provides a very lucid & gentle introduction for programmers into 3 kinds of formal semantics, also discussing how they relate to less formalized language specs / reference implementations.
+
+That chapter is available for free as a sample under https://computationbook.com/.
+
+The book is generally fun, preferring interactive sessions with 100% working code over math notation, but that chapter was the most novel for me (having a degree).
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

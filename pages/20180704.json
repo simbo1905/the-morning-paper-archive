@@ -1,0 +1,42 @@
+{
+  "date": "20180704",
+  "file_name": "20180704",
+  "slug": "grand-pwning-unit-accelerating-microarchitectural-attacks-with-the-gpu",
+  "blog_url": "https://blog.acolyer.org/2018/07/04/grand-pwning-unit-accelerating-microarchitectural-attacks-with-the-gpu/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a groundbreaking paper that expands the threat model of microarchitectural attacks beyond the CPU to include GPUs, which are ubiquitous in modern SoCs. The authors demonstrate GLitch, an end-to-end attack that compromises a mobile browser (on ARM) in under two minutes using only JavaScript and WebGL, leveraging GPU primitives to orchestrate microarchitectural attacks. Unlike prior Rowhammer attacks, GLitch works under default configurations and is significantly faster, breaking ASLR in 27 seconds and achieving full browser compromise in 116 seconds. The paper details how GPU access enables high-resolution timing, cache eviction strategies, physical memory mapping, and efficient Rowhammer attacks, revealing a critical oversight in security models that ignore accelerators like GPUs. The key insight is that GPUs can be weaponized to accelerate and enable microarchitectural attacks, posing a severe and practical threat.",
+  "paper_title": "Grand Pwning Unit: Accelerating microarchitectural attacks with the GPU",
+  "paper_authors": [
+    "Claudio Canella",
+    "Daniel Genkin",
+    "Jasmin Grosinger",
+    "Itamar Levi",
+    "Ben Lammers",
+    "Ofir Weisse",
+    "Yuval Yarom"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "IEEE Security & Privacy",
+  "paper_url": "https://www.vusec.net/wp-content/uploads/2018/05/glitch.pdf",
+  "paper_abstract": "—Dark silicon is pushing processor vendors to add more specialized units such as accelerators to commodity processor chips. Unfortunately this is done without enough care to security. In this paper we look at the security implications of integrated Graphical Processor Units (GPUs) found in almost all mobile processors. We demonstrate that GPUs, already widely employed to accelerate a variety of benign applications such as image rendering, can also be used to “accelerate” microarchitectural attacks (i.e., making them more effective) on commodity platforms. In particular, we show that an attacker can build all the necessary primitives for performing effective GPU-based microarchitectural attacks and that these primitives are all exposed to the web through standardized browser extensions, allowing side-channel and Rowhammer attacks from JavaScript. These attacks bypass state-of-the-art mitigations and advance existing CPU-based attacks: we show the first end-toend microarchitectural compromise of a browser running on a mobile phone in under two minutes by orchestrating our GPU primitives. While powerful, these GPU primitives are not easy to implement due to undocumented hardware features. We describe novel reverse engineering techniques for peeking into the previously unknown cache architecture and replacement policy of the Adreno 330, an integrated GPU found in many common mobile platforms. This information is necessary when building shader programs implementing our GPU primitives. We conclude by discussing mitigations against GPU-enabled attackers. I. I NTRODUCTION Microarchitectural attacks are increasingly popular for leaking secrets such as cryptographic keys [39], [52] or compromising the system by triggering bit flips in memory [42], [45], [48], [51]. Recent work shows that these attacks are even possible through malicious JavaScript applications [7], [18], [20], [38], significantly increasing their real-world impact. To counter this threat, the research communi...",
+  "paper_file": "papers/2018/07/04/grand-pwning-unit-accelerating-microarchitectural-attacks-with-the-gpu.pdf",
+  "topics": [
+    "systems-security",
+    "operating-systems"
+  ],
+  "tags": [
+    "microarchitectural-attacks",
+    "gpu-attacks",
+    "rowhammer",
+    "side-channel-attacks",
+    "browser-exploits",
+    "aslr-bypass",
+    "webgl",
+    "javascript",
+    "dram",
+    "cache-attacks"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

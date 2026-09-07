@@ -1,0 +1,39 @@
+{
+  "date": "20170920",
+  "file_name": "20170920",
+  "slug": "a-longitudinal-end-to-end-view-of-the-dnssec-ecosystem",
+  "blog_url": "https://blog.acolyer.org/2017/09/20/a-longitudinal-end-to-end-view-of-the-dnssec-ecosystem/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a comprehensive longitudinal study by Chung et al. on the real-world deployment and management of DNSSEC, the security extension for DNS. The paper reveals significant mismanagement and failures in DNSSEC's Public Key Infrastructure (PKI), undermining its intended protections. Key issues include missing or incorrect records (31% of domains fail to publish required validation records), weak cryptographic keys (91.7% of ZSKs are below NIST standards), lack of key rotation (over 70% of domains never rotate KSKs), and poor resolver validation (only 12% of resolvers attempt validation despite 82% requesting DNSSEC records). The study also finds that popular domains are more likely to deploy DNSSEC, but overall adoption remains low (0.6-1.0% of domains). The paper concludes that DNSSEC, in practice, is largely broken due to systemic operational failures.",
+  "paper_title": "A longitudinal, end-to-end view of the DNSSEC ecosystem",
+  "paper_authors": [
+    "Jae Woo Chung",
+    "Duane Wessels",
+    "Casey Deccio",
+    "David Choffnes",
+    "Eugene Marinelli",
+    "Bruce Maggs"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "USENIX Security 2017",
+  "paper_url": "https://www.usenix.org/conference/usenixsecurity17/technical-sessions/presentation/chung",
+  "paper_abstract": "The Domain Name System’s Security Extensions (DNSSEC) allow clients and resolvers to verify that DNS responses have not been forged or modified inflight. DNSSEC uses a public key infrastructure (PKI) to achieve this integrity, without which users can be subject to a wide range of attacks. However, DNSSEC can operate only if each of the principals in its PKI properly performs its management tasks: authoritative name servers must generate and publish their keys and signatures correctly, child zones that support DNSSEC must be correctly signed with their parent’s keys, and resolvers must actually validate the chain of signatures. This paper performs the first large-scale, longitudinal measurement study into how well DNSSEC’s PKI is managed. We use data from all DNSSEC-enabled subdomains under the .com, .org, and .net TLDs over a period of 21 months to analyze DNSSEC deployment and management by domains; we supplement this with active measurements of more than 59K DNS resolvers worldwide to evaluate resolver-side validation. Our investigation reveals pervasive mismanagement of the DNSSEC infrastructure. For example, we found that 31% of domains that support DNSSEC fail to publish all relevant records required for validation; 39% of the domains use insufficiently strong key-signing keys; and although 82% of resolvers in our study request DNSSEC records, only 12% of them actually attempt to validate them. These results highlight systemic problems, which motivate improved automation and auditing of DNSSEC management.",
+  "paper_file": "papers/2017/09/20/a-longitudinal-end-to-end-view-of-the-dnssec-ecosystem.pdf",
+  "topics": [
+    "systems-security",
+    "networking"
+  ],
+  "tags": [
+    "dns",
+    "dnssec",
+    "pkix",
+    "key-management",
+    "cryptographic-keys",
+    "resolver-validation",
+    "longitudinal-study",
+    "measurement-study"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

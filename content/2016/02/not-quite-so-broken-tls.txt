@@ -1,0 +1,383 @@
+URL: https://blog.acolyer.org/2016/02/23/not-quite-so-broken-tls/
+Title: Not-quite-so-broken TLS: lessons in re-engineering a security protocol specification and&nbsp;implementation
+---
+
+Not-quite-so-broken TLS: lessons in re-engineering a security protocol specification and implementation - Kaloper-Meršinjak et al. 2015
+
+Update: fixed broken paper link above.
+
+On the surface this is a paper about a TLS implementation, but the really interesting story to me is the attempt to 'do it right,' and the techniques and considerations involved in that process. The IT landscape is littered with bug-ridden and vulnerable software - surely we can do better? And if we're going to make a serious attempt at that, where better than something like a TLS stack - because bugs and vulnerabilities there also expose everything that relies on it - i.e. pretty much the whole of the internet. The authors certainly don't pull any punches when it comes to explaining what they think of the typical way of building such software...
+
+> 
+
+ Current mainstream engineering practices for specifying and implementing security protocols are not fit for purpose: as one can see from many recent compromises of sensitive services, they are not providing the security we need. Transport Layer Security (TLS) is the most widely deployed security protocol on the Internet, used for authentication and confidentiality, but a long history of exploits shows that its implementations have failed to guarantee either property. Analysis of these exploits typically focusses on their immediate causes, e.g. errors in memory management or control flow, but we believe their root causes are more fundamental.
+
+And what might those root causes be? Poor choice of programming languages, that tend to encourage errors rather than protect against them; poor software engineering - especially a lack of attention on a clean separation of concerns and modularity; and an insistence on ambiguous and untestable prose specifications. All well and good, but what should we do instead? How about:
+
+- A precise and testable specification (in this case for TLS) that unambiguously determines the set of behaviours it allows (and hence also what it does not). The specification should also be executable as a test oracle, to determine whether or not a given implementation is compliant. 
+
+> 
+
+ We specify TLS as a collection of pure functions over abstract datatypes. By avoiding I/O and shared mutable state, these functions can be considered in isolation and each is deterministic, with errors returned as explicit values. The top-level function takes an abstract protocol state and an incoming message, and calculates the next state and any response messages... In building our specification, to resolve the RFC ambiguities, we read other implementations and tested interoperability with them; we thereby capture the practical de facto standard.
+
+- Reuse between specification and implementation, to the extent possible. 
+
+> 
+
+ The same functions form the main part of our implementation, coupled with code for I/O and to provide entropy. Note that this is not an “executable specification” in the conventional sense: our specification is necessarily somewhat loose, as the server must have the freedom to choose a protocol version and cipher suite, and the trace checker must admit that, while our implementation makes particular choices.
+
+- Cleanly separating concerns in a modular structure:
+
+> 
+
+ This focus on pure functional descriptions also enables a decomposition of the system (both implementation and specification) into strongly separated modules, with typed interfaces, that interact only by exchanging pure values.
+
+- Choosing a programming language and style that guarantees memory and type-safety.
+
+> 
+
+ The structure we describe above could be implemented in many different programming languages, but guarantees of memory and type safety are desirable to exclude many common security flaws (lack of memory safety was the largest single source of vulnerabilities in various TLS stacks throughout 2014, as shown in our §3 vulnerability analysis), and expressive statically checked type and module systems help maintain the strongly separated structure that we outlined. Our implementation of nqsb-TLS uses OCaml, a memory-safe, statically typed programming language that compiles to fast native code with a lightweight, embeddable runtime.
+
+Let's look a little deeper at how these choices helped the nqsb-TLS team avoid some of the common vulnerabilities found in other TLS stacks (based on reported CVEs in 2014)...
+
+> 
+
+ In the past 13 months (January 2014 to January 2015), 54 CVE security advisories have been published for 6 widely used TLS implementations... These vulnerabilities have a wide range of causes. We classify them into broad families below, identifying root causes for each and discussing how nqsb-TLS avoids flaws of each kind.
+
+## Memory Safety Violations (15/54)
+
+> 
+
+ Most of these bugs, 15 in total, are memory safety issues: out-of-bounds reads, out-of-bounds writes and NULL pointer dereferences. A large group has only been demonstrated to crash the hosting process, ending in denial-of-service, but some lead to disclosure of sensitive information.
+
+ A now-notorious example of this class of bugs isHeartbleed in OpenSSL (CVE-2014-0160)... nqsb-TLS avoids this class of issues entirely by the choice of a programming language with automated memory management and memory safety guarantees: in OCaml, array bounds are always checked and it is not possible to access raw memory; and our pure functional programming style rules out reuse of mutable buffers.
+
+## Certificate Parsing Bugs (3/54)
+
+> 
+
+ TLS implementations need to parse ASN.1, primarily for decoding X.509 certificates...
+
+Since ASN.1 is a large and complex standard, and TLS needs only a subset, hand-built parsers are common:
+
+> 
+
+ Unsurprisingly, ASN.1 parsing is a recurrent source of vulnerabilities in TLS and related software, dating back at least to 2004... This class of errors is due to ambiguity in the specification, and ad-hoc parsers in most TLS implementations. nqsb-TLS avoids this class of issues entirely by separating parsing from the grammar description (we created a library for declaratively describing ASN.1 grammars in OCaml, using a functional technique known as combinatory parsing).
+
+## Certificate Validation Bugs (5/54)
+
+> 
+
+ Closely related to ASN.1 parsing is certificate validation. X.509 certificates are nested data structures standardised in three versions and with various optional extensions, so validation involves parsing, traversing, and extracting information from complex compound data... Many implementations interleave the complicated X.509 certificate validation with parsing the ASN.1 grammar, leading to a complex control flow with subtle call chains. This illustrates another way in which the choice of programming language and style can lead to errors: the normal C idiom for error handling uses goto and negative return values, while in nqsb-TLS we return errors explicitly as values and have to handle all possible variants. OCaml’s type checker and pattern-match exhaustiveness checker ensures this at compile time.
+
+Algebraic data types are used "as the control flow of functions that navigate this structure (the parse tree) is directed by the type checker." The 7000 lines of text in the RFC end up being encoded in 314 lines of easily reviewable code.
+
+## State Machine Errors (10/54)
+
+> 
+
+ TLS consists of several subprotocols that are multiplexed at the record level... There were 10 vulnerabilities in this class. Some led to denial-of-service conditions caused (for example) by NULL-pointer dereferences on receipt of an unexpected message, while others lead to a breakdown of the TLS security guarantees... A prominent example is Apple’s “goto fail” (CVE-2014-1266), caused by a repetition of a goto statement targeting the cleanup block of the procedure responsible for verifying the digital signature of the ServerKeyExchange message.
+
+In nqsb-TLS, the state machine is explicitly encoded.
+
+> 
+
+ This construction [pure composable functions] and the explicit encoding of state-machine is central to maintaining the state-machine invariants and preserving the coherence of state representation. It is impossible to enter a branch dedicated to a particular transition without the pair of values representing the appropriate state and appropriate input message, and, as intermediate data is directly obtained from the state value, it is impossible to process it without at the same time requiring that the state-machine is in the appropriate state. It is also impossible to manufacture a state-representation ahead of time, as it needs to contain all of the relevant data.
+
+## Protocol Bugs (2/54)
+
+Two separate issues in the SSL v3 protocol itself were discovered in 2014. While the nsqd-TLS engineering approach does not claim to prevent or solve such bugs, the actual implementation focuses on a modern subset not including SSL v3 so nqsb-TLS is not vulnerable to these bugs.
+
+## Timing side-channel leaks (2/54)
+
+> 
+
+ Two vulnerabilities were related to timing side-channel leaks, where the observable duration of cryptographic operations depended on cryptographic secrets. To mitigate timing side-channels, which a memory managed programming language might further expose, we use C implementations of the low level primitives.
+
+A second reason C is used at this level is that symmetric encryption and hashing are the most CPU-intensive operations in TLS, and so performance concerns motivate the use of C.
+
+> 
+
+ Such treatment creates a potential safety problem in turn: even if we manage to prevent certain classes of bugs in OCaml, they could occur in our C code. Our strategy to contain this is to restrict the scope of C code: we employ simple control flow and never manage memory in the C layer. C functions receive pre-allocated buffers, tracked by the runtime, and write their results there.
+
+More complex cryptographic constructions are implemented in OCaml on top of the C-level primitives.
+
+## Misuse of TLS libraries (10/54)
+
+> 
+
+ Of the examined bugs, 10 were not in TLS implementations themselves, but in the way the client software used them. These included the high profile anonymisation software Tor, the instant messenger Pidgin and the widely used multi-protocol data transfer tool cURL... The root cause of this error class is the large and complex legacy APIs of contemporary TLS stacks. nqsb-TLS does not mirror those APIs, but provides a minimal API with strict validation by default. This small API is sufficient for various applications we developed. OpenBSD uses a similar approach with their libtls API.
+
+## So how confident can we be in the nqsb-TLS implementation?
+
+> 
+
+ We assess the security of nqsb-TLS in several ways: the discussion of the root causes of many classic vulnerabilities and how we avoid them; mitigation of other specific issues; our state machine was tested; random testing with the Frankencert fuzzing tool; a public integrated system protecting a bitcoin reward; and analysis of the TCB size of that compared with a similar system built using a conventional stack.
+
+I'm going to highlight just the bitcoin pinata and TCB size comparison here.
+
+> 
+
+ To demonstrate the use of nqsb-TLS in an integrated system based on MirageOS, and to encourage external code-review and penetration testing, we set up a public bounty, the Bitcoin Pinata. This is a standalone MirageOS unikernel containing the secret key to a bitcoin address, which it transmits upon establishing a successfully authenticated TLS connection. The service exposes both TLS client and server on different ports, and it is possible to bridge the traffic between the two and observe a successful handshake and the encrypted exchange of the secret.
+
+As of June 2105 there were more than 230,000 accesses from more than 50,000 unique IP addresses.
+
+> 
+
+ A detailed analysis of the captured traces showed that most of the flaws in other stacks have been attempted against the Pinata.
+
+To the best of my knowledge, the bitcoins are still there...
+
+> 
+
+ The TCB [Trusted Compute Base] size is a rough quantification of the attack surface of a system. We assess the TCB of our Pinata, compared to a similar traditional system using Linux and OpenSSL. Both systems are executed on the same hardware and the Xen hypervisor, which we do not consider here. The TCB sizes of the two systems are shown in Table 2 (using cloc)... The trusted computing base of the traditional system is 25 times larger than ours. Both systems provide the same service to the outside world and are hardly distinguishable for an external observer.
+
+I guess you may also be wondering about performance: the handshake performance is the same as OpenSSL, and achieves 73-84% of the bulk throughput.
+
+## So can we do better?
+
+I opened this write-up by suggesting that surely we can do better than the majority of buggy and vulnerable implementations of systems software that proliferate in our industry. What this paper nicely illustrates is that there is no one silver bullet. But by making careful choices, being aware of the implications of those choices, and using a variety of validation techniques (in this case, including the test oracle and bitcoin pinata), yes we can indeed do a lot better than the state of the practice.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ NetworkingSecuritySoftware Engineering 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousIncludeOS: A minimal, resource efficient unikernel for cloud systemsNext &rsaquo;A Critique of ANSI SQL Isolation Levels
+ 
+ 
+
+ 
+ 
+## 
+ 7 thoughts on &ldquo;Not-quite-so-broken TLS: lessons in re-engineering a security protocol specification and implementation&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 23 February 2016 - O'Reilly Radar 
+ 
+ 
+- 
+ 
+ Pingback: Secure Code is Hard, Let's Make it Harder! | Emergent Chaos 
+ 
+ 
+- 
+ 
+ Pingback: End of term | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: So that was 2016 | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: So that was 2016 | CS TOPIC 
+ 
+ 
+- 
+ 
+ Pingback: An empirical study on the correctness of formally verified distributed systems | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Writing parsers like it is 2017 | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

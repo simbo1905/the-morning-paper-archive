@@ -1,0 +1,40 @@
+{
+  "date": "20190410",
+  "file_name": "20190410",
+  "slug": "dont-trust-the-locals-investigating-the-prevalence-of-persistent-client-side-cross-site-scripting-in-the-wild",
+  "blog_url": "https://blog.acolyer.org/2019/04/10/dont-trust-the-locals-investigating-the-prevalence-of-persistent-client-side-cross-site-scripting-in-the-wild/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a critical security vulnerability in web applications that use local storage, where developers often mistakenly trust data read from local storage as safe. The paper by Steffens et al. reveals that persistent client-side cross-site scripting (XSS) attacks can exploit this trust, allowing malicious payloads to persist across user sessions. The study found that 21% of sites using data from storage (418 out of 1,946) contained vulnerabilities, with 8% of the top 5,000 Alexa domains potentially susceptible. The attack vectors include network-based hijacking (e.g., via unsecured Wi-Fi) or luring users to malicious websites. Once embedded, the payload can execute in subsequent visits, even on secure networks, making it a stealthy and persistent threat. The paper also demonstrates that developers frequently fail to sanitize data from local storage, with virtually all flows from local storage to sinks lacking encoding, unlike data from URLs or cookies. The authors identified 65 domains with the 'deadly combination' of vulnerable flows into and out of local storage, and even found third-party libraries (e.g., CloudFlare, Criteo) contributing to these flaws.",
+  "paper_title": "Don’t trust the locals: investigating the prevalence of persistent client-side cross-site scripting in the wild",
+  "paper_authors": [
+    "Martin Steffens",
+    "Ben Stock",
+    "Michael Backes",
+    "Christian Rossow"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "NDSS",
+  "paper_url": "https://www.ndss-symposium.org/ndss-paper/dont-trust-the-locals-investigating-the-prevalence-of-persistent-client-side-cross-site-scripting-in-the-wild/",
+  "paper_abstract": "—The Web has become highly interactive and an important driver for modern life, enabling information retrieval, social exchange, and online shopping. From the security perspective, Cross-Site Scripting (XSS) is one of the most nefarious attacks against Web clients. Research has long since focused on three categories of XSS: Reflected, Persistent, and DOMbased XSS. In this paper, we argue that our community must consider at least four important classes of XSS, and present the first systematic study of the threat of Persistent Client-Side XSS, caused by the insecure use of client-side storage. While the existence of this class has been acknowledged, especially by the non-academic community like OWASP, prior works have either only found such flaws as side effects of other analyses or focused on a limited set of applications to analyze. Therefore, the community lacks in-depth knowledge about the actual prevalence of Persistent Client-Side XSS in the wild. To close this research gap, we leverage taint tracking to identify suspicious flows from client-side persistent storage (Web Storage, cookies) to dangerous sinks (HTML, JavaScript, and script.src). We discuss two attacker models capable of injecting malicious payloads into storage, i.e., a Network Attacker capable of temporarily hijacking HTTP communication (e.g., in a public WiFi), and a Web Attacker who can leverage flows into storage or an existing reflected XSS flaw to persist their payload. With our taint-aware browser and these models in mind, we study the prevalence of Persistent Client-Side XSS in the Alexa Top 5,000 domains. We find that more than 8% of them have unfiltered data flows from persistent storage to a dangerous sink, which showcases the developers’ inherent trust in the integrity of storage content. Even worse, if we only consider sites that make use of data originating from storage, 21% of the sites are vulnerable. For those sites with vulnerable flows from storage to sink, we find that at least 7...",
+  "paper_file": "papers/2019/04/10/dont-trust-the-locals-investigating-the-prevalence-of-persistent-client-side-cross-site-scripting-in-the-wild.pdf",
+  "topics": [
+    "systems-security"
+  ],
+  "tags": [
+    "client-side-xss",
+    "local-storage",
+    "web-security",
+    "sanitization",
+    "persistent-attack",
+    "third-party-libraries"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Example usage of script.src",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

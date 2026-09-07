@@ -1,0 +1,36 @@
+{
+  "date": "20150430",
+  "file_name": "20150430",
+  "slug": "scaling-concurrent-log-structured-data-stores",
+  "blog_url": "https://blog.acolyer.org/2015/04/30/scaling-concurrent-log-structured-data-stores/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer analyzes a paper on scaling concurrent log-structured data stores (LSM-trees), highlighting that while LSM-trees were originally designed to mitigate slow disk I/O, in-memory contention becomes the bottleneck as systems scale to more cores. The paper proposes replacing the in-memory component of the LSM-tree with a concurrent hash map to improve scalability. The authors critique existing implementations like LevelDB and HyperLevelDB for their coarse-grained synchronization and single-threaded merge processes, which limit throughput in multi-core environments. Their solution, cLSM, demonstrates better performance and lower latency in production workloads by leveraging thread-safe in-memory structures and introducing atomic read-modify-write operations. The key insight is the simple yet effective idea of using an efficient concurrent in-memory data structure for the in-memory part of the LSM-tree, which significantly improves scalability without requiring complex partitioning schemes.",
+  "paper_title": "Scaling Concurrent Log-Structured Data Stores",
+  "paper_authors": [
+    "Golan-Gueta",
+    "Edward Bortnikov",
+    "Eshcar Hillel",
+    "Idit Keidar",
+    "Moshe Sulamy"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SIGMOD'15",
+  "paper_url": "http://dl.acm.org/authorize?N95411",
+  "paper_abstract": "1. Log-structured data stores (LSM-DSs) are widely accepted as the state-of-the-art implementation of key-value stores. They replace random disk writes with sequential I/O, by accumulating large batches of updates in an in-memory data structure and merging it with the on-disk store in the background. While LSM-DS implementations proved to be highly successful at masking the I/O bottleneck, scaling them up on multicore CPUs remains a challenge. This is nontrivial due to their often rich APIs, as well as the need to coordinate the RAM access with the background I/O. We present cLSM, an algorithm for scalable concurrency in LSM-DS, which exploits multiprocessor-friendly data structures and non-blocking synchronization. cLSM supports a rich API, including consistent snapshot scans and general non-blocking read-modify-write operations. We implement cLSM based on the popular LevelDB keyvalue store, and evaluate it using intensive synthetic workloads as well as ones from production web-serving applications. Our algorithm outperforms state of the art LSMDS implementations, improving throughput by 1.5x to 2.5x. Moreover, cLSM demonstrates superior scalability with the number of cores (successfully exploiting twice as many cores as the competition). Over the last decade, key-value stores have become prevalent for real-time serving of Internet-scale data [16]. Gigantic stores managing billions of items serve Web search indexing [33], messaging [12], personalized media, and advertising [18]. A key-value store is essentially a persistent map with atomic get and put operations used to access data items identified by unique keys. Modern stores also support consistent snapshot scans and range queries for online analytics. In write-intensive environments, key-value stores are commonly implemented as Log-Structured Merge Data Stores (LSM-DSs) [2, 4, 8, 16, 18, 25, 36] (see Section 2). The main centerpiece behind such data stores is absorbing large batches of writes in a RAM data stru...",
+  "paper_file": "papers/2015/04/30/scaling-concurrent-log-structured-data-stores.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "log-structured-merge-trees",
+    "concurrency-control",
+    "hash-maps",
+    "read-modify-write",
+    "LSM-trees",
+    "in-memory-data-structures"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

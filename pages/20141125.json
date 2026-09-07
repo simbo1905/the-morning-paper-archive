@@ -1,0 +1,40 @@
+{
+  "date": "20141125",
+  "file_name": "20141125",
+  "slug": "detecting-discontinuities-in-large-scale-systems",
+  "blog_url": "https://blog.acolyer.org/2014/11/25/detecting-discontinuities-in-large-scale-systems/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a paper from Malik et al. (2014) that addresses the critical problem of identifying discontinuities in large-scale system performance data for long-term forecasting. The paper emphasizes the importance of data preparation in forecasting, noting that analysts spend up to 80% of their time cleaning and processing data. The authors propose a method using Principal Component Analysis (PCA) to select relevant performance counters, followed by an anomaly detection phase that identifies discontinuities by fitting quadratic functions to time-series data and analyzing residuals. The approach leverages the Wilcoxon rank-sum test to distinguish persistent discontinuities from temporary anomalies. The paper also provides a detailed overview of common causes of anomalies and discontinuities in real-world systems, such as software inconsistencies, hardware upgrades, and workload changes. The method was validated on 7 years of production logs, achieving 92% precision and recall.",
+  "paper_title": "Detecting Discontinuities in Large-Scale Systems",
+  "paper_authors": [
+    "Malik",
+    "et al."
+  ],
+  "paper_year": 2014,
+  "paper_venue": "IEEE/ACM International Conference on Utility and Cloud Computing (UCC 2014)",
+  "paper_url": "http://129.97.186.80/~migod/papers/2014/ucc14.pdf",
+  "paper_abstract": "—Cloud providers and data centers rely heavily on forecasts to accurately predict future workload. This information helps them in appropriate virtualization and cost-effective provisioning of the infrastructure. The accuracy of a forecast greatly depends upon the merit of performance data fed to the underlying algorithms. One of the fundamental problems faced by analysts in preparing data for use in forecasting is the timely identification of data discontinuities. A discontinuity is an abrupt change in a time-series pattern of a performance counter that persists but does not recur. Analysts need to identify discontinuities in performance data so that they can a) remove the discontinuities from the data before building a forecast model and b) retrain an existing forecast model on the performance data from the point in time where a discontinuity occurred. There exist several approaches and tools to help analysts identify anomalies in performance data. However, there exists no automated approach to assist data center operators in detecting discontinuities in the first place. In this paper, we present and evaluate our proposed approach to help data center analysts and cloud providers automatically detect discontinuities. A case study on the performance data obtained from a large cloud provider and performance tests conducted using an open source benchmark system show that our proposed approach provides on average precision of 84% and recall 88%. The approach doesn't require any domain knowledge to operate. evolution of client requirements. To capture the seasonality patterns, long-term forecasting requires the use of at least a year of recent performance history from one or more data centers to predict expected workloads. The accuracy of forecasting results depends on the quality of the performance data (i.e., performance counters; such as CPU utilization, bandwidth consumption, network traffic and Disk IOPS) fed to the forecasting algorithms, i.e., missing value imputa...",
+  "paper_file": "papers/2014/11/25/detecting-discontinuities-in-large-scale-systems.pdf",
+  "topics": [
+    "distributed-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "forecasting",
+    "performance-counters",
+    "anomaly-detection",
+    "principal-component-analysis",
+    "time-series-analysis",
+    "data-preprocessing",
+    "discontinuity-detection"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Example of a discontinuity in time-series data",
+      "caption": "A discontinuity is an abrupt change in a time-series pattern that persists but does not reoccur, as shown in Fig. 1. Examples include a) a significant change in a counter’s value b) a significant change in the slope (rate of change) of the counter’s value, c) a significant change in a period cycle or amplitude or both."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

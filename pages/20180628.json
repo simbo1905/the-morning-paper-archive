@@ -1,0 +1,48 @@
+{
+  "date": "20180628",
+  "file_name": "20180628",
+  "slug": "how-_not_-to-structure-your-database-backed-web-applications-a-study-of-performance-bugs-in-the-wild",
+  "blog_url": "https://blog.acolyer.org/2018/06/28/how-_not_-to-structure-your-database-backed-web-applications-a-study-of-performance-bugs-in-the-wild/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a study by Yang et al. (ICSE'18) that examines performance anti-patterns in database-backed web applications using ORMs. The paper catalogs common mistakes developers make when using ORMs, such as inefficient ORM API calls, unnecessary computations, and poor database design. The authors manually fixed 64 performance issues across 12 real-world Ruby on Rails applications, achieving a median speed-up of 2x (up to 39x) with fewer than 5 lines of code changes in most cases. The study reveals that ORMs, while convenient, often obscure query generation, leading to suboptimal performance due to a lack of transparency between application logic and database operations. The paper also introduces a tool (Hyperloop) to help developers identify and resolve these issues.",
+  "paper_title": "How not to structure your database-backed web applications: a study of performance bugs in the wild",
+  "paper_authors": [
+    "Yang",
+    "Mengshi Zhang",
+    "Sarfraz Khurshid",
+    "Don Batory"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "ICSE'18",
+  "paper_url": "https://hyperloop-rails.github.io/",
+  "paper_abstract": "This paper describes H YPER L OOP, a system for optimizing databasebacked web applications (DBWAs). Current approaches in optimizing DBWAs focus on partitioning the application among the browser, application server, and the database, and rely on each component to optimize their portion individually without developer intervention. We argue that this approach misses the goal of DBWAs in optimizing for end-user experience, and fails to leverage domain-specific knowledge that DBWA developers have. For instance, a news website might prioritize loading of the news headlines, even at the expense of slowing down loading of other visual elements on the page. H YPER L OOP illustrates the idea of viewdriven optimization by allowing developers to specify priorities for each of the elements on the webpage, and uses such information to drive optimization of the entire webpage. H YPER L OOP currently focus on optimizing for render time of webpage components, and our preliminary results show that this view-driven approach can substantially improve DBWA performance by leveraging developer provided application knowledge.",
+  "paper_file": "papers/2018/06/28/how-_not_-to-structure-your-database-backed-web-applications-a-study-of-performance-bugs-in-the-wild.pdf",
+  "topics": [
+    "storage-systems",
+    "programming-languages"
+  ],
+  "tags": [
+    "orm",
+    "performance-bugs",
+    "database-design",
+    "rails",
+    "orm-api-misuse",
+    "n-plus-one-queries",
+    "indexing",
+    "query-optimization"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "An example webpage from Tracks",
+      "caption": "An example webpage from Tracks."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Code fragment from Tracks",
+      "caption": "Figure 2 shows a code fragment from Tracks [3], a popular Ruby on Rails DBWA for task management."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

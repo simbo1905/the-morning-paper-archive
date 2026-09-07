@@ -1,0 +1,43 @@
+{
+  "date": "20170807",
+  "file_name": "20170807",
+  "slug": "acidrain-concurrency-related-attacks-on-database-backed-web-applications",
+  "blog_url": "https://blog.acolyer.org/2017/08/07/acidrain-concurrency-related-attacks-on-database-backed-web-applications/",
+  "blog_title": "",
+  "blog_summary": "ACIDRain is a SIGMOD'17 paper that exposes how concurrency anomalies, often dismissed as minor issues in database-backed web applications, can be exploited as serious security vulnerabilities. The authors demonstrate that these anomalies, which violate application integrity constraints (e.g., overspending gift cards or corrupting inventory), can be deliberately triggered by attackers through concurrent requests. The paper highlights the prevalence of weak isolation levels in real-world systems and the failure of programmers to properly use transactions, citing real-world incidents like the Flexcoin Bitcoin exchange collapse. The key insight is that these vulnerabilities are not theoretical but actively exploitable, with the authors uncovering 22 critical ACIDRain attacks across 12 popular eCommerce applications deployed on over 2M websites. The paper introduces Abstract Anomaly Detection (2AD), a novel technique that analyzes database logs to detect potential concurrency anomalies by generalizing concrete traces into abstract histories, enabling the identification of all possible non-serializable expansions without requiring static analysis or access to application internals.",
+  "paper_title": "ACIDRain: Concurrency-related attacks on database-backed web applications",
+  "paper_authors": [
+    "Daniel M. Warszawski",
+    "Peter Bailis"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "SIGMOD",
+  "paper_url": "http://www.bailis.org/papers/acidrain-sigmod2017.pdf",
+  "paper_abstract": "In theory, database transactions protect application data from corruption and integrity violations. In practice, database transactions frequently execute under weak isolation that exposes programs to a range of concurrency anomalies, and programmers may fail to correctly employ transactions. While low transaction volumes mask many potential concurrency-related errors under normal operation, determined adversaries can exploit them programmatically for fun and profit. In this paper, we formalize a new kind of attack on database-backed applications called an ACIDRain attack, in which an adversary systematically exploits concurrency-related vulnerabilities via programmatically accessible APIs. These attacks are not theoretical: ACIDRain attacks have already occurred in a handful of applications in the wild, including one attack which bankrupted a popular Bitcoin exchange. To proactively detect the potential for ACIDRain attacks, we extend the theory of weak isolation to analyze latent potential for non-serializable behavior under concurrent web API calls. We introduce a language-agnostic method for detecting potential isolation anomalies in web applications, called Abstract Anomaly Detection (2AD), that uses dynamic traces of database accesses to efficiently reason about the space of possible concurrent interleavings. We apply a prototype 2AD analysis tool to 12 popular self-hosted eCommerce applications written in four languages and deployed on over 2M websites. We identify and verify 22 critical ACIDRain attacks that allow attackers to corrupt store inventory, over-spend gift cards, and steal inventory. 1. def withdraw(amt, user_id): (a) bal = readBalance(user_id) if (bal >= amt): writeBalance(bal − amt, user_id) 1 2 3 4 5 6 def withdraw(amt, user_id): (b) beginTxn() bal = readBalance(user_id) if (bal >= amt): writeBalance(bal − amt, user_id) commit() Figure 1: (a) A simplified example of code that is vulnerable to an ACIDRain attack allowing overdraft under concurren...",
+  "paper_file": "papers/2017/08/07/acidrain-concurrency-related-attacks-on-database-backed-web-applications.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems",
+    "data-engineering",
+    "cloud-computing"
+  ],
+  "tags": [
+    "concurrency-anomalies",
+    "security-vulnerabilities",
+    "transaction-processing",
+    "isolation-levels",
+    "non-serializable-access",
+    "database-logs",
+    "abstract-history",
+    "ecommerce-applications"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Example of ACIDRain attack vulnerability in withdrawal function",
+      "caption": "Figure 1: (a) A simplified example of code that is vulnerable to an ACIDRain attack allowing overdraft under concurrent access. Two concurrent instances of the withdraw function could both read balance $100, check that $100 ≥ $99, and each allow $99 to be withdrawn, resulting $198 total withdrawals. (b) Example of how transactions could be inserted to address this error. However, even this code is vulnerable to attack at isolation levels at or below Read Committed, unless explicit locking such as SELECT FOR UPDATE is used. While this scenario closely resembles textbook examples of improper transaction use, in this paper, we show that widely-deployed eCommerce applications are similarly vulnerable to such ACIDRain attacks, allowing corruption of application state and theft of assets."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

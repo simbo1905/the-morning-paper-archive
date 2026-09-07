@@ -1,0 +1,46 @@
+{
+  "date": "20160509",
+  "file_name": "20160509",
+  "slug": "finding-surprising-patterns-in-a-time-series-database-in-linear-time-and-space",
+  "blog_url": "https://blog.acolyer.org/2016/05/09/finding-surprising-patterns-in-a-time-series-database-in-linear-time-and-space/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the Tarzan algorithm, which aims to find surprising or anomalous patterns in time series data rather than individual outliers. Adrian Colyer highlights that the key insight is defining a pattern as surprising if its frequency deviates significantly from what would be expected by chance, given a reference dataset of 'normal' data. The algorithm discretizes time series data into a finite alphabet, builds suffix trees for both the reference and target time series, and uses Markov models to compute the likelihood of observed patterns. The approach is demonstrated on synthetic data (e.g., a noisy sine wave with an introduced anomaly) and real-world power demand data, where it successfully identifies weeks containing national holidays as surprising patterns. The method avoids false positives when tested on truly random data.",
+  "paper_title": "Finding Surprising Patterns in a Time Series Database in Linear Time and Space",
+  "paper_authors": [
+    "Eamonn Keogh",
+    "Selina Chu",
+    "David Hart",
+    "Michael Pazzani"
+  ],
+  "paper_year": 2002,
+  "paper_venue": "SIGKDD",
+  "paper_url": "http://www.cs.ucr.edu/~eamonn/sigkdd_tarzan.pdf",
+  "paper_abstract": "#%$'&)( *,+\u0018-'./&\u000401+\b2\u000f3\u00064'5 6/4'798;:<(=&\u0004>\u00046?3\u0006&\u00045@(\u00068 A<A,&B*,4C6/4D8;A,6E0F&G:<&BH *,6/&\u0004:I5'8 AJ8\u0018-'8\u0018:<&FKL6LM &\u0017MON P &B*<QF- QC>\u0004+\u00184 A,&B4 ASRT$\u00068\u0018:%*,&B>\u0004&\u00046/U\u0002&V5C0WP >S$ 8\bA<A,&B4 A,6/+\u00184X8\b4\u00065Y6E:Z4'+V[\\8]*,&B.^8 A,6/U\u0002&\u0004.?QY0C8\bA,P\u0012*,&93'&\u0004.E5_M;`\u00154a>\u0004+\u00184 H A<*J8\u0018:bAVcGA,$'&a6/0F(=+\u0018*<AJ8\b4 A](\u0012*,+\u0017-'./&\u00040d+\u001829&\u00044 P 0F&B*J8\bA,6/4'7e8\b./.f:<P *<H ( *,6/:<6/4'7D+\u0018*96/4 A,&S*,&\u0004:bA,6/4'7g('8\bA<A,&B*,4 :f$\u00068\u0018:f*,&\u0004>B&\u00046/U\u0002&V5a2h8\b*9./&\u0004:<:i8\bA<H A,&\u00044 A,6/+\u00174_Mf#%$'6/:j(\u0012*,+\u0017- .E&B0k*,&VN P 6/*,&B:f8F0F&V8\u00184 6E4 7\u00182lP'.\u00145 &S3\u00064'6?A,6/+\u00174 +\u00182Im\":<P *,(\u0012*,6E:<&Bn c\u00128\u00184'5F8\u00184o&SpF>\u00046/&\u00044 Aq:<&\u00048\b*,>J$oA,&\u0004>S$ 4'6EN P'&\u0017Msr)./.'(\u0012*,&BH U 6/+\u0017P':@8\bA<A,&B0F( A,:]8\bA]3\u00064'5 6/4'7t:<P\u0012*,( *,6/:<6/4'7t(\u00068 A<A,&B*,4':]6/4uA,6/0F& :<&B*,6/&\u0004:9P':<&C8DU\u0017&B*<Qa.E6/0F6?A,&V5a4'+\u0018A,6/+\u00184v+\u00182w:<P\u0012*,( *,6/:<&\u0017c\u00148\b4\u00065'x\b+\u0018*i5\u0012+ 4'+\bA;:<>V8\u0018./&FA,+D0C8\b:<:<6/U\u0002&C5'8 AJ8\u0018:<&BA,:\u0004M]#\u000f+D+\bU\u0017&B*,>\u0004+\u00170F&iA,$'&\u0004:<&o./6/0oH 6?AJ8\bA,6/+\u00174 :i[q&@6/4 A<*,+ 5 P >\u0004&]8Y4 + U\u0002&\u0004.OA,&B>S$ 4'6EN P'&oA,$\u00068 Ao5\u0012&B3\u00064 &\u0004:i8 (\u00068 A<A,&B*,4C:<P *,(\u0012*,6E:<6/4 7i6?2_A,$'&I2l*,&VN P'&B4'>BQF+\b2\u000f6?A,:O+ >\u0004>\u0004P *<*,&B4'>\u0004&Z5 6?2lH 2h&S*,:9:<P -':bAJ8\b4 A,6E8\b.E.?Qa2l*,+\u00180yA,$\u00068\bA;&Sz (=&B>BA,&V5{- QY>J$\u00068\b4'>\u0004&\u0017c!7\u00176/U\u0002&B4 :<+\u00170F&;(\u0012*,&\u0004U 6E+\u0018P':<.?Q@:<&\u0004&\u00044Y5'8 AJ8\u0012MI#%$ 6/:Z4'+\bA,6/+\u00174|$\u00068\b:GA,$ &;8\u00175\u0012U\u00178\b4 H AJ8\u00187\u0018&C+\u00182I4'+\bA;*,&VN P'6?*,6/4'7|8\b4v&Bz\u0012('./6/>\u00046?Ao5\u0012&B3\u00064 6?A,6E+\u00184v+\u00182I:<P\u0012*,( *,6/:<&\u0017c [I$'6/>J$W0C8\u0004Q;-=&%6/0F(=+\u0017:<:<6/- .E&%A,+)&\u0004./6/>\u00046?AT2^*,+\u00170\\8j5\u0012+\u00170C8\b6E49&Bz\u0012(=&B*<AVM `\u00154 :bA,&V8\u00175FA,$'&)P':<&B*%:<6E0F( .?QF7\u00176/U\u0002&\u0004:%A,$ &j8\b.E7\u0018+\u0018*,6?A,$'018i>\u0004+\u0018.E./&\u0004>SA,6E+\u00184 +\u00182\u0006( *,&\u0004U 6/+\u0017P :<./Qi+\u0017- :<&B*,U\u0002&V594'+\b*,0C8\u0018. 5'8\bAJ8 MT}ZP *T8\b./7\u0017+\u0018*,6?A,$ 0~P :<&\u0004: 8j:<P pWz9A<*,&B&%A,+f&BpF>\u00046/&\u00044 A,.?QW&B4'>\u0004+ 5\u0012&%A,$'&%2l*,&\u0004N P &\u00044'>SQW+\b2_8\u0018./.'+\u0018- H :<&B*,U\u0002&\u00045a('8\bA<A,&B*,4 :;8\u00184\u00065{8\u0018././+V[I:i8Dg8\b*,\u0002+ UY0F+ 5 &B.\u0014A,+@( *,&V5\u00126/>BA A,$'&D&Bz\u0012(=&\u0004>BA,&V5t2l*,&VN P &\u00044'>BQ+\b2f( *,&\u0004U 6/+\u0017P :<.?QP 4'+\u0018-':<&B*,U\u0002&\u00045('8\bA<H A,&B*,4 :\u0004MT}Z4'>\u0004&%A,$ &%:<P pWziA<*,&\u0004&w$'8\u0018:\u0014-=&\u0004&\u0004...",
+  "paper_file": "papers/2016/05/09/finding-surprising-patterns-in-a-time-series-database-in-linear-time-and-space.pdf",
+  "topics": [
+    "data-engineering",
+    "algorithms"
+  ],
+  "tags": [
+    "time-series-analysis",
+    "anomaly-detection",
+    "suffix-trees",
+    "markov-models",
+    "discretization",
+    "pattern-recognition"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Example time series with surprising patterns highlighted",
+      "caption": null
+    },
+    {
+      "number": "Figure 2",
+      "title": "Algorithm performance comparison",
+      "caption": null
+    }
+  ],
+  "extraction_method": "ocr_low_quality",
+  "ocr_used": true
+}

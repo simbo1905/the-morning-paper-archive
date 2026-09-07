@@ -1,0 +1,262 @@
+URL: https://blog.acolyer.org/2014/10/10/consistency-availability-and-convergence/
+Title: Consistency, Availability, and&nbsp;Convergence
+---
+
+Consistency, Availability, and Convergence - Mahajan, Alvisi, and Dahlin, 2014
+
+We've seen in earlier papers that the classic definition of eventual consistency allows some unhelpful models such as all nodes becoming consistent due to returning a constant value. Mahajan et al. close these loopholes with a definition of convergence that matches our commonsense expectations.
+
+Then the question becomes: if you want consistency, availability, and convergence, what's the best we can do?
+
+> 
+We examine the limits of consistency in fault-tolerance distributed systems. In particular, we identify fundamental trade-offs between the properties of consistency, availability, and convergence.
+
+Causal consistency follows the constraints of a 'happens-before' graph; real-time causal consistency adds the additional constraint that time cannot travel backwards. This paper shows that you can achieve real-time causal consistency, and furthermore that you cannot do better than this. 
+
+> 
+No consistency stronger than real-time causal consistency (RTC) can be provided in an always available, one-way convergent system, and RTC can be provided in an always available one-way convergent system.
+
+There is also a nice discussion of Byzantine models (models that can tolerate malicious nodes that deliberately send false messages, drop messages, and so on). Most real-world systems aren't designed to tolerate Byzantine failure modes (so most real-world systems are vulnerable at this level to adversaries). 
+
+Mahajan et al. show a model that they call Bounded Fork-Join Causal Consistency (BFJC) that can be shown to be achievable in the face of Byzantine failures, and that they believe is close to the strongest possible guarantees that can be given under such circumstances.
+
+> 
+BFJC is achievable using an always available and one-way convergent implementation. It can be implemented by extending the implementation for RTC in four key ways...
+
+What are they?
+
+* history encoding and update signing
+
+* checking received updates against local history
+
+* rejecting updates from known faulty nodes (unless another party has already been duped into accepting them)
+
+* broadcasting proofs that you have not accepted any faulty updates
+
+See the paper for more details.
+
+As an application developer or system designer, what does this all mean? Firstly, try to model your problem domain using techniques such as CRDTs that are safe under < strong consistency models. I believe it&#039;s possible to go a long way with this using approaches such as CQRS. Secondly, where this is not possible, you need to design your application at least in such a way as to tolerate the inconsistencies that are allowed by causal consistency. That is, a reconciliation approach for independent concurrent updates.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ ConsistencyDistributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousCertificate TransparencyNext &rsaquo;Shark: SQL and Rich Analytics at Scale
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;Consistency, Availability, and Convergence&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Desert Island Papers: Jonas Bonér | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Consistency, Availability, and Convergence + COPS | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Consistency, Availability, and Convergence | CS TOPIC 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

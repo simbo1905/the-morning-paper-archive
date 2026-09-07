@@ -1,0 +1,36 @@
+{
+  "date": "20160426",
+  "file_name": "20160426",
+  "slug": "the-linux-scheduler-a-decade-of-wasted-cores",
+  "blog_url": "https://blog.acolyer.org/2016/04/26/the-linux-scheduler-a-decade-of-wasted-cores/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this EuroSys 2016 paper as a deep dive into the Linux kernel's Completely Fair Scheduler (CFS), exposing how its complexity led to four critical bugs that caused cores to remain idle despite pending work. The author praises the paper for its thorough background on Linux scheduling evolution, from single-core to multicore systems, and its exploration of software aging in kernel maintenance. The key insight is that the scheduler's intricate load-balancing rules, designed to optimize performance and energy efficiency, inadvertently created scenarios where idle cores failed to steal work due to flawed load calculations. The bugs caused significant performance degradation in real-world workloads, including a 13% latency increase for kernel compilation and a 14-23% throughput drop in a commercial database.",
+  "paper_title": "The Linux Scheduler: a Decade of Wasted Cores",
+  "paper_authors": [
+    "Lozi",
+    "J. P. Lozi",
+    "W. Zwaenepoel",
+    "A. Margaritov",
+    "A. Fedorova"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "EuroSys",
+  "paper_url": "http://www.ece.ubc.ca/~sasha/papers/eurosys16-final29.pdf",
+  "paper_abstract": "As a central part of resource management, the OS thread scheduler must maintain the following, simple, invariant: make sure that ready threads are scheduled on available cores. As simple as it may seem, we found that this invariant is often broken in Linux. Cores may stay idle for seconds while ready threads are waiting in runqueues. In our experiments, these performance bugs caused many-fold performance degradation for synchronization-heavy scientific applications, 13% higher latency for kernel make, and a 1423% decrease in TPC-H throughput for a widely used commercial database. The main contribution of this work is the discovery and analysis of these bugs and providing the fixes. Conventional testing techniques and debugging tools are ineffective at confirming or understanding this kind of bugs, because their symptoms are often evasive. To drive our investigation, we built new tools that check for violation of the invariant online and visualize scheduling activity. They are simple, easily portable across kernel versions, and run with a negligible overhead. We believe that making these tools part of the kernel developers’ tool belt can help keep this type of bug at bay.",
+  "paper_file": "papers/2016/04/26/the-linux-scheduler-a-decade-of-wasted-cores.pdf",
+  "topics": [
+    "operating-systems"
+  ],
+  "tags": [
+    "linux-scheduler",
+    "cfs",
+    "load-balancing",
+    "multicore",
+    "scheduling-bugs",
+    "software-aging",
+    "performance-degradation"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

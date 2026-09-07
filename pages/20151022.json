@@ -1,0 +1,49 @@
+{
+  "date": "20151022",
+  "file_name": "20151022",
+  "slug": "implementing-linearizability-at-large-scale-and-low-latency",
+  "blog_url": "https://blog.acolyer.org/2015/10/22/implementing-linearizability-at-large-scale-and-low-latency/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the paper 'Implementing Linearizability at Large Scale and Low Latency' by Lee et al. (2015), which introduces RIFL, a reusable infrastructure for adding linearizable consistency to systems built on 'at-least-once' RPC semantics. Adrian Colyer highlights RIFL's ability to upgrade 'at-least-once' to 'exactly-once' semantics, ensuring linearizability even in the face of server crashes or data migration. The key insight is that linearizability, the strongest form of consistency for single-object operations, can be efficiently layered atop existing systems with minimal overhead. RIFL achieves this by uniquely identifying RPCs, durably recording results, handling retries via a 'retry rendezvous' mechanism, and managing metadata garbage collection. The paper demonstrates RIFL's practicality by integrating it into RAMCloud, showing minimal latency overhead (less than 4% for writes) and high performance for distributed transactions.",
+  "paper_title": "Implementing Linearizability at Large Scale and Low Latency",
+  "paper_authors": [
+    "Edward Lee",
+    "Austen Sullivan",
+    "John Ousterhout"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SOSP",
+  "paper_url": "http://sigops.org/sosp/sosp15/current/2015-Monterey/printable/126-lee.pdf",
+  "paper_abstract": "Linearizability is the strongest form of consistency for concurrent systems, but most large-scale storage systems settle for weaker forms of consistency. RIFL provides a general-purpose mechanism for converting at-least-once RPC semantics to exactly-once semantics, thereby making it easy to turn non-linearizable operations into linearizable ones. RIFL is designed for large-scale systems and is lightweight enough to be used in low-latency environments. RIFL handles data migration by associating linearizability metadata with objects in the underlying store and migrating metadata with the corresponding objects. It uses a lease mechanism to implement garbage collection for metadata. We have implemented RIFL in the RAMCloud storage system and used it to make basic operations such as writes and atomic increments linearizable; RIFL adds only 530 ns to the 13.5 µs base latency for durable writes. We also used RIFL to construct a new multi-object transaction mechanism in RAMCloud; RIFL’s facilities significantly simplified the transaction implementation. The transaction mechanism can commit simple distributed transactions in about 20 µs and it outperforms the H-Store main-memory database system for the TPC-C benchmark.",
+  "paper_file": "papers/2015/10/22/implementing-linearizability-at-large-scale-and-low-latency.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "linearizability",
+    "rpc",
+    "exactly-once-semantics",
+    "consistency-models",
+    "ramcloud",
+    "farm",
+    "transaction-processing",
+    "idempotency",
+    "crash-consistency",
+    "metadata-management"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Examples of linearizable and non-linearizable histories",
+      "caption": "Examples of linearizable (a) and non-linearizable (b) histories for concurrent clients performing reads ( R() ) and writes ( W() ) on a single object, taken from [12]. Each row corresponds to a single client’s history with time increasing to the right. The notation “W(1)” means that client B wrote the value 1 into the object. Horizontal bars indicate the time duration of each operation."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Non-linearizable behavior caused by crash recovery",
+      "caption": "In this example, the server completes a write from Client B but crashes before responding. After the server restarts, Client B reissues the write, but meanwhile Client A has written a different value. As a result, Client A observes the value 2 being written twice."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

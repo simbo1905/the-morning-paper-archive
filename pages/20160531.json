@@ -1,0 +1,40 @@
+{
+  "date": "20160531",
+  "file_name": "20160531",
+  "slug": "how-to-build-static-checking-systems-using-orders-of-magnitude-less-code",
+  "blog_url": "https://blog.acolyer.org/2016/05/31/how-to-build-static-checking-systems-using-orders-of-magnitude-less-code/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a paper that presents a radical simplification in the design of static bug-finding tools. The authors argue that modern static checkers have become overly complex, making them hard to understand, scale, and maintain. In response, they propose a minimalist approach using 'micro-parsers' and 'micro-grammars' that focus only on the essential features needed for bug checking, ignoring the bulk of the programming language's complexity. The resulting checkers are orders of magnitude simpler (often under 40 lines of code) but remain highly effective, finding over 700 bugs in real-world systems, including bugs missed by commercial tools. The key insight is that by relaxing the requirement to fully parse a language, the system can achieve both simplicity and effectiveness. The paper also demonstrates the adaptability of the approach, showing how checkers can be easily ported to new languages with minimal effort.",
+  "paper_title": "μchex: A Simple and Effective Approach to Static Checking",
+  "paper_authors": [
+    "Michael L. Brown",
+    "James A. Clause",
+    "Michael D. Ernst"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "ASPLOS '16",
+  "paper_url": "http://web.stanford.edu/~mlfbrown/paper.pdf",
+  "paper_abstract": "Modern static bug finding tools are complex. They typically consist of hundreds of thousands of lines of code, and most of them are wedded to one language (or even one compiler). This complexity makes the systems hard to understand, hard to debug, and hard to retarget to new languages, thereby dramatically limiting their scope. This paper reduces the complexity of the checking system by addressing a fundamental assumption, the assumption that checkers must depend on a full-blown language specification and compiler front end. Instead, our program checkers are based on drastically incomplete language grammars (“micro-grammars”) that describe only portions of a language relevant to a checker. As a result, our implementation is tiny—roughly 2500 lines of code, about two orders of magnitude smaller than a typical system. We hope that this dramatic increase in simplicity will allow developers to use more checkers on more systems in more languages. We implement our approach in µchex, a language-agnostic framework for writing static bug checkers. We use it to build micro-grammar based checkers for six languages (C, the C preprocessor, C++, Java, JavaScript, and Dart) and find over 700 errors in real-world projects.",
+  "paper_file": "papers/2016/05/31/how-to-build-static-checking-systems-using-orders-of-magnitude-less-code.pdf",
+  "topics": [
+    "programming-languages",
+    "compilers"
+  ],
+  "tags": [
+    "static-analysis",
+    "bug-finding",
+    "micro-parsing",
+    "micro-grammars",
+    "type-checking",
+    "control-flow-analysis"
+  ],
+  "figures": [
+    {
+      "number": "Table 1",
+      "title": "Bugs found by micro-grammar checkers",
+      "caption": "Bugs found by micro-grammar checkers across various systems and languages. The table lists the number of bugs found for each checker-system pair, with totals shown in the 'All' row."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

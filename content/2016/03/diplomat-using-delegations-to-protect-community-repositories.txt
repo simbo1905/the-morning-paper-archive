@@ -1,0 +1,345 @@
+URL: https://blog.acolyer.org/2016/03/30/diplomat-using-delegations-to-protect-community-repositories/
+Title: Diplomat: Using Delegations to Protect Community&nbsp;Repositories
+---
+
+Diplomat: Using Delegations to Protect Community Repositories - Kuppusamy et al. 2016
+
+> 
+
+ Community repositories, such as Docker Hub, Python Package Index (PyPI), RubyGems, and SourceForge provide an easy way for a developer to disseminate software... [they] are immensely popular and collectively serve more than a billion packages per year. Unfortunately, the popularity of these repositories also makes them an attractive target to hackers... Major repositories run by Adobe, Apache, Debian, Fedora, FreeBSD, Gentoo, GitHub, GNU Savannah, Linux, Microsoft, npm, Opera, PHP, RedHat, RubyGems, SourceForge, and WordPress have all been compromised at least once.
+
+This is a topic of immediate importance. Diplomat is a practical security system for community repositories that combines immediate project registration (adding new projects happens all the time with popular repositories) and compromise-resilience. Diplomat source code and standards documents are freely available at https://theupdateframework.github.io/.
+
+> 
+
+ The security models and experiences we describe in this work are based upon practical lessons learned from ongoing integrations with RubyGems, Haskell, CoreOS, and OCaml and production use in Flynn, LEAP (Bitmask), and Docker.
+
+An analysis of requests to PyPI found that Diplomat can protect over 99% of PyPI's users, even if an attacker controls PyPI and is undetected for a month.
+
+## Threat Model
+
+An attacker can compromise a running repository and/or any keys stored on the repository. Even if a key is hardware protected, a hacker may be able to sign malicious packages using it. An attacker can also respond to user requests, either by compromising the repository or one of its mirrors, or by acting as a man-in-the-middle. A successful attack is one where the attacker changes the contents of a package that a user installs.
+
+> 
+
+ Existing software update systems protect against a wide array of other attacks such as replay and mix-and-match attacks. We protect against these attacks by leveraging the rose and delegation layout from these prior works. Thus, those types of attacks are only briefly discussed in this paper so that we may focus on key compromise resilience while allowing the online registration of projects.
+
+## Existing Approaches to Repository Security
+
+## Packages signed by Repositories using Online Keys
+
+> 
+
+ In community repositories such as PyPI, RubyGems, and npm, all packages are signed only by repositories with online keys.
+
+The keys are kept online to enable new projects and packages to be published as soon as possible. A compromise of the repository therefore renders all packages vulnerable. This happened to npm.
+
+## Developers sign with Offline Keys
+
+> 
+
+ Some community repositories, including PyPI and RubyGems, permit developers to sign their packages with offline GPG or RSA keys before uploading them to the repository.
+
+Signatures verify the authenticity of packages, not the repository's identity. Users must discover the correct key for a developer from an out-of-band channel and use this to verify packages.
+
+> 
+
+ While PyPI and RubyGems support this model, only 4% of PyPI projects even list a signature. Moreover, in a month long trace of package requests to PyPI, only 0.7% of users downloaded these signatures for verification.
+
+## Repositories Delegate to Projects with Online Keys
+
+> 
+
+ In this security model the projects role for a delegation framework like The Update Framework (TUF) is signed with an online key. In order to solve the problem of which developer keys map to which packages, repositories will delegate a project (its set of packages) to the public keys of the developers of that project.
+
+For example, delegation of Django-* to the public key of the lead developer of Django, who may it turn delegate Django packages to other developers.
+
+> 
+
+ This model does not build compromise-resilient community repositories precisely because the projects role can be compromised by an attacker... Once an attacker has compromised a repository, he (or she) is free to rewrite delegations using the online private keys. Then, an attacker can have the projects role delegate trust for the Django-* packages to a key the attacker controls.
+
+## Administrators Delegate to Projects with Offline Keys
+
+> 
+
+ Unlike the previous TUF security model, which delegates trust using an online key, administrators could alternativey chose to delegate using offline keys.
+
+An attacker cannot rewrite delegations (and thus packages) after a compromise because the keys are not available. Traditional repositories including LEAP use this model.
+
+> 
+
+ Unfortunately, this model is impractical to use in community repositories because new projects, which are created dozens of times a day, cannot be registered without an administrator using an offline key.
+
+## The Diplomat Approach
+
+Diplomat is designed to allow community repositories to have both compromise-resilience and immediate project registration. It combines delegations with a mix of offline and online keys in order to create tailored security models.
+
+> 
+
+ The projects role is the root of trust for all packages on the repository; if a user wishes to download (and install) some package, he or she must first download and verify the latest projects role metadata. The user has the keys for this role because these public keys are contained within the root metadata file. The top-level projects role may delegate to other developers or vendors, which may also then delegate to others. A client can validate a package by following the chain of delegations until they find a trusted developer's metadata that contains the cryptographic hash of the package.
+
+It's important that there be no ambiguity in a trust hierarchy. Suppose A delegates bar to B, and all packages to C. Which hash do we trust if both B and C publish a bar package? Diplomat uses prioritized delegations to resolve such ordering issues. Very simply, delegations take precedence base on the order they occur in the metadata file. In our example, if B is listed before C, then the user would trust B and not C for bar packages.
+
+There is a further ambiguity we need to disambiguate in the bar scenario: if B does not sign a bar package, we may want to permit C to sign it as a failover/backup, or it may be our intention that only B can sign for bar. To handle the latter case, Diplomat introduces the notion of a terminating delegation. Terminating delegations instruct the client not to consider future trust statements that match the delegation's pattern.
+
+Armed with prioritized and terminating delegations, we can now construct Diplomat-based security models.
+
+> 
+
+ To exemplify how Diplomat is used in practice, we describe two security models that have been standardized for use within the Python community: the maximum security model and the legacy security model.
+
+(click on the image above for a larger version).
+
+In the maximum security model the top level projects role delegates to three other roles in priority order: claimed projects, rarely updated projects, and new projects.
+
+Claimed projects delegation is assigned to projects where developers sign their own project metadata with their own offline key. The claimed projects delegation is terminating, so once delegation for packages of a claimed project has been made, only the developers can sign and upload packages for it.
+
+> 
+
+ Most importantly, the claimed-projects role signs its delegations to projects with offline keys so that attackers cannot tamper with the packages of these projects after a repository compromise.
+
+Any requests for projects unknown to the claimed projects role will continue with the rarely updated projects role. This role directly signs, with offline keys, all packages of rarely updated projects.
+
+> 
+
+ Since the key used is offline, packages cannot be signed by this role without an action by the repository administrators. This delays the release of new packages of rarely updated projects.
+
+The rarely-updated-projects delegation is a terminating one, no further search will be made for the package signatures of a project already delegated to this role.
+
+> 
+
+ Finally, the new projects role is able to assign keys to package names that were not already defined. This role is served by an online key that delegates trust to newly created projects. However, since the role has an online key, there is a substantial risk of compromise.
+
+This risk is mitigated in two ways: (i) by assigning it the lowest priority, and using terminating delegating for the two higher roles only newly created projects can be impacted if the repository is compromised; (ii) every few weeks administrators can perform maintenance and append the new-projects role metadata to the claimed projects role metadata and signed the resulting metadata with the claimed-projects key. This prevents an attacker who compromises the repository from replacing the key for any projects included before this point.
+
+The legacy security model also has three levels, the claimed-projects roles and the new-projects roles as before, and an additional level for unclaimed projects. It allows for new packages of rarely updated projects to be available immediately, while still providing security benefits to the users of claimed projects.
+
+> 
+
+ Like rarely updated projects, unclaimed projects are also signed by the repository instead of developers, but with the unclaimed-projects role that uses online keys... all projects signed with this key are at risk in the event of a compromise... The legacy model is drawn from our integration and deployment experience with the Python and Docker community repositories. Both repositories wanted to allow the repository to sign packages on behalf of developers who did not wish to do so. However, since its key is stored offline, using the rarely-updated-projects role would prevent administrators from quickly releasing new packages from these developers.
+
+Diplomat enables a repository to smoothly transition from the legacy to the maximum security model.
+
+## Evaluation and Recommendations
+
+Using request logs from PyPI for the period March 21st to April 19th, 2014, the authors analyse user vulnerability (a user downloads at least one package that an attacker who compromised the repository - and thus all online keys - could have tampered with).
+
+Figure 6. shows the benefits of the legacy and maximum security models over the current TLS and GPG mechanism. Increasing the number of popular packages that are signed by developers dramatically increases security. "If the most popular 1% of projects are signed by developers (406 projects), then 73% of users are protected. If the top 10% of projects sign their project, then 96% of users are protected."
+
+> 
+
+ To summarize, pushing for adoption by the most popular 1% projects is critical to securing users. Other strategies, such as signing for rarely updated projects and pushing projects to sign when uploading a package will further help security. While each strategy may be relatively ineffective on its own, combining all of these strategies can have minimal usability impact while greatly increasing the security of PyPI users until the maximum security model is adopted.... Diplomat's maximum security model would protect over 99% of PyPI users, even if an attacker controlled the repository undetected for a month.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Security 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousPolaris: Faster Page Loads Using Fine-Grained Dependency TrackingNext &rsaquo;Ernest: Efficient Performance Prediction for Large-Scale Advanced Analytics
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;Diplomat: Using Delegations to Protect Community Repositories&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: End of term | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

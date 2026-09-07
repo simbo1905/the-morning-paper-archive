@@ -1,0 +1,43 @@
+{
+  "date": "20180228",
+  "file_name": "20180228",
+  "slug": "barrier-enabled-io-stack-for-flash-storage",
+  "blog_url": "https://blog.acolyer.org/2018/02/28/barrier-enabled-io-stack-for-flash-storage/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses a paper from FAST'18 that introduces a Barrier-enabled IO stack for flash storage, addressing the performance bottleneck caused by enforcing write ordering and durability. Adrian Colyer highlights that traditional transfer-and-flush mechanisms (waiting for data transfer and flush completion) severely degrade performance, reducing IOPS to just 1% of unordered writes in some cases. The paper proposes using barrier commands to control persist order without waiting for full transfers, enabling order-preserving dispatch with significant performance gains. The authors demonstrate headline improvements: SQLite performance increases by 270% (server) and 75% (smartphone), while BarrierFS boosts MySQL and SQLite performance by 43x and 73x respectively compared to EXT4. The key insight is leveraging barrier commands to separate control plane (dispatching writes) from data plane (persisting data) activities, enabling parallelism and reducing overhead. The paper also introduces Dual Mode Journaling in ext4, which further optimizes journal commit operations.",
+  "paper_title": "Barrier-Enabled IO Stack for Flash Storage",
+  "paper_authors": [
+    "Sungjin Won",
+    "Jaehyuk Huh",
+    "Seungryoul Maeng"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "FAST'18",
+  "paper_url": "https://www.usenix.org/conference/fast18/presentation/won",
+  "paper_abstract": "This work is dedicated to eliminating the overhead required for guaranteeing the storage order in the modern IO stack. The existing block device adopts a prohibitively expensive approach in ensuring the storage order among write requests: interleaving the write requests with Transfer-and-Flush. Exploiting the cache barrier command for Flash storage, we overhaul the IO scheduler, the dispatch module, and the filesystem so that these layers are orchestrated to preserve the ordering condition imposed by the application with which the associated data blocks are made durable. The key ingredients of Barrier-Enabled IO stack are Epoch-based IO scheduling, Order-Preserving Dispatch, and Dual-Mode Journaling. Barrier-enabled IO stack can control the storage order without Transfer-and-Flush overhead. We implement the barrier-enabled IO stack in server as well as in mobile platforms. SQLite performance increases by 270% and 75%, in server and in smartphone, respectively. In a server storage, BarrierFS brings as much as by 43× and by 73× performance gain in MySQL and SQLite, respectively, against EXT4 via relaxing the durability of a transaction.",
+  "paper_file": "papers/2018/02/28/barrier-enabled-io-stack-for-flash-storage.pdf",
+  "topics": [
+    "storage-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "flash-storage",
+    "ordering",
+    "barriers",
+    "journaling",
+    "durability",
+    "IO-stack",
+    "ext4",
+    "dual-mode-journaling",
+    "performance-optimization"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Ordered write vs. Orderless write",
+      "caption": "Ordered write vs. Orderless write, Except ‘HDD’, all are Flash storages; A: (1ch)/eMMC5.0, B: (1ch)/UFS2.0, C: (8ch)/SATA3.0, D: (8ch)/NVMe, E: (8ch)/SATA3.0 (supercap), F: (8ch)/PCIe, G: (32ch) Flash array, The number next to each point is the IOPS of write() followed by fdatasync()."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

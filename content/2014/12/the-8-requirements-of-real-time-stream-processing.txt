@@ -1,0 +1,343 @@
+URL: https://blog.acolyer.org/2014/12/03/the-8-requirements-of-real-time-stream-processing/
+Title: The 8 Requirements of Real-Time Stream&nbsp;Processing
+---
+
+The 8 Requirements of Real-Time Stream Processing - Stonebraker et al. 2005
+
+> 
+
+ Applications that require real-time processing of high-volume data streams are pushing the limits of data processing infrastructures.
+
+Stonebraker et al. make the case in 2005 that stream processing is going to become increasingly important. Not just for the usual finance, fraud, and command-and-control use cases, but also....
+
+> 
+
+ ... as the “sea change” caused by cheap micro-sensor technology takes hold, we expect to see everything of material significance on the planet get “sensor-tagged” and report its state or location in real time. This sensorization of the real world will lead to a “green field” of novel monitoring and control applications with high-volume and low-latency processing requirements.
+
+I.e., the Internet of Things (IoT). What will it take to build such systems?
+
+> 
+
+ In this paper, we outline eight requirements that a system software should meet to excel at a variety of real-time stream processing applications.
+
+Stonebraker also makes the case that the traditional DBMS architecture is not well-suited to be a foundation for stream processing applications.
+
+> 
+
+ DBMSs use a 'process-after-store' model, where input data are first stored, potentially indexed, and then processed. Main-memory DBMSs are faster because they can avoid going to disk for most updates, but otherwise use the same basic model. DBMSs are passive; i.e. they wait to be told what to do by an application. Some have built in triggering mechanisms, but it is well-known that triggers have poor scalability. Thus DBMSs do not keep the data moving... (see rule 1 below).
+
+DBMSs are also based on a notion of serializability, which does not lead to repeatable executions:
+
+> 
+
+ To generate predictable outcomes, a stream processing engine must have a deterministic execution mode that utilizes timestamp order of input messages.
+
+So, if we accept that stream processing engines are different, what evaluation criteria can we use when assessing them? Or alternatively, what should we keep in mind when building them? Here are Stonebraker et. al's 8 rules:
+
+## 1. Keep the data moving
+
+To achieve low latency, a system must be able to perform message processing without having a costly storage operation in the critical procesing path. An additional problem occurs with systems that are passive (i.e. require applications to poll to detect new data).
+
+> 
+
+ The first requirement for a real-time stream processing engine is to process messages 'in-stream', without any requirement to store them to perform any operation or sequence of operations. Ideally the system should also use an active (i.e. non-polling) processing model.
+
+## 2. Query using SQL on streams (StreamSQL)
+
+> 
+
+ Historically, for streaming applications, general purpose languages such as C++ or Java have been used as the workhorse development and programming tools. Unfortunately, relying on low-level programming schemes results in long development cycles and high maintenance costs. In contrast, it is very much desirable to process moving real-time data using a high-level language such as SQL.
+
+SQL's success is based on a very powerful set of primitives for filtering, merging, correlation, and aggregation. Rich windowing functions and stream-specific operators will need to be added. Traditional SQL knows when it has finished processing because it gets to the end of the table, but with streaming data the 'table' never ends! Stream windows serve to demarcate operations instead.
+
+## 3. Handle stream imperfections (delayed, missing, and out-of-order data)
+
+Any potentially blocking application calculation must have time-outs. To deal with out-of-order data, a mechanism must be provided to allow windows to stay open for an additional period of time.
+
+> 
+
+ The third requirement is to have built-in mechanisms to provide resiliency against stream 'imperfections' including missing and out-of-order data which are commonly present in real-world data streams.
+
+## 4. Generate predictable outcomes
+
+Time series data must be processed in a predictable manner to ensure the results of processing are deterministic and repeatable.
+
+## 5. Integrate stored and streaming data
+
+For many stream processing applications, the ability to compare and merge 'present' (i.e. live) data with historical data is important. You want to use the same language for the historical data as you do for the live data.
+
+> 
+
+ The fifth requirement is to have the capability to efficiently store, modify, and access state information, and combine it with live streaming data. For seamless integration, the system should use a uniform language when dealing with either type of data.
+
+Reminiscent of course of the Lambda architecture.
+
+## 6. Guarantee data safety and availability
+
+Stream processing applications are often mission-critical. For real-time processing, restarting and recovering from a log incur too much overhead. Therefore a hot-backup and real-time failover scheme are required. (This formulation of the requirement sounds a little dated now. We might instead say that the stream processing engine needs to be resilient to failures as a continuously operating distributed system. Chaos monkey welcome.)
+
+> 
+
+ The sixth requirement is to ensure that the applications are up and available, and the integrity of the data maintained at all times, despite failures.
+
+## 7. Partition and scale applications automatically
+
+> 
+
+ Distributed operation is becoming increasingly important given the favourable price-performance characteristics of low-cost commodity clusters. As such, it should be possible to split an application over multiple machines for scalability (as the volume of input streams or the complexity of processing increases) without the developer having to write low-level code.
+
+The world has moved fast. Nowadays we pretty much take this requirement for granted, but 2005 was a time when it still had to be spelled out explicitly. Remember, this was before Twitter existed, and when Facebook was still just a site for college and high-school students.
+
+## 8. Process and respond instantaneously
+
+> 
+
+ The eigth requirment is that a stream processing engine must have a highly-optimized, minimal overhead execution engine to deliver real-time response for high-volume applications.
+
+In 2005, this was defined as 'tens to hundreds of thousands of messages per second with latency in the microsecond to millisecond range on top of COTS hardware'. In 2013, consolidated equity feeds in the financial services industry showed a peak message rate of almost 17M messages per second sustained for at least 10ms, and 10M peak messages in a second, with message rates still rising rapidly year-on-year. At the high end these feeds are processed with sub-microsecond latency.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Stream processing 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousThe case for distributed operating systems in the data centerNext &rsaquo;Photon: Fault-tolerant and scalable joining of continuous data streams
+ 
+ 
+
+ 
+ 
+## 
+ 4 thoughts on &ldquo;The 8 Requirements of Real-Time Stream Processing&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Photon: Fault-tolerant and scalable joining of continuous data streams | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Data stream - References - Notes 
+ 
+ 
+- 
+ 
+ 
+ 
+ Sridhar. S says: 
+
+ 
+ June 15, 2017 at 4:01 pm 
+
+ 
+
+ 
+ 
+Nice writeup about basic requirements that any stream processing engine needs to have. From 2005 to till now many frameworks came up Apache Storm, Heron, Spark Streaming, Apex, Flink and so on and many implementations would have happened. Eager to see the real life implementations of systems leveraging stream processing frameworks both transactional and non transactional. Any write ups links on that???
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Dynamic Data Management: Data Streaming Explained - PiracyData.org 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

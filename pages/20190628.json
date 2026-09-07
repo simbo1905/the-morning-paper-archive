@@ -1,0 +1,38 @@
+{
+  "date": "20190628",
+  "file_name": "20190628",
+  "slug": "machine-learning-systems-are-stuck-in-a-rut",
+  "blog_url": "https://blog.acolyer.org/2019/06/28/machine-learning-systems-are-stuck-in-a-rut/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights that machine learning systems are constrained by a rigid chain of assumptions from hardware to programming models, discouraging innovation. The paper argues that current frameworks excel at optimizing a small set of predefined kernels but struggle with non-standard computations, creating a 'performance cliff' that hinders research. Named dimensions are cited as an example of a simple yet impactful feature that is difficult to implement due to backend constraints. The authors demonstrate challenges in compiling non-standard kernels (e.g., convolutional capsules) and optimizing whole programs, noting that frameworks often resort to inefficient workarounds like excessive data copying. The paper proposes breaking out of this rut by embracing language design with named dimensions, layout-agnostic IRs, and transformation passes to enable better optimization and accelerator code generation.",
+  "paper_title": "Machine learning systems are stuck in a rut",
+  "paper_authors": [
+    "Peter Barham",
+    "Martin Isard"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "HotOS'19",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3321441",
+  "paper_abstract": "ion to represent a logical buffer that may be distributed over multiple devices. This abstraction helps the client scale by amortizing the cost of bookkeeping tasks (including reference counting) at the granularity of logical buffers instead of individual shards. 4.3 Coordination implementation PATHWAYS relies on P LAQUE for all cross-host coordination that uses DCN. P LAQUE is an existing (closed-source) production sharded dataflow system used at Google for many customer-facing services where high-fanout or high-fanin communication is necessary, and both scalability and latency are important. The low-level PATHWAYS IR is converted directly to a P LAQUE program, represented as a dataflow graph. PATHWAYS has stringent requirements for its coordination substrate, all of which are met by P LAQUE. First, the representation used to describe the PATHWAYS IR must contain a single node for each sharded computation, to ensure a compact representation for computations that span many shards, i.e. a chained execution of 2 computations A and B with N computation shards each should have 4 nodes in the dataflow representation: Arg − → Compute(A) − → Compute(B) − → Result, regardless of the choice of N . In the P LAQUE runtime implementation each node generates output data tuples tagged with a destination shard, so when performing data-parallel execution N data tuples would flow, one between each adjacent pair of IR nodes. The coordination runtime must also support sparse data exchanges along sharded edges, in which messages can be sent between a dynamically chosen subset of shards, using standard progress tracking mechanisms (Akidau et al., 2013; Murray et al., 2013) to detect when all messages for a shard have been received. Efficient sparse communication is a requirement to avoid the DCN becoming a bottleneck for data-dependent control flow on accelerators, which is one of the key capabilities that we want PATHWAYS to enable. The coordination substrate is used to send DCN messag...",
+  "paper_file": "papers/2019/06/28/machine-learning-systems-are-stuck-in-a-rut.pdf",
+  "topics": [
+    "machine-learning",
+    "programming-languages",
+    "compilers"
+  ],
+  "tags": [
+    "named-dimensions",
+    "tensor-operations",
+    "kernel-optimization",
+    "accelerators",
+    "programming-model",
+    "automatic-differentiation",
+    "layout-agnostic",
+    "compilation-passes",
+    "performance-cliff",
+    "research-inhibition"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

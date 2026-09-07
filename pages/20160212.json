@@ -1,0 +1,46 @@
+{
+  "date": "20160212",
+  "file_name": "20160212",
+  "slug": "fscq",
+  "blog_url": "https://blog.acolyer.org/2016/02/12/fscq/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the paper's introduction of Crash Hoare Logic (CHL), an extension to traditional Hoare logic that incorporates crash states and recovery semantics. This allows developers to formally verify the correctness of storage systems under normal operation and crash recovery scenarios. The paper demonstrates CHL's utility by building a verified file system, FSCQ, which includes a write-ahead log and a subset of the POSIX file system API. The implementation is extracted from Coq to Haskell, proving its practical viability. Colyer emphasizes the elegance of CHL's crash conditions and recovery semantics, which enable concise specifications and automated proof automation. The key insight is the ability to formally certify crash-recoverable systems, addressing a critical gap in traditional verification methods.",
+  "paper_title": "FSCQ: A Verified File System with Crash Safety",
+  "paper_authors": [
+    "Haogang Chen",
+    "Daniel Ziegler",
+    "Tej Chajed",
+    "Adam Chlipala",
+    "M. Frans Kaashoek",
+    "Nickolai Zeldovich"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SOSP'15",
+  "paper_url": "https://people.csail.mit.edu/nickolai/papers/chen-fscq.pdf",
+  "paper_abstract": "Proving that a file system is crash-safe is important, because it is otherwise hard for the file-system developer to ensure that the code correctly handles all possible points where a crash could occur, both while a file-system call is running and during the execution of recovery code. Often, a system may work correctly in many cases, but if a crash happens at a particular point between two specific disk writes, then a problem arises [55, 70]. Current approaches to building crash-safe file systems fall roughly into three categories (see §2 for more details): testing, program analysis, and model checking. Although they are effective at finding bugs in practice, none of them can guarantee the absence of crash-safety bugs in actual implementations. This paper focuses precisely on this issue: helping developers build file systems with machine-checkable proofs that they correctly recover from crashes at any point. Researchers have used theorem provers for certifying realworld systems such as compilers [45], small kernels [43], kernel extensions [61], and simple remote servers [30], but none of these systems are capable of reasoning about file-system crashes. Reasoning about crash-free executions typically involves considering the states before and after some operation. Reasoning about crashes is more complicated because crashes can expose intermediate states. FSCQ is the first file system with a machine-checkable proof (using the Coq proof assistant) that its implementation meets its specification and whose specification includes crashes. FSCQ provably avoids bugs that have plagued previous file systems, such as performing disk writes without sufficient barriers or forgetting to zero out directory blocks. If a crash happens at an inopportune time, these bugs can lead to data loss. FSCQ’s theorems prove that, under any sequence of crashes followed by reboots, FSCQ will recover the file system correctly without losing data. To state FSCQ’s theorems, this paper introduces t...",
+  "paper_file": "papers/2016/02/12/fscq.pdf",
+  "topics": [
+    "operating-systems",
+    "formal-methods",
+    "storage-systems"
+  ],
+  "tags": [
+    "crash-consistency",
+    "hoare-logic",
+    "write-ahead-logging",
+    "file-systems",
+    "coq",
+    "formal-verification",
+    "crash-hoare-logic",
+    "posix"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Overview of FSCQ’s implementation",
+      "caption": "Overview of FSCQ’s implementation. Rectangular boxes denote source code; rounded boxes denote processes. Shaded boxes denote source code written by hand. The dashed line denotes the Haskell compiler producing an executable binary for FSCQ’s FUSE file server."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

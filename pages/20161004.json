@@ -1,0 +1,47 @@
+{
+  "date": "20161004",
+  "file_name": "20161004",
+  "slug": "cyclades-conflict-free-asynchronous-machine-learning",
+  "blog_url": "https://blog.acolyer.org/2016/10/04/cyclades-conflict-free-asynchronous-machine-learning/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses Cyclades, a system designed to speed up machine learning on a single NUMA node by enabling conflict-free asynchronous processing. Unlike other systems that rely on asynchronous processing but may deviate from serial execution, Cyclades guarantees serial equivalence, meaning it produces the same results as a serial implementation. This is achieved through a clever graph partitioning strategy that allocates connected-component subgraphs to different cores, eliminating the need for cross-core coordination. The system works for a wide range of stochastic update-based algorithms, including logistic regression, stochastic gradient descent, and matrix factorization. The core insight is the use of a sampling technique based on a combinatorics result by Krivelevich, which ensures that the conflict graph can be partitioned into small connected components, allowing efficient parallel processing without conflicts. The evaluation shows Cyclades achieves up to 5x speedup over HogWild! and maintains correctness without requiring convergence guarantees for the parallel algorithm.",
+  "paper_title": "CYCLADES: Conflict-free Asynchronous Machine Learning",
+  "paper_authors": [
+    "Pan Pan",
+    "Jian Li",
+    "Yi Zhou",
+    "Ji Liu",
+    "Tianbao Yang",
+    "Aurélien Bellet",
+    "Srikrishna Sridhar",
+    "Fabian Pedregosa",
+    "Simon Lacoste-Julien"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "NIPS 2016",
+  "paper_url": "https://arxiv.org/pdf/1605.09721.pdf",
+  "paper_abstract": "We present C YCLADES, a general framework for parallelizing stochastic optimization algorithms in a shared memory setting. C YCLADES is asynchronous during shared model updates, and requires no memory locking mechanisms, similar to H OGWILD !-type algorithms. Unlike H OGWILD !, C YCLADES introduces no conflicts during the parallel execution, and offers a black-box analysis for provable speedups across a large family of algorithms. Due to its inherent conflict-free nature and cache locality, our multi-core implementation of C YCLADES consistently outperforms H OGWILD !-type algorithms on sufficiently sparse datasets, leading to up to 40% speedup gains compared to the H OGWILD ! implementation of SGD, and up to 5× gains over asynchronous implementations of variance reduction algorithms.",
+  "paper_file": "papers/2016/10/04/cyclades-conflict-free-asynchronous-machine-learning.pdf",
+  "topics": [
+    "machine-learning",
+    "distributed-systems"
+  ],
+  "tags": [
+    "asynchronous-processing",
+    "graph-partitioning",
+    "serial-equivalence",
+    "stochastic-gradient-descent",
+    "parallel-algorithms",
+    "cache-locality",
+    "NUMA"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Illustrative sketch of the conflict graph",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

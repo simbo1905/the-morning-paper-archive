@@ -1,0 +1,45 @@
+{
+  "date": "20190617",
+  "file_name": "20190617",
+  "slug": "towards-multiverse-databases",
+  "blog_url": "https://blog.acolyer.org/2019/06/17/towards-multiverse-databases/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the paper's central idea of 'multiverse databases,' which shift data access and privacy rules from application code to the database itself. This design eliminates a class of application errors by ensuring users only see permitted data, reducing the trusted computing base (TCB) to the database rather than the entire application. The blog praises the approach for its safety and simplicity in enforcing complex, data-dependent privacy policies that traditional row/column-level access controls cannot handle. Colyer notes the paper's examples, such as role-based access and aggregation policies, demonstrate the flexibility of the proposed system. The key insight is efficiently maintaining 'parallel universes' of data for each user using partially-materialized views and dynamic dataflow graphs, leveraging recent advances in streaming dataflow computing to enable scalable and performant enforcement of privacy policies.",
+  "paper_title": "Towards Multiverse Databases",
+  "paper_authors": [
+    "Marzyeh Marziov",
+    "Erik Wittern",
+    "Rishabh Singh",
+    "Mohammad Mahmoody",
+    "Eugene Wu"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "HotOS'19",
+  "paper_url": "https://people.csail.mit.edu/malte/pub/papers/2019-hotos-multiversedb.pdf",
+  "paper_abstract": "PP( Alice’s queries bob Bob’s queries (a) Today. Bob Bob’s universe Application Application Alice ) privacy policy (PP) Alice’s universe Alice Bob (b) Multiverse database. Figure 1. Currently, web applications’ entire frontend code is trusted (amber) and can query any backend data (left, (a)). A multiverse database applies a privacy policy (PP) to generate transformed, logical per-user databases, in which the untrusted applications’ queries can only see permissible data (right, (b)). private data, so the trusted computing base (TCB) effectively includes the entire application. It would be safer and easier to specify and transparently enforce access policies once, at the shared backend store interface. Although state-of-the-art databases have security features designed for exactly this purpose, such as row-level access policies and grants of views, these features are too limiting for many web applications. Application privacy policies are often data-dependent in ways incompatible with current row- and column-level access control, or allow the exposure of aggregate or transformed information that access control prevents. Prior research solutions based on query interposition and information flow control are slow, complex, or require impractical changes to the application programming model (§2). In this paper, we make the case for multiverse databases, a flexible, easy-to-use, and performant paradigm that enforces declarative privacy policies within the store. The database applies policies for each user, filtering and transforming the base data to form a user-specific “parallel universe” database that contains only data that the user is allowed to see (Figure 1). Application code executing for a user can safely execute any query against the user’s parallel universe database without risk of seeing (and perhaps inadvertently leaking) forbidden data. In essence, multiverse databases limit the TCB to the privacy policies and the database code enforcing them, defending again...",
+  "paper_file": "papers/2019/06/17/towards-multiverse-databases.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "access-control",
+    "privacy",
+    "dataflow",
+    "authorization",
+    "policy-enforcement",
+    "partially-materialized-views",
+    "streaming-dataflow",
+    "trusted-computing-base"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Comparison of current and multiverse database approaches",
+      "caption": "Currently, web applications’ entire frontend code is trusted (amber) and can query any backend data (left, (a)). A multiverse database applies a privacy policy (PP) to generate transformed, logical per-user databases, in which the untrusted applications’ queries can only see permissible data (right, (b))."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

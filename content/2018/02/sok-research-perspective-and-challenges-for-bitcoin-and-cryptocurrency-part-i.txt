@@ -1,0 +1,370 @@
+URL: https://blog.acolyer.org/2018/02/13/sok-research-perspective-and-challenges-for-bitcoin-and-cryptocurrency-part-i/
+Title: SoK: Research perspective and challenges for Bitcoin and cryptocurrency &#8211; Part&nbsp;I
+---
+
+SoK: Research perspectives and challenges for Bitcoin and cryptocurrency Bonneau et al., IEEE Security and Privacy, 2015
+
+Part 1 : core technology and the question of stability.
+
+Yesterday we took a look at consensus for blockchain-based systems. Together we’re going back in time a little further to 2015, where we find a broader survey of all things Bitcoin. It’s a fabulous read and a great starting point (still) if you’re relatively new to the space.
+
+> 
+
+ ...while Bitcoin has worked surprisingly well in practice so far, there is an important role for research to play in identifying precisely why this has been possible, moving beyond a bling acceptance of the informal arguments presented with the system’s initial proposal. Furthermore, it is crucial to understand whether Bitcoin will still “work in practice” as practices change... we set out to synthesize the collective knowledge from the first six years of Bitcoin’s operation and development as well as from its many derived cryptocurrencies.
+
+## The three main technical components of Bitcoin
+
+Bonneau et al. break the core technology of Bitcoin down into three main areas: transactions and scripts; consensus and mining; and the peer-to-peer communication network. I’ve drawn some maps to go along with this post to try and make the big picture clearer.
+
+## Transactions and scripts
+
+> 
+
+ The state of the world in Bitcoin is represented by a series of messages called transactions... It is important to note that the large (and growing) list of transactions is the only state in bitcoin.
+
+Transactions contain an array of inputs and an array of outputs. An output is an integer value representing a quantity of Bitcoin currency. The precision of this value limits the extent to which units of the currency can be subdivided. The smallest unit is called a satoshi, 10^8 satoshis equals one bitcoin.
+
+Bitcoin has a ad-hoc, non-Turing-complete stack-based scripting language with fewer than 200 commands called opcodes. Associated with an output is a short code snipped (the scriptPubKey) defining the conditions under which the transaction output can be redeemed. The majority of transactions are ‘pay-to-pub-key-hash’ where the entire redeeming transaction must be signed using a key with the specified hash. Transaction inputs refer to previous transaction outputs and a ‘scriptSig’ code snipped that ‘redeems’ the output.
+
+A fundamental law in Bitcoin is the law of conversation of value:
+
+> 
+
+ In addition to the requirements that each transaction input matches a previous transaction output and that the two scripts execute successfully, transactions are only valid if they satisfy the fundamental constraint that the sum of the values of all transaction outputs is less than or equal to the sum of the values of all inputs.
+
+There is no inherent notion of ‘ownership’: “ownership simply means knowing a private key which is able to make a signature that redeems certain outputs — an individual owns as many bitcoins as they can redeem.”
+
+## Consensus and mining
+
+We talked a lot about consensus yesterday. To prevent double spending attacks, all transactions are published in a global permanent transaction log, and any individual transaction output may only be redeemed in one subsequent transaction. The log is implemented using a blockchain, which requires global consensus on the contents of the blockchain.
+
+> 
+
+ Bitcoin establishes consensus on the blockchain through a decentralized, pseudonymous protocol dubbed Nakamoto consensus.
+
+This offers eventual consensus - forks can emerge, and the fork with the greatest expected difficult to produce (the most computational power that went into it) wins. It has been proved that:
+
+> 
+
+ ...assuming an effective and timely broadcast channels and that miners controlling a majority of computational power follow the protocol faithfully, the protocol is robust and the network gradually reaches consensus.
+
+Due to the possibility of forks and the process for resolving them, users can never be 100% sure that a transaction won’t eventually be removed by a very deep fork. In practice if a majority of miners follow the default protocol then a transaction’s permanence becomes exponentially increasingly likely with following chain length. Waiting for six blocks is a common heuristic.
+
+Miners work on a proof-of-work puzzle, and receive bitcoin for solving it and publishing a block.
+
+> 
+
+ A critical component of the protocol is that a participant who finds a block can insert a coinbase transaction minting a specified amount of currency and transferring it to an address of their choosing... Because this consensus algorithm relies on monetary rewards for miners it cannot easily be used in systems with no notion of transferable value. (Emphasis mine).
+
+The reward for mining a block decreases over time, and to compensate for this miners are also allowed to claim the net difference in value between all input and output transactions in a block, which represents a transaction fee paid to the miners. Miners may group together in pools to increase the probability of rewards and fees.
+
+## P2P network
+
+Bitcoin uses a decentralized ad hoc, peer-to-peer broadcast network to announce new transactions and proposed blocks.
+
+> 
+
+ The performance and stability of the network has an important impact on the consensus protocol for two reasons. First, any latency between the discovery of a block and its receipt by all other nodes increases the possibility of a temporary fork... Second, a malicious miner who is able to control a substantial portion of the network may attempt to favor the broadcast of their own blocks.
+
+Nodes join by connecting to well-known seed nodes, and the topology is discovered through gossip leading to a well connected random network with low degree and diameter. New blocks and pending transactions are broadcast to the entire network by flooding. By default, Bitcoin nodes only relay transaction and blocks which satisfy stricter validation rules than that permitted by the general transaction validity rules. The set of block which will be relayed is determined by the relay policy.
+
+## Reasoning about stability
+
+> 
+
+ Stability for Bitcoin has been defined in many vague and sometimes conflicting ways, but it is broadly taken to mean that the system will continue to behave in a way that facilitates a functional currency as it grows and participants attempt novel attacks.
+
+You could say that stability today has become a multi-billion-dollar question (market cap is fluctuating wildly as I write...). Let’s look at some of the constituent components:
+
+Firstly, changing the transaction validity rules requires agreement amongst a large percentage of miners. “Thus despite the popular conception of Bitcoin as a fully decentralized system, the need for rule changes (or disambiguation) means some level of governance is inherently required to maintain real-world consensus about which blockchain is considered Bitcoin.”
+
+Given a set of transaction validity rules, the following five properties of a consensus protocol have been shown to be sufficient to show that the system is stable. It may not be the case that all are necessary.
+
+- Eventual consensus - all compliant nodes will agree upon a prefix of what will become the eventual valid blockchain.
+
+- Exponential convergence - the probability of a fork of depth is . This leads to the “$k$ confirmations” rule for ensuring that transactions are permanently included with high confidence.
+
+- Liveness - new blocks will continue to be added and valid transactions with appropriate fees will be included in the blockchain within a reasonable amount of time
+
+- Correctness - all blocks in the longest chain will only include valid transactions
+
+- Fairness - on expectation, a miner with a proportion of the total computational power will mine a proportion of blocks. 
+
+If miners are properly incentivised, such that by following their own economic interests they end up following the default mining rules (compliant miners), then Bitcoin should remain stable. But if there is advantage to be gained from non-compliant behaviour, then the question of stability is less clear. Here are some things we know about stability:
+
+- Simple majority compliance may not ensure fairness - selfish mining strategies can advantage miners at levels below a majority: “universal compliance is not a Nash equilibrium for many distributions of mining power.”
+
+- With perfect information about all discovered blocks and any withholding, then majority compliance is a Nash equilibrium. 
+
+- Majority compliance implies convergence, consensus, and liveness.
+
+- Majority compliance does not ensure fairness (due to potential withholding)
+
+- With a majority miner (51% attacks), stability is not guaranteed. Such a miner can collect all mining rewards by ignoring blocks found by others and building their own chain, which by assumption will grow to become the longest chain.
+
+- If miners can collude, stability is not known. (Cartels which collectively have over 51% of the mining power). 
+
+- Stability is not known as mining rewards decline.
+
+> 
+
+ All of these results have used a simplified model in which each block carries a constant, fixed reward fee. The planned transition of miner revenue from block rewards to transaction fees will negate this assumption and require more complex models which take into account the distribution of available transaction fees.
+
+See for example ‘On the instability of Bitcoin without the block reward’, published subsequently to the SoK we’re looking at today. (I’ll probably study that paper in a future edition of The Morning Paper).
+
+One argument for long-term stability is that any miner or group of miners reaching a majority level will hold a significant amount of bitcoin. If they act so as to destroy trust in the network, they are therefore acting against their own financials interests (this is the ‘long-term stake’ argument). If you have an adversary that is sufficiently powerful and not financially (bitcoin) motivated though (e.g., a nation state that wants to destroy Bitcoin for some reason) then all bets are off.
+
+> 
+
+ If a majority miner’s goal is explicitly to destroy Bitcoin’s stability and hence its utility as a currency, they can easily do so. Kroll et al. introduced this model and named it a Goldfinger attack. For example, a state wishing to damage Bitcoin to avoid competition with its own currency, or an individual heavily invested in a competing currency, may be motivated to attempt such as attack.
+
+Arguments for stability also tend to assume that the peer-to-peer network is working as designed. However, information propagation at the peer-to-peer layer is not always incentive compatible. Participants may be incentivised to engage in denial of service or hijacking attacks. Since these are regularly observed in the wild, this is not just theoretical.
+
+## Part two tomorrow
+
+We’ll continue with this broad sweep tomorrow, when we’ll look at various ways of modifying and extending Bitcoin.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Blockchain 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousSoK: Consensus in the age of blockchainsNext &rsaquo;SoK: Research perspectives and challenges for Bitcoin and cryptocurrency - Part II
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;SoK: Research perspective and challenges for Bitcoin and cryptocurrency - Part I&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: SoK: Research perspective and challenges for Bitcoin and cryptocurrency – Part I | Blockchain Wiki 
+ 
+ 
+- 
+ 
+ 
+ 
+ Ben says: 
+
+ 
+ February 13, 2018 at 11:35 am 
+
+ 
+
+ 
+ 
+You have an amusing typo in the initial block quote:
+
+"...moving beyond a bling acceptance..."
+
+I am imagining a crypto currency support group...
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: ББ-022: geth 1.8, ECF, Monero и ASIC, SV meetup, блокчейн-неделя в The morning paper -- Базовый Блок 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

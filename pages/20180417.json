@@ -1,0 +1,39 @@
+{
+  "date": "20180417",
+  "file_name": "20180417",
+  "slug": "securing-wireless-neurostimulators",
+  "blog_url": "https://blog.acolyer.org/2018/04/17/securing-wireless-neurostimulators/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the critical security vulnerabilities in wireless neurostimulators, a class of Implantable Medical Devices (IMDs) used to treat chronic pain and movement disorders. The paper reveals that manufacturers relied on 'security through obscurity,' resulting in easily hackable devices connected directly to a patient’s brain. The author emphasizes the alarming potential for harm, including life-threatening attacks via voltage manipulation, as well as privacy breaches through analysis of brain signals like the P-300 wave, which can leak sensitive personal information. The blog post also underscores the broader issue of poor security in IMDs, citing prior work on attacks against implantable cardioverter defibrillators, insulin pumps, and denial-of-service vulnerabilities that deplete battery life. Marin et al. reverse-engineer the neurostimulator’s communication protocol, demonstrating replay and spoofing attacks, and propose a novel solution: generating cryptographic keys from the patient’s brain’s local field potential (LFP) signals, which are then securely transmitted via conductive skin contact. This approach leverages existing hardware and mitigates eavesdropping risks, offering a practical and secure alternative.",
+  "paper_title": "Securing wireless neurostimulators",
+  "paper_authors": [
+    "Marin Marin",
+    "Aikaterini Mitrokotsa",
+    "Paul Duplys",
+    "Christof Paar"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "CODASPY'18",
+  "paper_url": "https://www.esat.kuleuven.be/cosic/publications/article-2803.pdf",
+  "paper_abstract": "KEYWORDS Implantable medical devices (IMDs) typically rely on proprietary protocols to wirelessly communicate with external device programmers. In this paper, we fully reverse engineer the proprietary protocol between a device programmer and a widely used commercial neurostimulator from one of the leading IMD manufacturers. For the reverse engineering, we follow a black-box approach and use inexpensive hardware equipment. We document the message format and the protocol state-machine, and show that the transmissions sent over the air are neither encrypted nor authenticated. Furthermore, we conduct several software radio-based attacks that could compromise the safety and privacy of patients, and investigate the feasibility of performing these attacks in real scenarios. Motivated by our findings, we propose a security architecture that allows for secure data exchange between the device programmer and the neurostimulator. It relies on using a patient’s physiological signal for generating a symmetric key in the neurostimulator, and transporting this key from the neurostimulator to the device programmer through a secret out-of-band (OOB) channel. Our solution allows the device programmer and the neurostimulator to agree on a symmetric session key without these devices needing to share any prior secrets; offers an effective and practical balance between security and permissive access in emergencies; requires only minor hardware changes in the devices; adds minimal computation and communication overhead; and provides forward and backward security. Finally, we implement a proof-of-concept of our solution. Proprietary wireless communication protocol, black-box reverse engineering, low-cost randomness source, security architecture.",
+  "paper_file": "papers/2018/04/17/securing-wireless-neurostimulators.pdf",
+  "topics": [
+    "systems-security",
+    "operating-systems"
+  ],
+  "tags": [
+    "implantable-medical-devices",
+    "neurostimulators",
+    "brain-computer-interface",
+    "side-channel-attacks",
+    "cryptographic-key-generation",
+    "physiological-signals",
+    "wireless-security",
+    "replay-attacks",
+    "spoofing-attacks",
+    "privacy-attacks"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

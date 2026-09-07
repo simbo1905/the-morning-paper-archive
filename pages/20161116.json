@@ -1,0 +1,37 @@
+{
+  "date": "20161116",
+  "file_name": "20161116",
+  "slug": "generic-attacks-on-secure-outsourced-databases",
+  "blog_url": "https://blog.acolyer.org/2016/11/16/generic-attacks-on-secure-outsourced-databases/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a groundbreaking paper that establishes fundamental limits on what can be achieved with encrypted databases in the cloud. The authors examine what data can be recovered by observing encrypted queries and their responses, focusing on 'access leakage' (which records are accessed) and 'volume leakage' (how much data is returned). They demonstrate reconstruction attacks that can recover secret attributes of every database record if either type of leakage occurs—a condition that applies to every known outsourced database system. The attacks operate under a weak adversarial model, requiring only the ability to observe queries over time without prior knowledge of the data or queries. While the attacks may require observing a large number of queries for high-entropy data (e.g., social security numbers), they are feasible for lower-entropy attributes like those in medical datasets. The paper argues that secure outsourced databases must avoid static, non-storage-inflating designs and fixed communication overhead to mitigate these vulnerabilities.",
+  "paper_title": "Generic Attacks on Secure Outsourced Databases",
+  "paper_authors": [
+    "George Kellaris",
+    "George Kollios",
+    "Leonid Reyzin",
+    "Adam Smith"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "CCS'16",
+  "paper_url": "http://scholar.harvard.edu/files/gkellaris/files/genericattacks.pdf",
+  "paper_abstract": "With the rise of remote cloud services and the consequent rise in data breaches, there is an increased need for the secure outsourcing of data. The problem of enabling query processing over encrypted data without decryption is a challenging one, and approaches ranging from software to hardware solutions have been proposed. In this work, we take a closer look at a class of solutions that are efficient and deployable in the near-term future and that employ the use of light weight symmetric key primitives. In exchange for this added efficiency, these schemes leak certain information about the underlying data and queries. We explore the limitations of what a passive server-side adversary can learn from this information leakage, and present practical constructions that minimize leakage while supporting complex queries. In the first two parts of this work, we present the first attacks on schemes that support range queries over multi-attribute (or multi-dimensional) data. We describe the information theoretic limitation of reconstruction attacks in two settings and show that, in both cases, there can be an exponential number of distinct databases that produce equivalent leakage. We present a full database reconstruction attack that reconstructs the database when all queries are observed. We then relax these assumptions, and present an order reconstruction attack and an approximate database reconstruction attack that require only a strict subset of the possible range queries to succeed. In the third part of this work, we shift our focus to schemes that support shortest path queries on graph-structured data. We initiate our study by describing a query recovery attack on a graph encryption scheme, which we call the GKT scheme (Ghosh et al. AsiaCCS 2021). We then present a modified version of the GKT scheme with reduced leakage at the expensive of interactive queries and increased storage overhead. Our proposed scheme uses data-structure techniques to decompose the graph into ...",
+  "paper_file": "papers/2016/11/16/generic-attacks-on-secure-outsourced-databases.pdf",
+  "topics": [
+    "systems-security",
+    "storage-systems"
+  ],
+  "tags": [
+    "encrypted-databases",
+    "access-pattern-leakage",
+    "volume-leakage",
+    "reconstruction-attacks",
+    "order-preserving-encryption",
+    "searchable-symmetric-encryption",
+    "oblivious-RAM",
+    "fully-homomorphic-encryption"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

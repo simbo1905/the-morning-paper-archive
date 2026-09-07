@@ -1,0 +1,38 @@
+{
+  "date": "20160425",
+  "file_name": "20160425",
+  "slug": "delta-state-replicated-data-types",
+  "blog_url": "https://blog.acolyer.org/2016/04/25/delta-state-replicated-data-types/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a key innovation in Conflict-Free Replicated Data Types (CRDTs) with the introduction of Delta State CRDTs (&delta;-CRDTs). The paper addresses a major drawback of traditional state-based CRDTs—their communication overhead—by proposing a mechanism to exchange only state deltas (smaller state fragments) instead of full states. This approach retains the convergence properties of state-based CRDTs while significantly reducing bandwidth usage. The author emphasizes the paper's rigorous theoretical contributions, including proofs that demonstrate when merging deltas is semantically equivalent to merging full states and under what conditions causal consistency is maintained. The blog post also explores practical implications, such as the ability to coalesce multiple local operations into delta-groups to further reduce communication overhead. The paper concludes with a portfolio of &delta;-CRDTs, illustrating their design and applicability across different CRDT categories.",
+  "paper_title": "Delta State Replicated Data Types",
+  "paper_authors": [
+    "Almeida",
+    "Baquero",
+    "Shoker",
+    "Urban"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "",
+  "paper_url": "http://arxiv.org/abs/1603.01529",
+  "paper_abstract": "CRDTs are distributed data types that make eventual consistency of a distributed object possible and non ad-hoc. Specifically, state-based CRDTs ensure convergence through disseminating the entire state, that may be large, and merging it to other replicas; whereas operation-based CRDTs disseminate operations (i.e., small states) assuming an exactly-once reliable dissemination layer. We introduce Delta State Conflict-Free Replicated Data Types (δ-CRDT) that can achieve the best of both worlds: small messages with an incremental nature, as in operation-based CRDTs, disseminated over unreliable communication channels, as in traditional state-based CRDTs. This is achieved by defining δ-mutators to return a delta-state, typically with a much smaller size than the full state, that to be joined with both local and remote states. We introduce the δ-CRDT framework, and we explain it through establishing a correspondence to current state-based CRDTs. In addition, we present an anti-entropy algorithm for eventual convergence, and another one that ensures causal consistency. Finally, we introduce several δ-CRDT specifications of both well-known replicated datatypes and novel datatypes, including a generic map composition.",
+  "paper_file": "papers/2016/04/25/delta-state-replicated-data-types.pdf",
+  "topics": [
+    "distributed-systems"
+  ],
+  "tags": [
+    "crdts",
+    "state-based-crdts",
+    "delta-state-crdts",
+    "consistency",
+    "anti-entropy",
+    "convergence",
+    "causal-consistency",
+    "g-counter",
+    "g-set",
+    "lww-set"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,36 @@
+{
+  "date": "20181105",
+  "file_name": "20181105",
+  "slug": "sharding-the-shards-managing-datastore-locality-at-scale-with-akkio",
+  "blog_url": "https://blog.acolyer.org/2018/11/05/sharding-the-shards-managing-datastore-locality-at-scale-with-akkio/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Akkio, a system developed at Facebook to improve data access locality in geo-distributed datastores. The key innovation is the introduction of microshards (μ-shards), which are significantly smaller than traditional shards and defined by client applications to exhibit strong access locality. By migrating μ-shards (rather than entire shards) to datacenters closer to where they are accessed, Akkio achieves substantial improvements: up to 50% reduction in latency and cross-datacenter traffic, and up to 40% reduction in storage footprint. The system operates at massive scale, supporting trillions of μ-shards and tens of millions of requests per second. The blog emphasizes Akkio's practical impact, noting its production use at Facebook since 2014 managing around 100PB of data, and its ability to handle strong consistency requirements that typical distributed caches cannot.",
+  "paper_title": "Sharding the shards: managing datastore locality at scale with Akkio",
+  "paper_authors": [
+    "Akkio Annamalai",
+    "et al."
+  ],
+  "paper_year": 2018,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/conference/osdi18/presentation/annamalai",
+  "paper_abstract": "Akkio is a locality management service layered between client applications and distributed datastore systems. It determines how and when to migrate data to reduce response times and resource usage. Akkio primarily targets multi-datacenter geo-distributed datastore systems. Its design was motivated by the observation that many of Facebook’s frequently accessed datasets have low R/W ratios that are not well served by distributed caches or full replication. Akkio’s unit of migration is called a µshard. Each µ-shard is designed to contain related data with some degree of access locality. At Facebook, µshards have become a first-class abstraction. Akkio went into production at Facebook in 2014, and it currently manages ∼100PB of data. Measurements from our production environment show that Akkio reduces access latencies by up to 50%, cross-datacenter traffic by up to 50%, and storage footprint by up to 40% compared to reasonable alternatives. Akkio is scalable: it can support trillions of µ-shards and process many 10’s of millions of data access requests per second. And it is portable: it currently supports five datastore systems.",
+  "paper_file": "papers/2018/11/05/sharding-the-shards-managing-datastore-locality-at-scale-with-akkio.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "data-locality",
+    "geo-distributed-systems",
+    "sharding",
+    "microshards",
+    "consistency",
+    "datastore",
+    "migration",
+    "Paxos",
+    "replication"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

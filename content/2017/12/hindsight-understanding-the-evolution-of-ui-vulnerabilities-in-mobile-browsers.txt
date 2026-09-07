@@ -1,0 +1,294 @@
+URL: https://blog.acolyer.org/2017/12/05/hindsight-understanding-the-evolution-of-ui-vulnerabilities-in-mobile-browsers/
+Title: Hindsight: understanding the evolution of UI vulnerabilities in mobile&nbsp;browsers
+---
+
+Hindsight: understanding the evolution of UI vulnerabilities in mobile browsers Luo et al., CCS’17
+
+Towards the end of last year, browsing on mobile devices overtook browsing on the desktop. And so when we think about mobile security, in addition to thinking about malicious applications, we also need to start thinking much more seriously about mobile browsers. Yet to date, the bulk of the mobile security research has been application based. Today’s paper choice, Hindsight, reveals that we’ve not been paying enough attention to browser security, and in fact things are getting worse not better over time in many cases. If you want a quick pragmatic take away from today’s paper, and you use an Android device, then it’s this: switch to Firefox!
+
+The authors assemble a collection of 2,324 individual browser versions on Android, spanning a period of just over 5 years. Within these versions there are 128 browser ‘families’ (e.g. Chrome, Firefox, ...) represented. They then analyse these browsers using a tool called Hindsight , looking at a collection of 27 different “attack building blocks” (ABBs) that can be used in crafting attacks of various kinds.
+
+> 
+
+ ... we find that 98.6% of the evaluated browsers are vulnerable to at least one attack, with the average browser being vulnerable to twelve... Contrary to our expectations, we discover that mobile browsers, even some of the most popular ones, appear to be becoming more vulnerable as years have passed... Our results are a clear sign that mobile web security has been ignored by the community and must receive more attention before attackers start abusing the many vulnerabilities that they have at their disposal.
+
+One personal frustration here is that many of the results are captured in aggregate across a very long tail of browsers, most of which I’m never going to use. An analysis by number of users affected (vs. percentage of browser APKs) would arguably give a better indication of the scope of vulnerabilities in the wild. We do get some call outs for the top six most popular browsers. though: Chrome, Firefox, Opera mini, UC Browser, Dolphin, and Opera.
+
+(TunnyBrowser is Dolphin).
+
+## Attack building blocks
+
+Attack building blocks (ABBs) are not vulnerabilities in their own right, but they are mechanisms that can be exploited in crafting an attack. The authors arrived at a catalogue of 27 ABBs following an investigation of mechanisms used by prior known attacks and reasoning about novel variations. The building blocks fall into five different groups:
+
+- Event routing ABBs abuse the non-intuitive routing of events across overlapping elements, typically belonging to different origins. “Tap-jacking” is the mobile browser equivalent of clickjacking, and potentially more dangerous as taps cover a much larger relative portion of the screen than a click does. ABBs 1-6 test event routing across different combinations of cross-origin elements. 
+
+- URL display - when showing a long URL, does the browser show the left part (the domain) or the rightmost part? ABBs 7-10 concern URL display.
+
+- Address bar ABBs (#11-19) look at situations in which the address bar can be hidden (so users cannot tell what site they are on), and whether the browser displays a page title in the address bar instead of the URL.
+
+- Security indicator ABBs (#20-23) look at whether or not favicons are placed next the padlock icon (permitting deception via a favicon designed to look like a padlock), whether mixed HTTP(S) content is flagged, and whether self-signed certificates are flagged.
+
+- Content ABBs (#24-27) look at how a browser handles potentially dangerous content, e.g. iframes that can expand beyond their parent frames, the rendering of mixed-content images, execution of mixed-content JavaScript, and timing of JavaScript execution in the presence of self-signed certificates.
+
+(Enlarge).
+
+## The power of Hindsight
+
+Using a combination of app store crawling, third-party website and alternative app market crawling (to pick up older versions), and a filtering process, the authors arrive at a collection of 2,324 APK files belonging to 128 browser families. On average, there are 18 versions for each browser family. Manually testing for all of the ABBs across all of those APKs is not feasible, so the authors developed a tool called Hindsight to automate the testing.
+
+Hindsight needs to work in a browser agnostic way, which turns out to be pretty tricky. For example,
+
+> 
+
+ Even as simple a problem as identifying the address bar — that is required by several of our ABBs — becomes a challenge as Hindsight cannot a priori know which rendered UI element is the address bar, if any, and where it is located...
+
+In the end the authors resorted to capturing screenshots and using OCR! And even then, “although simple in theory, the OCR method is fraught with non-trivial problems.”
+
+Hindsight generates an analyst-friendly self-contained HTML file that allows for speedy verification of its results. It took about 60 person hours to go through all 2,324 APK results in this way, and the observed error rate was 1.5%. (Note that this manual verification is a one-off calibration exercise and does not need to be repeated every time the tool is run).
+
+## Findings
+
+This is what we came here for!
+
+> 
+
+ Overall, using Hindsight we found that 2,292 of the 2,324 evaluated APKs (98.6%), were vulnerable to at least one ABB... 50% of APKs are vulnerable to more than 12 ABBs.
+
+Figure 5 below shows the breakdown of vulnerabilities across the ABB classes, for the population as a whole, and also when looking just at the top six most popular browsers.
+
+> 
+
+ APKs belonging to popular browsers are, in general, as vulnerable as the rest of the browsers and our level of uncertainty (denoted via whiskers at the top of each bar) does not alter the observed vulnerability trends.
+
+Looking at the changes in vulnerabilities over time reveals another very interesting pattern: since 2012, the overall number of vulnerabilities has mostly been trending up! Looking at the lower bound, there are more vulnerabilities in 2016 than there were in 2011 and 2012. (”The large difference between upper-bound and lower-bound in 2011 is an artifact of unstable versions of browsers which crash often and unpredictably combined with the small overall number of APKs for 2011.”)
+
+If we drill into the data just for the most popular browsers, we see that only Firefox bucks the trend:
+
+> 
+
+ Firefox has been steadily decreasing in vulnerability since 2013, whereas families like Opera, Dolphin, and Chrome have been increasing...
+
+For this most popular browser set though, 100% of the APKs belonging to all six families (i.e., every version) contain at least one vulnerability.
+
+A final analysis looks at the evolution of vulnerabilities within a browser codebase: were they “always” part of a browser’s code (i.e., present from the oldest version in the study), or were they added at some point along the way? There are six different patterns possible for each ABB
+
+- YES - the vulnerability has always been present
+
+- NO - the vulnerability has never been present
+
+- noYES - the vulnerability was introduced at some point
+
+- yesNO - an existing vulnerability was removed at some point
+
+- noYESno - the vulnerability was introduced for a limited time window
+
+- yesNOyes - the vulnerability was only fixed for a limited time window
+
+> 
+
+ Overall, we observe highly undesirable, from a security perspective, cases where YES and noYES patterns dramatically dominate, e.g. , for ABBs #7, #9, #22, and #25. Moreover, we also find cases which reveal the temporary adoption of insecure features (noYESno) and the regression from a secure version to a less secure one (yesNOyes)... Fortunately, next to the aforementioned undesirable patterns, we also observe stable trends of desirable “yesNO” and “NO” patterns for particular ABBs.
+
+In summary:
+
+- the vast majority of mobile browsers are vulnerable to one or more of the attacks
+
+- mobile browsers are on the whole getting less secure as time goes by
+
+- the popularity of a browser and its security are not necessarily correlated. 
+
+Yes, I’d like to know what the most secure (at least when evaluated according to these ABBs) currently available mobile web browser is too! The authors must have that data, but I can’t find the information in the paper anywhere :(.
+
+> 
+
+ Our hope is that this study will motivate the building of more security-friendly UIs for mobile web browsers and the reviewing of some of the existing design decisions that attackers can straightforwardly abuse to victimize users.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ mobileSecurity 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; Previousffwd: delegation is (much) faster than you thinkNext &rsaquo;The dynamics of innocent flesh on the bone: code reuse ten years later
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

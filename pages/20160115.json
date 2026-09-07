@@ -1,0 +1,48 @@
+{
+  "date": "20160115",
+  "file_name": "20160115",
+  "slug": "non-volatile-storage",
+  "blog_url": "https://blog.acolyer.org/2016/01/15/non-volatile-storage/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes the ACM Queue article by Nanavati et al. (2016), highlighting the dramatic shift in system design assumptions due to the emergence of storage class memories (SCMs). The blog emphasizes that the traditional assumption—where CPUs are orders of magnitude faster than I/O devices—is being invalidated by SCMs like PCIe SSDs and NVDIMMs, which offer near-DRAM performance with persistence. Colyer notes that this 1,000x performance improvement over spinning disks forces a reevaluation of decades-old design choices, particularly around caching, data reduction, and I/O-centric scheduling. The article argues that simply replacing disks with SCMs won't yield proportional performance gains unless systems are rebalanced to fully utilize these devices, requiring horizontal scaling, contention-free scheduling, and workload-aware tiering. The key insight is that SCMs demand a fundamental rethinking of system architecture to avoid underutilization and inefficiency.",
+  "paper_title": "Non-volatile Storage: Implications of the Datacenter's shifting center",
+  "paper_authors": [
+    "Nanavati",
+    "M.",
+    "Kunjir",
+    "M.",
+    "Sarkar",
+    "P.",
+    "Suresh",
+    "S."
+  ],
+  "paper_year": 2016,
+  "paper_venue": "ACM Queue",
+  "paper_url": "http://queue.acm.org/detail.cfm?id=2874238",
+  "paper_abstract": "technologies and form factors [8, 10]. The second change is that both Linux [3, 1] and Microsoft [52, 48] have announced support for NVM in their respective kernels. Lastly, Intel has announced that there are new instructions coming in their next ISA update that are specifically for flushing data from CPU caches to NVM [69, 9]. All of these portend the soon arrival of NVM. But it is unclear at this point how to best leverage these new technologies in a DBMS. There are several aspects of NVM that make existing DBMS architectures inappropriate for them [33]. For example, disk-oriented DBMSs (e.g., Oracle RDBMS, IBM DB2, MySQL) are predicated on using block-oriented devices for durable storage that are slow at random access. As such, they maintain an in-memory cache for blocks of tuples and try to maximize the amount of sequential reads and writes to storage. In the case of memory-oriented DBMSs (e.g., VoltDB, MemSQL), they contain components for overcoming the volatility of DRAM. Such components may be unnecessary in a system with byte-addressable NVM with fast random access. The difference in the performance characteristics of volatile (DRAM) and non-volatile storage devices (HDD/SSDs) influences the design of database management systems (DBMSs). The key assumption has always been that the latter is much slower than the former. This affects all aspects of a DBMS’s runtime architecture. But the arrival of new non-volatile memory (NVM) storage that is almost as fast as DRAM with fine-grained read/writes invalidates these previous design choices. In this tutorial, we provide an outline on how to build a new DBMS given the changes to hardware landscape due to NVM. We survey recent developments in this area, and discuss the lessons learned from prior research on designing NVM database systems. We highlight a set of open research problems, and present ideas for solving some of them.",
+  "paper_file": "papers/2016/01/15/non-volatile-storage.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "non-volatile-memory",
+    "storage-class-memory",
+    "SCM",
+    "NVDIMM",
+    "PCIe-SSD",
+    "I/O-scheduling",
+    "horizontal-scaling",
+    "workload-tiering",
+    "CPU-I/O-balance"
+  ],
+  "figures": [
+    {
+      "number": "Table 1",
+      "title": "Comparison of emerging NVM technologies with other storage technologies",
+      "caption": "Comparison of emerging NVM technologies with other storage technologies [26, 37, 66, 59]: phase-change memory (PCM) [67], memristors (RRAM) [73], and STT-MRAM (MRAM) [36]."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

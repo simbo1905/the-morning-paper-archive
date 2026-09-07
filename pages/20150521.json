@@ -1,0 +1,44 @@
+{
+  "date": "20150521",
+  "file_name": "20150521",
+  "slug": "congestion-avoidance-and-control",
+  "blog_url": "https://blog.acolyer.org/2015/05/21/congestion-avoidance-and-control/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this 1988 paper by Van Jacobson and Michael Karels as a foundational work in congestion control, sparked by a real-world internet congestion collapse in 1986 that reduced bandwidth between two nearby sites by a factor of a thousand. The key insight is the 'conservation of packets' principle, where a new packet is only injected into the network when an old one leaves, ensuring system robustness under congestion. The paper introduces practical mechanisms like Slow Start, retransmission timers with exponential backoff, and congestion management policies (additive increase, multiplicative decrease) that became cornerstones of TCP/IP. Colyer emphasizes the paper's broad applicability beyond networking, noting parallels in systems like circuit breakers and flow control mechanisms. The simplicity and elegance of the algorithms—often just a few lines of code—are particularly noteworthy.",
+  "paper_title": "Congestion Avoidance and Control",
+  "paper_authors": [
+    "Van Jacobson",
+    "Michael J. Karels"
+  ],
+  "paper_year": 1988,
+  "paper_venue": "",
+  "paper_url": "http://ee.lbl.gov/papers/congavoid.pdf",
+  "paper_abstract": "Congestion Avoidance and Control∗\nVan Jacobson†\nLawrence Berkeley Laboratory\n\nMichael J. Karels‡\nUniversity of California at Berkeley\n\nNovember, 1988\n\nIntroduction\nComputer networks have experienced an explosive growth over the past few years and with\nthat growth have come severe congestion problems. For example, it is now common to see\ninternet gateways drop 10% of the incoming packets because of local buffer overflows.\nOur investigation of some of these problems has shown that much of the caus",
+  "paper_file": "papers/2015/05/21/congestion-avoidance-and-control.pdf",
+  "topics": [
+    "networking"
+  ],
+  "tags": [
+    "congestion-control",
+    "tcp",
+    "slow-start",
+    "retransmission-timeout",
+    "exponential-backoff",
+    "additive-increase-multiplicative-decrease",
+    "flow-control"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Window Flow Control 'Self-clocking'",
+      "caption": "This is a schematic representation of a sender and receiver on high bandwidth networks connected by a slower, long-haul net. The sender is just starting and has shipped a window's worth of packets, back-to-back. The ack for the first of those packets is about to arrive back at the sender (the vertical line at the mouth of the lower left funnel).\n\nThe vertical dimension is bandwidth, the horizontal dimension is time. Each of the shaded boxes is a packet. Bandwidth × Time = Bits so the area of each box is the packet size. The number of bits doesn't change as a packet goes through the network so a packet squeezed into the smaller long-haul bandwidth must spread out in time. The time Pb represents the minimum packet spacing on the slowest link in the path (the bottleneck). As the packets leave the bottleneck for the destination net, nothing changes the inter-packet interval so on the receiver's net packet spacing Pr = Pb . If the receiver processing time is the same for all packets, the spacing between acks on the receiver's net Ar = Pr = Pb . If the time slot Pb was big enough for a packet, it's big enough for an ack so the ack spacing is preserved along the return path. Thus the ack spacing on the sender's net As = Pb .\n\nSo, if packets after the first burst are sent only in response to an ack, the sender's packet spacing will exactly match the packet time on the slowest link in the path."
+    },
+    {
+      "number": "Figure 2",
+      "title": "The Chronology of a Slow-start",
+      "caption": "One Round Trip Time\n\n0R\n\n1\nOne Packet Time\n\n1R\n\n1\n\n2R\n\n2\n\n3R\n\n4\n\n2\n3\n3\n\n4\n5\n\n6\n7\n5\n\n8\n9\n\n6\n\n10\n11\n\n7\n\n12\n13\n\n14\n15"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,40 @@
+{
+  "date": "20200217",
+  "file_name": "20200217",
+  "slug": "software-20-migration",
+  "blog_url": "https://blog.acolyer.org/2020/02/17/software-20-migration/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses a case study from Google where a privacy-safe information extraction system was migrated from a traditional 'Software 1.0' design (hand-written rules) to a 'Software 2.0' design (machine-learned components). The author highlights the challenges of maintaining a complex rule-based system, which had become brittle and hard to improve, and how replacing it with a neural network-based approach simplified the codebase (deleting 45K lines of code) and improved performance. The key insight is the shift in effort from writing code to curating training data, especially in a privacy-sensitive context where real data cannot be inspected. The post also details Google's system 'Juicer,' which uses machine learning for information extraction from emails, and the innovative methods developed to manage training data in a privacy-safe manner, including synthetic data generation and counter metrics for quality control.",
+  "paper_title": "Migrating a privacy-safe information extraction system to a software 2.0 design",
+  "paper_authors": [
+    "Sheng"
+  ],
+  "paper_year": 2020,
+  "paper_venue": "CIDR'20",
+  "paper_url": "http://cidrdb.org/cidr2020/papers/p31-sheng-cidr20.pdf",
+  "paper_abstract": "ing over a billion users worldwide from a traditional rulebased architecture to a machine-learned Software 2.0 architecture. This extraction system [27] is responsible for extracting structured objects from emails in different verticals – e.g. bill reminders, shipping confirmations for online purchases, hotel reservations, etc. Each vertical defines a set of fields to extract. In the case of hotel confirmations, this includes the check-in and check-out dates as well as the hotel name and address. These extractions enable experiences like allowing a smart assistant to answer personal queries such as “when is my electric bill due?” and “where is my Macy’s package?”. A legacy rule-based extraction system using hand-crafted rules has been in production since 2013. We leveraged extractions from the existing rule-based system as well as previously hand-written parsers as the source for training data. The biggest challenges we encountered during this migration were in generating and managing training data. Training data for field-classifiers (described in Section 2.2) requires writing a high-recall candidate generator and a highquality labeler. Detecting low quality training data from low-precision rules and improving data quality over time is critical. Developing these in the context of a privacy-safe system where no one can visually inspect the underlying data is particularly challenging. We tackled these problems by building several traditional “Software 1.0” components. We designed two abstractions called CandidateGenerators and CandidateLabelers that allowed us to generate training data for all fields across different verticals. We also built tools to evaluate CandidateGenerators and CandidateLabelers on synthetic emails that are generated using the boilerplate from real templatic emails. The same tool is used to acquire additional ground truth data, improve data quality over time, and evaluate the performance of new models The new architecture has delivered benefits ...",
+  "paper_file": "papers/2020/02/17/software-20-migration.pdf",
+  "topics": [
+    "machine-learning",
+    "data-engineering"
+  ],
+  "tags": [
+    "software-2.0",
+    "neural-networks",
+    "information-extraction",
+    "training-data-curation",
+    "privacy-safe-systems",
+    "synthetic-data",
+    "rule-based-systems",
+    "email-processing"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Field extraction rule generation",
+      "caption": "Field extraction rule generation. For each email in a template cluster, XPaths with candidate annotations (green boxes) are scored by the field classifier. XPaths with an average score above the threshold (Thr) are converted to extraction rules."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

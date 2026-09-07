@@ -1,0 +1,45 @@
+{
+  "date": "20160624",
+  "file_name": "20160624",
+  "slug": "transactional-data-structure-libraries",
+  "blog_url": "https://blog.acolyer.org/2016/06/24/transactional-data-structure-libraries/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the work of Spiegelman et al. on transactional data structure libraries (TDSL), which won a distinguished paper award at PLDI 2016. The paper addresses the challenge of adding transactional support to in-memory concurrent data structures without sacrificing performance, a problem that traditional software transactional memory (STM) and hardware transactions struggle with due to overhead and abort rates. The key insight is to leverage the semantics of specific data structures (e.g., maps, queues) to optimize transactional behavior, rather than relying on a one-size-fits-all approach. This approach is reminiscent of coordination avoidance in databases and avoids the overhead of STM by restricting the transactional alphabet to well-defined operations. The blog post also draws parallels to Redis and CRDTs, but emphasizes that TDSL is designed for in-process, traditional data structures. The paper demonstrates how transaction semantics can be integrated into data structures like skiplists and linked lists, with optimizations such as exploiting commutativity and using indices to reduce validation overhead.",
+  "paper_title": "Transactional Data Structure Libraries",
+  "paper_authors": [
+    "Adrian Spiegelman",
+    "Guy Golan-Gueta",
+    "Eshcar Hillel",
+    "Idit Keidar"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "PLDI",
+  "paper_url": "https://classes.soe.ucsc.edu/cmps290q/Spring16/papers/transactional.pdf",
+  "paper_abstract": "1 Transactional memory (TM) provides developers with a transaction primitive for concurrent code execution that transparently checks for concurrency conflicts. When such a conflict is detected, the system recovers by aborting and restarting the transaction. Although correct, this behavior wastes work and inhibits forward progress. In this paper, we present TardisTM, a software TM system that supports repairing concurrency conflicts while preserving unaffected computation. Our key insight is that existing conflict detection mechanisms can be extended to perform incremental transaction repair, when augmented with additional runtime information. To do so, we design a mechanism for localizing conflicts back to transactional program points, define the semantics for optional repair handler annotations, and extend the conflict detection algorithm to ensure all repairs are completed. To evaluate our system, we characterize the benefit of repair on a set of benchmark programs; we measure up to 2.95x speedup over mutual exclusion, and 93% abort reduction over a baseline software TM system that does not support repair. Transactional memory (TM) provides developers with firstclass transactional regions that guarantee atomicity, consistency, and isolation, avoiding the drawbacks of low-level concurrency control primitives [21]. These guarantees are ensured by the transactional runtime, which upon detecting a concurrency conflict, will abort, roll back, and restart a transaction. However, this behavior discards all work already performed within a transaction, which impedes forward progress and decreases performance. Transactions that are more likely to encounter conflicts, such as those that are high-contention or long-running, are particularly affected. Prior Work Helps But Still Aborts/Restarts: Prior work has developed various orthogonal strategies to mitigate this problem; namely, contention management, transaction scheduling, abort impact reduction, and conflict reduction. N...",
+  "paper_file": "papers/2016/06/24/transactional-data-structure-libraries.pdf",
+  "topics": [
+    "programming-languages",
+    "data-engineering"
+  ],
+  "tags": [
+    "transactional-memory",
+    "concurrent-data-structures",
+    "optimistic-concurrency-control",
+    "pessimistic-concurrency-control",
+    "linearizability",
+    "skiplists",
+    "linked-lists",
+    "TL2",
+    "two-phase-locking",
+    "multi-object-transactions"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Local validity threshold tracking",
+      "caption": "Each transaction tracks a local validity threshold, initialized to the global timestamp counter when the transaction starts. Read validation is performed only if a transactional read observes a newer timestamp or attempts to commit with a stale validity threshold."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

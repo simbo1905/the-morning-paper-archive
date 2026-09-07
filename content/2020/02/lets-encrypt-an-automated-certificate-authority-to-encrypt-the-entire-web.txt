@@ -1,0 +1,111 @@
+URL: https://blog.acolyer.org/2020/02/12/lets-encrypt-an-automated-certificate-authority-to-encrypt-the-entire-web/
+Title: Let&#8217;s Encrypt: an automated certificate authority to encrypt the entire&nbsp;web
+---
+
+Let's encrypt: an automated certificate authority to encrypt the entire web, Aas et al., CCS'19
+
+This paper tells the story of Let's Encrypt, from it's early beginnings in 2012/13 all the way to becoming the world's largest HTTPS Certificate Authority (CA) today - accounting for more currently valid certificates than all other browser-trusted CAs combined. Beyond the functionality that Let's Encrypt provides, the story stands out to me for two key ingredients. Firstly, whereas normally we trade-off between security and ease-of-use, Let's Encrypt made the web more secure through ease-of-use. Secondly, Let's Encrypt managed to find a sustainable funding model for a combination of an open source project and free online service, as compared to the more normal pattern which sadly seems to involve running a small number of beneficent maintainers into the ground.
+
+> 
+
+Since it's launch in December 2015, Let's Encrypt has steadily grown to become the largest CA in the Web PKI by certificates issued and the fourth largest known CA by Firefox Beta TLS full handshakes. As of January 21, 2019, the CA had issued a total of 538M certificates for 223M unique FQDNs... Let's Encrypt has been responsible for significant growth in HTTPS deployment.
+
+Today the majority of HTTPS sites use Let's Encrypt and it's the fastest growing CA, but it's usage is still rarer among the largest sites.
+
+Let's Encrypt's service is fully automated end-to-end (a key part of being able to make it free), and hence Let's Encrypt only offers domain validated (DV) certificates (verifying that the requestor has control over the domain). 83% of the Alexa Top 100 sites currently use organization validation (OV) or extended validation (EV) certificates (validating public business registration documents) - which require manual verification of identity documents. However, web users don't really understand the difference between DV, OV and EV certificates, and Firefox, Chrome, and Safari no longer have unique indicators for the validation levels, so perhaps it's only a matter of time before Let's Encrypt takes over the largest sites too.
+
+> 
+
+One reason that Let's Encrypt has experienced rapid growth is that its service has been integrated by hosting and CDN providers in order to automatically provision certificates for their customers.
+
+In a model for others to follow, the Caddy web server will automatically provision Let's Encrypt certificates. Apache and Nginx remain the most popular Let's Encrypt using web servers deployed in the wild though.
+
+Finally, even though Let's Encrypt's certificates have much shorter lifetimes (90 days) than those typically issued by other CAs (more accurately, because Let's Encrypt's certificates have much shorter lifetimes), sites using Let's Encrypt certificates are much less likely to to serve expired certificates.
+
+## In the beginnning
+
+> 
+
+When we started work on Let's Encrypt, the two most commonly voiced criticisms about the Web PKI were that (a) it was too difficult for server operators to use, and (b) it wasn't secure anyway. Let's Encrypt was intended to take aim directly at the first complaint...
+
+In 2015, the average price for a one-year single-domain certificate from the five largest CAs was $178, and for a wildcard certificate it was ​$766. Navigating the SSL marketplace was difficult and confusing. It's interesting to note that even though Let's Encrypt's certificates are free, the introduction of a free alternative to the marketplace seems to have done very little to reduce prices at the other CAs. That's not what I would have predicted.
+
+In 2012, Alex Halderman (University of Michigan) and Peter Eckersley (EFF) were leading a group to develop a protocol for automatically issuing and renewing certificates. Independently, Josh Aas and Eric Rescorla were leading a team at Mozilla to create a free and automated certificate authority.
+
+> 
+
+The groups learned of each other's efforts, and joined forces in May 2013. That month, they formed the Internet Security Research Group (ISRG), a nonprofit corporation, to be the legal entity operating Let's Encrypt.
+
+Let's Encrypt was publically announced on November 18th 2014, and began providing service to the public on Decemmber 3rd 2015. To bootstrap trust, ISRG executed a cross-signing agreement with IdenTrust (a root authority trusted by Mozilla, Apple, and Microsoft). ISRG subsequently established its own root trust anchor which was accepted into all major browser and platform root programs as of August 2018. From July this year Let's Encrypt will default to issuing certificates with a trust chain leading to the ISRG root.
+
+## The Internet Security Research Group
+
+ISRG's budget is on the order of $3M per annum. Staffing is the biggest expense, with 13 full-time employees as of May 2019: six SREs, three software developers, and four admin staff. The board contains ten directors, with representation form public benefit entities, educational institutions, and major financial contributors.
+
+> 
+
+Initially, ISRG was funded almost entirely through large donations from technology companies. In late 2014, it secured financial commitments from Akamai, Cisco, EFF, and Mozilla, allowing the organization to purchase equipment, secure hosting contracts, and pay initial staff. Today, ISRG has more diverse funding sources; in 2018 it received 83% of its funding from corporate sponsors, 14% from grants and major gifts, and 3% from individual giving.
+
+## The ACME protocol
+
+The Automated Certificate Management Environment (ACME) protocol was a central element in the formation of Let's Encrypt (now standardised an RFC 8555). It automates the entire relationship between a CA and a certificate applicant, with a typical interaction proceeding as shown in the figure below.
+
+ACME includes an extensible challenge mechanism for identifier validation. Let's Encrypt currently supports three challenge types, including the 'HTTP challenge' which requires the application to serve a CA-provided random value at a specific HTTP URL at the domain.
+
+> 
+
+In general, all validation methods that rely on empirical validation of control (as all of the above do) are vulnerable to network-layer attacks on the validation process, such as BGP hijacking to reroute validation requests. The ACME RFC discusses these risks in detail, and suggests some mitigations.
+
+## Boulder
+
+The ACME protocol on its own doesn't do anything unless there's a trusted entity serving it. Boulder is the open-source CA software stack that powers Let's Encrypt's operations. Boulder handles the three main functions required of a CA:
+
+- Issuing certificates via ACME
+
+- Submitting pre-certificates and certificates to Certificate Transparency logs
+
+- Publication of certificate revocation status via OCSP
+
+(Enlarge)
+
+Boulder is built with six key design principles in mind:
+
+- Minimal logic, in order to make it easier to verify
+
+- Minimal data collection (public key, optional contact email address, and access logs)
+
+- Full automation with no facility for human operators to manually create certificates or make one-off policy exceptions. "Locking out humans prevents errors that have led to misissuance by other CAs."
+
+- Functional isolation via a small number of limited-purpose components communication through well-defined APIs
+
+- Operational isolation with no access to data centres and adminstration performed remotely
+
+- Continuous availability via the facility to run multiple redundant instances of each function in parallel.
+
+## Clients
+
+On the client side, the EFF created an ACME client called Certbot, which is used by 50% of Let's Encrypt clients.
+
+> 
+
+Unlike most other clients, Certbot aims to fully automate secure HTTPS deployment, rather than simply procuring a certificate.
+
+## Lessons for improving the security of an ecosystem
+
+Let's Encrypt succeeded by combining ease-of-use with a great price (free). This was only possible through automation.
+
+> 
+
+Automation is necessary to have a free CA and free certificates make automation practical.
+
+If your goal is to issue millions of certificates and keep the cost-per-certificate down, automation is the only possible route. Automation also lowers the administrative costs making the ISRG possible to run on a limited budget.
+
+Full end-to-end operation is hard to achieve if payments are involved, so free certificates are another key piece of the puzzle.
+
+The last piece of the puzzle is that Let's Encypt supports gradual deployment throughout the Web ecosystem. By issuing ordinary WebPKI certificates with cross-signatures, Let's Encrypts certificates were immediately valid in nearly any browser. In contrast, efforts such as the DNS Authentication of Named Entities (DANE) have stalled: in order to use DANE, both clients and servers have to change, but neither side has an incentive to do so until the other has (a classic marketplace bootstrapping issue).
+
+## The last word
+
+> 
+
+We hope that in the near future, clients will start using HTTPS as the default web transport. Eventually, we may marvel that there was ever a time when Web traffic traveled over the Internet as plaintext.

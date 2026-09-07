@@ -1,0 +1,40 @@
+{
+  "date": "20150323",
+  "file_name": "20150323",
+  "slug": "building-on-quicksand",
+  "blog_url": "https://blog.acolyer.org/2015/03/23/building-on-quicksand/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights 'Building on Quicksand' by Helland & Campbell as a foundational paper that argues for a shift in database design towards embracing asynchrony and application-level semantics to achieve the ALPS properties (Availability, Latency, Partition tolerance, and Scalability). The paper critiques traditional log-shipping mechanisms in databases, where asynchronous replication introduces a window of inconsistency that can lead to lost work if the primary fails. The authors propose that business rules should be expressed at the application level to allow commutative operations to execute independently, enabling loose coupling and eventual consistency. They argue that storage-level abstractions (like reads and writes) are insufficient for this purpose and that application operations must be designed to tolerate out-of-order execution and occasional mistakes. The paper introduces the concept of 'ACID 2.0' (Associative, Commutative, Idempotent, Distributed) as a new consistency model that aligns with these principles, emphasizing tolerance for work happening in any order, anywhere in the system. The blog post underscores the importance of application-level semantics and the inevitability of probabilistic business rules in distributed systems.",
+  "paper_title": "Building on Quicksand",
+  "paper_authors": [
+    "Pat Helland",
+    "Dave Campbell"
+  ],
+  "paper_year": 2009,
+  "paper_venue": "CIDR 2009",
+  "paper_url": "http://www-db.cs.wisc.edu/cidr/cidr2009/Paper_133.pdf",
+  "paper_abstract": "In this keynote I give a subjective but systematic overview of the landscape of distributed event-based systems, with an emphasis on two areas I have worked on over the last decade: large-scale stream processing with Apache Kafka and associated tools, and real-time collaboration software in the style of Google Docs. While these may seem at first glance to be very different topics, there are also important points of overlap. This paper lays out a taxonomy of event-based systems that shows where their commonalities and differences lie. It also highlights some of the key trade-offs that arise in the implementation of event-based systems, drawing both from distributed systems theory and from experience of their practical deployment. Finally, the paper outlines a number of open research problems in this field.",
+  "paper_file": "papers/2015/03/23/building-on-quicksand.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "asynchronous-replication",
+    "eventual-consistency",
+    "business-rules",
+    "commutative-operations",
+    "ACID-properties",
+    "log-shipping",
+    "application-semantics"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "A taxonomy of event-based systems",
+      "caption": "A flowchart categorizing event-based systems based on persistence, notification, ordering, windowed operations, and data models. The diagram includes examples like time-series databases, user interface events, stream processing, database replication, event sourcing, and CRDTs."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

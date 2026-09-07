@@ -1,0 +1,219 @@
+URL: https://blog.acolyer.org/2014/10/13/shark-sql-and-rich-analytics-at-scale/
+Title: Shark: SQL and Rich Analytics at&nbsp;Scale
+---
+
+Shark: SQL and Rich Analytics at Scale, Xin et al 2013.
+
+Given the Databricks Spark result reported last week, it seems timely to look at a system built on top of Spark, Shark, that ultimately informed the Spark SQL project.
+
+> 
+
+[Shark] leverages a novel distributed memory abstraction to provide a unified engine that can run SQL queries and sophisticated analytics functions (e.g., iterative machine learning) at scale, and efficiently recovers from failures mid-query.
+
+Shark shows a 2 Order-of-Magnitude performance improvement over Hadoop and Hive for machine learning and SQL queries respectively. Compared to traditional MPP systems, which employ a coarse-grained recovery mechanism, Shark provides fine-grained recovery based on Spark's RDDs. Why does this matter? Because of the three challenges facing data analytics:
+
+> 
+
+First, data volumes are expanding dramatically, creating the need to scale out across clusters of hundreds of commodity machines.Second, such high scale increases the incidence of faults and stragglers (slow tasks), complicating parallel database design. Third, the complexity of data analysis has also grown: modern data analysis employs sophisticated statistical methods, such as machine learning algorithms, that go well beyond the roll-up and drill-down capabilities of traditional enterprise data warehouse systems
+
+Shark runs mostly in memory:
+
+> 
+Shark builds on a recently-proposed distributed shared memory abstraction called Resilient Distributed Datasets (RDDs) [33] to perform most computations in memory while offering fine-grained fault tolerance
+
+An analysis of existing workloads showed that in-memory processing can be very effective - 95% of queries could be processed with just 64GB memory/node even though total data under management is in excess of 100PB!
+
+To support SQL queries effectively, the Spark engine is extended to with columnar storage and compression and the ability to re-optimize running queries for tuning. Several other properties of the Spark engine, such as control over data partitioning, are also exploited.
+
+After publication of this paper, work on Shark was suspended earlier this year in favour of applying the lessons learned to the development of the Spark SQL project. See this Databricks blog post for more details. 
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ AnalyticsDatastores 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousConsistency, Availability, and ConvergenceNext &rsaquo;Software Aging
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

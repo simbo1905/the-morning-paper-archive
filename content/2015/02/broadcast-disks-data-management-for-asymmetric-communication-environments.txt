@@ -1,0 +1,443 @@
+URL: https://blog.acolyer.org/2015/02/19/broadcast-disks-data-management-for-asymmetric-communication-environments/
+Title: Broadcast disks: data management for asymmetric communication&nbsp;environments
+---
+
+Broadcast Disks: Data Management for Asymmetric Communication Environments - Acharya et al. 1997.
+
+(This is the fourth of Peter Alvaro's 'desert island paper' selections).
+
+Do you remember teletext? Before the web, this was the only on-demand information service for the general population. In the UK, we had the wonderful Ceefax. You would choose your page number, and wait for the content to come round again in the broadcast. A broadcast disk.
+
+(Image courtesy of The Teletext Museum)
+
+> 
+
+ In many existing and emerging application domains the downstream communication capacity from servers to clients is much greater than the upstream communication capacity from clients back to servers. For example, in a wireless mobile network, servers may have a relatively high bandwidth broadcast capability while clients cannot transmit or can do so only over a lower bandwidth (e.g., cellular) link.
+
+Asymmetry can occur not just in the communication medium, but also via an inbalance between the number of clients demanding information, and the capacity of servers and network to meet that demand. The traditional request-response (pull) mechanism is not ideal in such scenarios:
+
+> 
+
+ Pull-based systems are a poor match for asymmetric communications environments, as they require substantial upstream communications capabilities. To address this incompatibility, we have proposed a new information system architecture that exploits the relative abundance of downstream communication capacity in asymmetric environments. This new architecture is called Broadcast Disks. The central idea is that the servers exploit their advantage in bandwidth by broadcasting data to multiple clients. We refer to this arrangement as a push-based architecture; data is pushed from the server out to the client.
+
+Such an approach could be useful in a variety of 'information dispersal' scenarios, especially with volatile time-sensitive data, for example: stock prices, weather information, traffic updates, factory floor information, and so on.
+
+The concept of a 'flat' broadcast disk is very straightforward. Imagine all the data that needs to be communicated broadcast sequentially in an endless loop. Clients 'tune in' to the broadcast, and wait for the section of data they are interested in to come around. This paper goes a little deeper looking at two issues in particular: what should you do if some data items are more popular than others (a uniform wait time of 1/2 broadcast cycle on average then ceases to be ideal); and how does a broadcast medium impact client caching?
+
+## Constructing a broadcast program
+
+> 
+
+ Given a client population and a specifcation of their access probabilities for the data items, how does the server construct a broadcast program to satisfy the needs of the clients?
+
+Instead of having one rotating broadcast disk, we could conceptually have multiple broadcast disks, each spinning at different speeds. This effect is simply achieved by repeating the more popular data items more frequently. Consider three data segments A, B, & C. The flat-disk broadcast schedule looks like this:
+
+A B C A B C A B C ... 
+
+If we know that A is twice as popular as B and C, we can treat this as a bandwidth allocation problem and give more 'air time' to A than B and C. One way to do this might be to set up a probability distribution and draw from it in each broadcast slot, giving a random broadcast order with the overall properties we desire. This could look something like this:
+
+A A C A B B A C A ...
+
+But we can do better, since we want to minimise the amount of time a client waits for their data item of interest. By regularly spacing the intervals between the broadcast of each item, we can minimise the average wait.
+
+A B A C A B A C A B ...
+
+It is as if 'A' is stored on a disk that is spinning twice as fast.
+
+> 
+
+ In addition to performance benefits, a Multi-disk broadcast has several other advantages over a random (skewed) broadcast program. First, the randomness in arrivals can reduce the effectiveness of some prefetching techniques that require knowledge of exactly when a particular item will next be broadcast. Second, the randomness of broadcast disallows the use of "sleeping" to reduce power consumption. Finally, there is no notion of "period" for such a broadcast. Periodicity may be important for providing correct semantics for updates and for introducing changes to the structure of the broadcast program.
+
+Remember that overall this is a zero-sum game, increasing the broadcast frequency of one item must necessarily decrease the broadcast frequency of others. Bearing this in mind, how can we construct an optimal broadcast schedule?
+
+Assume for simplicity that data items are pages of uniform size, then:
+
+- Order the pages from hottest (most popular) to coldest
+
+- Partition the list into ranges where each page in a given range has a similar access probability. These ranges are referred to as disks.
+
+- Choose a relative frequency of broadcast for each disk (as integer ratios). For example, 3:2:1 for three disks A, B, and C.
+
+- Split each disk into a number of smaller chunks as follows: let max-chunks be the least-common-multiple of the relative frequencies, now divide a given disk into max-chunks/relative-frequency chunks. In the previous example, the LCM would be 6, and therefore disk A would be divided into 2 chunks.
+
+- Create the broadcast program by interleaving the chunks of the disks as follows:
+
+Broadcast order algorithm:
+
+for i = 0 to max_chunks -1
+ for j = 1 to num_disks
+ broadcast_chunk (i mod num_chunks(j)) of disk j
+ endfor
+endfor
+
+## Client cache management
+
+> 
+
+ Given that the server has chosen a particular broadcast program, how does each client manage its local data cache to maximize its own performance?
+
+The introduction of broadcast can fundamentally change the role of client caching in a client-server information system.
+
+> 
+
+ In traditional, pull-based systems clients cache their hottest data (i.e., the items that they are most likely to access in the future). In the push-based environment, this use of the cache can lead to poor performance if the server's broadcast is poorly matched to the client's page access distribution.
+
+Clients must use their cache to store those pages for which the local probability of access is significantly greater than the page's frequency of broadcast - in other words, a cost-based page replacement algorithm. As a trade-off between an optimal but expensive to compute replacement policy and efficiency, the authors explore an extension to LRU caching called LIX that takes into account frequency of broadcast.
+
+Here's how it works:
+
+> 
+
+ LIX maintains a number of smaller chains: one corresponding to each disk of the broadcast (LIX reduces to LRU if the broadcast uses a single flat disk). A page always enters the chain corresponding to the disk in which it is broadcast. Like LRU, when a page is hit, it is moved to the top of its own chain. When a new page enters the cache, LIX evaluates a lix value (see below) only for the page at the bottom of each chain. The page with the smallest lix value is ejected, and the new page is inserted in the appropriate queue. Because this queue might be different than the queue from which the slot was recovered, the chains do not have fixed sizes. Rather, they dynamically shrink or grow depending on the access pattern at that time.
+
+To compute the lix value, a running probability estimate of the access likelihood and the time of the most recent access are tracked for each item. The probability estimate is updated each time the item is accessed from the chain, and the lix value is obtained by dividing this estimate by the frequency of broadcast for the item ( which is known exactly).
+
+prob_estimate = (C / (current_time - last_access_time)) + 
+ (1-C)*prob_estimate
+lix = frequency / prob_estimate
+
+where C is a calibration constant (0.25 in the paper) to determine the bias towards the most recent access.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems 
+ 
+ Distributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousTAG: A Tiny Aggregation Service for ad-hoc Sensor NetworksNext &rsaquo;Edelweiss: Automatic storage reclamation for distributed programming
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Loading Comments...
+ 
+ 
+ 
+ 
+
+ 
+ 
+ Write a Comment...
+ 
+ 
+ 
+ 
+ Email (Required)
+ 
+ 
+ 
+ Name (Required)
+ 
+ 
+ 
+ Website
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,439 @@
+URL: https://blog.acolyer.org/2018/09/03/fear-the-reaper-characterization-and-fast-detection-of-card-skimmers/
+Title: Fear the reaper: characterization and fast detection of card&nbsp;skimmers
+---
+
+Fear the reaper: characterization and fast detection of card skimmers Scaife et al., USENIX Security 2018
+
+Until I can get my hands on a Skim Reaper I’m not sure I’ll ever trust an ATM or other exposed card reading device (e.g., at garages) again!
+
+Scaife et al. conduct a study of skimming devices found by the NYPD Financial Crimes Task Force over a 16 month period. The bad news is that you and I don’t really have much chance of detecting a deployed card skimming device (most of the folk wisdom about how to do so doesn’t really work). The good news is that the Skim Reaper detection device developed in this research project was able to effectively detect 100% of the devices supplied by the NYPD. That’s great if you happen to have a Skim Reaper handy to test with before using an ATM. The NYPD are now actively using a set of such devices in the field.
+
+## Card skimmers and why they’re so hard for end-users to detect
+
+> 
+
+ Almost as well-know as (credit and debit) cards themselves is the ease with which fraud can be committed against them. Attackers often acquire card data using skimmers - devices attached to legitimate payment terminals that are designed to illicitly capture account information. Once installed, skimmers are nearly invisible to the untrained eye and allow attackers to sell stolen data or create counterfeit cards.
+
+A successful card skimming attack reads the magnetic data from your card when you insert it into the slot, and uses a pinhole camera to video you entering your pin on the keypad (or alternatively, a keypad overlay to detect key presses). ATM fraud increased by 40% in 2017, and card skimming fraud in total is projected to reach over $30 billion by 2020.
+
+The authors partnered with the NYPD Financial Crimes Task Force and obtained all of their skimmer devices reports for a 16 month period. This provided information on 35 unique types of skimming device found during the period. ATMs at banks were the most widely attacked.
+
+A minority of skimmers are internally attached (typically at gas stations with weak physical security around the pumps), but most are external devices that can be installed without opening the payment device. External devices can be attached as card reader overlays, deep-inserts inside the magnetic stripe slot, those that fit in the EMV slot (chip reader) and those that wiretap the physical communication line.
+
+The following figure shows an overlay skimmer and how it looks when installed.
+
+Common advice is to ‘pull on the card reader’ or check for anything unusual looking before using an ATM. But the overlays are very cleverly designed to make it very difficult to spot them, and they are attached tightly enough that only a prying tool such as a knife can detect them. And you’re not going to spot a deep-insert skimmer using that technique anyway:
+
+> 
+
+ We observe that when law enforcement tries to determine if a payment device has a skimmer, they first look for the camera’s pinhole since it is faster for them to identify than other mechanisms, further indicating that advice such as pulling the card acceptor may not be effective.
+
+Here’s a typical view from a pinhole camera:
+
+The cameras themselves may be cleverly positioned, e.g. in a light making them very hard to see when the light is on:
+
+And then of course there might not be a camera at all, but a PIN pad overlay instead:
+
+There are smartphone apps that claim to detect skimmers by looking for Bluetooth radio communications, but only 20% of the skimmers recovered by the NYPD actually had wireless data retrieval capability, making this defence useless against a large majority of skimmers.
+
+## Card skimmers have to read your card
+
+There’s one thing that’s fundamental to overlay and deep-insert skimmers - they have to actually read your card data! This requires a read head pressed against the magnetic track on the card with a spring mechanism. Furthermore, the head must be a conductor and in practice seems to always be metallic. The smallest read head encountered contacted the card over a 1.5mm section of the head, and a lower bound is probably around 1mm.
+
+> 
+
+ These three properties constitute fundamental aspects of card reading; that is, we believe that adversaries seeking to read cards reliably must adhere to designs which meet these characteristics.
+
+## Detecting double reads with the Skim Reaper
+
+If a skimming device is present, then in addition to the legitimate card read there will be a second read by the skimmer. So if we can reliably detect read heads reading from a card, and can count the number of reads, we’d have a way of detecting when more than the expected number of reads happens (‘dip style’ devices that take the card all the way in and then eject it later expect a read on inserting and another one on removal in normal operation).
+
+The Skim Reaper comprises a specially designed measurement card to be inserted into card readers, and an attached microcontroller.
+
+The measurement card has a carefully etched set of traces in the magnetic stripe, (aligning with each of the three data tracks). When a read head contacts the card it bridges a pair of electrical traces and completes a circuit back to the microcontroller. Traces are 0.1mm apart, an order of magnitude smaller than the shortest track read length observed in the wild.
+
+The microcontroller applies voltage to one half of the traces and monitors for circuit completion on the opposite half. Once voltage goes above a threshold the controller counts one read and waits for the voltage to drop back below the threshold indicating the read head has fully passed over the card. After this it begins looking for a voltage spike again.
+
+## Evaluation
+
+The Skim Reaper is tested with a skimming device installed by the authors in a test bed, and also with 10 real skimmers provided by the NYPD.
+
+Since the team didn’t have access to the devices these real skimmers were designed to be attached to, the test simply involved ensuring that the Skim Reaper could detect the read from the skimming device in isolation. The Skim Reaper was tested 5 times with each device, and successfully detected the skimmers on every attempt.
+
+> 
+
+ Skimmers represent a significant and growing threat to payment terminals around the world ... we show that robust and portable tools can be developed to help consumers and law enforcement to rapidly detect such attacks.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ HardwareSecurity 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousSTTR: A system for tracking all vehicles all the time at the edge of the networkNext &rsaquo;Who left open the cookie jar? A comprehensive evaluation of third-party cookie policies
+ 
+ 
+
+ 
+ 
+## 
+ 16 thoughts on &ldquo;Fear the reaper: characterization and fast detection of card skimmers&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Fear the reaper: characterization and fast detection of card skimmers - Tech + Hckr News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Fear the reaper: characterization and fast detection of card skimmers - News about world 
+ 
+ 
+- 
+ 
+ 
+ 
+ Anurag says: 
+
+ 
+ September 3, 2018 at 6:40 am 
+
+ 
+
+ 
+ 
+The banks could provide a two step authentication till the issue is resolved.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Fear the reaper: characterization and fast detection of card skimmers - Latest news 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Fear the reaper: characterization and fast detection of card skimmers - World Best News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Fear the reaper: characterization and fast detection of card skimmers - New Content 
+ 
+ 
+- 
+ 
+ Pingback: === popurls.com === popular today 
+ 
+ 
+- 
+ 
+ Pingback: Fear the reaper: characterization and fast detection of card skimmers - Finance Crypto Community 
+ 
+ 
+- 
+ 
+ Pingback: Fear the reaper: characterization and fast detection of card skimmers - Hacker News Robot 
+ 
+ 
+- 
+ 
+ 
+ 
+ Linda Moy says: 
+
+ 
+ September 3, 2018 at 4:15 pm 
+
+ 
+
+ 
+ 
+Banks or retail vendors have a legal obligation to test their ATM machines for skimmers as part of their internal security check doing business. So far it's "buyers beware". If the laws are strenghten and mandated making it a felony and publicizing who is doing it, then real change can happen.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 3 September 2018 - Home Improvement Designs 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 3 September 2018 - DUI Lawyer 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 3 September 2018 - Tesco Inc. 
+ 
+ 
+- 
+ 
+ 
+ 
+ Penny Chunn says: 
+
+ 
+ September 3, 2018 at 10:51 pm 
+
+ 
+
+ 
+ 
+Will a skimmer detector ever be available for individuals’ use??
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Barry says: 
+
+ 
+ September 4, 2018 at 6:26 pm 
+
+ 
+
+ 
+ 
+What about the internal blue tooth skimmers like are deployed in Mass in Mexican resort towns and run by the Russian mafia? These are easily identified by turning on your cell blue tooth and looking for the connection.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Boogles samuels says: 
+
+ 
+ September 4, 2018 at 9:25 pm 
+
+ 
+
+ 
+ 
+I am recent victim of bank fraud from 01/01/2017 I had £7,000 balance plus over £1,000 per mth credits from pension credit state pension PIP on 13/05/18 I was £7.23 o/d my bank Nat west fraud Team say I gave out my personal details and chip n pin. This article now shows me the extent banks go to cover up their negligence irresponsible attitude to customers securities at atm. They closed down a branch but left ATM in wall unprotected for mthe this same branch known for distraction burglary at atm I am going fight for my money over 18mths I was robbed and if I hadn't questioned why my bank statements never arrived it would have gone on hsbc sent me 2 txt warn of irregularities Nat west say they were hoax after losing over £11,000 thru their neglect who the hoaxer
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

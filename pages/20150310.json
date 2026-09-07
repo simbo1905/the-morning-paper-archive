@@ -1,0 +1,34 @@
+{
+  "date": "20150310",
+  "file_name": "20150310",
+  "slug": "zookeepers-atomic-broadcast-protocol-theory-and-practice",
+  "blog_url": "https://blog.acolyer.org/2015/03/10/zookeepers-atomic-broadcast-protocol-theory-and-practice/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a critical discrepancy between ZooKeeper's actual implementation and its published protocol (Zab) as described by Junqueira et al. The paper reveals that the Java-based implementation of ZooKeeper's atomic broadcast protocol, as of 2012, deviates significantly from the theoretical design, particularly in the leader election (Phase 0) and recovery phases. The implementation uses the Fast Leader Election (FLE) algorithm, which merges Phases 1 and 2 into a 'recovery phase' and optimizes state synchronization via SNAP, DIFF, or TRUNC messages. The author notes that these optimizations, while practical, introduce complexity and potential bugs, such as looping behavior between FLE and recovery phases or improper handling of TRUNC messages. Colyer emphasizes the broader lesson: distributed coordination systems like ZooKeeper are notoriously hard to implement correctly, and even minor deviations from the protocol can lead to subtle but critical failures. The paper serves as a cautionary tale about the gap between theory and practice in distributed systems.",
+  "paper_title": "ZooKeeper's Atomic Broadcast Protocol: Theory and Practice",
+  "paper_authors": [
+    "deSouza Medeiros"
+  ],
+  "paper_year": 2012,
+  "paper_venue": "",
+  "paper_url": "http://www.tcs.hut.fi/Studies/T-79.5001/reports/2012-deSouzaMedeiros.pdf",
+  "paper_abstract": "Apache ZooKeeper is a distributed coordination service for cloud computing, providing essential synchronization and group services for other distributed applications. At its core lies an atomic broadcast protocol, which elects a leader, synchronizes the nodes, and performs broadcasts of updates from the leader. We study the design of this protocol, highlight promised properties, and analyze its official implementation by Apache. In particular, the default leader election protocol is studied in detail.",
+  "paper_file": "papers/2015/03/10/zookeepers-atomic-broadcast-protocol-theory-and-practice.pdf",
+  "topics": [
+    "distributed-systems"
+  ],
+  "tags": [
+    "zookeeper",
+    "atomic-broadcast",
+    "zab-protocol",
+    "leader-election",
+    "fast-leader-election",
+    "consensus",
+    "state-synchronization",
+    "recovery-phase",
+    "snap-diff-trunc"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

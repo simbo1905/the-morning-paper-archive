@@ -1,0 +1,46 @@
+{
+  "date": "20180112",
+  "file_name": "20180112",
+  "slug": "one-model-to-learn-them-all",
+  "blog_url": "https://blog.acolyer.org/2018/01/12/one-model-to-learn-them-all/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the paper's ambitious goal of creating a unified deep learning model capable of handling multiple domains and modalities (speech, text, images) simultaneously. The author praises the MultiModel architecture for its ability to support diverse input/output modalities, maintain a shared representation across tasks, and incorporate necessary computational blocks like attention and mixture-of-experts layers. The paper demonstrates that a single model trained on eight different tasks (e.g., speech recognition, image classification, translation) performs comparably to task-specific models, even outperforming them in low-data scenarios. Notably, the model shows transfer learning benefits between seemingly unrelated tasks, suggesting shared computational primitives. The architecture's design—modality-specific sub-networks feeding into a shared encoder/decoder—is praised for its efficiency and flexibility.",
+  "paper_title": "One Model To Learn Them All",
+  "paper_authors": [
+    "Łukasz Kaiser",
+    "Aidan N. Gomez",
+    "Karol Gregor",
+    "Ilya Sutskever"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "arXiv",
+  "paper_url": "https://arxiv.org/abs/1706.05137",
+  "paper_abstract": "Deep learning yields great results across many fields, from speech recognition, image classification, to translation. But for each problem, getting a deep model to work well involves research into the architecture and a long period of tuning. We present a single model that yields good results on a number of problems spanning multiple domains. In particular, this single model is trained concurrently on ImageNet, multiple translation tasks, image captioning (COCO dataset), a speech recognition corpus, and an English parsing task. Our model architecture incorporates building blocks from multiple domains. It contains convolutional layers, an attention mechanism, and sparsely-gated layers. Each of these computational blocks is crucial for a subset of the tasks we train on. Interestingly, even if a block is not crucial for a task, we observe that adding it never hurts performance and in most cases improves it on all tasks. We also show that tasks with less data benefit largely from joint training with other tasks, while performance on large tasks degrades only slightly if at all.",
+  "paper_file": "papers/2018/01/12/one-model-to-learn-them-all.pdf",
+  "topics": [
+    "machine-learning"
+  ],
+  "tags": [
+    "multi-task-learning",
+    "neural-networks",
+    "attention-mechanisms",
+    "mixture-of-experts",
+    "transfer-learning",
+    "modality-agnostic",
+    "deep-learning"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Examples decoded from MultiModel",
+      "caption": "Examples decoded from a single MultiModel trained jointly on 8 tasks. Red depicts a language modality while blue depicts a categorical modality."
+    },
+    {
+      "number": "Figure 2",
+      "title": "MultiModel architecture overview",
+      "caption": "The MultiModel, with modality-nets, an encoder, and an autoregressive decoder."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

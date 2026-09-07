@@ -1,0 +1,37 @@
+{
+  "date": "20150813",
+  "file_name": "20150813",
+  "slug": "streams-a-la-carte-extensible-pipelines-with-object-algebras",
+  "blog_url": "https://blog.acolyer.org/2015/08/13/streams-a-la-carte-extensible-pipelines-with-object-algebras/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights that the paper addresses key limitations in existing streaming APIs (Java, Scala, C#), where semantics are hard-coded and extensibility is limited. Biboudis et al. propose a novel API design using object algebras to enable pluggable semantics (e.g., push vs. pull evaluation, logging, fusion) without sacrificing performance. The authors demonstrate how factories (e.g., push, pull, log, fused) can dynamically alter pipeline behavior, and how new operators can be added modularly. The approach leverages type-constructor polymorphism (emulated in Java via 'brand' classes) and achieves performance comparable to or better than Java 8 streams through optimizations like fusion and pull-style iteration. The paper also outlines future work in parallel, distributed, and GPU-based stream processing.",
+  "paper_title": "Streams à la carte: Extensible pipelines with object algebras",
+  "paper_authors": [
+    "Alexandru Biboudis",
+    "Oleg Kiselyov",
+    "Yannis Smaragdakis"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "OOPSLA 2015",
+  "paper_url": "http://drops.dagstuhl.de/opus/volltexte/2015/5239/pdf/29.pdf",
+  "paper_abstract": "Streaming libraries have become ubiquitous in object-oriented languages, with recent offerings in Java, C#, and Scala. All such libraries, however, suffer in terms of extensibility: there is no way to change the semantics of a streaming pipeline (e.g., to fuse filter operators, to perform computations lazily, to log operations) without changes to the library code. Furthermore, in some languages it is not even possible to add new operators (e.g., a zip operator, in addition to the standard map, filter, etc.) without changing the library. We address such extensibility shortcomings with a new design for streaming libraries. The architecture underlying this design borrows heavily from Oliveira and Cook’s object algebra solution to the expression problem, extended with a design that exposes the push/pull character of the iteration, and an encoding of higher-kinded polymorphism. We apply our design to Java and show that the addition of full extensibility is accompanied by high performance, matching or exceeding that of the original, highly-optimized Java streams library. 1998 ACM Subject Classification D.2.2. Software libraries, D.1.5 Object-oriented Programming, D.3.3 Language Constructs and Features",
+  "paper_file": "papers/2015/08/13/streams-a-la-carte-extensible-pipelines-with-object-algebras.pdf",
+  "topics": [
+    "programming-languages",
+    "compilers"
+  ],
+  "tags": [
+    "object-algebras",
+    "streaming-api",
+    "push-pull-evaluation",
+    "fusion",
+    "expression-problem",
+    "type-constructor-polymorphism",
+    "java-streams",
+    "scala-streams",
+    "csharp-streams"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

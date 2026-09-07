@@ -1,0 +1,39 @@
+{
+  "date": "20190520",
+  "file_name": "20190520",
+  "slug": "rpcvalet",
+  "blog_url": "https://blog.acolyer.org/2019/05/20/rpcvalet/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights RPCValet as a groundbreaking paper addressing the challenge of reducing tail latency for microsecond-scale RPCs in modern distributed systems. The key insight is that as network latency approaches fundamental physical limits, further performance gains must come from optimizing endpoint handling of RPCs. RPCValet introduces a hardware-accelerated approach using integrated Network Interfaces (NIs) to balance incoming RPCs across server cores in real-time, achieving near-optimal performance. The paper demonstrates that RPCValet's implementation comes within 3-15% of a theoretical ideal, leaving little room for further improvement in low-latency RPC handling under load. Colyer emphasizes the paper's theoretical contributions, practical hardware integration, and impressive evaluation results across multiple services.",
+  "paper_title": "RPCValet: NI-driven tail-aware balancing of µs-scale RPCs",
+  "paper_authors": [
+    "Anastasios Papagiannis",
+    "Georgios Chatzopoulos",
+    "Aleksandar Dragojevic",
+    "Dimitrios Nikolopoulos",
+    "Marios Kogias"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "ASPLOS'19",
+  "paper_url": "https://www.cc.gatech.edu/~adaglis3/files/papers/RPCValet_asplos19.pdf",
+  "paper_abstract": "1 Modern online services come with stringent quality requirements in terms of response time tail latency. Because of their decomposition into fine-grained communicating software layers, a single user request fans out into a plethora of short, µs-scale RPCs, aggravating the need for faster inter-server communication. In reaction to that need, we are witnessing a technological transition characterized by the emergence of hardware-terminated user-level protocols (e.g., InfiniBand/RDMA) and new architectures with fully integrated Network Interfaces (NIs). Such architectures offer a unique opportunity for a new NI-driven approach to balancing RPCs among the cores of manycore server CPUs, yielding major tail latency improvements for µs-scale RPCs. We introduce RPCValet, an NI-driven RPC load-balancing design for architectures with hardware-terminated protocols and integrated NIs, that delivers near-optimal tail latency. RPCValet’s RPC dispatch decisions emulate the theoretically optimal single-queue system, without incurring synchronization overheads currently associated with single-queue implementations. Our design improves throughput under tight tail latency goals by up to 1.4×, and reduces tail latency before saturation by up to 4× for RPCs with µs-scale service times, as compared to current systems with hardware support for RPC load distribution. RPCValet performs within 15% of the theoretically optimal single-queue system. Modern datacenters deliver a breadth of online services to millions of daily users. In addition to their huge scale, online services come with stringent Service Level Objectives (SLOs) to guarantee responsiveness. Often expressed in terms of tail latency, SLOs target the latency of the slowest requests, and thus bound the slowest interaction a user may have with the service. Tail-tolerant computing is one of the major ongoing challenges in the datacenter space, as long-tail events are rare and rooted in convoluted hardware-software interactions. A ...",
+  "paper_file": "papers/2019/05/20/rpcvalet.pdf",
+  "topics": [
+    "distributed-systems",
+    "operating-systems",
+    "networking"
+  ],
+  "tags": [
+    "rpc",
+    "tail-latency",
+    "network-interface",
+    "load-balancing",
+    "queueing-theory",
+    "rdma",
+    "microservices",
+    "hardware-acceleration"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

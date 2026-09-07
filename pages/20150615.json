@@ -1,0 +1,51 @@
+{
+  "date": "20150615",
+  "file_name": "20150615",
+  "slug": "twitter-heron-stream-processing-at-scale",
+  "blog_url": "https://blog.acolyer.org/2015/06/15/twitter-heron-stream-processing-at-scale/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer reviews the Twitter Heron paper, which presents a new stream processing system designed to replace Apache Storm at Twitter. The blog highlights Heron's significant performance improvements over Storm, including 6-14X higher throughput and 5-10X lower tuple latencies, while reducing CPU resource usage. The author emphasizes that Heron addresses numerous fundamental flaws in Storm, such as inefficient resource utilization, lack of backpressure, single points of failure, and poor debuggability. The paper argues that Storm's architecture was too broken to fix incrementally, necessitating a ground-up rewrite. Heron's container-based design leverages existing schedulers like Aurora, simplifies task isolation, and introduces backpressure mechanisms to prevent resource exhaustion. The blog also notes Heron's compatibility with the Storm API, easing migration for existing users.",
+  "paper_title": "Twitter Heron: Stream Processing at Scale",
+  "paper_authors": [
+    "Kaushik D. Kulkarni",
+    "Julio Arthur",
+    "Srikanth Kandula",
+    "Srikanth Varadarajan",
+    "Shivaram Venkataraman",
+    "Michael J. Franklin",
+    "Ion Stoica"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "VLDB 2015",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=2742788",
+  "paper_abstract": "Storm has long served as the main platform for real-time analytics at Twitter. However, as the scale of data being processed in realtime at Twitter has increased, along with an increase in the diversity and the number of use cases, many limitations of Storm have become apparent. We need a system that scales better, has better debug-ability, has better performance, and is easier to manage – all while working in a shared cluster infrastructure. We considered various alternatives to meet these needs, and in the end concluded that we needed to build a new real-time stream data processing system. This paper presents the design and implementation of this new system, called Heron. Heron is now the de facto stream data processing engine inside Twitter, and in this paper we also share our experiences from running Heron in production. In this paper, we also provide empirical evidence demonstrating the efficiency and scalability of Heron. In addition, Storm needs dedicated cluster resources, which requires special hardware allocation to run Storm topologies. This approach leads to inefficiencies in using precious cluster resources, and also limits the ability to scale on demand. We needed the ability to work in a more flexible way with popular cluster scheduling software that allows sharing the cluster resources across different types of data processing systems (and not just a stream processing system). Internally at Twitter, this meant working with Aurora [1], as that is the dominant cluster management system in use. With Storm, provisioning a new production topology requires manual isolation of machines, and conversely, when a topology is no longer needed, the machines allocated to serve that topology now have to be decommissioned. Managing machine provisioning in this way is cumbersome. Furthermore, we also wanted to be far more efficient than the Storm system in production, simply because at Twitter’s scale, any improvement in performance translates into significant reduct...",
+  "paper_file": "papers/2015/06/15/twitter-heron-stream-processing-at-scale.pdf",
+  "topics": [
+    "distributed-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "stream-processing",
+    "apache-storm",
+    "backpressure",
+    "scheduling",
+    "containerization",
+    "mesos",
+    "aurora",
+    "performance-evaluation"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "The RTAC Topology",
+      "caption": "The RTAC Topology"
+    },
+    {
+      "number": "Figure 2",
+      "title": "Storm Worker",
+      "caption": "Storm Worker threads are scheduled using a preemptive and priority-based scheduling algorithm by the JVM. Since each thread has to run several tasks, the executor implements another scheduling algorithm to invoke the appropriate task, based on the incoming data. Such multiple levels of scheduling and their complex interaction often leads to uncertainty about when the tasks are being scheduled."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

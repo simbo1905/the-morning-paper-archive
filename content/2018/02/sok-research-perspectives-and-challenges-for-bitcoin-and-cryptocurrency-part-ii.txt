@@ -1,0 +1,428 @@
+URL: https://blog.acolyer.org/2018/02/14/sok-research-perspectives-and-challenges-for-bitcoin-and-cryptocurrency-part-ii/
+Title: SoK: Research perspectives and challenges for Bitcoin and cryptocurrency &#8211; Part&nbsp;II
+---
+
+SoK: Research perspectives and challenges for Bitcoin and cryptocurrency Bonneau et al., IEEE Security and Privacy, 2015
+
+Part 2 : modifications, extensions, anonymity.
+
+Here’s the map for what we’ll be talking about today. We’ll discuss considerations for modifying and/or upgrading the way Bitcoin works, the world of altcoins, and uses beyond cryptocurrency. We’ll also touch briefly on issues of anonymity.
+
+## Modifying Bitcoin
+
+Let’s start out by looking at mechanisms for implementing change in Bitcoin itself...
+
+## Upgrading Bitcoin
+
+There are three primary mechanisms for upgrading the Bitcoin network:
+
+- Hard forks are required when a change enables transactions or blocks that would previously have been considered invalid. Changes involving a hard fork require near-unanimity among miners to be attempted in practice. 
+
+- Soft forks are backwards compatible with existing clients, and generally further restrict the set of blocks or transactions considered valid. A miner that doesn’t upgrade may waste computational power (by mining blocks that newer miners reject), but will at least always rejoin the longest chain. 
+
+- Changing the relay policy (or other aspects of network communication) using require the least coordination and can be done in a backwards compatible manner through nodes advertising their protocol version number.
+
+Key parameters that can be varied in an upgrade are the inter-block time and difficulty adjustment window, limits on block and transaction size, and the monetary policy (rewards).
+
+> 
+
+ Bitcoin automatically adjusts the difficulty of its computational puzzle so that solutions are found (on average) ten minutes apart. This setting is constrained primarily by the network latency.
+
+Reducing the difficulty means blocks are produced faster, improving throughput and latency, but it also means that miners are more likely to find redundant blocks that can’t be successfully propagated.
+
+Writing in 2015, the authors say “One of the most controversial proposed changes is to increase the 1 MB limit on the size of a block.” This controversy continues today. Increasing the block size improves network throughput (which is currently very low for a global system), but it also increases storage requirements and decreases the average reward/transaction while most rewards come from mining a block. Thus miners that underpin the system are less incentivised to make the change. Maybe this will change again once per transaction fees become a significant part of revenue as block mining rewards decline. At that point, more transactions in a block is good for miners again.
+
+The way that coins are issued is a key component of monetary policy:
+
+> 
+
+ Bitcoin’s consensus protocol effectively mandates a monetary policy through the rate at which new currency is minted and the schedule by which this rate changes. By mandating a capped amount of currency, Bitcoin effectively has a deflationary monetary policy which has caused multiple economists to predict the system will eventually be destabilized by a deflationary spiral in which nobody is willing to spend bitcoins as hoarding them is considered more profitable.
+
+Other systems take different approaches. For example in Dogecoin inflation will continue indefinitely but at a harmonically-diminishing rate, and in Freicoin the inflation rate stays constant forever.
+
+Within the proof-of-work system, another variable is the puzzle used to prove work. One school of thought is that the puzzle should not favour those who invest in dedicated hardware (returning to the democratic principles of “one CPU, one vote”). Another variant is non-outsourceable puzzles which would discourage the formation of mining pools. Finally, there are puzzles which perform some useful work as a side-effect.
+
+We studied systems beyond Nakamoto consensus earlier this week, so I won’t repeat that discussion here.
+
+## Altcoins
+
+> 
+
+ Due to the limits on what can be changed about Bitcoin without a hard fork, hundreds of derivative systems, referred to as altcoins, have arisen with alternate design approaches.
+
+Altcoins need a way to bootstrap the initial allocation of currency, and there are several ways of doing this:
+
+- One option is to create a new blockchain from scratch (a new genesis block), but the community has become wary of the ability of founders to cash in on this model through early mining.
+
+- An alternative therefore is to fork Bitcoin, and give every owner of bitcoin in the Bitcoin blockchain a proportional amount of new currency in the new blockchain at inception.
+
+- Proof-of-burn allows users to transfer funds in Bitcoin to a special address from which they cannot be retrieved, and the transfer results in an allocation of coins in the new currency on the new chain. This has the downside of permanently reducing the quantity of bitcoins in circulation. 
+
+- Pegged sidechains anchor one chain (the sidechain) within another (e.g. the Bitcoin blockchain), with a mechanism that allows value to be transferred from the main chain to the side chain and vice-versa (pegged values). 
+
+Altcoins also need miners (we saw some of the issues surrounding this when we looked at Blockstack last week). The two primary options are to compete for miners, by encouraging them to spend their compute resources mining on your chain rather than competing chains, or to adopt something called merged mining, in which an altcoin accepts blocks if their root is included in a valid Bitcoin block, and hence miners do not need to do any additional work. Merged mining has its own problems however, including preventing the altcoin from deviating from Bitcoin’s computational puzzle.
+
+## Anonymity
+
+We’ve studied privacy and anonymity in Bitcoin previously on The Morning Paper: (‘A fistful of bitcoins’, ‘ZeroCash’).
+
+> 
+
+ Bitcoin provides a limited form of unlinkability: users may trivially create new pseudonyms (addresses) at any time. This was argued in the original specification to provide strong privacy, however it quickly became clear that due to the public nature of the blockchain it is sometimes possible to trace the flow of money between pseudonyms and conclude that they are likely controlled by the same individual.
+
+Beyond tracing transactions, it also also possible to de-anonymise using IP addresses. Full privacy also requires masking your IP address therefore (e.g., using Tor).
+
+Mixing protocols try to jumble up transaction inputs and outputs making tracing harder. There are peer-to-peer mixing protocols, and also distributed mix networks using third-party mix services.
+
+Beyond Bitcoin, systems such as ZeroCash build stronger privacy in by design.
+
+## Extending Bitcoin’s functionality
+
+Bitcoin has three characteristics that make it suitable for disintermediation use cases beyond just cryptocurrencies:
+
+- In many cases a desired security property can be enforced directly using functionality provided by the blockchain and the fact that transactions can be atomic, being invalid until multiple parties sign.
+
+- When a desired security property cannot be enforced directly, it may be possible to post a deposit or bond which is only refunded in the case of correct behaviour. 
+
+- Finally, the auditability property means that even if Bitcoin is not used to apply a remedy against a dishonest party, it can still play a crucial role in providing incriminating evidence. “One example is green addresses, in which a payment processor with a well-known public key pledges never to sign an invalid or conflicting transaction.”
+
+> 
+
+ An alternate approach to extending Bitcoin is to use it only as a global append-only log to which anybody can write.
+
+- The blockchain can be used as a secure timestamping service, with e.g. a Merkle root committed to the blockchain enabling timestamping of arbitrary data. 
+
+- By writing data into individual transactions, it is possible to mark certain transactions with a colour. “This enables a protocol called Colored Coins which defines a set of rules (not enforced by miners) to transfer color from input transactions to output transactions.” Initial colouring of coins happens via a special signature from a trusted colour-issuing authority. 
+
+- Going deeper, you can use Bitcoin’s consensus mechanism, but different a completely different transaction syntax to be written as arbitrary data on the blockchain. This known as an overlay protocol. “Note that this design removes the correctness property that Bitcoin’s consensus mechanism normally provides, as Bitcoin miners will not know about the new transaction types.”
+
+## See also
+
+Section IV of the paper also contains a short discussion on key management issues for clients. For a fuller treatment of this see ‘A first look at the usability of Bitcoin key management.’
+
+Another important area to understand is smart contracts. They turn out be very tricky to get right! For previous posts on The Morning Paper discussing the challenges of smart contracts see:
+
+- Making smart contracts smarter
+
+- A concurrent perspective on smart contracts
+
+- Adding concurrency to smart contracts
+
+- Step by step towards creating a safe smart contract
+
+- The ring of Gyges
+
+## The last word
+
+> 
+
+ On the whole, we simply don’t have a scientific model with sufficient predictive power to answer questions about how Bitcoin or related systems might fare with different parameters or in different circumstances... It is difficult today to assess the extent to which Bitcoin’s success compared to altcoins is due to its specific design choices as opposed to its first-mover advantage. 
+
+ Bitcoin is a rare case where practice seems to be ahead of theory. We consider that a tremendous opportunity for the research community to tackle the many open questions about Bitcoin which we have laid out.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Blockchain 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousSoK: Research perspective and challenges for Bitcoin and cryptocurrency - Part INext &rsaquo;A survey on security and privacy issues of Bitcoin
+ 
+ 
+
+ 
+ 
+## 
+ 6 thoughts on &ldquo;SoK: Research perspectives and challenges for Bitcoin and cryptocurrency - Part II&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: SoK: Research perspectives and challenges for Bitcoin and cryptocurrency – Part II | Blockchain Wiki 
+ 
+ 
+- 
+ 
+ 
+ 
+ traveliko says: 
+
+ 
+ February 14, 2018 at 10:22 am 
+
+ 
+
+ 
+ 
+Great read Adrian! On a side note, what tool are you using to make these amazing diagrams?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ February 15, 2018 at 9:20 am 
+
+ 
+
+ 
+ 
+They’re hand-drawn on an iPad Pro using the apple pencil and an app called Notability.
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ 
+ 
+ tristanls says: 
+
+ 
+ February 14, 2018 at 10:58 pm 
+
+ 
+
+ 
+ 
+"... is a rare case where practice seems to be ahead of theory" O_O This is an absurd claim. For demonstration of the absurdity one can google "Lecturing Birds on Flying" and related concepts.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ February 15, 2018 at 9:21 am 
+
+ 
+
+ 
+ 
+And deep learning would be another one...
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ Pingback: ББ-022: geth 1.8, ECF, Monero и ASIC, SV meetup, блокчейн-неделя в The morning paper -- Базовый Блок 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

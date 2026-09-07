@@ -1,0 +1,300 @@
+URL: https://blog.acolyer.org/2015/05/11/jitsu-just-in-time-summoning-of-unikernels/
+Title: Jitsu: Just-in time summoning of&nbsp;unikernels
+---
+
+Jitsu: Just-in time summoning of unikernels - Madhavapeddy et al. 2015
+
+Last week saw the 12th USENIX symposium on Networked Systems Design and Implementation (NSDI '15), so the papers are now open access. I've been looking forward to bringing you today's choice for some time.
+
+Take the MirageOS work on unikernels, and the Xen port to ARM. Optimise boot times and inter-vm communication, and then further mask boot times by initiating processing of incoming network connections while the unikernel designed to handle them is still booting. What do you get? Small (~1MB), secure, ultra-fast booting (few hundred ms), low-power consuming, networked services. And a door to a whole new set of distributed system deployment possibilities.
+
+> 
+
+ Xen recently added support for hardware virtualized ARM guests, opening up the possibility of building an embedded cloud: a system of distributed low-power devices, deployed near users, able to host applications delivering real-time services directly via local networks. There has been a steady increase in ARM boards featuring a favourable energy/price/speed trade-off for constructing embedded systems (e.g., the Cubieboard2 has 1GB RAM, a dual-core A20 ARM CPU and costs £ 39).
+
+The combination enables more functionality to be devolved to 'the edge'. Which makes intuitive sense as a future design point: firstly, there is tremendous aggregate compute capacity in all those edge devices; secondly, truly local processing will give much lower latency responses than shipping requests to a remote data center; and thirdly, for some use cases it means that local data can be processed locally without needing to upload and store it in a public cloud. The poster child for edge-of-network processing is IoT, where security is very much a concern:
+
+> 
+
+ These (IoT) devices often rely on the network for their operation but many of the devices we use daily suffer from an unrelenting stream of security exploits, including routers, buildings and automobiles. The future success of IoT platforms being deployed in edge networks depends on the convenience of secure multi-tenant isolation that the public cloud utilises.
+
+Jitsu is a system for securely managing multi-tenant networked applications on embedded infrastructure. "The MirageOS unikernels that we use are also secure enough to survive inexpertly managed network-facing deployment." The foundation is the Xen 4.4 release, which added support for ARM v7-A and v8-A architectures.
+
+> 
+
+ These include extensions that let a hypervisor manage hardware virtualized guests without the complexity of full paravirtualization. The Xen/ARM port is markedly simpler than x86 as it can avoid a range of legacy requirements... Jitsu can thus target both Xen/ARM and Xen/x86, resulting in a consistent interface that spans a range of deployment environments, from conventional x86 server hosting environments to the more resource-constrained embedded environments with which we are particularly concerned, where ARM CPUs are commonplace.
+
+To support MirageOS unikernels on ARM the team first restructured Mini-OS (a tiny Xen library kernel) so that it could be installed as a system library that can be statically linked, with all functionality not needed for booting stripped out.
+
+> 
+
+ An important consequence of this is that a libc is no longer required for the core of MirageOS: all libc functionality is subsumed by pure OCaml libraries including networking, storage and unicode handling, with the exception of the rarely used floating point formatting code used by printf, for which we extracted code from the musl libc. Removing this functionality does not just benefit codesize: these embedded libraries are both security-critical (they run in the same address space as the type-safe unikernel code) and difficult to audit (they target a wide range of esoteric hardware platforms and thus require careful configuration of many compile-time options). Our refactoring thus significantly reduced the size of a unikernel’s trusted computing base as well as improving portability.
+
+Mini-OS was then ported to boot against the Xen ARM ABI, and hand-off to OCaml libraries as quickly as possible. With this foundation in place, Jitsu can add support for low-latency on-demand launching of unikernels.
+
+> 
+
+ Jitsu is the Xen equivalent of the venerable inetd service on Unix, but instead of starting a process in response to incoming traffic, it starts a unikernel that can respond to requests on that IP address.
+
+Jitsu preserves the existing boot protocol so it can support all of the Xen images currently in existence. By reducing blocking behaviour, introducing conduits to support direct shared-memory communication between VMs (and between Jitsu and unikernels), and handling the initial stages of the TCP handshake while a unikernel is still booting, the time from initial network request to booted and responding unikernel is reduced to a few hundred milliseconds:
+
+> 
+
+ ... a service VM can “cold boot” and respond to a TCP client in around 300–350ms, and an already-booted service can respond to local traffic in around 5ms (§4). In all cases, all network traffic is handled via memory-safe code in an unprivileged Xen VM.
+
+Jitsu is also compatible with x86, where boot times can be as low as 20ms!
+
+Docker container startup under inetd was tested on the same Cubieboard2 hardware as a comparison point, and found to take 1.1-1.2 seconds.
+
+The team analysed a selection of recent CVE vulnerabilities against embedded network devices, the Linux kernel, and Xen on ARM. With Jitsu the first category of vulnerabilities would have been entirely eliminated, and the second group mostly eliminated. Xen on ARM vulnerabilities would be unchanged.
+
+> 
+
+ The middle stream of vulnerabilities that affect the Linux kernel motivate the use of a type-1 hypervisor like Xen rather than Linux containers. Only a few bugs that affect physical device drivers can harm Xen, and even those can be mitigated in future revisions of Jitsu via driver domains.
+
+A number of other use cases are covered in the paper, including a sketch of how conduits might be used to launch a MirageOS unikernel that proxies traffic locally to a VM application written in another language, thus removing the hard dependency on OCaml for application developers.
+
+## Find out more:
+
+> 
+
+ MirageOS and Jitsu are hosted on GitHub (github.com/mirage) with documentation on our self-hosted website at openmirage.org.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems, Networking 
+ 
+ Operating SystemsVirtualization 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousExtensible Distributed CoordinationNext &rsaquo;Queues don't matter when you can JUMP them
+ 
+ 
+
+ 
+ 
+## 
+ 6 thoughts on &ldquo;Jitsu: Just-in time summoning of unikernels&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Ant Algorithms for Discrete Optimization | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: A Year in Papers | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: IncludeOS: A minimal, resource efficient unikernel for cloud systems | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: IncludeOS: A minimal, resource efficient unikernel for cloud systems - IT大道 
+ 
+ 
+- 
+ 
+ Pingback: My VM is lighter (and safer) than your container | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Unikernels as processes | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

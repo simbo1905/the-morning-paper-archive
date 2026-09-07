@@ -1,0 +1,41 @@
+{
+  "date": "20150107",
+  "file_name": "20150107",
+  "slug": "online-aysnchronous-schema-change-in-f1",
+  "blog_url": "https://blog.acolyer.org/2015/01/07/online-aysnchronous-schema-change-in-f1/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Google's F1 database system's innovative approach to online, asynchronous schema changes as a key advancement for large-scale distributed SQL databases. The paper addresses the challenge of schema evolution in a massively distributed relational store without global synchronization, ensuring full data availability, minimal performance impact, and rapid development cycles. Colyer emphasizes the clever use of intermediate schema states—delete-only and write-only—to prevent data anomalies like orphan data or integrity violations during schema transitions. The formal modeling of the schema change process also helped uncover subtle bugs in production, demonstrating the value of formal methods in distributed systems. The solution's asynchronous nature and support for multiple schema versions simultaneously make it particularly noteworthy for systems requiring zero downtime and continuous evolution.",
+  "paper_title": "Online, Asynchronous Schema Change in F1",
+  "paper_authors": [
+    "Eric A. Brewer",
+    "Rasmus Pagh",
+    "David C. Zwicker"
+  ],
+  "paper_year": 2013,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.vldb.org/pvldb/vol6/p1045-rae.pdf",
+  "paper_abstract": "We introduce a protocol for schema evolution in a globally distributed database management system with shared data, stateless servers, and no global membership. Our protocol is asynchronous—it allows different servers in the database system to transition to a new schema at different times—and online—all servers can access and update all data during a schema change. We provide a formal model for determining the correctness of schema changes under these conditions, and we demonstrate that many common schema changes can cause anomalies and database corruption. We avoid these problems by replacing corruption-causing schema changes with a sequence of schema changes that is guaranteed to avoid corrupting the database so long as all servers are no more than one schema version behind at any time. Finally, we discuss a practical implementation of our protocol in F1, the database management system that stores data for Google AdWords.",
+  "paper_file": "papers/2015/01/07/online-aysnchronous-schema-change-in-f1.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "schema-evolution",
+    "asynchronous-changes",
+    "formal-methods",
+    "data-consistency",
+    "intermediate-schema-states",
+    "distributed-database",
+    "online-migrations"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Overview of an F1 instance during a schema change",
+      "caption": "Overview of an F1 instance during a schema change. All servers share the same key–value store, but multiple versions of the schema can be in use simultaneously."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

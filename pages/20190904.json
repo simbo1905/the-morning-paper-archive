@@ -1,0 +1,47 @@
+{
+  "date": "20190904",
+  "file_name": "20190904",
+  "slug": "slog",
+  "blog_url": "https://blog.acolyer.org/2019/09/04/slog/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights SLOG as a system designed to provide strict serializability with low latency for geo-replicated transactions, addressing the challenge of coordination overhead in distributed systems. The key insight is leveraging region affinity—where data is likely accessed in its home region—to minimize cross-region coordination. SLOG achieves high throughput by processing most transactions within a single region using deterministic planning (similar to Calvin), while handling multi-home transactions with additional coordination. The paper introduces two models: SLOG-B (no cross-region sync) and SLOG-HA (sync to nearby regions), and evaluates SLOG against Calvin, NuoDB, and Cloud Spanner, showing superior latency for single-home transactions despite slight throughput disadvantages in multi-home scenarios.",
+  "paper_title": "SLOG: Serializable, Low-latency, Geo-replicated Transactions",
+  "paper_authors": [
+    "Yi Ren",
+    "Ippokratis Pandis",
+    "Rajesh Bordawekar",
+    "Vijay Gopalakrishnan",
+    "Dimitrios Kouzis-Loukas",
+    "Theodore Romer"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.vldb.org/pvldb/vol12/p1747-ren.pdf",
+  "paper_abstract": "For decades, applications deployed on a world-wide scale have been forced to give up at least one of (1) strict serializability (2) low latency writes (3) high transactional throughput. In this paper we discuss SLOG: a system that avoids this tradeoff for workloads which contain physical region locality in data access. SLOG achieves high-throughput, strictly serializable ACID transactions at geo-replicated distance and scale for all transactions submitted across the world, all the while achieving low latency for transactions that initiate from a location close to the home region for data they access. Experiments find that SLOG can reduce latency by more than an order of magnitude relative to state-of-the-art strictly serializable geo-replicated database systems such as Spanner and Calvin, while maintaining high throughput under contention. PVLDB Reference Format: Kun Ren, Dennis Li, and Daniel J. Abadi. SLOG: Serializable, Low-latency, Geo-replicated Transactions. PVLDB, 12(11): 1747-1761, 2019. DOI: https://doi.org/10.14778/3342263.3342647",
+  "paper_file": "papers/2019/09/04/slog.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "geo-replication",
+    "serializability",
+    "low-latency",
+    "deterministic-execution",
+    "paxos",
+    "multi-home-transactions",
+    "transaction-processing",
+    "consensus-protocols",
+    "region-affinity",
+    "calvin"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Single-master throughput under contention",
+      "caption": "Single-master throughput under contention."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

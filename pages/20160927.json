@@ -1,0 +1,39 @@
+{
+  "date": "20160927",
+  "file_name": "20160927",
+  "slug": "flexible-paxos-quorum-intersection-revisited",
+  "blog_url": "https://blog.acolyer.org/2016/09/27/flexible-paxos-quorum-intersection-revisited/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a significant but simple observation by Howard et al. that revisits quorum intersection in Paxos, a foundational consensus algorithm. The key insight is that Paxos's requirement for majority quorums in both phases is overly conservative; instead, it only needs to ensure intersection between phase one (leader election) and phase two (value agreement) quorums. This relaxation allows for improved fault tolerance and throughput by enabling flexible trade-offs between quorum sizes in different phases. The paper introduces Flexible Paxos (FPaxos), which generalizes quorum requirements and demonstrates practical benefits through majority, simple, and grid quorum systems. Colyer emphasizes the elegance of the idea and its potential to break the traditional trade-off between resilience and performance in consensus systems.",
+  "paper_title": "Flexible Paxos: Quorum intersection revisited",
+  "paper_authors": [
+    "Howard",
+    "Hunt",
+    "Konar",
+    "Maltzahn"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "",
+  "paper_url": "https://arxiv.org/pdf/1608.06696v1.pdf",
+  "paper_abstract": "Distributed consensus is integral to modern distributed systems. The widely adopted Paxos algorithm uses two phases, each requiring majority agreement, to reliably reach consensus. In this paper, we demonstrate that Paxos, which lies at the foundation of many production systems, is conservative. Specifically, we observe that each of the phases of Paxos may use non-intersecting quorums. Majority quorums are not necessary as intersection is required only across phases. Using this weakening of the requirements made in the original formulation, we propose Flexible Paxos, which generalizes over the Paxos algorithm to provide flexible quorums. We show that Flexible Paxos is safe, efficient and easy to utilize in existing distributed systems. We conclude by discussing the wide reaching implications of this result. Examples include improved availability from reducing the size of second phase quorums by one when the number of acceptors is even and utilizing small disjoint phase-2 quorums to speed up the steady-state.",
+  "paper_file": "papers/2016/09/27/flexible-paxos-quorum-intersection-revisited.pdf",
+  "topics": [
+    "distributed-systems"
+  ],
+  "tags": [
+    "paxos",
+    "consensus-protocols",
+    "quorum-systems",
+    "fault-tolerance",
+    "multi-paxos"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Latency and throughput comparison",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

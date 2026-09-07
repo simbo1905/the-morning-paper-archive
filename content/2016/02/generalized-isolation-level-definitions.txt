@@ -1,0 +1,561 @@
+URL: https://blog.acolyer.org/2016/02/25/generalized-isolation-level-definitions/
+Title: Generalized Isolation Level&nbsp;Definitions
+---
+
+Generalized Isolation Level Definitions - Adya et al. 2000
+
+Following on from yesterday's critique of ANSI SQL isolation levels, today's paper also gives a precise definition of isolation levels - but does so in a way that is inclusive of optimistic and general multi-version concurrency control strategies instead of being dependent on locking. Where Berenson et al. define phenomena P0..P3 in order to explain the ANSI SQL isolation levels (degree 1, 2, and 3), Adya et al. define generalised phenomena labelled G0, G1, G2 whose definitions are independent of implementation strategy. Based on these generalised phenomena they then provide portable isolation level definitions (PL) that accommodate all implementation strategies, not just locking based ones.
+
+> 
+
+ We now show that the preventative approach is overly restrictive since it rules out optimistic and multi-version implementations. As mentioned, this approach disallows all histories that would not occur in a locking scheme and prevents conflicting operations from executing concurrently... The real problem with the preventative approach is that the phenomena are expressed in terms of single-object histories. However, the properties of interest are often multi-object constraints. To avoid problems with such constraints, the phenomena need to restrict what can be done with individual objects more than is necessary. Our approach avoids this difficulty by using specifications that capture constraints on multiple objects directly. Furthermore, the definitions in the preventative approach are not applicable to multi-version systems since they are described in terms of objects rather than in terms of versions. On the other hand, our specifications deal with multi-version and single-version histories.
+
+Following a motivation section, the authors first build up a model of a database system, and then define different types of conflict (read and write dependencies, as well as something called an anti-dependency that we'll get too) that can occur within that model. This leads to the central notion of a Direct Serialization Graph (DSG) for a history. The phenomena and isolation levels are then specified as constraints on the allowable graphs.
+
+## How to construct a Direct Serialization Graph
+
+A DSG has one node for every committed transaction. (Directed) edges between these nodes represent read/write/anti-dependency conflicts. A transaction T2 depends on T1 if there is a path in the graph from T1 to T2. It directly depends on T1 if there is an edge from T1 to T2. In the description that follows, a delete is modelled as committing a special "dead" version of an object.
+
+To construct a DSG start with one node for every committed transaction, and for all pairs of distinct nodes T1 and T2, add a read dependency edge from T1 to T2 if any of the following conditions hold:
+
+- T1 commits a version xi of object x, and T2 subsequently reads xi.
+- T1 commits a change, and T2 then performs a predicate-based read such that the set of objects matched by the predicate are altered by T1's commit. Furthermore, T1 is the most recent transaction to have committed a change impacting T1's matches.
+
+Next add an anti-dependency edge from T1 to T2 if any of the following conditions hold:
+
+- T1 reads some version xi of object x, and T2 then commits the next version of x in the version history.
+- T1 performs a predicate based read. T2 then commits a later (the next?) version of some object that would change the matches of T1. 
+
+And finally add a write dependency edge from T1 to T2 if
+
+- T1 commits version xi of some object, and T2 then commits the next version of x in the version history. 
+
+The dependency types and corresponding DSG edges are summarised below:
+
+## Phenomena and Isolation Levels
+
+## Isolation Level PL-1 (Portable definition of Read Uncommitted)
+
+Phenomena P0 prevents dirty writes, and is motivated by a requirement to be able to serialize transactions based on writes, and to simplify recovery from aborts. The latter reason is not applicable to all systems, that may use other schemes for recovery. Portable Isolation level PL-1 provides for serialized transactions based on writes by disallowing Write Cycles.
+
+A Write Cycle is phenomenon G0. A history exhibits a write cycle if its direct serialization graph contains a cycle consisting entirely of write-dependency edges. Note that this definition neatly encompasses write cycles with more than 2 objects involved.
+
+## Isolation Level PL-2 (Portable definition of Read Committed)
+
+The essence of no dirty reads - without being overly restrictive on the reading and writing of objects written by transactions that are still uncommitted - is captured by phenomenon G1, which is comprised of three sub-phenomena G1a, G1b, and G1c. G1 subsumes G0, and PL-2 is the isolation level that prohibits G1 (and hence G0 also).
+
+- G1a - Aborted Reads. T2 reads some object (including via predicates reads) modified by T1, and T1 aborts. To prevent aborted reads, if T2 reads from T1 and T1 aborts, T2 must also abort - known as a cascading abort.
+- G1b - Intermediate Reads. T2 reads a version of some object (including via predicate reads) modified by T1, and it was not T1's final modification of that object. To prevent intermediate reads, transactions can only be allowed to commit if they have read the final versions of objects from other transactions.
+- G1c - Circular Information Flow. The Direct Serialization Graph contains a directed cycle consisting entirely of (read and write) dependency edges. If T1 is affected by T2, then there is no path by which T2 can also affect T1. 
+
+> 
+
+ Proscribing G1 is clearly weaker than proscribing P1 since G1 allows reads from uncommitted transactions.... Our PL-2 definition treats predicate-based reads like normal reads and provides no extra guarantees for them; we believe this approach is the most useful and flexible.
+
+## Isolation Level PL-2.99 (Portable definition of Repeatable Read)
+
+> 
+
+ The level called Repeatable Read... provides less than full serializability with respect to predicates. Anti-dependency cycles due to predicates can occur at this level.
+
+Phenomenon G2-item, Item Anti-Dependency Cycles occurs when a DSG contains a directed cycle having one or more item anti-dependency edges.
+
+PL-2.99 forbids G2-item anomalies in addition to G1 (and hence G0).
+
+## Isolation Level PL-3 (Portable definition of Serializable)
+
+Consider the following history and DSG:
+
+> 
+
+ When T1 performs its query, there are exactly two employees, x and y, both in Sales. T1 sums up the salaries of these employees and compares it with the sum-of-salaries maintained for this department. However, before it performs the final check, T2 inserts a new employee, z2, in the Sales department, update the sum-of-salaries, and commits. Thus when T1 reads the new sum-of-salaries value it finds an inconsistency.
+
+This history is allowed at isolation level PL-2.99, but forbidden at isolation level PL-3, which prohibits phenomenon G2:
+
+G2 Anti-dependency cycles occurs when a DSG contains a directed cycle with one or more anti-dependency edges (item or predicate).
+
+> 
+
+ Proscribing G2 is weaker than providing P2, since we allow a transaction to modify object x even after another uncommitted transaction has read x.... our specification for PL-3 provides conflict-serializability (this can be shown using theorems presented in [9]). All realistic implementations provide conflict-serializability; thus our PL-3 conditions provide what is normally considered as serializability.
+
+## Mixing Isolation Levels
+
+> 
+
+ In a mixed system, each transaction specifies its level when it starts and this information is maintained as part of the history and used to construct a mixed serialization graph or MSG. Like a DSG, the MSG contains nodes corresponding to committed transactions and edges corresponding to dependencies, but only dependencies relevant to a transaction’s level or obligatory dependencies show up as edges in the graph... For example, an anti-dependency edge from a PL-3 transaction to a PL-1 transaction is an obligatory edge since overwriting of reads matters at level PL-3.
+
+If an MSG is acyclic, and phenomena G1a and G1b do not occur for PL-2 and PL-3 transactions then a history is mixing correct. Such a history provides each transaction with the guarantees that pertain to its level.
+
+## Broader Applicability
+
+> 
+
+ Our approach is applicable to other levels in addition to the ones discussed in the paper. We have developed implementation-independent specifications of commercial isolation levels such as Snapshot Isolation and Cursor Stability, and we have defined a new level called PL-2+; the details can be found in [1 - Adya's PhD thesis]. PL-2+ is the the weakest level that guarantees consistent reads and causal consistency; it is useful in client-server systems and broadcast environments.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ ConsistencyTransaction processing 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousA Critique of ANSI SQL Isolation LevelsNext &rsaquo;Distributed Consistency and Session Anomalies
+ 
+ 
+
+ 
+ 
+## 
+ 5 thoughts on &ldquo;Generalized Isolation Level Definitions&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: ACIDRain: concurrency-related attacks on database backed web applications | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Seeing is believing: a client-centric specification of database isolation | the morning paper 
+ 
+ 
+- 
+ 
+ 
+ 
+ Jake says: 
+
+ 
+ January 10, 2019 at 5:44 am 
+
+ 
+
+ 
+ 
+Looks like a typo
+
+`Furthermore, T1 is the most recent transaction to have committed a change impacting T1’s matches.` should be `Furthermore, T1 is the most recent transaction to have committed a change impacting T2’s matches.`
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ June 26, 2019 at 1:46 pm 
+
+ 
+
+ 
+ 
+Comment received from Ivan Prisyazhnyy:
+
+Reading an article, the phrases:
+
+A transaction T1 depends on T2 if there is a path in the graph from T1 to T2. It directly depends on T2 if there is an edge from T1 to T2... add a read dependency edge from T2 to T1 if any of the following conditions hold
+
+really confuses a reader and everything that says that there is a dependency edge from T2 to T1 because when you read the article it's not very clear is it about dependency between transactions or about a "dependency" edge in the graph (DSG) because they have OPPOSITE directions.
+
+Moreover, the mentioned directions are seemed to be wrong if I get the original paper right:
+
+There is a read/write/anti-dependency edge from transaction Ti to transaction Tj if Tj directly read/write/anti-depends on Ti.
+
+As you can see it is the opposite of what is written in the aforementioned sentences:
+
+If there is a dependency edge (arrow) from Ti -> Tj (read T1 -> T2) then the Tj (T2) depends on Ti (T1).
+
+Tj directly depends on Ti if there is an dependency edge (arrow) from Ti -> Tj (T1 -> T2 => T2 depends on T1)
+
+In an example, it must be: "add a read dependency edge from T1 to T2 if any of the following conditions hold... (T2 read depends on T1: T1 -wr->T2, that means that T1 installs a new version Xi and then T2 reads just installed version Xi by the T1)". If there is a dep-edge from T1 -> T2 then T2 depends on T1. That's it. i.e. if T1 -wr-> T2, T1 writes and T2 reads X, and thus its a read-dependency, and T2 read-depends on T1.
+
+Also, it would be much beneficial for this article to include Figure 2 "Definitions of direct conflicts between transaction" with graphs.
+
+Hope, I get it right. If that's the case, plz recheck my thoughts, as there was no one to review this.
+
+-- Kind regards, Ivan Prisyazhnyy, Software Engineer
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ June 26, 2019 at 3:25 pm 
+
+ 
+
+ 
+ 
+(Replying to Ivan Prisyazhnyy)
+
+In translating from Ti and Tj to T1 and T2 I got my directions inconsistent, well spotted! As you point out it's somewhat confusing as the definitions of dependencies in the paper (e.g. Defns 3, 5, 6) go in one direction, but the dependency (conflict) edges go in the other direction.
+
+Not having read this paper for about three years I had to go back and have another close read, but fingers crossed I've got everything straightened out now.
+
+Thanks again, Adrian.
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Loading Comments...
+ 
+ 
+ 
+ 
+
+ 
+ 
+ Write a Comment...
+ 
+ 
+ 
+ 
+ Email (Required)
+ 
+ 
+ 
+ Name (Required)
+ 
+ 
+ 
+ Website
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ %d

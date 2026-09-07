@@ -1,0 +1,49 @@
+{
+  "date": "20180921",
+  "file_name": "20180921",
+  "slug": "same-different-problems-strain-convolutional-neural-networks",
+  "blog_url": "https://blog.acolyer.org/2018/09/21/same-different-problems-strain-convolutional-neural-networks/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a key limitation of convolutional neural networks (CNNs) in detecting visual relations, specifically same-different (SD) problems. While CNNs excel at spatial relation (SR) tasks, they struggle with SD problems, even after extensive training. The author notes that CNNs achieve high accuracy on SR problems regardless of network configuration, but SD problems strain their capacity, with larger networks performing slightly better. To investigate further, the authors introduce PSVRT, a synthetic benchmark where CNNs fail to generalize SD rules despite training on millions of examples. The paper hypothesizes that CNNs rely on 'subtraction templates' for SD tasks, which become intractable due to the combinatorial explosion of item arrangements as image size or item count increases. The blog emphasizes that visual-relation problems exceed the representational capacity of feedforward networks, suggesting the need for attentional and grouping mechanisms to bridge the gap between human and machine visual reasoning.",
+  "paper_title": "Same-different problems strain convolutional neural networks",
+  "paper_authors": [
+    "Luca Ricci",
+    "Ethan Perez",
+    "Thomas Serre"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "",
+  "paper_url": "https://arxiv.org/abs/1802.03390",
+  "paper_abstract": "The robust and efficient recognition of visual relations in images is a hallmark of biological vision. We argue that, despite recent progress in visual recognition, modern machine vision algorithms are severely limited in their ability to learn visual relations. Through controlled experiments, we demonstrate that visual-relation problems strain convolutional neural networks (CNNs). The networks eventually break altogether when rote memorization becomes impossible, as when intraclass variability exceeds network capacity. Motivated by the comparable success of biological vision, we argue that feedback mechanisms including attention and perceptual grouping may be the key computational components underlying abstract visual reasoning.",
+  "paper_file": "papers/2018/09/21/same-different-problems-strain-convolutional-neural-networks.pdf",
+  "topics": [
+    "machine-learning"
+  ],
+  "tags": [
+    "visual-reasoning",
+    "convolutional-neural-networks",
+    "same-different-problems",
+    "spatial-relations",
+    "PSVRT",
+    "deep-learning-limitations"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Examples of visual relations",
+      "caption": "Figure 1: Three images. The image in the left panel can be classified confidently as containing a flute by modern vision algorithms. However, these same algorithms struggle to learn the concept of “sameness” as exemplified by the image with the two curves shown in the middle panel. The image in the right panel panel depicts a spatial relation: three objects arranged in a line with the largest in the middle. Middle and are right images are from SVRT (Fleuret et al., 2011)."
+    },
+    {
+      "number": "Figure 2",
+      "title": "SVRT results",
+      "caption": "Figure 2: SVRT results. Multiple CNNs were trained on each of the twenty-three SVRT problems. Shown are the ranked accuracies of the best-performing network for each problem. The x-axis shows the problem ID. CNNs were found to produce uniformly lower accuracies on same-different problems (red bars) than on spatial-relation problems (blue bars). The purple bar represents a problem which required detecting both a same-different relation and a spatial relation."
+    },
+    {
+      "number": "Figure 3",
+      "title": "PSVRT challenge examples",
+      "caption": "Figure 3: The PSVRT challenge. Four images show the joint categories of SD and SR problems. An image is Same or Different depending on whether it contains identical (left column) or"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,49 @@
+{
+  "date": "20180523",
+  "file_name": "20180523",
+  "slug": "pixie-a-system-for-recommending-3-billion-items-to-200-million-users-in-real-time",
+  "blog_url": "https://blog.acolyer.org/2018/05/23/pixie-a-system-for-recommending-3-billion-items-to-200-million-users-in-real-time/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes Pixie, Pinterest's real-time recommendation system that handles 3+ billion items and 200+ million users. The key insight is the shift from batch to real-time processing: real-time computation avoids wasting resources by only generating recommendations when needed, rather than precomputing for all users periodically. Pixie drives over 80% of user engagement at Pinterest. The system models Pinterest as a bipartite graph of pins and boards, using random walks to generate recommendations. Pixie enhances basic random walks with user-specific biasing, multiple weighted query pins, boosting of candidates appearing in multiple queries, and early stopping to balance speed and quality. Graph pruning further improves recommendation performance by removing topically diffuse boards and miscategorized pins.",
+  "paper_title": "Pixie: a system for recommending 3+ billion items to 200+ million users in real-time",
+  "paper_authors": [
+    "Pong Eksombatchai",
+    "Ching-Hua Chen",
+    "Yuchen Liu",
+    "Junfeng He",
+    "Yizhou Sun",
+    "Tao Yang"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "WWW'18",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3186183",
+  "paper_abstract": "Generative Recommenders (GRs) have recently emerged as promising alternatives to traditional Deep Learning Recommendation Models (DLRMs). Despite their potential, GRs remain computationally expensive in inference, exhibiting compute-bound characteristics similar to the prefill stage of Large Language Model (LLM) inference. Prefix caching can reduce redundant computation by reusing previously constructed KV caches. However, the unique properties of GRs, i.e., highly personalized user profiles and real-time item retrieval, make cache reuse across queries challenging, resulting in limited computational savings. To address these challenges, we present Bat, an efficient serving system for GRs. The key observation is that the semantics between user and item tokens are permutationinvariant. Building on this, we propose Bipartite Attention, a novel attention mechanism that enables adaptive selection of either the user or the item as the prompt prefix without compromising accuracy, thereby unlocking new opportunities ∗ Equal Contribution. This work is licensed under a Creative Commons Attribution 4.0 International License. ASPLOS ’26, Pittsburgh, PA, USA. © 2026 Copyright held by the owner/author(s). ACM ISBN 979-8-4007-2359-9/2026/03 https://doi.org/10.1145/3779212.3790131 for KV cache reuse. We further co-design a disaggregated KV cache pool to proactively manage user-prefix and itemprefix caches as separate components. Since introducing item caches incurs additional memory overhead, we develop a hot-replicated cold-sharded item cache placement strategy that minimizes memory usage and maintains low communication overheads. Finally, we introduce a hotness-aware prompt scheduling strategy to optimize prefix selection under memory constraints. Extensive experiments on multiple recommendation datasets demonstrate that Bat improves serving throughput by up to 1.6× over the conventional useras-prefix approach, while reducing total computation by up to 58%.",
+  "paper_file": "papers/2018/05/23/pixie-a-system-for-recommending-3-billion-items-to-200-million-users-in-real-time.pdf",
+  "topics": [
+    "data-engineering",
+    "machine-learning"
+  ],
+  "tags": [
+    "recommender-systems",
+    "random-walks",
+    "graph-algorithms",
+    "real-time-systems",
+    "personalization",
+    "graph-pruning",
+    "social-graph"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "User-as-prefix attention structure",
+      "caption": "Existing common practice of User-as-prefix attention, organizing input sequence as user profile tokens, candidate item tokens, and system instructions."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Compute latency and prefix caching analysis",
+      "caption": "Evaluation of compute latency of small language models (a), token distribution analysis showing item tokens account for >33% of all tokens (b), user cache miss rates in large-scale advertising environments (c), and prefix caching ratio analysis (d)."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

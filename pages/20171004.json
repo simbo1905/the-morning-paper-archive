@@ -1,0 +1,44 @@
+{
+  "date": "20171004",
+  "file_name": "20171004",
+  "slug": "activeclean-interactive-data-cleaning-for-statistical-modeling",
+  "blog_url": "https://blog.acolyer.org/2017/10/04/activeclean-interactive-data-cleaning-for-statistical-modeling/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights ActiveClean as a solution to the critical but often overlooked problem of data cleaning in machine learning pipelines. He emphasizes the dangers of naive iterative cleaning, where cleaning and retraining in alternation can lead to misleading results due to Simpson's paradox, even in simple models. The blog post explains how dirty data and improper cleaning can systematically bias model training, with examples like MNIST image corruptions showing significant accuracy drops. ActiveClean is presented as a principled approach that treats data cleaning as a form of stochastic gradient descent, ensuring global convergence for convex-loss models (e.g., SVMs, linear regression). The system iteratively samples, cleans, and updates the model, with optional components like detectors and estimators to prioritize valuable cleaning tasks. Colyer notes that ActiveClean can improve model accuracy by up to 2.5x for the same cleaning effort compared to traditional methods.",
+  "paper_title": "ActiveClean: Interactive Data Cleaning for Statistical Modeling",
+  "paper_authors": [
+    "Shivaram Venkataraman",
+    "Feng Niu",
+    "Joseph E. Gonzalez",
+    "Michael I. Jordan",
+    "Joseph M. Hellerstein"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "VLDB",
+  "paper_url": "https://activeclean.github.io/files/activeclean-vldb16.pdf",
+  "paper_abstract": "Analysts often clean dirty data iteratively–cleaning some data, executing the analysis, and then cleaning more data based on the results. We explore the iterative cleaning process in the context of statistical model training, which is an increasingly popular form of data analytics. We propose ActiveClean, which allows for progressive and iterative cleaning in statistical modeling problems while preserving convergence guarantees. ActiveClean supports an important class of models called convex loss models (e.g., linear regression and SVMs), and prioritizes cleaning those records likely to affect the results. We evaluate ActiveClean on five real-world datasets UCI Adult, UCI EEG, MNIST, IMDB, and Dollars For Docs with both real and synthetic errors. The results show that our proposed optimizations can improve model accuracy by up-to 2.5x for the same amount of data cleaned. Furthermore for a fixed cleaning budget and on all real dirty datasets, ActiveClean returns more accurate models than uniform sampling and Active Learning. 1. Figure 1: (a) Systematic corruption in one variable can lead to a shifted model. The dirty examples are labeled 1-5 and the cleaned examples are labeled 1’-5’. (b) Mixed dirty and clean data results in a less accurate model than no cleaning. (c) Small samples of only clean data can result in similarly issues. pre-processing step, and instead, repeatedly alternate between cleaning and analysis. It is common to use the preliminary analysis on dirty data as a guide to help identify potential errors and design repairs [15,21,22]. Unfortunately, for statistical models, iteratively cleaning some data and re-training on a partially clean dataset can lead to biases in even the simplest models. Consider a linear regression model on systematically translated data (Figure 1a). If one only cleans two of the data points, the intermediate result reveals a misleading trend (Figure 1b). This is a consequence of the well-known Simpson’s paradox where aggregate...",
+  "paper_file": "papers/2017/10/04/activeclean-interactive-data-cleaning-for-statistical-modeling.pdf",
+  "topics": [
+    "machine-learning",
+    "data-engineering"
+  ],
+  "tags": [
+    "data-cleaning",
+    "statistical-modeling",
+    "stochastic-gradient-descent",
+    "simpsons-paradox",
+    "iterative-learning",
+    "convex-loss-models",
+    "data-pipelines",
+    "gradient-optimization"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Systematic corruption and sampling effects in linear regression",
+      "caption": "(a) Systematic corruption in one variable can lead to a shifted model. The dirty examples are labeled 1-5 and the cleaned examples are labeled 1'-5'. (b) Mixed dirty and clean data results in a less accurate model than no cleaning. (c) Small samples of only clean data can result in similarly issues."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

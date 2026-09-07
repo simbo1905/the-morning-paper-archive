@@ -1,0 +1,98 @@
+{
+  "date": "20190325",
+  "file_name": "20190325",
+  "slug": "amazon-aurora-design-considerations-for-high-throughput-cloud-native-relational-databases",
+  "blog_url": "https://blog.acolyer.org/2019/03/25/amazon-aurora-design-considerations-for-high-throughput-cloud-native-relational-databases/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Amazon Aurora's innovative approach to retrofitting a traditional relational database (MySQL) for cloud-native environments. The paper emphasizes key design considerations such as decoupling compute from storage, handling high resilience and scalability demands, and addressing cloud-specific challenges like sudden traffic spikes, schema migrations, and zero-downtime updates. The core insight is Aurora's rearchitecture of the storage layer to use a distributed, six-way replicated system across three availability zones, enabling tolerance of entire AZ failures while maintaining durability. The blog also praises Aurora's use of redo logs as the unit of replication, drastically reducing write amplification and improving performance by 35x in benchmarks compared to vanilla MySQL. Additionally, the design simplifies operations like hotspot management, patching, and upgrades through its segment-based repair mechanism.",
+  "paper_title": "Amazon Aurora: design considerations for high throughput cloud-native relational databases",
+  "paper_authors": [
+    "Yuri Verbitski",
+    "Vijay Balakrishnan",
+    "Audrey Cheng",
+    "Anurag Gupta",
+    "Kartik Kannapur",
+    "Yongchul Kwon",
+    "Erich Nahum",
+    "Sriram Rao",
+    "Adam Silberstein",
+    "Matthew Tierney"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "SIGMOD'17",
+  "paper_url": "https://www.allthingsdistributed.com/files/p1041-verbitski.pdf",
+  "paper_abstract": "Consensus protocols play a pivotal role in fault-tolerant distributed systems, with their most prominent applications found in cloud services that leverage replication to deliver high availability and strong consistency. Confronting these consensus systems are new challenges that emerge from modern cloud workloads and infrastructure: geographical distance, payload density, diversity of workload characteristics and hardware conditions, and the constant flux that demands adaptability. Classic consensus protocols, such as MultiPaxos and Raft, fall short in addressing these challenges. Despite being the de-facto standard implemented in practice, these protocols do not recognize location affinity and bandwidth pressure, which are problems that arise in cloud environments but are not modeled in their designs. More importantly, none of the existing consensus protocols are adaptive to diversity and dynamism; this is due to their rigid, pessimistic approach to quorum composition and failure handling. With these issues in mind, we propose optimistic connectivity, a design principle for cloud consensus protocols. Inspired by optimistic algorithm designs that speculate conflictfree execution and resolve conflicts upon validation errors, we apply the idea of optimism to quorum composition. Protocols are allowed to assume arbitrarily large quorums that may require higher connectivity than simple majority in failure-free cases, while assuring progress upon timeout errors by selecting conservative configurations. Following this principle, we design Crossword and Bodega, two consensus protocols that tackle compound cloud-era challenges; we implement and evaluate both protocols with Summerset, a protocol-generic replicated key-value store testbed.",
+  "paper_file": "papers/2019/03/25/amazon-aurora-design-considerations-for-high-throughput-cloud-native-relational-databases.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems",
+    "cloud-computing"
+  ],
+  "tags": [
+    "relational-databases",
+    "high-availability",
+    "durability",
+    "quorum-replication",
+    "redo-logs",
+    "write-amplification",
+    "MySQL",
+    "PostgreSQL",
+    "cloud-native",
+    "fault-tolerance",
+    "availability-zones"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Crossword System Overview",
+      "caption": "Crossword: Optimistic Adaptation within a Quorum-Shards Tradeoff for Dynamic Data-Heavy Workloads"
+    },
+    {
+      "number": "Figure 2",
+      "title": "Bodega System Overview",
+      "caption": "Bodega: Optimistic Roster Composition Powered by Roster Leases for Always-Local Linearizable Reads"
+    },
+    {
+      "number": "Figure 3",
+      "title": "Crossword Architecture",
+      "caption": null
+    },
+    {
+      "number": "Figure 4",
+      "title": "Shard Assignment Policies",
+      "caption": null
+    },
+    {
+      "number": "Figure 5",
+      "title": "Availability Constraint Boundary",
+      "caption": null
+    },
+    {
+      "number": "Figure 6",
+      "title": "Performance Tradeoff Analysis",
+      "caption": null
+    },
+    {
+      "number": "Figure 7",
+      "title": "Follower Gossiping Mechanism",
+      "caption": null
+    },
+    {
+      "number": "Figure 8",
+      "title": "Bodega Roster Leases",
+      "caption": null
+    },
+    {
+      "number": "Figure 9",
+      "title": "Summerset Key-Value Store Architecture",
+      "caption": null
+    },
+    {
+      "number": "Figure 10",
+      "title": "Consistency Spectrum",
+      "caption": "Beyond Linearizability: A Unified Consistency Spectrum"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

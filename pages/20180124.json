@@ -1,0 +1,36 @@
+{
+  "date": "20180124",
+  "file_name": "20180124",
+  "slug": "linear-haskell-practical-linearity-in-a-higher-order-polymorphic-language",
+  "blog_url": "https://blog.acolyer.org/2018/01/24/linear-haskell-practical-linearity-in-a-higher-order-polymorphic-language/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer introduces 'Linear Haskell,' a paper from POPL 2018 that extends Haskell with linear types in a non-invasive way, ensuring existing programs remain compatible. The blog highlights the practical benefits of linear types, particularly in encoding resource usage protocols (e.g., file handling or socket APIs) to eliminate bugs and in enabling safe in-place updates for efficiency. The author praises the paper's readability and clarity, noting how linear types can statically enforce protocols and reduce unnecessary copying. The key insight is that linear types can bridge the gap between type safety and performance, making previously infeasible optimizations practical.",
+  "paper_title": "Linear Haskell: Practical linearity in a higher-order polymorphic language",
+  "paper_authors": [
+    "Jean-Philippe Bernardy",
+    "Mathieu Boespflug",
+    "Ryan R. Newton",
+    "Simon Peyton Jones",
+    "Arnaud Spiwack"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "POPL '18",
+  "paper_url": "https://arxiv.org/abs/1710.09756",
+  "paper_abstract": "ing with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org. © 2018 Copyright held by the owner/author(s). Publication rights licensed to the Association for Computing Machinery. 2475-1421/2018/1-ART5 https://doi.org/10.1145/3158093 Proceedings of the ACM on Programming Languages, Vol. 2, No. POPL, Article 5. Publication date: January 2018. 5:2 J.-P. Bernardy, M. Boespflug, R. Newton, S. Peyton Jones, and A. Spiwack types. Our design supports many applications for linear types, but we focus on two particular use-cases. First, safe update-in-place for mutable structures, such as arrays; and second, enforcing access protocols for external apis, such as files, sockets, channels and other resources. Our particular contributions are these: • We describe an extension to Haskell for linear types, dubbed Linear Haskell, using two extended examples (Sec. 2.1-Sec. 2.3). The extension is non-invasive: existing programs continue to typecheck, and existing datatypes can be used as-is even in linear parts of the program. The key to this non-invasiveness is that, in contrast to most other approaches, we focus on linearity on the function arrow rather than linearity in the kinds (Sec. 6.1). • Every function arrow can be declared linear, including those of constructor types. This results in datatypes which can store both linear values, in addition to unrestricted ones (Sec. 2.4-2.5). • A benefit of linearity-on-the-arrow is that it naturally supports linearity polymorphism (Sec. 2.6). This contributes to a smooth extension of Haskell by allowing many existing functions (map, compose, etc) to be given more general types, so they can work uniformly in both linear and non-linear code. • We formalise our system in a small, statically-typed core calculus that exhibits all these features (Sec. 3). It enjoys the usual properties of progress and pr...",
+  "paper_file": "papers/2018/01/24/linear-haskell-practical-linearity-in-a-higher-order-polymorphic-language.pdf",
+  "topics": [
+    "programming-languages"
+  ],
+  "tags": [
+    "linear-types",
+    "type-systems",
+    "haskell",
+    "resource-protocols",
+    "in-place-updates",
+    "behavioural-types",
+    "type-state"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

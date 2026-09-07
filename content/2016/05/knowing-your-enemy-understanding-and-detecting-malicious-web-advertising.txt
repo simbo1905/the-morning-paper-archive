@@ -1,0 +1,307 @@
+URL: https://blog.acolyer.org/2016/05/18/knowing-your-enemy-understanding-and-detecting-malicious-web-advertising/
+Title: Knowing your enemy: understanding and detecting malicious web&nbsp;advertising
+---
+
+Knowing your enemy: understanding and detecting malicious web advertising - Li at al. CCS, 2012
+
+> 
+
+ ... hackers and con-artists have found web ads to be a low-cost and highly effective means to conduct malicious and fraudulent activities. In this paper, we broadly refer to such ad-related malicious activities as malvertising, which can happen to any link on an ad-delivery chain, including publishers, advertising networks, and advertisers.
+
+Just how widespread is malvertising, and how does it work? The authors crawled 90,000 leading web sites over a three-month period to find out. "Our study reveals the rampancy of malvertising: hundreds of top-ranking web sites fell victims and leading ad networks such as DoubleClick were infiltrated."
+
+> 
+
+ By crawling just the top 90,000 Alexa home pages, we find that more than 1% of these well-maintained sites have been exploited to deliver malicious contents or to conduct fraudulent clicks. Considering our crawling scale is small, the actual malvertising problem can be more severe... Compared to SEO and spam, malvertising has received relatively less attention so far, yet it may pose a much more serious threat to web security for two reasons. First, attackers may infiltrate large ad networks and thus infect top ranking web sites with more visitors. Second, attackers could specify audience profiles at their choice through advertising agreements, and target attacks at the most vulnerable populations.
+
+## How malvertising works
+
+Display ads (and not just malvertisements), are delivered through a network involving publishers, advertisers, and audiences. Publishers display ads on their pages on behalf of advertisers by embedding ad tags in their web pages. These generate requests to an ad network for ad content, which may be dynamically customized according to the user. Publishers make a profit either by pay-per-impression or pay-per-click. Advertisers create ads, and ad networks bring together publishers and advertisers. Large ad networks provide platforms for advertisers to select publishers and target audience. Ad networks can also resell ad spaces in their inventory through ad syndication. Audiences visit publisher pages, and if they click on ads will be redirected to the advertiser web sites.
+
+With that background, let's take a look at a real malicious ad campaign discovered by the authors in June of 2011:
+
+> 
+
+ This is a fake Anti-Virus (AV) campaign that infected 65 publisher pages from June 21st to August 19th, 2011. One of them was the home page of freeonlinegames.com, an Alexa top 2404 Website. The page’s ad tag first queried Google and DoubleClick, which referred the visitors to a third-party ad network adsloader.com. This ad network turned out to be malicious: it delivered an ad tag which automatically redirected the user’s browser to a fake AV site and tried to trick the visitor to download a malware executable... What makes this campaign interesting is that its delivery path includes DoubleClick, a popular ad exchange network. The attackers set up a third-party ad network called adsloader.com, (this domain name resembels adloader.com, held by a legitimate company) to syndicate with DoubleClick. When accessed by a victim, adsloader.com displayed an image.
+
+> 
+
+ Besides delivering an ad image, adsloader.com also injected a hidden iframe pointing to enginedelivery.com, which redirected users to eafive.com (a fake AV site), whose HTML code was classified by Forefront as TrojanDownloader:HTML/Renos.
+
+All of the malicious parties involved performing cloaking to evade detection, never redirecting the same visitor more than once, and only redirerting IE user agents. The enginedelivery.com avoided IP address ranges from Amazon EC2, and the fake-AV website ony attacked IE-6 users.
+
+> 
+
+ The attackers recruited in total over 24 ad networks, 16 redirectors, and 84 fake-AV scanners, and rotated them throughout the campaign. This strategy worked well, only 4 redirectors and 11 fake-AV ads were caught by Google Safe Browsing: none of the malicious ad networks were blocked.
+
+Note that the entities involved could well be controlled by different parties - the Whois records suggest this. All of the malicious domains were registered after 2010, and set to expire in one year.
+
+## Malvertising based attacks
+
+The study considers three main kinds of malvertising attacks: drive-by-downloads, scam and phishing attacks, and click-fraud. In click-fraud, attackers set up malicious publisher sites and redirect user traffic to advertiser pages automatically without the user knowing.
+
+> 
+
+ In contrast to legitimate publishers who display ad links (pointing to advertisers landing pages) that users can click, fraudulent or compromised publishers redirect user traffic through pay-per-click (PPC) ad networks to ad landing pages automatically without showing the ads to users and without the need of user clicks. To the best of our knowledge, this type of click fraud has not been reported before.
+
+In all of the attacks, malicious content is stored either on the attackers own websites, or on compromised sites. All nodes on identified ad paths in the study were scanned by Google Safe Browsing and Microsoft Forefront to detect malvertising. The identified attacks indicated that all three types of malvertising are widely used, and attackers extensively exploit online advertising in multiple ways.
+
+## Detecting malvertising
+
+> 
+
+ Our goal is to broadly detect malicious and fraudulent activities that exploit display ads. In particular, if any node on an ad-delivery path performs malicious activities (e.g., delivering malicious content, illicitly redirecting user click traffic, etc.), we call the node a malicious node. Correspondingly, we call any path containing a malicious node a malvertising path, and the source node (i.e., the publisher’s URL) of a malvertising path an infected publisher.
+
+The average malvertising path length is 8.11 nodes, much longer than the average crawled ad path length of 3.59 nodes. The average lifetime of a malicious domain is relatively short, ranging from 1 to 5 days, while the overall campaign can last for months. "Thus, the individual malvertising domains can be more dynamic and harder to detect due to their transient nature and the use of domain rotations by attackers."
+
+Malvertising nodes stand out for the following features:
+
+- Using the EasyList and EasyPrivacy online lists, nodes were classified as publishers, advertisers, or unknown. 91.6% of malicious nodes detected were unknown.
+
+- Most malicious domains expire within one year of registration, in contrast normal nodes have longer expiration dates.
+
+- Many malicious domains belong to free domain providers such as .co.cc.
+
+- Many exploit servers and redirectors have distinctive URL features, for example /showthread\.php\?t=\d{8} matches the URLs of 34 different malicious nodes, suggesting the use of templates or scripts to generate URLs.
+
+- Almost 80% of malicious nodes are associated with only a small number of publishers. "This observation suggests that attackers usually create new ad networks or hijack small, unpopular ones, rather than directly targeting large, popular ad networks that are better managed and harder to compromise."
+
+Malvertising paths stand out for the following features:
+
+- Adjacent node pairs that occur frequently on ad paths (e.g. youtube.com to doubleclick.com) are less likely to be associated with malicious nodes.
+
+- 64% of malvertising domain-paths involve more than one ad network on the path. These paths may well be associated with ad syndication, where large ad networks such as DoubleClick resell ad spaces to small ad networks that are more vulnerable. "Out of 101 malvertising domain paths involving DoubleClick, there exist only 8 domain paths where DoubleClick directly connects to a malicious node."
+
+- Malvertising paths are usually longer, and include multiple nodes whose roles are unknown. 
+
+- The closer a node stands to a malicious node, the more likely it is involved in multiple malvertising domain-paths.
+
+> 
+
+ When we combine node features with ad paths, they become more distinctive for identifying attacks. For example, the roles bplayed by different legitimate nodes (e.g., publishers, ad networks, and trackers) and their orders are not completely random. It is unusual to observe multiple consecutive nodes, completely unrelated with ads, staying together along the redirection chain of a normal ad. We also find that newly registered ad domains are much rarer than newly registered normal Web sites. So studying the topology and interactions among nodes, combined with their features, provides great opportunities for detection.
+
+Using these findings, the authors built MadTracer for detecting malvertising activities. MadTracer has two main components: one to analyze ad paths and their features, and one to intensively monitor infected publisher pages to study cloaking techniques and expand detection results.
+
+> 
+
+ We adopt a statistical learning framework based on decision trees to automatically generate a set of detection rules.
+
+The features used by the framework are based on those described previously. MadTracer generates 82 rules from the training data. The false positive rate is very low, with a 0.11% false positive rate for pages, and a 0.075% false positive rate for domain paths. Scam attempts flagged by MadTracer were manually verified, drive-by-downloads flagged by MadTracer were verified with SafeBrowsing and Forefront. Click-frauds flagged by MadTracer are verified through path inspection - whether they contain an invisible iframe with automatic redirection, and whether this lands on a PPC ad landing page. The overall false detection rate is 5%.
+
+> 
+
+ The early detection ability and the higher coverage of our approach demonstrate the power of detection using ad paths and rich node attributes. By focusing on the malvertising infrastructure instead of malicious ad contents, MadTracer has the ability to detect new, stealthy malvertising activities that slip under the existing malware scanners.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousPharmaLeaks: Understanding the business of online pharmaceutical affiliate programsNext &rsaquo;Understanding malvertising through ad-injecting browser extensions
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;Knowing your enemy: understanding and detecting malicious web advertising&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Big Analytics Roundup (May 23, 2016) | The Big Analytics Blog 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

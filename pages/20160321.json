@@ -1,0 +1,49 @@
+{
+  "date": "20160321",
+  "file_name": "20160321",
+  "slug": "maglev-a-fast-and-reliable-software-network-load-balancer",
+  "blog_url": "https://blog.acolyer.org/2016/03/21/maglev-a-fast-and-reliable-software-network-load-balancer/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses Maglev, Google's software load balancer deployed across their datacenters. Adrian Colyer highlights Maglev's advantages over hardware load balancers, including scalability, availability, and ease of upgrades. The system ensures even traffic distribution via ECMP, connection persistence through consistent hashing and connection tracking, and high throughput with small packets. The post details Maglev's architecture, including VIP handling, packet forwarding mechanisms, and backend selection using consistent hashing. Notably, Maglev bypasses the Linux kernel for packet processing, uses dedicated CPU cores and threads for efficiency, and employs a fallback round-robin mechanism for queue overload. The system also handles IP fragmentation and maintains packet pools for efficient NIC communication.",
+  "paper_title": "Maglev: A Fast and Reliable Software Network Load Balancer",
+  "paper_authors": [
+    "Daniel Eisenbud",
+    "C. Stephen Gunn",
+    "Robert MacFarlane",
+    "Zachary Amsden",
+    "Andrew Lambeth"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "NSDI'16",
+  "paper_url": "http://research.google.com/pubs/pub44824.html",
+  "paper_abstract": "Maglev is Google’s network load balancer. It is a large distributed software system that runs on commodity Linux servers. Unlike traditional hardware network load balancers, it does not require a specialized physical rack deployment, and its capacity can be easily adjusted by adding or removing servers. Network routers distribute packets evenly to the Maglev machines via Equal Cost Multipath (ECMP); each Maglev machine then matches the packets to their corresponding services and spreads them evenly to the service endpoints. To accommodate high and ever-increasing traffic, Maglev is specifically optimized for packet processing performance. A single Maglev machine is able to saturate a 10Gbps link with small packets. Maglev is also equipped with consistent hashing and connection tracking features, to minimize the negative impact of unexpected faults and failures on connection-oriented protocols. Maglev has been serving Google’s traffic since 2008. It has sustained the rapid global growth of Google services, and it also provides network load balancing for Google Cloud Platform.",
+  "paper_file": "papers/2016/03/21/maglev-a-fast-and-reliable-software-network-load-balancer.pdf",
+  "topics": [
+    "networking",
+    "distributed-systems"
+  ],
+  "tags": [
+    "load-balancing",
+    "consistent-hashing",
+    "connection-tracking",
+    "ECMP",
+    "GRE",
+    "Direct-Server-Return",
+    "packet-forwarding",
+    "NIC-bypass"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Hardware load balancer and Maglev",
+      "caption": "Hardware load balancer and Maglev."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Maglev packet flow",
+      "caption": "Maglev packet flow."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

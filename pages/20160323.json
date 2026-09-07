@@ -1,0 +1,50 @@
+{
+  "date": "20160323",
+  "file_name": "20160323",
+  "slug": "fairride-near-optimal-fair-cache-sharing",
+  "blog_url": "https://blog.acolyer.org/2016/03/23/fairride-near-optimal-fair-cache-sharing/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights FairRide as a novel cache sharing algorithm that achieves near-optimal performance while providing key properties like isolation and strategy-proofness. The paper addresses the challenge of sharing a single cache among multiple users/applications, where traditional approaches like max-min fairness fail to prevent gaming (e.g., users artificially inflating requests to retain cache space). FairRide introduces probabilistic blocking to ensure fairness, compromising slightly on Pareto-efficiency to achieve isolation and strategy-proofness. The algorithm delays responses for files shared by multiple users, effectively discouraging selfish behavior. In evaluations, FairRide demonstrated a 2.6x improvement over isolated caches, remained robust against cheating users, and achieved within 3-13% of optimal performance while maintaining fairness guarantees. The key insight is that introducing controlled delays (or 'sleeps') in cache access can deter strategic misuse, leading to more equitable and efficient resource utilization.",
+  "paper_title": "FairRide: Near-Optimal, Fair Cache Sharing",
+  "paper_authors": [
+    "Dongsheng Li",
+    "Henggang Cui",
+    "Greg Ganger",
+    "Phil Gibbons",
+    "Eric Xing"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "NSDI'16",
+  "paper_url": "https://people.csail.mit.edu/matei/papers/2016/nsdi_fairride.pdf",
+  "paper_abstract": "– Memory caches continue to be a critical component to many systems. In recent years, there has been larger amounts of data into main memory, especially in shared environments such as the cloud. The nature of such environments requires resource allocations to provide both performance isolation for multiple users/applications and high utilization for the systems. We study the problem of fair allocation of memory cache for multiple users with shared files. We find that, surprisingly, no memory allocation policy can provide all three desirable properties (isolation-guarantee, strategy-proofness and Paretoefficiency) that are typically achievable by other types of resources, e.g., CPU or network. We also show that there exist policies that achieve any two of the three properties. We find that the only way to achieve both isolationguarantee and strategy-proofness is through blocking, which we efficiently adapt in a new policy called FairRide. We implement FairRide in a popular memorycentric storage system using an efficient form of blocking, named as expected delaying, and demonstrate that FairRide can lead to better cache efficiency (2.6× over isolated caches) and fairness in many scenarios.",
+  "paper_file": "papers/2016/03/23/fairride-near-optimal-fair-cache-sharing.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "cache-sharing",
+    "max-min-fairness",
+    "strategy-proofness",
+    "isolation",
+    "pareto-efficiency",
+    "probabilistic-blocking",
+    "Tachyon",
+    "Hadoop",
+    "Spark"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Different schemes",
+      "caption": "Different schemes. Global: single memory pool, agnostic of users or applications; Isolation: static allocations of memory among multiple users, possibly under-utilization (blank cells), no sharing; Sharing: allowing dynamic allocations of memory among users, and one copy of shared files (stripe cells)."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Hosted service setup",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

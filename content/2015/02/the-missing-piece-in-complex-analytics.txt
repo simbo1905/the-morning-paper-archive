@@ -1,0 +1,447 @@
+URL: https://blog.acolyer.org/2015/02/02/the-missing-piece-in-complex-analytics/
+Title: The Missing Piece in Complex&nbsp;Analytics
+---
+
+The Missing Piece in Complex Analytics: Low latency scalable model management and serving with Velox - Crankshaw et al. 2015.
+
+Analytics at scale can be used to create statistical models for making predictions about the world, but once the data scientists and analysts have done their initial work and a model has been built and trained, it still remains to incorporate this into runtime systems (for example, for recommendations, targeted advertising, and other personalisations).
+
+> 
+
+ This otherwise productive focus on model training has overlooked a critical component of real-world analytics pipelines: namely, how are trained models actually deployed, served, and managed?
+
+PMML may offer a partial solution, but the work of the Velox project from the Berkeley Data Analytics Stack (BDAS) goes deeper. Many users of BDAS (e.g. Yahoo!, Baidu, Alibaba, and Quantifind) created their own solutions to model serving and management. Velox was designed to fill the gap.
+
+> 
+
+ Specifically, Velox provides end-user applications with a low-latency, intuitive interface to models at scale, transforming the raw statistical models computed in Spark into full-blown, end-to-end data products.
+
+Velox both exposes the model as a service for making low-latency predictions, and also keeps the model up to date with a range of incremental maintenance strategies. It can manage multiple models and identify when models are under-performing or need to be retrained:
+
+> 
+
+ Being able to identify when models need to be retrained, coordinating offline training, and updating the online models is essential to provide accurate predictions. Existing solutions typically bind together separate monitoring and management services with scripts to trigger retraining, often in an ad-hoc manner.
+
+Velox comprises a model manager and a model predictor. The current implementation supports a family of personalized linear models based on matrix factorization, but new models and machine learning techniques can be added. A running example through the paper is based on a music recommendation system.
+
+> 
+
+ The feature parameters in conjunction with the feature function enable this simple model to incorporate a wide range of models including support vector machines, deep neural networks, and the latent factor model used to build our song recommendation service.
+
+The model manager orchestrates the model lifecycle, collecting observations and model performance feedback; incrementally updating the user specific weights; continuously evaluating model performance; and offline retraining feature parameters when needed.
+
+> 
+
+ To simultaneously enable low latency learning and personalization while also supporting sophisticated models we divide the learning process into online and offline phases. The offline phase adjusts the feature parameters and can run infrequently because the feature parameters capture aggregate properties of the data and therefore evolve slowly. The online phase exploits the independence of the user weights and the linear structure of [the model] to permit lightweight conflict-free per user updates.
+
+The offline phase runs in Spark and writes the results to Tachyon. The online learning phase runs continuously as new observations arrive.
+
+> 
+
+ While the precise form of the user model depends on the choice of error function (a configuration option) we restrict our attention to the widely used squared error in our initial prototype... which enables updating of the model weights in time quadratic in d (number of feature dimensions) using the Sherman-Morrison formula for rank-one updates.
+
+(The Sherman-Morrison formula - I had to look it up).
+
+What matters most is that "we were able to achieve acceptable latency for a range of feature dimensions d on a real-world collaborative filtering task."
+
+Model performance is assessed using several strategies:
+
+- Velox maintains running per-user aggregates of errors associated with each model
+
+- It also runs a cross-validation step during incremental user weights updates to assess generalization performance, and 
+
+- If the topK prediction API is used, bandit algorithms are employed to collect a pool of validation data not influenced by the model. 
+
+> 
+
+ When the error rate on any of these metrics exceeds a pre-configured threshold, the model is retrained offline.
+
+When it comes to making online predictions the main cost is evaluating the feature function. Velox caches the results of feature function evaluations, and also partitions and replicates materialized feature tables.
+
+> 
+
+ To distribute the load across a Velox cluster and reduce network data transfer, we exploit the fact that every prediction is associated with a specific user and partition W, the user weight vectors table, by uid. We then deploy a routing protocol for incoming user requests to ensure that they are served by the node containing the user's model.
+
+To bootstrap new users, a new user is simply assigned a recent estimate of the average of the existing user weight vectors.
+
+When serving predictions, a contextual bandit algorithm assigns each item an uncertainty score in addition to its predicted score.
+
+> 
+
+ The algorithm improves models greedily by reducing uncertainty about predictions. To reduce the uncertainty in the model, the algorithm recommends the item with the best potential prediction score (i.e. the item with the max sum of score and uncertainty) as opposed to recommending the item with the absolute best prediction score.
+
+This stops recommendations becoming a self-fulfilling prophecy and ensures that the search space is widened.
+
+The team are actively pursuing several areas of future research within Velox. The code will be released as open source software (alpha) in early 2015.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Large Scale Systems, Machine Learning 
+ 
+ AnalyticsMachine Learning 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousIntroducing CIDR'15 week on The Morning PaperNext &rsaquo;WANalytics: Analytics for a geo-distributed, data intensive world
+ 
+ 
+
+ 
+ 
+## 
+ 2 thoughts on &ldquo;The Missing Piece in Complex Analytics&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Liquid: Unifying nearline and offline big data integration | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Impala: a modern, open-source SQL engine for Hadoop | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Loading Comments...
+ 
+ 
+ 
+ 
+
+ 
+ 
+ Write a Comment...
+ 
+ 
+ 
+ 
+ Email (Required)
+ 
+ 
+ 
+ Name (Required)
+ 
+ 
+ 
+ Website
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ %d

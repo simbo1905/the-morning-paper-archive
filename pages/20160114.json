@@ -1,0 +1,46 @@
+{
+  "date": "20160114",
+  "file_name": "20160114",
+  "slug": "no-compromises",
+  "blog_url": "https://blog.acolyer.org/2016/01/14/no-compromises/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the key insight of this paper: by leveraging modern hardware trends—specifically RDMA-capable networks and non-volatile DRAM via distributed UPS—FaRM can achieve distributed transactions with strict serializability, high availability, and low latency without compromising on performance. The paper challenges traditional assumptions by demonstrating that in a world where network and storage I/O are no longer bottlenecks, CPU becomes the limiting factor, and FaRM's protocols are designed from first principles to optimize for CPU efficiency. Colyer emphasizes FaRM's novel transaction, replication, and recovery protocols, which use one-sided RDMA reads/writes to minimize CPU overhead, optimistic concurrency control, and precise membership mechanisms to handle failures in this unconventional setup. The result is staggering performance: a 90-machine FaRM cluster achieves 4.5 million TPC-C transactions per second with sub-2ms latency and 60ms recovery time.",
+  "paper_title": "No Compromises: Distributed Transactions with Consistency, Availability, and Performance",
+  "paper_authors": [
+    "Aleksandar Dragojević",
+    "Dushyanth Narayanan",
+    "Mihai Budiu",
+    " Gordon Bell"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SOSP",
+  "paper_url": "http://research.microsoft.com/pubs/255848/SOSP15-paper227-alternate-final-version.pdf",
+  "paper_abstract": "ion over ������� , that attaches identi������� [EV] �ers to RDMA operations and allows threads to Fig. 1. LOCO libraries with their dependencies perform a Wait operation to wait for all RDMA operations with a given identi�er to �nish executing. To attain good performance, the practical implementation of the Wait operation in LOCO is quite involved. Nevertheless, we prove the correctness of a simpli�ed version over the underlying ������� model. MOWGLI. As a second contribution, we introduce M����� (MOdular Weak Graph-based LIbraries), a generic, modular framework for modelling and verifying weak libraries. M����� is generic in that it makes no assumptions about the underlying memory model (e.g. RDMA or TSO) in its core theory; and it is modular in that it allows proof decomposition at library interfaces and reasoning about individual components without referring to the internals of other components. We instantiate M����� with �������� and establish the correctness of all the LOCO libraries that do not depend on atomic read-modify-write (RMW) RDMA operations because the latter are not covered by the existing ������� model. The veri�ed libraries are highlighted in Fig. 1. M����� represents program executions as graphs, whose nodes are called events and represent either a simple operation like a read or a write, or a more complex operation such as a method call. Following the declarative approach of Raad et al. [2019] and Stefanesco et al. [2024], we specify each concurrent object with a set of axioms (i.e., consistency predicates) over events. As we shall see in §2.3, however, events are too coarse-grained to model the intricate synchronisation guarantees of RDMA operations. We therefore introduce the novel notion of a subevent, allowing one to split complex library operations into multiple subevents, each with a di�erent stamp (representing, e.g., the node affected by the subevent). Stamps are meta-categories of behaviours, shared by all libraries, and are independent...",
+  "paper_file": "papers/2016/01/14/no-compromises.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "distributed-transactions",
+    "rdma",
+    "non-volatile-memory",
+    "optimistic-concurrency-control",
+    "serializability",
+    "primary-backup-replication",
+    "one-sided-rdma",
+    "distributed-ups",
+    "transaction-protocols",
+    "failure-recovery"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "LOCO object composition hierarchy",
+      "caption": "An illustration of how LOCO objects are composed: basic objects encapsulate RDMA operations and local CPU instructions, which are used to build intermediate objects like ring buffers, which in turn are used to build larger objects such as a key-value store."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

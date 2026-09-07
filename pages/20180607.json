@@ -1,0 +1,44 @@
+{
+  "date": "20180607",
+  "file_name": "20180607",
+  "slug": "dynamic-control-flow-in-large-scale-machine-learning",
+  "blog_url": "https://blog.acolyer.org/2018/06/07/dynamic-control-flow-in-large-scale-machine-learning/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights TensorFlow's approach to dynamic control flow as a key advancement for large-scale machine learning systems. The paper emphasizes the importance of embedding control-flow constructs (like conditionals and loops) directly within TensorFlow's dataflow graph, rather than relying on external programming languages. This design choice enables whole-program optimization, efficient parallelism, and avoids costly client-runtime communication. The authors analyze over 11.7 million ML graphs from Google, finding that 65% contain conditionals and 5% contain loops, underscoring the practical need for such features. The paper also details how TensorFlow extends automatic differentiation to handle control flow, including backpropagation through loops and conditionals, with optimizations like stack-based memory management and asynchronous operations to mitigate overhead. The system's flexibility and scalability across heterogeneous devices (CPUs, GPUs, TPUs) are emphasized as critical for modern ML workloads.",
+  "paper_title": "Dynamic control flow in large-scale machine learning",
+  "paper_authors": [
+    "Yonghui Wu",
+    "Maximilian Lam",
+    "Tatiana Shpeisman",
+    "Rajat Monga",
+    "Yifeng Geng",
+    "Andrew Tulloch",
+    "Krzysztof Choromanski",
+    "David So",
+    "Quoc V. Le"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "EuroSys'18",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3190551",
+  "paper_abstract": "ions which can be combined freely with algorithm logic at the cost of locking users into executing training on the Ray platform [MNW+ 17]. RLgraph isolates distributed coordination from component graph logic to support different distributed execution paradigms. From RLgraph’s perspective, there are two types of distribution mechanisms: 1. External API consumers. External consumers realise distributed mechanisms purely by interacting with RLgraph’s API to read and write agent state, insert into buffers, or call updates from internal buffers or external trajectory data. 2. Internal graph-aware mechanisms. Internal mechanisms may be frameworkspecific distributed engines which rely on implementations using special operators or program design. Examples of the first mechanism are custom communication strategies implemented via e.g. MPI or distributed execution engines such as Ray [MNW+ 17]. The second class of distributed execution method concerns mechanisms such as the distributed TensorFlow 66 RLgraph: Modular computation graphs for reinforcement learning (1) External coordination: Learners and actors instantiate graphs, consume RLgraph API. Local executor RayCoordinator update() RLgraph API Learner Ray object store Local graph RayWorker act() Actor RLgraph RLgraph API Local executors map concurrent trajectory data to local graphs, synchronisation is fully externalised via third party object store, Ray, MPI, .. External distribution abstractions (2) Internal coordination: Executors modify graph-internals for synchronisation. Local executor TF-Learner Learner update() RLgraph API TF-Worker act() Actor Local graph RLgraph API RLgraph Internal distribution abstractions Graph synchronisation delegated to TF runtime which directly syncs graph weights via RPC Local executors create graph-internal scaffolding, initialise servers, mark parts of graph as shared state in build process. Figure 3.12: Graph-internal and graph-external distributed coordination. runtime [ABC+ 16, YAB+...",
+  "paper_file": "papers/2018/06/07/dynamic-control-flow-in-large-scale-machine-learning.pdf",
+  "topics": [
+    "distributed-systems",
+    "machine-learning"
+  ],
+  "tags": [
+    "dataflow-graphs",
+    "automatic-differentiation",
+    "control-flow",
+    "tensorflow",
+    "loops",
+    "conditionals",
+    "backpropagation",
+    "parallelism",
+    "heterogeneous-devices",
+    "memory-management"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

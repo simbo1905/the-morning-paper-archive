@@ -1,0 +1,53 @@
+{
+  "date": "20180606",
+  "file_name": "20180606",
+  "slug": "reducing-dram-footprint-with-nvm-in-facebook",
+  "blog_url": "https://blog.acolyer.org/2018/06/06/reducing-dram-footprint-with-nvm-in-facebook/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Facebook's adoption of Non-Volatile Memory (NVM) in their MyRocks database system to address rising DRAM costs and supply challenges. The paper introduces MyNVM, a system that replaces a significant portion of DRAM (e.g., 96GB to 16GB) with a larger NVM cache layer, reducing costs while maintaining performance. The key insight is leveraging NVM's lower cost and higher speed than flash to create a three-layer storage hierarchy (DRAM, NVM, flash). The blog emphasizes MyNVM's novel design choices to mitigate NVM's challenges, such as lower bandwidth, endurance limits, and interrupt overhead, while achieving a 20% P99 latency increase but using only 1/6th of the DRAM compared to the original system. The paper is notable for being the first study of NVM usage in a commercial data center environment.",
+  "paper_title": "Reducing DRAM footprint with NVM in Facebook",
+  "paper_authors": [
+    "Eisenman",
+    "Alex",
+    "Goyal",
+    "Pranav",
+    "Kumar",
+    "Ranjita",
+    "Mao",
+    "Zhen",
+    "Narasayya",
+    "Vijay",
+    "Rao",
+    "Sriram"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "EuroSys'18",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3190524",
+  "paper_abstract": "Reducing DRAM Footprint with NVM in Facebook (EuroSys’18)\nAssaf Eisenman1 , Darryl Gardner2 , Islam AbdelRahman2 , Jens Axboe2 , Siying Dong2 ,\nKim Hazelwood2 , Chris Petersen2 , Asaf Cidon1 , Sachin Katti1\n1\n\nStanford University\n\nExtended Abstract\nModern key-value stores like RocksDB and LevelDB are\nhighly dependent on DRAM, even when using a persistent\nstorage medium (e.g. flash) for storing data. Since DRAM is\nstill about 1000× faster than flash, these systems typically\nleverage DRAM for cach",
+  "paper_file": "papers/2018/06/06/reducing-dram-footprint-with-nvm-in-facebook.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "nvm",
+    "cache",
+    "rocksdb",
+    "myrocks",
+    "memory-hierarchy",
+    "endurance",
+    "bandwidth",
+    "compression",
+    "polling",
+    "interrupt-latency"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Latency comparison of MyRocks with different cache sizes and MyNVM",
+      "caption": "Average and P99 latencies for different cache sizes in MyRocks, compared with MyNVM, using real production workloads."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

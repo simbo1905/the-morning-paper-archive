@@ -1,0 +1,474 @@
+URL: https://blog.acolyer.org/2017/08/25/towards-deploying-decommissioned-mobile-devices-as-cheap-energy-efficient-compute-nodes/
+Title: Towards deploying decommissioned mobile devices as cheap energy-efficient compute&nbsp;nodes
+---
+
+Towards deploying decommissioned mobile devices as cheap energy-efficient compute nodes Shahrad & Wentzlaff, HotCloud'17
+
+I have one simple rule when it comes to selecting papers for The Morning Paper: I only cover papers that I like and find interesting. There are some papers though, that manage to generate in me a genuine feeling of excitement, as in "this is so cool, I can't wait to share it." This is one of those papers!
+
+You may remember back in 2010 when the US Air Force had the breakthrough idea to create a supercomputer out of 1,760 Sony Playstations. Well, Shahrad & Wentzlaff want us to pack our data centers with racks of decommissioned mobile phones! The case they put forward is both fascinating and compelling.
+
+Firstly, there are a lot of old mobile phones, and the mobile system on chips (SoCs) inside them have been gaining in power while having a low TCO. Secondly, it's possible to pack a number of them in a 2U unit. Thirdly, there are a number of use cases for which such a collection of wimpy nodes seem well suited. And finally of course, it's a wonderfully green way of recycling older devices that may e.g., have cracked screens, sluggish software etc..
+
+> 
+
+ Deploying decommissioned mobile devices can be a major move towards green computing. This is mostly due to the fact that most of the carbon footprint of those devices comes from their production. Such deployment extends effective lifetime of mobile devices and decreases their average global warming potential (GWP), benefiting the environment.
+
+## Are mobile phones really powerful enough to be useful in a data center?
+
+Both industry and academia already have their eye on mobile SoCs as the next most cost-effective platform in HPC - the gap between mobile SoCs and commodity server processors is shrinking and their TCO is much lower. If you look at mobile SoC performance for the last five years, something very interesting shows up:
+
+(What a lovely s-curve example btw.).
+
+- Moore's law is kicking in, and the performance gap between a new and 3-year old device will shrink
+
+- The relative performance gap between high-end and low-end SoCs is shrinking, leading to similar performance on a cheaper device. 
+
+Mobile CPU single core thermal design point has saturated at around 1.5W, so the performance power budget should stay steady as devices scale. Meanwhile, newer devices actually have slightly lower energy efficiency as they push for the last reserves of power. So decommissioned devices will actually have better overall energy efficiency.
+
+## What applications could you run on a bunch of old phones?
+
+> 
+
+ Due to their energy efficiency and improved performance, ARM-based architectures have recently gained substantial attention for HPC and cloud infrastructure deployment. ARM multicores deliver good energy proportionality for server workloads.
+
+Here are some promising use cases:
+
+- I/O intensive applications that are unable to saturate their CPU. Modern mobile SoCs support high bandwidth I/O and ample RAM size so I/O intensive applications can run on them with less I/O-CPU mismatch. 
+
+- Will your next VM be running on a decommissioned mobile phone? Low-end VMs on Amazon EC2 burstable t2.nano and t2.micro have 0.5GB and 1GB of memory respectively. Common hypervisors (KVM, Xen, ...) support virtualizing ARM and an average mobile device has more than 2GB of memory - so a cloud provider could assign multiple such instances to each device!
+
+- Applications requiring low-end GPU acceleration for platforms such as OpenCL. A SoC's GPU can be shared between multiple tenants. 
+
+- Increasing the heterogeneity of cloud infrastructure to diversify reliability.
+
+## How do you efficiently install mobile phone arrays inside a data center?
+
+The authors' proposed design shows that decommissioned mobile devices can be housed in standard server racks.
+
+With three rows of fans, a network router, and a power supply, there is room for 84 cages (smartphones) of a size that fits more than 75% of models (notably excluding tablets!). With an average of 5.6 CPU cores per device, that adds up to about 470 cores in a 2U server box. Networking can be achieved either with a USB tree and shared master node, or USB on-the-go to each device. The latter will give much higher network performance, but requires more network switches.
+
+The phones come with another advantage that we get for free - batteries!
+
+> 
+
+ Researchers have proposed using distributed UPSs or batteries to shave peak power in data centers. This allows installing more servers using the same power infrastructure and decreases the TCO... Distributed batteries effectively dampen temporal power demand variations; shaving the peak power under high utilization, while storing energy under low utilization. The high energy storage density enables more aggressive power capping of servers that are filled with used mobile devices.
+
+Even assuming 15% battery degradation per year, the capacity will be 4-8x denser than purpose designed distributed UPS solutions.
+
+## Is it cost effective?
+
+We've seen that in theory racks of decommissioned mobile devices can be done, and we've seen that there are some potential use cases for such systems. But does it make financial sense??
+
+The authors choose the Samsung Galaxy Note 4 as a representative three-year old device, and match it against a Lenovo Flex System x880 X6 which has similar performance as 84 Note 4s.
+
+CAPEX and OPEX work out as follows (the authors assumed that the monitoring engineering, and installation cost of the mobile array is twice that of a standard server):
+
+A TCO analysis shows that the mobile array beats the traditional server on TCO by some margin. (In the figures below 'A' is the traditional server, 'B' is the mobile array, and &delta; is the depreciation rate).
+
+> 
+
+ The right sub-figures in Figure 5 (above) compare TCO when those two servers have different lifetimes. This analysis is essential for a fair comparison because we anticipate our proposed server to have a shorter lifetime compared to a new high-end server. It can be seen that with much shorter lifetimes, our proposed server can deliver better TCO values. It also shows how the equal-TCO margin (the line between light and dark areas) varies for different depreciation rates.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Hardware 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousA cloud-based content gathering networkNext &rsaquo;Using chatbots against voicespam: analyzing Lenny's effectiveness
+ 
+ 
+
+ 
+ 
+## 
+ 9 thoughts on &ldquo;Towards deploying decommissioned mobile devices as cheap energy-efficient compute nodes&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 25 August 2017 | Vedalgo 
+ 
+ 
+- 
+ 
+ 
+ 
+ IgorM says: 
+
+ 
+ August 25, 2017 at 1:06 pm 
+
+ 
+
+ 
+ 
+While concept is potentially interesting (but not really new except for using old phones instead of SoC) both system design in this article and comparative TCO analysis are so flawed that I'm not sure how it even got published/presented.
+
+1. Having several hundred old phones with old lithium batteries in a rack represent significant (and rapidly growing as batteries age) fire hazard - and lithium battery fires are very hard to put out. So DC deployment isn't feasible - and container deployment (with 10+ thousand of old phones per container) means that fire is even more likely. Who's going to approve such deployment?
+
+2. How much it'll cost to develop and support custom software to manage this rack of old phones?
+
+3. Why an extremely expensive and not very fast brand new server with 2 E7-8890v3 CPUs (???) was selected for TCO comparison? It's EXTREMELY expensive given the specs - cost used in the article (almost 30K$/server) is at least 4 times more than a brand new server from a reputable vendor with same or better speed, RAM etc (and per rack probably at least 10 times more than used but still reliable servers from eBay with comparable speed and more RAM and same SSDs).
+
+Selecting reasonable commodity server for TCO analysis (even a brand new one) will immediately show that author's design (as described) isn't feasible just for that reason.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ engino says: 
+
+ 
+ August 25, 2017 at 5:59 pm 
+
+ 
+
+ 
+ 
+Many of your concerns are actually addressed in the paper. Please take a look at it when you had a chance. 
+
+1. This is true. But the proposed server does not rely on keeping the batteries, as you could think.
+
+2. This valid concern was raised by authors themselves in Section 5 and is addressed by compensation in engineering cost (the proposed solution has twice the engineering cost in Table 3).
+
+3. In Section 4, authors clearly address that this selected server is to deliver the same compute, memory, and disk "density" as the proposed server (also in Table 2). So it was not a random selection. 
+
+Questioning the wisdom of a research community without carefully reading a piece of work is not the best practice. Also, let's not forget that HotCloud if a venue for works still in their infancy.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ IgorM says: 
+
+ 
+ September 3, 2017 at 1:15 pm 
+
+ 
+
+ 
+ 
+Geekbench multicore rating of 74482 that articles interpreted as per-CPU rating is almost certainly this one - http://browser.geekbench.com/v4/cpu/942034 - which is a PER SYSTEM ratings for a 72-core 4-CPU server (not a 2-CPU server mentioned in the article as server A) - not a per CPU rating assumed in table 2 and elsewhere.
+
+If in doubt, please compare single-core and multi-core results for LZMA or HTML5 parse at the link above.
+
+Therefore ALL numbers for so-called Server A derived from this per-CPU performance assumption (including server cost, power, CPU/memory ratio, TCO etc) are wrong.
+
+That by itself seems enough to have this article (as published) withdrawn and significantly rewritten.
+
+While this error (when corrected) will make that phone contraption (aka Server B) price/performance look relatively much better, in reality it'll still be worse than a brand new commodity server using proper components (for example, 2U Supermicro 2028TR-HTR with each of 4 nodes node using 2xE5-2630v4 CPU and 8x8GB of RAM and 800GB SSD; even better price and density can be achieved using blade servers with the same Xeon E5-2630 v4 CPUs, RAM etc) will still have better performance AND price AND ECC RAM (which isn't available in any consumer phone I'm aware of) AND density (since server B is using 3U as per table 3 - not 2U as claimed in table 2) warranty (3+yr vs none) AND management software etc. etc.
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ 
+ 
+ dwight says: 
+
+ 
+ August 25, 2017 at 8:01 pm 
+
+ 
+
+ 
+ 
+The lithium battery can easily be swapped out for a centralized power supply. If you imagine the phones as blades instead, it start to make more sense
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Derek Jones says: 
+
+ 
+ August 26, 2017 at 7:36 pm 
+
+ 
+
+ 
+ 
+Thanks for pointing out the flaws in the proposal.
+
+As he says in the introduction, our host is driven by interest in the subject matter, not likely practicality. Given the breadth of the topics covered, I doubt anyone has enough knowledge to judge the worth of all the papers (I sometimes point out the more nonsense papers in my area of expertise).
+
+Every now and again a gold nugget turns up; academic research is rather like startups in that most fail and a few pay for everything.
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ Pingback: Four short links: 25 August 2017 | A bunch of data 
+ 
+ 
+- 
+ 
+ 
+ 
+ Ed Vielmetti (@vielmetti) says: 
+
+ 
+ August 25, 2017 at 9:09 pm 
+
+ 
+
+ 
+ 
+If anyone wants to try this and is looking for software, I recommend termux ( https://termux.com/ ), an Android terminal emulator and Linux environment app that works directly with no rooting needed. I've successfully run small server environments on my phone using it, and there's no reason to believe you couldn't use it as some part of an Android cluster strategy. Termux has a capable package manager as well. 
+
+As to the other commenter's ideas about feasibility, I would just say that people with access to otherwise scrapped materials and inexpensive time to work on things have done all kinds of weird and wonderful things, and this should be seen as a challenge, not necessarily something that would go first into a commercial grade industrial data center.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Eduardo Martins says: 
+
+ 
+ August 28, 2017 at 7:37 am 
+
+ 
+
+ 
+ 
+I do think that igorM analysis is showing the challenges on the actual complexity of setting up a solution like this on a datacenter as well as requiring a different software solution to manage computing and storage power for the cellphone array. Furthermore, TCO looks promising in the initial comparison, but it should be done at a larger scale with other server models. Other commercial adventures like the ones from SONY Cell did not ventured into the datacenter space, there is some history behind this that should be thought of. For example, why would i run an enterprise software, business critical to my company, supported by out-of-guarantee HW that could fail at any time and does not provide me the added security a new enterprise server provides?
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

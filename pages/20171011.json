@@ -1,0 +1,39 @@
+{
+  "date": "20171011",
+  "file_name": "20171011",
+  "slug": "trustbase-an-architecture-to-repair-and-strengthen-certificate-based-authentication",
+  "blog_url": "https://blog.acolyer.org/2017/10/11/trustbase-an-architecture-to-repair-and-strengthen-certificate-based-authentication/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights TrustBase as a novel architecture that shifts certificate-based authentication from application-level to OS-level responsibility, addressing widespread vulnerabilities in TLS validation. He praises its universal compatibility (Linux, Windows, Android), zero-modification requirement for existing apps, and negligible overhead. The key insight is that moving authentication to the OS allows administrators to enforce consistent, system-wide policies while protecting against common attacks like CA hijacking, local root certificates, and STARTTLS downgrades. Colyer notes only TLS 1.3's encrypted certificates as a limitation, requiring workarounds like direct API integration or local proxies.",
+  "paper_title": "TrustBase: An Architecture to Repair and Strengthen Certificate-Based Authentication",
+  "paper_authors": [
+    "Michael O'Neill",
+    "Zachary Weinberg",
+    "Sharon Goldberg",
+    "William Robertson",
+    "Engin Kirda"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "USENIX Security",
+  "paper_url": "https://www.usenix.org/conference/usenixsecurity17/technical-sessions/presentation/oneill",
+  "paper_abstract": "The current state of certificate-based authentication is messy, with broken authentication in applications and proxies, along with serious flaws in the CA system. To solve these problems, we design TrustBase, an architecture that provides certificate-based authentication as an operating system service, with system administrator control over authentication policy. TrustBase transparently enforces best practices for certificate validation on all applications, while also providing a variety of authentication services to strengthen the CA system. We describe a research prototype of TrustBase for Linux, which uses a loadable kernel module to intercept traffic in the socket layer, then consults a userspace policy engine to evaluate certificate validity using a variety of plugins. We evaluate the security of TrustBase, including a threat analysis, application coverage, and hardening of the Linux prototype. We also describe prototypes of TrustBase for Android and Windows, illustrating the generality of our approach. We show that TrustBase has negligible overhead and universal compatibility with applications. We demonstrate its utility by describing eight authentication services that extend CA hardening to all applications.",
+  "paper_file": "papers/2017/10/11/trustbase-an-architecture-to-repair-and-strengthen-certificate-based-authentication.pdf",
+  "topics": [
+    "systems-security",
+    "operating-systems"
+  ],
+  "tags": [
+    "tls",
+    "certificate-validation",
+    "ca-system",
+    "mitm-attacks",
+    "ocsp",
+    "crl",
+    "starttls",
+    "policy-enforcement",
+    "kernel-module"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

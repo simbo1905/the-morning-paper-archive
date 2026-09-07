@@ -1,0 +1,229 @@
+URL: https://blog.acolyer.org/2014/11/03/an-unsupervised-algorithm-for-person-name-disambiguation-on-the-web/
+Title: An unsupervised algorithm for person-name disambiguation on the&nbsp;web
+---
+
+An unsupervised algorithm for person-name disambiguation on the web - Delgado et al. 2014
+
+Many people share the same name. When you search for a person by name on the web, the results you get back are page ranked without consideration to the individual they refer to. If you're searching for a person who shares a name with someone famous, the top results are almost certainly not what you're looking for. 
+
+It would be great if we could first identify the particular individual we're interested in, and then see the results relating to just that individual (and not any of their namesakes). 
+
+> 
+
+...given a query of a person name in addition to the results of a search engine for that query, the goal is to cluster the resultant web pages according to the different individuals they refer to. Thus, the challenge of this task is estimating the number of different individuals and grouping the pages of the same individual in the same cluster.
+
+This turns out to be an interesting enough problem that there have been several Web People Search (WePS) competitions for algorithms to solve it. Delgado et al. present an unsupervised (ie. does not need prior training) algorithm that performs competitively with the best entrants from the WePS-1, WePS-2, and WePS-3 competitions.
+
+Given a web page, the algorithm first creates a set of n-grams for that page, consisting of only the capitalised words. After testing, 3-grams were found to be a good compromise. Intuitively, the greater the similarity between the bags of n-grams for two different pages, the more likely they are to refer to the same individual.
+
+The z-score is used as a weighting function for an individual n-gram. Where informally, z-score = ((frequency of n-gram in this page) - (mean frequency in the background set)) / (standard deviation of n-gram in backgound set). 
+
+> 
+This score gives an idea of the distance of the frequency of an n-gram in a web page from the general distribution of this n-gram in the background set.
+
+In this context, background set refers to the set of pages returned by the query for the name in question.
+
+The cosine distance is then used to measure the similarity between two pages based on their weighted bag of n-grams. A threshold function is defined to determine whether or not these two pages belong to the same cluster based on their similarity score. The threshold function takes into account both the number of n-grams in common and also the size of the web pages. See the full paper for the straightforward definition.
+
+To evaluate the algorithm, Delgado et al. used the WePS corpus.
+
+> 
+WePS is a competitive evaluation campaign that proposes several tasks including disambiguating web data. In particular, [the] WePS-1, WePS-2, and WePS-3 campaigns provide an evaluation framework consisting of several annotated data sets for English person names. 
+
+And how does this algorithm fair?
+
+> 
+...our approach gets the best results of all the completely unsupervised approaches. Moreover, the precision scores for all collections are very high and confirm that our approach is accurate to get relevant information for characterizing an individual. We also obtain competitive recall results...
+
+Check out the paper for full details and a comparison table showing how their Unsupervised Person Name Disambiguator (UPND) algorithm performed against the other competition entrants.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Algorithms and data structures 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousLeases: An efficient fault-tolerant mechanism for distributed file cache consistencyNext &rsaquo;Dynamic vehicle routing, pickup, and delivery problems
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

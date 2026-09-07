@@ -1,0 +1,38 @@
+{
+  "date": "20160505",
+  "file_name": "20160505",
+  "slug": "uncovering-bugs-in-distributed-storage-systems-during-testing-not-in-production",
+  "blog_url": "https://blog.acolyer.org/2016/05/05/uncovering-bugs-in-distributed-storage-systems-during-testing-not-in-production/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the critical challenge of improving testing coverage for distributed systems to catch bugs before production, noting that even major tech companies like Microsoft, Amazon, and Google struggle with this. The paper introduces P#, an extension of C# designed to systematically test distributed systems by modeling their execution environment, test harness, and specifications. P# wraps processes in 'machines' that intercept messages, allowing for controlled exploration of nondeterministic behaviors, including message drops and scheduling choices. The methodology supports safety and liveness properties via monitors, enabling automatic bug detection without false positives. P# was applied to three Microsoft systems (Azure Storage vNext, Live Table Migration, and Service Fabric), uncovering 8 serious bugs that traditional testing missed. The approach is praised for its ability to reproduce bugs in small settings and generate clear debug traces, though questions remain about state-space explosion and schedule minimization. The authors suggest modeled components mitigate state-space issues but do not address test minimization in this work.",
+  "paper_title": "Uncovering bugs in Distributed Storage Systems during Testing (not in production!)",
+  "paper_authors": [
+    "Nikolaos Deligiannis",
+    "Konstantinos Sagonas",
+    "Alessandro Warth",
+    "Markus Dahlgren"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "",
+  "paper_url": "http://research.microsoft.com/pubs/260939/paper.pdf",
+  "paper_abstract": "Testing distributed systems is challenging due to multiple sources of nondeterminism. Conventional testing techniques, such as unit, integration and stress testing, are ineffective in preventing serious but subtle bugs from reaching production. Formal techniques, such as TLA+, can only verify high-level specifications of systems at the level of logic-based models, and fall short of checking the actual executable code. In this paper, we present a new methodology for testing distributed systems. Our approach applies advanced systematic testing techniques to thoroughly check that the executable code adheres to its high-level specifications, which significantly improves coverage of important system behaviors. Our methodology has been applied to three distributed storage systems in the Microsoft Azure cloud computing platform. In the process, numerous bugs were identified, reproduced, confirmed and fixed. These bugs required a subtle combination of concurrency and failures, making them extremely difficult to find with conventional testing techniques. An important advantage of our approach is that a bug is uncovered in a small setting and witnessed by a full system trace, which dramatically increases the productivity of debugging.",
+  "paper_file": "papers/2016/05/05/uncovering-bugs-in-distributed-storage-systems-during-testing-not-in-production.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "testing-methodologies",
+    "model-based-testing",
+    "nondeterministic-execution",
+    "safety-properties",
+    "liveness-properties",
+    "monitors",
+    "bug-reproduction",
+    "trace-generation",
+    "distributed-system-verification"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

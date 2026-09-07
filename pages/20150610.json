@@ -1,0 +1,37 @@
+{
+  "date": "20150610",
+  "file_name": "20150610",
+  "slug": "a-higher-order-estimate-of-the-optimun-checkpoint-interval-for-restart-dumps",
+  "blog_url": "https://blog.acolyer.org/2015/06/10/a-higher-order-estimate-of-the-optimun-checkpoint-interval-for-restart-dumps/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Daly's 2004 paper as a refined mathematical model for determining the optimal checkpoint interval in systems prone to failures. The key insight is a simple formula (√(2δM) - δ) that balances checkpoint overhead with restart costs, where δ is the checkpoint time and M is the mean time between failures (MTBF). Daly extends Young's earlier work by incorporating additional factors like restart time (R) and failure during restarts, but ultimately finds that Young's simpler model remains highly accurate (within 5% error) for most practical systems where δ is small compared to M. The paper provides a practical rule of thumb: if δ < M/2, use the refined formula; otherwise, just checkpoint at intervals of M.",
+  "paper_title": "A higher order estimate of the optimum checkpoint interval for restart dumps",
+  "paper_authors": [
+    "K. Daly"
+  ],
+  "paper_year": 2004,
+  "paper_venue": "",
+  "paper_url": "http://graal.ens-lyon.fr/~lmarchal/scheduling/articles/daly_checkpoint.pdf",
+  "paper_abstract": "This paper examines methods of approximating the optimum checkpoint restart strategy for minimizing application run time on a system exhibiting Poisson single component failures. Two different models will be developed and compared. We will begin with a simplified cost function that yields a first-order model. Then we will derive a more complete cost function and demonstrate a perturbation solution that provides accurate high order approximations to the optimum checkpoint interval. © 2004 Elsevier B.V. All rights reserved.",
+  "paper_file": "papers/2015/06/10/a-higher-order-estimate-of-the-optimun-checkpoint-interval-for-restart-dumps.pdf",
+  "topics": [
+    "distributed-systems",
+    "algorithms"
+  ],
+  "tags": [
+    "checkpointing",
+    "fault-tolerance",
+    "MTBF",
+    "restart-time",
+    "performance-modeling"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "The application time line broken into five passed compute segments and one failed compute segment designated by X",
+      "caption": "Fig. 1. The application time line broken into five passed compute segments and one failed compute segment designated by X. An application run is complete when the accumulated computation time τ of all of the passed segments is equal to the total solution time Ts for the application."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

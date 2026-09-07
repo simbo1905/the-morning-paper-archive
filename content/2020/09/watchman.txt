@@ -1,0 +1,435 @@
+URL: https://blog.acolyer.org/2020/09/21/watchman/
+Title: Watchman: monitoring dependency conflicts for Python library&nbsp;ecosystem
+---
+
+Watchman: monitoring dependency conflicts for Python library ecosystemWang et al., ICSE ‘20
+
+There are more than 1.4M Python libraries in the PyPI repository. Figuring out which combinations of those work well together is not always easy. In fact, we have a phrase for navigating the maze of dependencies modern projects seem to accumulate: “dependency hell”. It’s often not the direct dependencies of your project that bite you, but the dependencies of your dependencies, all the way on down to transitive closure. In today’s paper from ICSE ‘20, Wang et al. study the prevalence of dependency conflicts in Python projects and their causes. Having demonstrated (not that many of us would need much convincing) that dependency conflicts are a real problem, they build and evaluate Watchman, a tool to quickly find and report dependency conflicts, and to predict dependency conflicts in the making. Jolly useful it looks too.
+
+## Welcome to dependency hell
+
+If you have a set of versioned dependencies that all work together, you can create a lock file to pin those versions. But if you haven’t yet reached that happy place, or you need to upgrade, add or remove a dependency, you’ll be at the mercy of pip or poetry to find a working solution. This paper is based on pip.
+
+When a project declares a dependency on a library, it can specify a particular version or a range constraint over versions. And of course those dependencies have dependencies of their own, and so on down the chain. In the Python ecosystem, it’s most common to specify dependencies using a range constraint:
+
+> 
+
+We investigated the top 1,000 popular Python projects on PyPI based on the number of downstream projects. We found that 92.2% of these projects’ direct dependencies are constrained to a range of versions. In comparison, this ratio is only 0.03% for Java projects managed by Maven following the same investigation method.
+
+Dependency conflict issues arise in theory when all of the constraints for a project and its dependencies cannot be simulataneously satisified. For example, think of the classic diamond pattern where A depends on B and C, and B and C both in turn depend on D, but there is no version of D that satisfies the constraints of both B and C.
+
+In practice dependency conflicts arise even more often than this because of the eager dependency pinning which pip employs: "when downloading a library, the pip installer always chooses the latest version in PypI that satisfies the library’s version constraint." In doing a little bit of background reading here, I found out that pip‘s dependency resolver will be getting an upgrade in v20.3, but from the short description it sounds like this may cause more dependency conflict issues in the short term! (More details in the changelog – dependency resolution is becoming stricter which seems like a good thing once you realize what pip currently allows).
+
+From the perspective of a Python developer using libraries in a project, the authors identify three main problems:
+
+- The version of a library installed for a Python project may vary over time (without you changing anything in your own project). Lock files can help with this.
+
+- When a library updates its version constraints on other libraries, downstream consumers of the library can be affected.
+
+- It’s hard to get a complete picture of a project’s (transitive) dependencies with version constraint information.
+
+## What causes dependency conflicts in practice?
+
+To study dependency conflict issues in practice the authors created a dataset of 235 dependency conflict issues in 124 popular Python projects. These issues all have an issue report containing a description of the root cause, and either a later fix for the issue, or explicit consensus for how it should be fixed documented in the issue report itself.
+
+89.8% (211) of these issues were caused by remote dependencies (the rest were conflicts with locally installed dependencies, which can be fixed by creating an isolated environment). Of these, 2/3 were caused by a conflict between a direct dependency and a transitive dependency, and the remaining 1/3 were caused by conflicts between transitive dependencies.
+
+1/4 of the remote dependency issues (59/235) were caused by constraints being too specific (e.g., requiring an exact version). Another 1/4 (67/235) came when a dependency was tipped over an upper bound on a range.
+
+## How do developers fix dependency conflicts?
+
+For conflicts between direct and transitive dependencies, the most commonly used strategy when available, is to adjust the version constraints on direct dependencies to be compatible with those of transitive dependencies. Conflicts between transitive dependencies can also sometimes be solved by upgrading or downgrading direct dependencies.
+
+When these methods fail, developers have resorted to alternative measures:
+
+- Coordinating with the developers of upstream dependencies, typically to get their constraints loosened so that a resolution can be found
+
+- Removing a direct dependency and just relying on picking it up transitively (sounds like storing up trouble for the future!)
+
+- Adding a direct dependency to pin a version, even when it’s not truly a direct dependency of the project (another code smell!)
+
+Often there are several possible ways to solve a conflict:
+
+> 
+
+There can be multiple fixes for a dependency conflict issue. The solutions can be affected by the issue’s manifestation pattern, the topological structure of the project’s dependency graph, pip‘s installation rules, and the interference between the version constraints of upstream projects and those of downstream projects.
+
+## Conflict detection and prediction with Watchman
+
+Enter Watchman! Watchman crawls PyPI to gather the dependency metadata for all packages, and then keeps this information up to date as new packages are released and existing packages are updated. From this metadata, Watchman builds a full dependency graph for every version of every library, following pip‘s installation rules.
+
+These graphs can then be used to detect existing dependency conflict issues, and to predict when a dependency conflict issue is likely to arise.
+
+To find existing conflict issues, Watchman looks for nodes in the full dependency graph of a library that have multiple incoming edges. The edge that is traversed first (in accordance with the pip algorithm) fixes the version number. If this is incompatible with the constraints specified for the other edges, we have a conflict.
+
+Watchman also warns developers of a library based on its predictions that it may soon cause dependency conflict issues for downstream projects. It does this for two types of potential issues:
+
+- The library restricts one of its direct dependencies to a specific version, and there are multiple downstream projects that depend on both the library and its pinned dependency.
+
+- The installed version of a dependency is fixed by an edge that does not specify an upper bound, and the chosen version is close to the upper bound of other incoming edges for the same node
+
+The authors backtested Watchman by replaying the evolution history of all libraries on PyPI from the 1st January 2017 to the 30th June 2019. The detected conflicts at each stage could then be tested to see whether they were indeed resolved later on, and the predicted conflicts could be tested to see whether they later became a real conflict. All of the conflicts detected by Watchman were indeed resolved by developers, with an average of 26 days between issue introduction and resolution. Of the 156 conflicts that Watchman predicted were likely to arise, 143 did so!
+
+Watchman was used for online monitoring of PyPI from 11th July 2019, detecting and predicting 189 further dependency conflict issues in the period to the 16th August. After filtering, 117 of these were reported to developers, and 63 of these were confirmed by the developers as real issues. The remaining 54 issues are still pending, mainly due to inactive maintenance of the associated projects.
+
+> 
+
+Evaluation results show that Watchman can effectively detect dependency conflict issues with a high precision and provide useful diagnostic information to help developers fix the issues. In future, we plan to further improve the detection capability of Watchman and generalize our technique to other Python library ecosystems such as Anaconda to make it accessible to more developer communities.
+
+It seems like Watchman can be a very useful service, warning library developers of potential future conflicts, and giving them faster notification of actual conflicts – without waiting for someone in the community to trip over the conflict first!
+
+You can find out more about Watchman and the issues it has found at the project site: http://www.watchman-pypi.com. You can even point it at your own library if you have one!
+
+## What about other ecosystems?
+
+We previously looked at “Small world with high risks” which provides some fascinating insights into the npm ecosystem, albeit through a security lens, and Conflictjs which explicitly looks at conflicting JavaScript libraries. The related work section in today’s paper contains some useful looking jumping off points for the Java and Android ecosystems too:
+
+- Soto-Valera et al. studied Maven Central
+
+- Wang et al. looked at dependency conflicts in Java projects and built a tool called Riddle to help expose and understand them.
+
+- Wei et al. studied compatibility issues in Android apps.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Software Engineering 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousAligning superhuman AI with human behaviour: chess as a model systemsNext &rsaquo;Static Analysis of Java Enterprise Applications: Frameworks and Caches, the Elephants in the Room
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Loading Comments...
+ 
+ 
+ 
+ 
+
+ 
+ 
+ Write a Comment...
+ 
+ 
+ 
+ 
+ Email (Required)
+ 
+ 
+ 
+ Name (Required)
+ 
+ 
+ 
+ Website
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ %d

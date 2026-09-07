@@ -1,0 +1,35 @@
+{
+  "date": "20150806",
+  "file_name": "20150806",
+  "slug": "cooking-the-books-formalizing-the-jmm-implementation-recipes",
+  "blog_url": "https://blog.acolyer.org/2015/08/06/cooking-the-books-formalizing-the-jmm-implementation-recipes/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses a 2015 paper that formally analyzes the Java Memory Model (JMM) and its implementation recipes for compiler writers. Adrian Colyer highlights the paper's key contribution: formalizing the informal 'Cookbook' rules used to implement the JMM on different hardware architectures, including Power and x86. The author emphasizes the importance of this work by revealing a critical flaw in the Cookbook rules for Power, which violated the JMM's Data-Race Free (DRF) guarantee. The paper provides a provable validation of the Cookbook's rules where correct and proposes corrections where they fail, with some changes already integrated into an updated Cookbook. The formal model consists of four layers, from high-level architecture-agnostic semantics to low-level architecture-specific models, demonstrating how the rules ensure JMM compliance. The post also notes challenges with ARM's memory model due to its complexity and evolving specifications.",
+  "paper_title": "Cooking the Books: Formalizing the JMM Implementation Recipes",
+  "paper_authors": [
+    "Aleksandar Nanevski",
+    "Gavin M. Bierman",
+    "Mads Torgersen",
+    "James J. Hunt"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "ECOOP 2015",
+  "paper_url": "https://www.cs.purdue.edu/homes/suresh/papers/ecoop15.pdf",
+  "paper_abstract": "The Java Memory Model (JMM) is intended to characterize the meaning of concurrent Java programs. Because of the model’s complexity, however, its definition cannot be easily transplanted within an optimizing Java compiler, even though an important rationale for its design was to ensure Java compiler optimizations are not unduly hampered because of the language’s concurrency features. In response, the JSR-133 Cookbook for Compiler Writers [15], an informal guide to realizing the principles underlying the JMM on different (relaxed-memory) platforms was developed. The goal of the cookbook is to give compiler writers a relatively simple, yet reasonably efficient, set of reordering-based recipes that satisfy JMM constraints. In this paper, we present the first formalization of the cookbook, providing a semantic basis upon which the relationship between the recipes defined by the cookbook and the guarantees enforced by the JMM can be rigorously established. Notably, one artifact of our investigation is that the rules defined by the cookbook for compiling Java onto Power are inconsistent with the requirements of the JMM, a surprising result, and one which justifies our belief in the need for formally provable definitions to reason about sophisticated (and racy) concurrency patterns in Java, and their implementation on modern-day relaxed-memory hardware. Our formalization enables simulation arguments between an architecture-independent intermediate representation of the kind suggested by [15] with machine abstractions for Power and x86. Moreover, we provide fixes for cookbook recipes that are inconsistent with the behaviors admitted by the target platform, and prove the correctness of these repairs. 1998 ACM Subject Classification D.1.3 Concurrent Programming. D.3.1 Formal Definitions and Theory. F.3.1 Specifying and Verifying and Reasoning about Programs.",
+  "paper_file": "papers/2015/08/06/cooking-the-books-formalizing-the-jmm-implementation-recipes.pdf",
+  "topics": [
+    "programming-languages"
+  ],
+  "tags": [
+    "java-memory-model",
+    "formal-verification",
+    "memory-model",
+    "power-architecture",
+    "x86",
+    "data-race-free",
+    "compiler-implementation"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

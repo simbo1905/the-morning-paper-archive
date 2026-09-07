@@ -1,0 +1,47 @@
+{
+  "date": "20150106",
+  "file_name": "20150106",
+  "slug": "f1-a-distributed-sql-database-that-scales",
+  "blog_url": "https://blog.acolyer.org/2015/01/06/f1-a-distributed-sql-database-that-scales/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights F1, Google's distributed SQL database designed to replace MySQL for the AdWords business. The paper stands out for its candid discussion of system design decisions and their implications for developers, emphasizing the importance of full ACID transactional consistency to avoid burdening developers with eventual consistency issues. Colyer praises F1's ability to achieve scalability, availability, consistency, and usability—goals often considered mutually exclusive—by building on Spanner and making trade-offs like higher CPU usage for developer-friendly features. Key insights include hierarchical schema design, Protocol Buffers integration, non-blocking schema changes, and a first-class change history mechanism. The paper also discusses the need for a new ORM approach tailored for distributed systems, avoiding common anti-patterns.",
+  "paper_title": "F1: A Distributed SQL Database That Scales",
+  "paper_authors": [
+    "Christopher B. Colby",
+    "Alexander Lloyd",
+    "Sudipta Sengupta",
+    "Mark Strumolo"
+  ],
+  "paper_year": 2012,
+  "paper_venue": "CIDR 2012",
+  "paper_url": "http://research.google.com/pubs/pub41344.html",
+  "paper_abstract": "F1 is a distributed relational database system built at Google to support the AdWords business. F1 is a hybrid database that combines high availability, the scalability of NoSQL systems like Bigtable, and the consistency and usability of traditional SQL databases. F1 is built on Spanner, which provides synchronous cross-datacenter replication and strong consistency. Synchronous replication implies higher commit latency, but we mitigate that latency by using a hierarchical schema model with structured data types and through smart application design. F1 also includes a fully functional distributed SQL query engine and automatic change tracking and publishing.",
+  "paper_file": "papers/2015/01/06/f1-a-distributed-sql-database-that-scales.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems",
+    "cloud-computing"
+  ],
+  "tags": [
+    "distributed-sql",
+    "spanner",
+    "acid-transactions",
+    "schema-management",
+    "protocol-buffers",
+    "orm",
+    "adwords",
+    "consistency",
+    "scalability",
+    "non-blocking-schema-changes",
+    "change-history"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Basic architecture of the F1 system",
+      "caption": "The basic architecture of the F1 system, with servers in two datacenters."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

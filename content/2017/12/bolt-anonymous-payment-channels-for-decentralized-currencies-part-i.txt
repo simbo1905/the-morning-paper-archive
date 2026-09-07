@@ -1,0 +1,327 @@
+URL: https://blog.acolyer.org/2017/12/13/bolt-anonymous-payment-channels-for-decentralized-currencies-part-i/
+Title: Bolt: anonymous payment channels for decentralized currencies &#8211; part&nbsp;I
+---
+
+Bolt: anonymous payment channels for decentralized currencies Green and Miers et al., CCS’17
+
+In which I tried not to rant. But did end up ranting just a little bit...
+
+The world of blockchains and cryptocurrencies seems to be growing at quite a pace. Yesterday we looked at Solidus, which provides confidentiality for transactions taking place on a ledger in a bank intermediated world. Today we’re looking at Bolt, which provides confidentiality for transactions taking place off ledger in what are called payment channels, potentially routed through untrusted intermediaries.
+
+Isn’t it kind of fundamental to blockchain that transactions happen on the ledger you may ask? The problem is that in the case of Bitcoin, transaction throughput is currently capped at less than 10 transactions per second. Which lets face it, on a global scale is laughably inadequate. Can you imagine if only 10 cash transactions per second were possible? Here’s a back of the envelope calculation that really brought it home to me. There are 7.4 billion people in the world at the moment. At a throughput of 10 transactions per second, each person in the world (let’s ignore population growth) gets to initiate a transaction about once every twenty-three and a half years. So you probably get to do three transactions in your lifetime. For those 10 glorious transactions per second by the way we’re consuming the earth’s resources at the rate of 32TWh per year, and growing fast. (Ok, strictly some of that energy might come from renewable sources, but plenty won’t). Another thing this back-of-the-envelope tells you is that in such a world miners stand to make a fortune in bribes mining fees for prioritising the transactions of people that don’t want to wait another 23 years...
+
+Payment channels are one of the mechanisms attracting attention to resolve this problem. Payment channels are anchored in the blockchain, but once established all trade within the channel happens off the chain. The blockchain gets involved again if there is a dispute, or when the channel is closed.
+
+Let’s start with the simple case of a payment channel directly between two parties. We’ll call the first party the ‘customer’ and the second party the ‘merchant’, but I’m using the quotes here to make it clear that this is just for illustration - it could be any two trading parties. If a customer wants to make a one-off trade with the merchant, then we might just as well go ahead and use a regular transaction, because it takes a transaction just to establish a payment channel. But if the customer thinks they’ll be trading with the merchant multiple times (maybe it’s a subscription) then they can establish a payment channel, and place a certain amount of funds in escrow within the channel at time of creation. The customer and the merchant can then swap IOUs backed by the escrow funds. Later on the channel can be closed, and the escrow funds within it are distributed to the trading parties according to the IOU balances.
+
+I confess I don’t really get payment channels in this basic form. It doesn’t seem great as the customer, since I have to lock up in escrow the maximum amount of funds I ever imagine spending with the merchant into the channel. It doesn’t seem great as the merchant because my cash flow is terrible. I’m providing goods / services all the way along but I don’t get any cash flow, and the only way to unlock the funds is to liquidate the means by which my customer can trade with me! You can see a secondary market growing with trades on payment channel promises to help solve this problem. It doesn’t really seem a great solution to the Bitcoin blockchain scalability problem either. If we take the ‘3 transactions in your lifetime’ allocation, and it takes one transaction to set up a channel, and one to close it, then you get to buy from 1.5 different merchants in your lifetime.
+
+None of these are problems that Bolt addresses. And that’s not Bolt’s fault. Bolt starts from the ‘payment channels are a thing the blockchain industry is investigating’ position, and tries to provide enhanced privacy protection when using payment channels.
+
+> 
+
+ While payment channels offer a solution to the scaling problem, they inherit many of the well-known privacy weaknesses of Bitcoin. Although payments are conducted off-chain, any party may learn the pseudonymous identities and initial (resp. final) channel balances of the participants. More critically, payment channels provide few privacy protections against transaction counterparties.
+
+Before we look at the privacy protections, there’s one more twist in the payment channel story we need to consider. If every trading pair needs to establish a payment channel for each trading session between them, then we’re looking at payment channels, all created, closed, and arbitrated on the blockchain. Did I mention the 10 transactions per second thingy? So what do we do in computer science when we’re facing an n-to-m integration problem? Introduce an intermediary and replace n x m with n + m!
+
+We can do the same thing with payment channels. As a customer, I can establish a payment channel with an intermediary. And the intermediary can establish payment channels with multiple merchants (and other end users). Now I can transact with multiple merchants and end users all through the one payment channel, via the intermediary. Ok, that can work — but it doesn’t seem in the spirit of decentralised anonymous cryptocurrencies to me. It’s going to be a hassle for me to keep funds in escrow in lots of different payment channels, so as a consumer I’m going to favour intermediaries that have accounts with lots of different merchants. Think of the marketplace dynamics of e.g. Visa and Mastercard. (And debit cards, not credit cards, because you need the backing funds held in escrow). And what’s the betting that such a useful intermediary might introduce some kind of transaction fee in return for their services? That’s a whole lot of hashing and crypto-invention to end up pretty much back where we started. One advantage though is that it turns out we don’t have to trust the intermediary. In this single intermediary (indirect channel) case, Bolt can provide pretty strong privacy:
+
+- The merchant does not learn the identity of the customer
+
+- The channel can be configured so that the identity of the merchant is not revealed to the customer
+
+- The intermediary does not learn the identities of the transacting parties (out of the set of parties it has open channels with)
+
+- The payment amount is hidden from the intermediary 
+
+Good luck with KYC and AML though! (And do the payment channels still have to be closed before any funds actually flow? I presume so...)
+
+You can also make indirect channels with multiple intermediaries in the payment path. However,
+
+> 
+
+ ... the advantages of intermediaries do not fully generalize to chains containing more than a single intermediary... channels which involve more than one intermediary cannot hide the value of an payment from all intermediaries.
+
+While we’re filling in the background context, it’s also worth mentioning Lightning Network here. Lightning Network uses smart contract-powered bi-directional payment channels to keep payments off the chain. The interesting innovation in Lightning Network (which I haven’t studied depth, so this is only a superficial understanding on my part) is a kind of payment routing protocol that finds a path between two parties involved in a trade hopping over lots of individual two-party ledgers. Think of the parties as nodes in a graph, and the payment channels between them as edges. Then we know that under the conditions of an Erdős–Rényi random graph it’s quite likely that a giant connected component will emerge and we’ll be able to route payments between any two parties. How the escrow amounts are managed to cover all the payments on their way through such networks I don’t know without further study.
+
+Bolt stands for Blind Off-chain Lightweight Transactions, and provides a set of techniques for the construction of Anonymous Payment Channels (APCs). APC schemes build on a number of cryptographic primitives including commitment schemes (allowing a party to commit to a chosen value while keeping it hidden), symmetric encryption schemes, pseudorandom functions that support efficient proofs of knowledge and have strong pre-image resistance, signature schemes, and non-interactive zero-knowledge proofs.
+
+Now that we’ve set the scene, we’re also getting pretty close to my target length for a post. So I’ll save the details of how Bolt’s APCs work until tomorrow. See you then!
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Blockchain 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousSolidus: confidential distributed ledger transactions using PVORMNext &rsaquo;Bolt: anonymous payment channels for decentralized currencies - Part II
+ 
+ 
+
+ 
+ 
+## 
+ 10 thoughts on &ldquo;Bolt: anonymous payment channels for decentralized currencies - part I&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Svein Ølnes says: 
+
+ 
+ December 13, 2017 at 12:52 pm 
+
+ 
+
+ 
+ 
+First I have to say I am a big fan of your Morning paper and I am deeply impressed that you are able to write something interesting almost every day. Although it is much I don't understand I almost always find something of interest. 
+
+Your strength is that your blog/paper is rooted in published research and I am therefore somewhat surprised that you this time refer to sources that are not peer reviewed or quality assessed in any way when you mention the energy consumption of Bitcoin mining. This is a field where we need more input from researchers. I suggest you bring this up in a separate post and would like to point to one interesting paper on this subject: "Sustainability of bitcoin and blockchains" by Harald Vranken.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: [Blockchain] | Learning & Living 
+ 
+ 
+- 
+ 
+ Pingback: SoK: Research perspectives and challenges for Bitcoin and cryptocurrency - Part II | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Ayo Akinyele: Bolt Labs '" Zcash on Lightning - GTAD 
+ 
+ 
+- 
+ 
+ Pingback: Ayo Akinyele: Bolt Labs – Zcash on Lightning | Lets Talk Bitcoin 
+ 
+ 
+- 
+ 
+ Pingback: Ayo Akinyele: Bolt Labs – Zcash on Lightning 
+ 
+ 
+- 
+ 
+ Pingback: Ayo Akinyele: Bolt Labs &#039;" Zcash on Lightning - Bitcoin KSA 
+ 
+ 
+- 
+ 
+ Pingback: Ayo Akinyele: Bolt Labs '" Zcash on Lightning - Damon Sand - Blog 
+ 
+ 
+- 
+ 
+ Pingback: Ayo Akinyele: Bolt Labs '" Zcash on Lightning - Internet News 24/7 
+ 
+ 
+- 
+ 
+ Pingback: Ayo Akinyele: Bolt Labs &#8218;" Zcash on Lightning | BitAuction.de 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

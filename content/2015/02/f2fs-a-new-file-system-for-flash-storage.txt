@@ -1,0 +1,355 @@
+URL: https://blog.acolyer.org/2015/02/26/f2fs-a-new-file-system-for-flash-storage/
+Title: F2FS: A new file system for flash&nbsp;storage
+---
+
+F2FS: A New File System for Flash Storage - Lee et al. 2015
+
+For the second half of February's research conference highlights, we're visiting FAST '15, the File and Storage Technologies conference.
+
+We've seen a few statements so far in this series that Flash storage has the potential to be very disruptive. But beyond the obvious headline facts about Flash, how does this translate into new designs for file systems (and for data stores), and what kind of difference might we expect to see if we optimise for it? I've been looking for some good explanations that go a level deeper than 'you need to take into account wear levelling,' and in doing some research for this paper review I came across a wonderful resource. Emmanuel Goossaert has a superb six-part write-up on his codeCapsule blog. A great starting point would be to read his post "What every programmer should know about solid-state drives." As well as some good background information, here you'll also find a neat summary of 12 rules for efficiently programming against Flash based storage, and 4 tips for system optimisations.
+
+And with that, onto today's paper choice which looks at the design of the Flash-Friendly File System (F2FS) from Samsung. F2FS was merged into the Linux 3.8 kernel in late December 2012. To answer one of the opening questions straight away, compared to EXT4 this can give performance improvements in the 2x-3x range. Well worth having!
+
+Revealing my server-side bias, my initial thought was 'why Samsung?' But of course flash memory is behind most consumer electronics including smartphones!
+
+> 
+
+ NAND flash memory has been used widely in various mobile devices like smartphones, tablets and MP3 players. Furthermore, server systems started utilizing flash devices as their primary storage. Despite its broad use, flash memory has several limitations, like erase-before-write requirement, the need to write on erased blocks sequentially and limited write cycles per erase block.
+
+The most common hardware configuration is multiple flash chips connected through a dedicated controller.
+
+> 
+
+ The firmware running on the controller, commonly called FTL (flash translation layer), addresses the NAND flash memory’s limitations and provides a generic block device abstraction. Examples of such a flash storage solution include eMMC (embedded multimedia card), UFS (universal flash storage) and SSD (solid-state drive). Typically, these modern flash storage devices show much lower access latency than a hard disk drive (HDD), their mechanical counterpart. When it comes to random I/O, SSDs perform orders of magnitude better than HDDs.
+
+One of the drawbacks of NAND flash is that frequent random writes cause internal fragmentation of the underlying media and degrade sustained SSD performance. Such random write patterns are common. In fact, it turns out that Facebook and Twitter might be ruining your phone!
+
+> 
+
+ Over 80% of total I/Os are random and more than 70% of the random writes are triggered with fsync by applications such as Facebook and Twitter. This specific I/O pattern comes from the dominant use of SQLite in those applications. Unless handled carefully, frequent random writes and flush operations in modern workloads can seriously increase a flash device's I/O latency and reduce the device lifetime.
+
+A log-structured file system and/or copy-on-write strategy can both help mitigate the problems of random writes. However, file systems such as BTRFS and NILFS2 do not consider the characteristics of flash storage devices and are "inevitably suboptimal in terms of performance and device lifetime."
+
+> 
+
+ We argue that traditional file system design strategies for HDDs - albeit beneficial - fall short of fully leveraging and optimizing the usage of the NAND flash media.
+
+There have also been a number of file systems proposed and implemented for embedded systems that use raw NAND flash memories as storage.
+
+> 
+
+ These file systems directly access NAND flash memories while addressing all the chip-level issues such as wear-levelling and bad-block management. Unlike these systems, F2FS targets flash storage devices that come with a dedicated controller and firmware (FTL) to handle low-level tasks. Such flash storage devices are more commonplace.
+
+F2FS was designed from scratch to optimize the performance and lifetime of flash devices with a generic block interface. It builds on the concept of the Log-Structured Filesystem (LFS), but also introduces a number of new design considerations:
+
+- A flash-friendly on-disk layout that aligns with the underlying FTL's operational units to avoid unnecessary data copying.
+
+- 
+
+A cost-effective index structure that addresses the 'wandering tree' problem:
+
+> 
+
+In the traditional LFS design, if a leaf data node is updated, its direct and indirect pointer blocks are updated recursively. F2FS, however, only updates one direct node block and its NAT (Node Address Table) entery, effectively addressing the wandering tree problem.
+
+- Multi-head logging - which separates hot, warm, and cold data
+
+- 
+
+Adaptive logging - F2FS fundamentally builds on append-only logging to turn random writes into sequential ones. But at high storage utilization it can also change to a threaded logging strategy to avoid long write latencies.
+
+- 
+
+Roll-forward recovery for fsync acceleration
+
+> 
+
+Applications like database (e.g., SQLite) frequently write small data to a file and conduct fsync to guarantee durability. A naive approach to supporting fsync would be to trigger checkpointing and recover data with the roll-back model. However, this approach leads to poor performance, as checkpointing involves writing all node and dentry blocks unrelated to the database file. F2FS implements an efficient roll-forward recovery mechanism to enhance fsync performance. The key idea is to write data blocks and their direct node blocks only, excluding other node or F2FS metadata blocks. In order to find the data blocks selectively after rolling back to the stable checkpoint, F2FS retains a special flag inside direct node blocks.
+
+## Multi-head and adaptive logging
+
+LFS has one major log area, but F2FS maintains six to maximize the effect of hot and cold data separation. There are three levels of temperature: hot, warm, and cold, for both node and data blocks. The number of write streams can be adjusted (e.g. by combining cold and warm into one stream) if doing so is believed to offer better results on a given storage device and platform.
+
+In tests, six logs performed the best with segments being either mostly full, or having zero valid blocks. "An obvious impact of this bimodal distribution is improved cleaning efficiency as cleaning costs depend on the number of valid blocks in a victim segment. (Cleaning is the process of reclaiming scattered and invalidated blocks to secure free segments for further logging).
+
+Normal (append-only) logging transforms random write requests to sequential write requests as long as there is enough free logging space.
+
+> 
+
+ As the free space shrinks to nil, however, this policy starts to suffer high cleaning overheads, resulting in a serious performance drop (quantified to be over 90% in harsh conditions).
+
+Threaded logging writes blocks to holes (invalidated, obsolete space) in existing dirty segments. This policy requires no cleaning operations, but triggers random writes and may degrade performance as a result.
+
+> 
+
+ F2FS implements both policies and switches between them dynamically according to the file system status. Specifically, if there are more than k clean sections, where k is a pre-defined threshold, normal logging is initiated. Otherwise, threaded logging is activated. k is set to 5% of total sections by default.
+
+Experimental results showed that adaptive logging is critical to sustain performance at high storage utilization levels. The adaptive logging policy is also shown to effectively limit the performance degradation of F2FS due to fragmentation.
+
+## Mobile and Server performance
+
+On the mobile system an iozone test studies basic file I/O performance, and mobibench measures SQLite performance. System call traces collected from the Facebook and Twitter applications were also replayed.
+
+With iozone all tested file systems (F2FS, EXT4, BTRFS, and NILFS) perform similarly on sequential reads and writes, and random reads, but F2FS is markedly better with random writes, performing 3.1x better than EXT4 for example.
+
+For the SQLite benchmark F2FS shows significantly better performance than the other filesystems and outperforms EXT4 by 2x.
+
+For the Facebook and Twitter app trace replays, F2FS reduces the elapsed time by 20% and 40% respectively compared to EXT4.
+
+On the server system, sequential read and write workloads again perform similarly across all file systems. In the varmail test that creates and deletes a small number of files, F2FS beats EXT4 by 2.5x on SATA SSD, and 1.8x on PCIe SSD. With an OLTP workload F2FS shows 13-16% performance improvements over EXT4.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Storage 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousBloom Cookies: web search personalization without user trackingNext &rsaquo;RIPQ: Advanced photo caching on flash for Facebook
+ 
+ 
+
+ 
+ 
+## 
+ 2 thoughts on &ldquo;F2FS: A new file system for flash storage&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Min Fu says: 
+
+ 
+ October 26, 2015 at 11:41 am 
+
+ 
+
+ 
+ 
+Hi Adrian, really interesting CS blog. SSD itself is log-structured thanks to FTL. How necessarily do we need a log-structured file system, like F2FS, on top of SSD? Actually, a paper at INFLOW'14 discussed the problems caused by the stack of logs.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Rob says: 
+
+ 
+ November 13, 2016 at 9:34 pm 
+
+ 
+
+ 
+ 
+Exactly that! It's really difficult to find a host-side file systems that fits optimally to an FTL. Indeed, no LFS-structure is needed at all, provided that the FTL supports the retrievement of most recent hot data just before a power-off crash. There are around 10 FTL vendors out there, most of them keeping the internals internally.
+
+Here, a host-side LFS makes sense if designed such, that no negative interference with the FTL is resulting.
+
+ 
+
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

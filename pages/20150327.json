@@ -1,0 +1,41 @@
+{
+  "date": "20150327",
+  "file_name": "20150327",
+  "slug": "scalable-atomic-visibility-with-ramp-transactions",
+  "blog_url": "https://blog.acolyer.org/2015/03/27/scalable-atomic-visibility-with-ramp-transactions/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the RAMP (Read Atomic Multiple Partition) transactions paper as a solution to the uncomfortable trade-off in distributed databases between performance and atomic visibility for multi-partition transactions. Traditional systems either sacrifice correctness for speed (e.g., NoSQL stores) or sacrifice scalability for consistency (e.g., slow global indexes). RAMP transactions, with three variants (RAMP-Fast, RAMP-Small, RAMP-Hybrid), demonstrate that atomic visibility can be achieved without significant performance degradation, scaling to over 7.1 million operations per second on 100 servers. The key insight is that reads and writes can proceed concurrently, with readers autonomously detecting and fetching missing in-flight writes using metadata, while writers use a two-phase atomic commitment protocol to ensure visibility. The paper also addresses critical issues like foreign key constraints, secondary indexing, and materialized view maintenance that break without atomic multi-partition isolation.",
+  "paper_title": "Scalable Atomic Visibility with RAMP Transactions",
+  "paper_authors": [
+    "Peter Bailis",
+    "Shivaram Venkataraman",
+    "Michael J. Franklin",
+    "Joseph M. Hellerstein",
+    "Ion Stoica"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "SIGMOD",
+  "paper_url": "http://www.bailis.org/papers/ramp-sigmod2014.pdf",
+  "paper_abstract": "Databases can provide scalability by partitioning data across several servers. However, multi-partition, multi-operation transactional access is often expensive, employing coordination-intensive locking, validation, or scheduling mechanisms. Accordingly, many realworld systems avoid mechanisms that provide useful semantics for multi-partition operations. This leads to incorrect behavior for a large class of applications including secondary indexing, foreign key enforcement, and materialized view maintenance. In this work, we identify a new isolation model—Read Atomic (RA) isolation—that matches the requirements of these use cases by ensuring atomic visibility: either all or none of each transaction’s updates are observed by other transactions. We present algorithms for Read Atomic MultiPartition (RAMP) transactions that enforce atomic visibility while offering excellent scalability, guaranteed commit despite partial failures (via synchronization independence), and minimized communication between servers (via partition independence). These RAMP transactions correctly mediate atomic visibility of updates and provide readers with snapshot access to database state by using limited multi-versioning and by allowing clients to independently resolve non-atomic reads. We demonstrate that, in contrast with existing algorithms, RAMP transactions incur limited overhead—even under high contention—and scale linearly to 100 servers.",
+  "paper_file": "papers/2015/03/27/scalable-atomic-visibility-with-ramp-transactions.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "atomic-transactions",
+    "multi-partition-transactions",
+    "consistency-models",
+    "secondary-indexing",
+    "materialized-views",
+    "foreign-key-constraints",
+    "CRDTs",
+    "Bloom-filters",
+    "two-phase-commit",
+    "scalability"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

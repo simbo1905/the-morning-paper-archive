@@ -1,0 +1,401 @@
+URL: https://blog.acolyer.org/2015/03/17/consistency-availability-and-convergence-cops/
+Title: Consistency, Availability, and Convergence +&nbsp;COPS
+---
+
+Consistency, Availability, and Convergence Mahajan et al. 2014, and
+
+Don't Settle for Eventual: Scalable Causal Consistency for Wide-Area Storage with COPS - LLoyd et al. 2011
+
+This is the second of five Desert Island Paper selections from Jonas Bonér that we'll be looking at this week. I've turned this post into a double-header since Consistency, Availability, and Convergence has made a previous cursory appearance on The Morning Paper. My earlier posting just focused on the main results, including:
+
+> 
+
+ No consistency stronger than real-time causal consistency (RTC) can be provided in an always available, one-way convergent system, and RTC can be provided in an always available one-way convergent system.
+
+Today I'd like to go a little bit deeper into what RTC (and availability, and convergence) really mean in the statement above. Then in part two we'll look at the 'COPS' paper which introduces and motivates the causal+ consistency model and an embodiment in the COPS key-value store.
+
+## Part One: CAC
+
+Hang on, I thought it was CAP, not CAC! Why are Mahajan et al. looking at Consistency, Availability, and Convergence, not Consistency, Availability, and Partition Tolerance?
+
+> 
+
+ The CAP (consistency, availability, partition-resilience) formulation mixes properties (consistency and availability) with the system model (network reliability assumptions). In our formulation, we decouple the model from the properties so that we can separately consider bounds on properties achievable under both omission and Byzantine failure models. Additionally, CAP does not explicitly consider convergence because linearizability and sequential consistency embed a convergence requirement. When we examine weaker semantics like causal consistency, we find that we must explicitly consider convergence.
+
+The 'convergence' problem is often mentioned in passing in papers discussing CAP, since in its absence you can trivially achieve consistency through a number of less desirable schemes such as just agreeing on a single fixed value a priori and never changing it. So a model that includes convergence tells us something important that we actually care about in real-world systems.
+
+> 
+
+ Informally, convergence refers to an implementation’s ability to ensure that writes issued by one node are observed by others. Convergence can be formally defined by describing the set of environment conditions (network, local-clocks etc) under which nodes can observe each other’s writes... A simple convergence property is eventual consistency. One common definition requires that if a system stops accepting writes and sufficient communication occurs, then the system reaches a state in which for any object o, a read of o would return the same value at all nodes. This formulation defines a weak convergence property; for example, it makes no promises about intervals in which some nodes are partitioned from others.
+
+For maximal liveness, we would like it that any subset of connected nodes should converge on a common state. The authors define one way convergence between any pair of nodes A and B, which permits convergence with two steps of one-way communication. First A sends updates to B, and then B sends updates to A.
+
+Informally, if consistency is the property that we all agree, convergence is the property that what we all agree on is in fact a desirable and useful state.
+
+What about availability?
+
+> 
+
+ Availability, informally, refers to an implementation’s ability to ensure that read and write operations complete. The availability of an implementation is defined by describing the environment conditions (network, local-clocks etc) under which all issued operations complete. An implementation is always available if for any workload, all reads and writes can complete regardless of which messages are lost and which nodes can communicate.
+
+Finally we turn our attention to consistency, and in particular, if real-time causal consistency is the best we can do, then what is that exactly?
+
+Given a set of nodes, and a set of mutable data items, then an execution consists of a set of read and write events. A write event includes the nodeId of the node performing the write, the objId of the data item being written, the value being written, the start time of the write operation, and the end time of the write operation. (Think key-value store). It looks a bit odd to see start time and end time in there, but these are required to model the 'real-time' aspect of real-time causal consistency. And remember that this is a model, so we can assume an absolute global time visible to all nodes even though we can't have that in a practical implementation (see Google's Spanner and the TrueTime API it introduces for a real-world system that comes pretty darn close... "as a community, we should no longer depend on loosely synchronized clocks and weak time APIs in designing distributed algorithms"!).
+
+A read event includes the nodeId of the node performing the read, the objId of the data item being read, the writeList (of all write operations that produced the values a read returns), and the start time and end time. Reads are allowed to return multiple results in order to handle logically concurrent updates without having to worry about conflict resolution in the model.
+
+Given this model, we can start to reason about consistency. In particular, a consistency model 'accepts' (allows) certain executions, but not others. A consistency semantics C-strong is stronger than a consistency semantics C-weak if the set of executions accepted by C-strong is a subset of those accepted by C-weak. If neither of two models is stronger according to this definition, then they are incomparable.
+
+What set of executions does causal consistency allow? Take each of the events and make them nodes in a directed acyclic graph, where an edge from event a to event b represents that a precedes, or "happens before," b. This graph therefore imposes a partial order on the overall set of events. For causal consistency we place two requirements on this graph:
+
+- Given any two operations a and b taking place at the same node, then a precedes b if and only if a's start time is earlier than b's start time. 
+
+- A read returns the latest preceding concurrent writes. The return value of a read is encoded in its writeList. So this writeList must contain every write w that precedes the read, and has not been overwritten by another write that follows w and also precedes the read.
+
+And real-time causal consistency adds a third requirement:
+
+- Time can't travel backwards. If the end time of event a is before the start time of event b, then b cannot precede a. (Which matches our common sense definition of 'happens before').
+
+> 
+
+ ... most systems that claim to implement causal consistency actually implement stronger semantics (e.g. RTC). Lloyd et al. [our second paper today] explicitly note that their system’s causal and per-object sequential semantics are stronger than causal consistency. In particular, these semantics enforce a variation of causal consistency in which writes to each key are totally ordered.
+
+## Part Two: COPS
+
+In "Don't settle for eventual" Lloyd et al. introduce the concept of casual+ consistency and then show that it can be implemented effeciently with their COPS system (Clusters of Order Preserving Systems). In keeping with today's theme, I'm going to focus mostly on the causal+ aspects, and refer you to the paper for the full details of how COPS was constructed.
+
+> 
+
+ A distributed storage system has multiple, sometimes competing, goals: availability, low latency, and partition tolerance to provide an “always on” user experience; scalability to adapt to increasing load and storage demands; and a sufficiently strong consistency model to simplify programming and provide users with the system behavior that they expect.
+
+The first four of these properties are described as the 'ALPS' properties: Availability, Low-Latency, Partition-tolerance, and Scalability.
+
+- Availability: all operations complete successfully and no operation can block indefinitely or return an error indicating that data is unavailable.
+
+- Low-latency: target response times on the order of a few milliseconds
+
+- Partition tolerance: the data store continues to operate under network partitions
+
+- Scalability: the data store scales out linearly
+
+> 
+
+ Given that ALPS systems must sacrifice strong consistency (i.e., linearizability), we seek the strongest consistency model that is achievable under these constraints. Stronger consistency is desirable because it makes systems easier for a programmer to reason about. In this paper, we consider causal consistency with convergent conflict handling, which we refer to as causal+ consistency.
+
+Causal consistency we addressed above. Note that if a does not precede b, and b does not precede a, then a and b are concurrent. Causal consistency does not impose any order on concurrent operations.
+
+> 
+
+ Normally, this allows increased efficiency in an implementation: Two unrelated put operations can be replicated in any order, avoiding the need for a serialization point between them. If, however, a and b are both puts to the same key, then they are in conflict.
+
+If each node is free to resolve the conflict in its own way, then it is possible for replicas to diverge forever. The convergent conflict handling of causal+ consistency therefore adds the requirement that all conflicting updates be handling in the same manner at all replicas. For COPS, the default strategy is to use last-writer-wins with a Lamport clock-based implementation:
+
+> 
+
+ The primary storage node uses a Lamport timestamp to assign a unique version number to each update. The node sets the version number’s high-order bits to its Lamport clock and the low-order bits to its unique node identifier. Lamport timestamps allow COPS to derive a single global order over all writes for each key. This order implicitly implements the last-writer-wins convergent conflict handling policy.
+
+Once a replica has returned a given version of a key, then causal+ consistency ensures that it will then only ever return that version or a causally later version. Thus the returned version number monotonically increases, which is refered to as the progressing property.
+
+The implementation of COPS itself assumes a small number of COPS clusters (each wholly contained within a datacenter) connected together into a single datastore.
+
+> 
+
+ Each local COPS cluster is set up as a linearizable (strongly consistent) key-value store. Linearizable systems can be implemented scalably by partitioning the keyspace into N linearizable partitions.
+
+Replication between COPS clusters happens asynchronously. One interesting design point in COPS is the extension to support get transactions. If a store only supports a single key get operation, then even if that store is causally+ consistent, you won't be able to read a causally+ consistent set of dependent keys. In such a model there is no canonically correct ordering of the item values.
+
+> 
+
+ ... a better programming interface would allow the client to obtain a causal+ consistent view of multiple keys. The standard way to achieve such a guarantee is to read and write all related keys in a transaction; this, however, requires a single serialization point for all grouped keys, which COPS avoids for greater scalability and simplicity. Instead, COPS allows keys to be written independently (with explicit dependencies in metadata), and provides a get&#095;trans operation for retrieving a consistent view of multiple keys.
+
+The implementation proceeds in two rounds: first fetching the most recent version of each requested key, together with the 'dependency list' of keys they depend on. If any of the originally requested keys also appears in a dependency list, then a check is made to ensure that the version retrieved is at least as recent as the one in the list. If one of these checks fails, then the offending key is fetched by version using the newest version seen in any dependency list.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Desert Island Papers 
+ 
+ ConsistencyDistributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousConsistency analysis in Bloom: a CALM and collected approachNext &rsaquo;A Comprehensive study of Convergent and Commutative Replicated Data Types
+ 
+ 
+
+ 
+ 
+## 
+ 12 thoughts on &ldquo;Consistency, Availability, and Convergence + COPS&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Matthew Sackman says: 
+
+ 
+ March 17, 2015 at 11:48 am 
+
+ 
+
+ 
+ 
+I think it's very important to remember that these key-value stores in general get no where near general transactions - or at least "transactions" can mean something quite different to our typical assumptions of (near-)serializability. Thus they are not going to be replacing the Postgresqls, Oracles etc for applications that need full transactions. Whilst there are obviously headline applications for certain very famous and large companies where they can get away with far lower isolation levels, it's not clear if that's really becoming the new norm.
+
+The "Highly available transactions: Virtues and limitations" paper is quite good at discussing some of the different isolation levels. I particularly like the fact in that paper that they come up with a matrix of 144 different HAT combinations. The variations on isolation levels appears to be enormous (possibly infinite), and we seem to be in danger of creating a product for each one.
+
+I very much like the approach "Coordination Avoidance in Consistent Database Systems" (which I know you're covering soon), the principle idea being that the programmer should be able to specify what level of isolation each transaction or data item needs. This seems a more useful way to work. I would be quite keen to see database products where the API accepts temporal-logic formulae (for example) and is thus able to select an appropriate isolation level.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Building on quicksand | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Bolt-on Causal Consistency | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: The Potential Dangers of Causal Consistency and an Explicit Solution | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Out of the Fire Swamp* - Part I, 'The Data Crisis' | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Out of the Fire Swamp - Part II, Peering into the mist | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: We Have a DREAM: Distributed Reactive Programming with Consistency Guarantees | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: A Short Note on Atomicity and Ordering | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: FairRide: Near-Optimal, Fair Cache Sharing | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: The SNOW theorem and latency-optimal read-only transactions | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Neo4j 3.1支持因果集群并改进了安全 - 莹莹之色 
+ 
+ 
+- 
+ 
+ Pingback: OmniLedger: a secure, scale-out decentralized ledger via sharding | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

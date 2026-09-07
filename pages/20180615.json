@@ -1,0 +1,39 @@
+{
+  "date": "20180615",
+  "file_name": "20180615",
+  "slug": "popular-is-cheaper-curtailing-memory-costs-in-interactive-analytics-engines",
+  "blog_url": "https://blog.acolyer.org/2018/06/15/popular-is-cheaper-curtailing-memory-costs-in-interactive-analytics-engines/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses Getafix, a system designed to reduce memory costs in large-scale in-memory data analytics engines like Yahoo!'s Druid cluster. The key insight is that data segment popularity in such systems is highly skewed, with a small fraction of segments accounting for the majority of accesses. Getafix exploits this skew by intelligently placing and replicating segments based on their changing popularity over time. By dynamically adjusting replication levels and placement, Getafix achieves a 1.45-2.15x reduction in memory footprint while maintaining comparable query latencies. The paper presents a polynomial-time algorithm for segment placement, modeled as a colored-ball bin-packing problem, and demonstrates significant cost savings in a public cloud setting, potentially amounting to $10M per year for a 100TB hot dataset.",
+  "paper_title": "Popular is cheaper: curtailing memory costs in interactive analytics engines",
+  "paper_authors": [
+    "Arup Ghosh",
+    "Kanat Tangwongsan",
+    "Abhishek Sharma",
+    "Joydeep Sen Sarma",
+    "Ryan Kirkbride",
+    "Alexander Rasin"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "EuroSys'18",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3190542",
+  "paper_abstract": "Most modern cores perform a highly-associative translation look aside buffer (TLB) lookup on every memory access. These designs often hide the TLB lookup latency by overlapping it with L1 cache access, but this overlap does not hide the power dissipated by TLB lookups. It can even exacerbate the power dissipation by requiring higher associativity L1 cache. With today's concern for power dissipation, designs could instead adopt a virtual L1 cache, wherein TLB access power is dissipated only after L1 cache misses. Unfortunately, virtual caches have compatibility issues, such as supporting writeable synonyms and x86’s physical page table walker. This work proposes an Opportunistic Virtual Cache (OVC) that exposes virtual caching as a dynamic optimization by allowing some memory blocks to be cached with virtual addresses and others with physical addresses. OVC relies on small OS changes to signal which pages can use virtual caching (e.g., no writeable synonyms), but defaults to physical caching for compatibility. We show OVC's promise with analysis that finds virtual cache problems exist, but are dynamically rare. We change 240 lines in Linux 2.6.28 to enable OVC. On experiments with Parsec and commercial workloads, the resulting system saves 94-99% of TLB lookup energy and nearly 23% of L1 cache dynamic lookup energy.",
+  "paper_file": "papers/2018/06/15/popular-is-cheaper-curtailing-memory-costs-in-interactive-analytics-engines.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "data-analytics",
+    "memory-optimization",
+    "segment-placement",
+    "replication",
+    "interactive-analytics",
+    "Druid",
+    "bin-packing",
+    "query-latency"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

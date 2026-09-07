@@ -1,0 +1,372 @@
+URL: https://blog.acolyer.org/2015/11/19/fail-at-scale-controlling-queue-delay/
+Title: Fail at Scale &amp; Controlling Queue&nbsp;Delay
+---
+
+Controlling Queue Delay - Nichols & Van Jacobsen, 2012, and
+
+Fail at Scale - Maurer, 2015
+
+## Fail at Scale (Maurer)
+
+Ben Maurer recently wrote a great article for ACM Queue on how Facebook achieves reliability in the face of rapid change:
+
+> 
+
+ To keep Facebook reliable in the face of rapid change we study common patterns in failures and build abstractions to address them. These abstractions ensure that best practices are applied across our entire infrastructure. To guide our work in building reliability abstractions we must understand our failures. We do this by building tools to diagnose issues and by creating a culture of reviewing incidents in a way that pushes us to make improvements that prevent future failures.
+
+Maurer describes 'three easy ways to cause an incident,' and gives mitigating strategies for each of them. The three ways are:
+
+- Rapidly deployed configuration changes (see Holistic Configuration Management at Facebook).
+
+- Hard dependencies on core services (just because services are core, don't assume they'll never go down), and
+
+- Increased latency and resource exhaustion
+
+It's a great article and well worth reading. Today I want to highlight the section on strategies for mitigating resource exhaustion. There are three of those too: controlled delay (CoDel), Adaptive LIFO, and Concurrency Control.
+
+## Controlled Delay at Facebook
+
+> 
+
+ In analyzing past incidents involving latency, we found that many of our worst incidents involved large numbers of requests sitting in queues awaiting processing... We studied the research on bufferbloat as our problems seemed similar—the need to queue for reliability without causing excessive latency during congestion. We experimented with a variant of the CoDel (controlled delay) algorithm.
+
+In the second part of today's post we'll take a deeper look at the CoDel algorithm. The Facebook variant performs the equivalent of dropping packets by controlling the timeout for messages placed into a queue. There are two parameters: the regular timeout value M, and the amount of time you're prepared for a queue to be non-empty (signs of bufferbloat) - N.
+
+if (queue.lastEmptyTime() < (now - N seconds)) { 
+ timeout = M ms 
+} else { 
+ timeout = N seconds; 
+} 
+queue.enqueue(req, timeout)
+
+> 
+
+ This algorithm prevents a standing queue (because the lastEmptyTime will be in the distant past, causing an M-ms queuing timeout) while allowing short bursts of queuing for reliability purposes. While it might seem counterintuitive to have requests with such short timeouts, this process allows requests to be quickly discarded rather than build up when the system is not able to keep up with the rate of incoming requests. A short timeout ensures that the server always accepts just a little bit more work than it can actually handle so it never goes idle.
+
+## Adaptive LIFO
+
+Normally services process queues in FIFO order. Under periods of high queueing, by the time a message gets to the front of the queue it may have been waiting for quite some time, which greatly increases the chances the request has timed out. So Facebook adopt a strategy whereby requests are normally processed FIFO, but once a queue starts to form services switch to LIFO ordering.
+
+> 
+
+ Adaptive LIFO and CoDel play nicely together. CoDel sets short timeouts, preventing long queues from building up, and adaptive LIFO places new requests at the front of the queue, maximizing the chance that they will meet the deadline set by CoDel.
+
+## Concurrency Control
+
+Adaptive LIFO and CoDel are server-side measures. Facebook also implement client-side concurrency control:
+
+> 
+
+ Each client keeps track of the number of outstanding outbound requests on a per-service basis. When new requests are sent, if the number of outstanding requests to that service exceeds a configurable number, the request is immediately marked as an error. This mechanism prevents a single service from monopolizing all its client's resources.
+
+## Controlled Delay (Nichols & Van Jacobsen)
+
+Let's now take a more detailed look at the CoDel algorithm in its original context - dealing with bufferbloat on the internet. CoDel is an Active Queue Management (AQM) strategy.
+
+Recall that Little's Law relates queue length L, effective arrival rate &lambda;, and wait time w for a stable system via the simple formula L = &lambda;w. We can rearrange this to understand how long the average wait time is for a stable system with a certain queue length and arrival rate: w=L/&lambda;. Note that these are stable systems, so we always get the same throughput (n items processed per second for example) independent of how long each one waits. But the longer the queue, the longer each item waits before being processed. If something causes the queues to fill up (a burst of traffic with a faster arrival rate than processing rate) before settling back to a stable level we end up with a longer (but stable) queue. Throughput is unchanged, but the latency (wait time) for every item has now gone up. When the queues are buffers in network routers, and the items are network packets, we call this the bufferbloat problem.
+
+> 
+
+ Packet networks require buffers to absorb short-term arrival rate fluctuations. Although essential to the operation of packet networks, buffers tend to fill up and remain full at congested links, contributing to excessive traffic delay and losing the ability to perform their intended function of absorbing bursts.
+
+Active Queue Management attempts to address this problem but has traditionally been hard to tune and not widely deployed. CoDel (pronounced coddle) is a 'no-knobs' AQM that works well in a wide variety of situations.
+
+> 
+
+ Developing effective active queue management has been hampered by misconceptions about the cause and meaning of queues. Network buffers exist to absorb the packet bursts that occur naturally in statistically multiplexed networks. Queues occur in the buffers as a result of short-term mismatches in traffic arrival and departure rates that arise from upstream resource contention, transport conversation startup transients, and/or changes in the number of conversations sharing a link. Unfortunately, other network behavior can cause buffers to fill, with effects that aren’t nearly as
+
+ benign. With the wrong conceptual model for queues, AQMs have limited operational range, require a lot of configuration tweaking, and frequently impair rather than improve performance.
+
+Nichols & Van Jacobsen's article (link at the top) contains a lovely sequence of diagrams showing how the initial burst of packets sent during TCP connection startup, when they pass through a network bottleneck, end up being queued. The ack mechanism (flow control mechanism) quickly stabilises throughput to match send and arrival rates, but the queue that build up therefore never dissipates. Now we have added latency to no benefit.
+
+> 
+
+ This standing queue, resulting from a mismatch between the window and pipe size, is the essence of bufferbloat. It creates large delays but no improvement in throughput. It is not a phenomenon treated by queuing or traffic theory, which, unfortunately, results in it being almost universally misclassified as congestion (a completely different and much rarer pathology). These theories usually assume Poisson arrival processes, which are, by definition, uncorrelated. The arrivals of a closed-loop, reliable transport process such as TCP are completely correlated, resulting in an arrival and departure rate equality that theorists have dismissed as unnatural and wildly improbable. Since normal cures for congestion such as usage limits or usage-based billing have no effect on bufferbloat but annoy customers and discourage network use, addressing the real problem would be prudent.
+
+The key thing to understand is that not all queues are bad - so we can't simply react to queue size. Good queues convert bursty arrivals into smooth, steady departures (and reduce in length when the arrival rate drops back down below the departure rate). Bad queues (standing queues) serve no useful purpose and simply create excess delay.
+
+We want an AQM that:
+
+- Is parameterless - it has no knobs for operators, users, or implementors to adjust
+
+- Treats good and bad queues differently - keeping delays low while permitting bursts of traffic
+
+- Controls delay, while being insensitive to round-trip delays, link rates, and traffic loads
+
+- Adapts to dynamically changing link rates with no negative impact on utilization
+
+- Is simple and efficient.
+
+> 
+
+ CoDel (Controlled Delay Management) has three major innovations that distinguish it from prior AQMs. First, CoDel’s algorithm is not based on queue size, queue-size averages, queue-size thresholds, rate measurements, link utilization, drop rate or queue occupancy time. Starting from Van Jacobson’s 2006 insight, we used the local minimum queue as a more accurate and robust measure of standing queue. Then we observed that it is sufficient to keep a single-state variable of how long the minimum has been above or below the target value for standing queue delay rather than keeping a window of values to compute the minimum. Finally, rather than measuring queue size in bytes or packets, we used the packet-sojourn time through the queue. Use of the actual delay experienced by each packet is independent of link rate, gives superior performance to use of buffer size, and is directly related to the user-visible performance.
+
+CoDel has two simple parameters (but they don't need to be fine-tuned): the acceptable standing queue delay (target), and an interval time on the order of a worst-case RTT of connections through the bottleneck. In practice setting these to 5ms and 100ms respectively seems to work well.
+
+> 
+
+ CoDel assumes that a standing queue of target is acceptable and that it is unacceptable to drop packets when there are fewer than one MTU’s (maximum transmission unit’s) worth of bytes in the buffer. CoDel identifies the persistent delay by tracking the (local) minimum queue delay packets experience. To ensure that the minimum value does not become stale, it has to have been experienced within the most recent interval. When the queue delay has exceeded target for at least interval, a packet is dropped and a control law sets the next drop time. The next drop time is decreased in inverse proportion to the square root of the number of drops since the dropping state was entered, using the well-known relationship of drop rate to throughput to get a linear change in throughput. When the queue delay goes below target, the controller stops dropping. No drops are carried out if the buffer contains fewer than an MTU’s worth of bytes. Additional logic prevents reentering the dropping state too soon after exiting it and resumes the dropping state at a recent control level, if one exists.
+
+The full pseudocode is available on the ACM Queue website.
+
+CoDel performed very well in a wide variety of simulation runs, and there are extensive details in the article. It is not the solution to all queueing problems though:
+
+> 
+
+ AQM is not a substitute for differentiated queuing to provide priority for packets that need low latency and jitter. We have had a lot to say in the past about solutions for that type of traffic; AQM should be employed on the packet queues handling common Internet traffic and a Delay Bound per-hop behavior used for latency sensitive traffic.
+
+See for example Queues don't matter when you can JUMP them.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Algorithms and data structuresDistributed SystemsFacebook 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousMinimizing Faulty Executions of Distributed SystemsNext &rsaquo;Moving Fast with Software Verification
+ 
+ 
+
+ 
+ 
+## 
+ 4 thoughts on &ldquo;Fail at Scale & Controlling Queue Delay&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ William Louth says: 
+
+ 
+ November 19, 2015 at 9:45 am 
+
+ 
+
+ 
+ 
+On controlled delay & concurrency control please see my recent µCon 2015 (London) slides:
+
+https://speakerdeck.com/autoletics/beyond-reactive-qos-and-adaptive-control-for-software
+
+These slides refer to a technology I designed in 2009 & released in 2010 and which was referenced in an InfoQ article I wrote in 2011:
+
+http://www.infoq.com/articles/QoS-for-Applications
+
+"The notion of an application being a network is the basis for JXInsight/OpenCore's "QoS for Apps" technology. QoS is layered on top of OpenCore's software activity based metering and costing runtime whereby all metered code execution points (methods, dynamic-language call sites) within an application’s codebase are modeled as virtual network traffic management devices that can perform service (re-)classification, (re-)prioritization, resource reservation, traffic/throughput rate limiting along each of the (predicted) code execution paths and across threads and reservation lanes."
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: 02-12-2015 - Links extravaganza - Magnus Udbjørg 
+ 
+ 
+- 
+ 
+ Pingback: Overload control for scaling WeChat microservices | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Overload control for scaling WeChat microservices | Daily AI 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

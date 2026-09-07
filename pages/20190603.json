@@ -1,0 +1,60 @@
+{
+  "date": "20190603",
+  "file_name": "20190603",
+  "slug": "ease-ml-ci",
+  "blog_url": "https://blog.acolyer.org/2019/06/03/ease-ml-ci/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the challenge of applying continuous integration (CI) principles to machine learning (ML) model development, arguing that ML's probabilistic nature and susceptibility to overfitting require a specialized approach. The paper introduces ease.ml/ci, a CI system for ML that addresses two key issues: (1) determining the minimal number of test samples needed to achieve a given reliability level while minimizing labeling effort, and (2) preventing model adaptation to the test set over time by refreshing test data periodically. The system integrates with existing CI tools (e.g., Travis) and provides a domain-specific language (DSL) for specifying test conditions, adaptivity modes, and reliability requirements. The author notes the practicality challenges, including the need for tens of thousands of labeled examples per test suite run, and explores trade-offs between adaptivity strategies (full, none, firstChange) and their impact on test set shelf-life and utility. The paper also demonstrates how common ML use cases (e.g., incremental improvement, stability constraints) can be mapped to the DSL.",
+  "paper_title": "Continuous integration of machine learning models with ease.ml/ci: towards a rigorous yet practical treatment",
+  "paper_authors": [
+    "Renggli",
+    "C.",
+    "Kraska",
+    "T.",
+    "Alvarez-Melis",
+    "D.",
+    "Fekri",
+    "F.",
+    "Polyakov",
+    "A.",
+    "Lamprecht",
+    "M.",
+    "Madden",
+    "S."
+  ],
+  "paper_year": 2019,
+  "paper_venue": "SysML'19",
+  "paper_url": "https://www.sysml.cc/doc/2019/162.pdf",
+  "paper_abstract": "We demonstrate ease.ml/snoopy, a data analytics system that performs feasibility analysis for machine learning (ML) applications before they are developed. Given a performance target of an ML application (e.g., accuracy above 0.95), ease.ml/snoopy provides a decisive answer to ML developers regarding whether the target is achievable or not. We formulate the feasibility analysis problem as an instance of Bayes error estimation. That is, for a data (distribution) on which the ML application should be performed, ease.ml/snoopy provides an estimate of the Bayes error – the minimum error rate that can be achieved by any classifier. It is well-known that estimating the Bayes error is a notoriously hard task. In ease.ml/snoopy we explore and employ estimators based on the combination of (1) nearest neighbor (NN) classifiers and (2) pre-trained feature transformations. To the best of our knowledge, this is the first work on Bayes error estimation that combines (1) and (2). In today’s cost-driven business world, feasibility of an ML project is an ideal piece of information for ML application developers – ease.ml/snoopy plays the role of a reliable “consultant.” PVLDB Reference Format: Cedric Renggli et al.. Ease.ml/snoopy in Action: Towards Automatic Feasibility Analysis for Machine Learning Application Development. PVLDB, 13(12): 2837-2840, 2020. DOI: https://doi.org/10.14778/3415478.3415488",
+  "paper_file": "papers/2019/06/03/ease-ml-ci.pdf",
+  "topics": [
+    "machine-learning",
+    "data-engineering"
+  ],
+  "tags": [
+    "continuous-integration",
+    "ml-pipelines",
+    "test-sets",
+    "adaptivity",
+    "overfitting",
+    "reliability",
+    "hoeffding-inequality",
+    "dsll",
+    "travis-ci",
+    "labeling-cost"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "User interaction with ease.ml/snoopy",
+      "caption": "User interaction with ease.ml/snoopy"
+    },
+    {
+      "number": "Figure 2",
+      "title": "Interface for ease.ml/snoopy",
+      "caption": "Figure 2 illustrates the interface for ease.ml/snoopy. The user interactions for running the evaluation using ease.ml/snoopy are minimal, in the following sense: After uploading the dataset (features and labels for the test and training samples), one simply has to specify the desired target accuracy, and, if available, the best state-of-the-art. To speed up the evaluation process, one can manually filter the available feature transformations."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

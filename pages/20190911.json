@@ -1,0 +1,37 @@
+{
+  "date": "20190911",
+  "file_name": "20190911",
+  "slug": "procella",
+  "blog_url": "https://blog.acolyer.org/2019/09/11/procella/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Procella as a groundbreaking unified data processing system developed by Google for YouTube, addressing the challenge of siloed infrastructure by consolidating multiple specialized systems into a single HTAP (Hybrid Transactional/Analytical Processing) solution. The paper emphasizes Procella's ability to handle diverse workloads—reporting, embedded statistics, time-series monitoring, and ad-hoc analysis—with high scale, performance, and data freshness, serving hundreds of billions of queries daily over tens of petabytes. Key innovations include a disaggregated storage-compute architecture, aggressive caching strategies (leveraging immutable data and affinity scheduling), and a custom columnar file format (Artus) that enables direct operations on compressed data with near-in-memory performance. The system's design principles—cloud-native scalability, fast recovery, and straggler mitigation—are praised for enabling horizontal scaling and low-latency responses across use cases.",
+  "paper_title": "Procella: unifying serving and analytical data at YouTube",
+  "paper_authors": [
+    "Chattopadhyay et al."
+  ],
+  "paper_year": 2019,
+  "paper_venue": "VLDB",
+  "paper_url": "https://ai.google/research/pubs/pub48388/",
+  "paper_abstract": "• Reporting and dashboarding: Video creators, content owners, and various internal stakeholders at YouTube need access to detailed real time dashboards to understand how their videos and channels are performing. This requires an engine that supports executing tens of thousands of canned queries per second with low latency (tens of milliseconds), while queries may be using filters, aggregations, set operations and joins. The unique challenge here is that while our data volume is high (each data source often contains hundreds of billions of new rows per day), we require near real-time response time and access to fresh data. Large organizations like YouTube are dealing with exploding data volume and increasing demand for data driven applications. Broadly, these can be categorized as: reporting and dashboarding, embedded statistics in pages, time-series monitoring, and ad-hoc analysis. Typically, organizations build specialized infrastructure for each of these use cases. This, however, creates silos of data and processing, and results in a complex, expensive, and harder to maintain infrastructure. At YouTube, we solved this problem by building a new SQL query engine – Procella. Procella implements a superset of capabilities required to address all of the four use cases above, with high scale and performance, in a single product. Today, Procella serves hundreds of billions of queries per day across all four workloads at YouTube and several other Google product areas. • Embedded statistics: YouTube exposes many realtime statistics to users, such as likes or views of a video, resulting in simple but very high cardinality queries. These values are constantly changing, so the system must support millions of real-time updates concurrently with millions of low latency queries per second. PVLDB Reference Format: Biswapesh Chattopadhyay, Priyam Dutta, Weiran Liu, Ott Tinn, Andrew Mccormick, Aniket Mokashi, Paul Harvey, Hector Gonzalez, David Lomax, Sagar Mittal, Roee Ebenstein, ...",
+  "paper_file": "papers/2019/09/11/procella.pdf",
+  "topics": [
+    "data-engineering",
+    "distributed-systems"
+  ],
+  "tags": [
+    "htap",
+    "columnar-storage",
+    "caching",
+    "data-compression",
+    "sql-engine",
+    "disaggregated-architecture",
+    "immutable-data",
+    "affinity-scheduling",
+    "ad-hoc-analysis",
+    "time-series",
+    "embedded-analytics"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

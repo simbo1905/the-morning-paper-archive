@@ -1,0 +1,41 @@
+{
+  "date": "20151026",
+  "file_name": "20151026",
+  "slug": "fast-in-memory-transaction-processing-using-rdma-and-rtm",
+  "blog_url": "https://blog.acolyer.org/2015/10/26/fast-in-memory-transaction-processing-using-rdma-and-rtm/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the paper 'Fast In-memory Transaction Processing using RDMA and HTM' by Wei et al., which explores whether advanced processor features (Hardware Transactional Memory, HTM) and fast interconnects (Remote Direct Memory Access, RDMA) can enable transaction processing systems to achieve an order of magnitude higher performance than state-of-the-art systems. The authors present DrTM, a distributed transaction system that combines HTM and RDMA to achieve 5.52M transactions per second on TPC-C with a 6-node cluster, significantly outperforming prior systems like RAMCloud and I-Confluence-based approaches. The key insight is leveraging HTM for local concurrency control and RDMA for remote data access, while addressing challenges like HTM's limited working set and the incompatibility of RDMA within HTM regions by combining HTM with two-phase locking (2PL). The paper also details the design of HTM/RDMA-friendly data structures (e.g., hash tables) and protocols to ensure serializability and forward progress.",
+  "paper_title": "Fast In-memory Transaction Processing using RDMA and HTM",
+  "paper_authors": [
+    "Wei",
+    "Juncheng",
+    "Jiannan Ouyang",
+    "Yanzhe Chen",
+    "Bingsheng He",
+    "Xiaoyong Du"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SOSP'15",
+  "paper_url": "http://sigops.org/sosp/sosp15/current/2015-Monterey/printable/158-wei.pdf",
+  "paper_abstract": "build a transaction processing system that is at least one order of magnitude faster than the state-of-the-art systems without using such features. To answer this question, this paper presents the design and implementation of DrTM, a fast in-memory transaction processing system that exploits HTM and RDMA to run distributed transactions on a modern cluster. Hardware transactional memory (HTM) has recently come to the mass market in the form of Intel’s restricted transactional memory (RTM). The features like atomicity, consistency and isolation (ACI) make it very promising for database transactions [31, 44, 57]. Meanwhile, RDMA, which provides direct memory access (DMA) to the memory of a remote machine, has recently gained considerable interests in the systems community [21, 28, 37]. DrTM mainly leverages HTM to do most parts of concurrency control like tracking read/write sets and detecting conﬂicting accesses in a local machine. For transactions with large working set, DrTM may leverage transaction chopping [44, 45, 59] to ﬁt the read/write set of each chopped transaction piece into the working set of an HTM transaction1 . To preserve serializability among concurrent transactions across multiple machines, DrTM provides the ﬁrst design and implementation of distributed transactions using HTM, by leveraging the strong consistency feature of RDMA (where an RDMA operation will abort an HTM transaction that accesses the same memory location) to glue multiple HTM transactions together while preserving serializability. One main challenge of supporting distributed transactions is the fact that no I/O operations including RDMA are allowed within an HTM region. DrTM addresses this with a concurrency control protocol that combines HTM and two-phase locking (2PL) [7] to preserve serializability. Speciﬁcally, DrTM uses RDMA-based compare-and-swap (CAS) to lock and fetch the corresponding database records from remote machines before starting an HTM transaction. Thanks to the str...",
+  "paper_file": "papers/2015/10/26/fast-in-memory-transaction-processing-using-rdma-and-rtm.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "transaction-processing",
+    "rdma",
+    "htm",
+    "concurrency-control",
+    "two-phase-locking",
+    "hash-tables",
+    "b+-trees",
+    "oltp",
+    "tpc-c",
+    "serializability"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

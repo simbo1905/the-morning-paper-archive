@@ -1,0 +1,43 @@
+{
+  "date": "20180608",
+  "file_name": "20180608",
+  "slug": "bds-a-centralized-near-optimal-overlay-network-for-inter-datacenter-data-replication",
+  "blog_url": "https://blog.acolyer.org/2018/06/08/bds-a-centralized-near-optimal-overlay-network-for-inter-datacenter-data-replication/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses BDS, a centralized near-optimal overlay network designed to speed up inter-datacenter multicast transfers at Baidu by 3-5x. Adrian Colyer highlights the inefficiencies of Baidu's existing system, Gingko, which suffers from sub-optimal routing decisions due to limited local information, leading to significantly longer transfer times (e.g., 195 minutes vs. a theoretical 41 minutes for a 30GB file) and negatively impacting latency-sensitive traffic (30x delay inflation). The key insight is leveraging application-level overlay paths and store-and-forward techniques to create bottleneck-disjoint routes, enabling parallel data transfers and reducing completion times. BDS achieves this through a centralized controller that periodically gathers global information, optimizes routing and scheduling decisions, and pushes updates to local agents. The paper addresses the computational intractability of the problem by decomposing it into scheduling (using a 'rarest-first' inspired strategy) and routing (via an integer multi-commodity flow algorithm) steps, both of which are made efficient through fine-grained block partitioning.",
+  "paper_title": "BDS: A centralized near-optimal overlay network for inter-datacenter data replication",
+  "paper_authors": [
+    "Zhang et al."
+  ],
+  "paper_year": 2018,
+  "paper_venue": "EuroSys'18",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3190519",
+  "paper_abstract": "Many important cloud services require replicating massive data from one datacenter (DC) to multiple DCs. While the performance of pair-wise inter-DC data transfers has been much improved, prior solutions are insufficient to optimize bulk-data multicast, as they fail to explore the capability of servers to store-and-forward data, as well as the rich inter-DC overlay paths that exist in geo-distributed DCs. To take advantage of these opportunities, we present BDS, an application-level multicast overlay network for largescale inter-DC data replication. At the core of BDS is a fully centralized architecture, allowing a central controller to maintain an up-to-date global view of data delivery status of intermediate servers, in order to fully utilize the available overlay paths. To quickly react to network dynamics and workload churns, BDS speeds up the control algorithm by decoupling it into selection of overlay paths and scheduling of data transfers, each can be optimized efficiently. This enables BDS to update overlay routing decisions in near realtime (e.g., every other second) at the scale of multicasting hundreds of TB data over tens of thousands of overlay paths. A pilot deployment in one of the largest online service providers shows that BDS can achieve 3-5× speedup over the provider’s existing system and several well-known overlay routing baselines. ACM Reference Format: Yuchao Zhang, Junchen Jiang, Ke Xu, Xiaohui Nie, Martin J. Reed, Haiyang Wang, Guang Yao, Miao Zhang, and Kai Chen. 2018. BDS: A Centralized Near-Optimal Overlay Network for Inter-Datacenter Data Replication. In EuroSys ’18: Thirteenth EuroSys Conference 2018, April 23–26, 2018, Porto, Portugal. ACM, New York, NY, USA, 14 pages. https://doi.org/10.1145/3190508.3190519",
+  "paper_file": "papers/2018/06/08/bds-a-centralized-near-optimal-overlay-network-for-inter-datacenter-data-replication.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems",
+    "networking"
+  ],
+  "tags": [
+    "inter-datacenter",
+    "multicast",
+    "overlay-networks",
+    "store-and-forward",
+    "centralized-control",
+    "scheduling",
+    "routing",
+    "integer-multi-commodity-flow",
+    "bottleneck-disjoint",
+    "data-replication"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Overlay paths reducing multicast completion time",
+      "caption": "A simple network topology illustrating how overlay paths reduce inter-DC multicast completion time. Assume that the WAN link between any two DCs is 1GB/s, and that A wants to send 3GB data to B and C. Sending data from A to B and C separately takes 3 seconds (a), but using overlay paths A→B→C and A →C→B simultaneously takes only 2 seconds (b). The circled numbers show the order for each data piece is sent."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

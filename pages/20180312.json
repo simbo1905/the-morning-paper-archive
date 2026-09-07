@@ -1,0 +1,35 @@
+{
+  "date": "20180312",
+  "file_name": "20180312",
+  "slug": "synode-understanding-and-automatically-preventing-injection-attacks-on-node-js",
+  "blog_url": "https://blog.acolyer.org/2018/03/12/synode-understanding-and-automatically-preventing-injection-attacks-on-node-js/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the prevalence and severity of injection vulnerabilities in Node.js applications, particularly due to the powerful `exec` and `eval` APIs which lack the security sandboxing found in browser-based JavaScript. The paper demonstrates that thousands of npm modules are vulnerable, with 20% of all modules depending on injection-prone APIs. The authors found that 90% of call sites lack mitigation techniques, and even when developers are notified, fixes are slow to materialize. The Synode tool combines static analysis to identify vulnerable call sites with runtime enforcement to block malicious inputs, offering a practical solution for securing Node.js applications. The evaluation shows Synode effectively detects and prevents injections with minimal overhead and no false negatives.",
+  "paper_title": "Synode: Understanding and Automatically Preventing Injection Attacks on Node.js",
+  "paper_authors": [
+    "Cristi Staicu",
+    "Michael Pradel"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "NDSS",
+  "paper_url": "http://wp.internetsociety.org/ndss/wp-content/uploads/sites/25/2018/02/ndss2018_07A-2_Staicu_paper.pdf",
+  "paper_abstract": "—Packages in the Node.js ecosystem often suffer from serious vulnerabilities such as arbitrary command injection and code execution. Existing taint analysis tools fall short in providing an end-to-end infrastructure for automatically detecting and triaging these vulnerabilities. We develop N ODE M EDIC, an end-to-end analysis infrastructure that automates test driver creation, performs precise yet scalable dynamic taint propagation via algorithmically tuned propagation policies, and exposes taint provenance information as a provenance graph. Using provenance graphs we develop two post-detection analyses: automated constraint-based exploit synthesis to confirm vulnerabilities; Attack-defense-tree–based rating of flow exploitability. We demonstrate the effectiveness of N ODE M EDIC through a large-scale evaluation of 10,000 Node.js packages. Our evaluation uncovers 155 vulnerabilities, of which 152 are previously undisclosed, and 108 were confirmed with automatically synthesized exploits. We have open-sourced N ODE M EDIC and a suite of 589 taint precision unit tests. 1. Introduction JavaScript has been widely used on server, desktop, and IoT platforms. The vehicle for JavaScript deployment on these platforms is the Node.js runtime, which ranks as the most widely used web framework in Stack Overflow’s developer survey [75] and features a diverse ecosystem of more than 1 million packages. The widespread deployment of Node.js makes it attractive to attackers. Recent years have seen a surge in attacks that target Node.js packages [65]. Several studies have measured the security of the Node.js ecosystem and found that it is rife with packages that have vulnerabilities [33], [92], [105]. The Node.js runtime lacks mechanisms for sandboxing or moderating third-party packages and thus a single vulnerability in a package’s dependencies can compromise the security of the entire package [22]. Two vulnerabilities of particular interest to this paper are arbitrary code execution (...",
+  "paper_file": "papers/2018/03/12/synode-understanding-and-automatically-preventing-injection-attacks-on-node-js.pdf",
+  "topics": [
+    "systems-security",
+    "programming-languages"
+  ],
+  "tags": [
+    "injection-attacks",
+    "nodejs",
+    "static-analysis",
+    "runtime-enforcement",
+    "eval",
+    "exec",
+    "npm",
+    "security-vulnerabilities"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

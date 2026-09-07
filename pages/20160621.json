@@ -1,0 +1,41 @@
+{
+  "date": "20160621",
+  "file_name": "20160621",
+  "slug": "blindbox-deep-packet-inspection-over-encrypted-traffic",
+  "blog_url": "https://blog.acolyer.org/2016/06/21/blindbox-deep-packet-inspection-over-encrypted-traffic/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the paper 'BlindBox: Deep packet inspection over encrypted traffic' by Sherry et al. from SIGCOMM 2015, which addresses the challenge of enabling deep packet inspection (DPI) for intrusion detection and prevention (IDS/IPS) on encrypted HTTPS traffic without violating end-to-end security. The paper introduces a novel approach called DPIEnc, a searchable encryption scheme, and a fast detection protocol that allows middleboxes to inspect encrypted traffic for attack patterns while preserving privacy. The system achieves inspection rates of up to 186Mbps per core, comparable to standard IDS implementations, though the initial HTTPS connection setup can be slow (up to 1.5 minutes for large rule sets). The paper proposes two privacy models: exact match privacy, where the middlebox only learns exact matches for attack keywords, and probable cause privacy, which allows decryption of traffic only if a match is found, enabling more detailed regular expression matching. The system architecture involves a rule generator, sender, receiver, and middlebox, with cryptographic protocols ensuring that the middlebox never learns the rules or private traffic data.",
+  "paper_title": "BlindBox: Deep packet inspection over encrypted traffic",
+  "paper_authors": [
+    "Justine Sherry",
+    "Prateek Saxena",
+    "Devdatta Akhawe",
+    "Matthew Walraed-Sullivan",
+    "Arvind Krishnamurthy",
+    "Thomas Anderson"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SIGCOMM",
+  "paper_url": "http://iot.stanford.edu/pubs/sherry-blindbox-sigcomm15.pdf",
+  "paper_abstract": "Many network middleboxes perform deep packet inspection (DPI), a set of useful tasks which examine packet payloads. These tasks include intrusion detection (IDS), exfiltration detection, and parental filtering. However, a long-standing issue is that once packets are sent over HTTPS, middleboxes can no longer accomplish their tasks because the payloads are encrypted. Hence, one is faced with the choice of only one of two desirable properties: the functionality of middleboxes and the privacy of encryption. We propose BlindBox, the first system that simultaneously provides both of these properties. The approach of BlindBox is to perform the deep-packet inspection directly on the encrypted traffic. BlindBox realizes this approach through a new protocol and new encryption schemes. We demonstrate that BlindBox enables applications such as IDS, exfiltration detection and parental filtering, and supports real rulesets from both open-source and industrial DPI systems. We implemented BlindBox and showed that it is practical for settings with long-lived HTTPS connections. Moreover, its core encryption scheme is 3-6 orders of magnitude faster than existing relevant cryptographic schemes.",
+  "paper_file": "papers/2016/06/21/blindbox-deep-packet-inspection-over-encrypted-traffic.pdf",
+  "topics": [
+    "networking",
+    "systems-security"
+  ],
+  "tags": [
+    "deep-packet-inspection",
+    "encrypted-traffic",
+    "intrusion-detection",
+    "privacy-preserving",
+    "searchable-encryption",
+    "middleboxes",
+    "HTTPS",
+    "Yao-garbled-circuits",
+    "oblivious-transfer",
+    "regular-expressions"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

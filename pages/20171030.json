@@ -1,0 +1,34 @@
+{
+  "date": "20171030",
+  "file_name": "20171030",
+  "slug": "occupy-the-cloud-distributed-computing-for-the-99",
+  "blog_url": "https://blog.acolyer.org/2017/10/30/occupy-the-cloud-distributed-computing-for-the-99/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the paper 'Occupy the cloud: distributed computing for the 99%' by Jonas et al., which won the best vision paper award at SoCC'17. The authors argue that serverless computing with stateless functions could serve as a simple, elastic, and user-friendly platform for distributed data processing, challenging traditional complex frameworks like Spark or Hadoop. The key insight is that despite the overhead of serializing and deserializing data, the performance degradation is negligible for many workloads, making serverless architectures a viable alternative. The paper highlights that casual users (the '99%') prefer minimal setup and deployment complexity, and serverless models align well with this need. The PyWren prototype, built on AWS Lambda, demonstrates how simple map operations can be executed efficiently using remote storage (S3) and a single shared Lambda function. The authors show that even complex abstractions like MapReduce, BSP, and parameter servers can be implemented on top of this model, though with some limitations due to Lambda's constraints.",
+  "paper_title": "Occupy the cloud: distributed computing for the 99%",
+  "paper_authors": [
+    "Jonas et al."
+  ],
+  "paper_year": 2017,
+  "paper_venue": "SoCC'17",
+  "paper_url": "https://arxiv.org/abs/1702.04024",
+  "paper_abstract": "framework. Yet even at UC Berkeley, we have found via informal surveys that the majority of machine learning graduate students have never written a cluster computing job due to complexity of setting up cloud platforms. In this paper we argue that a serverless execution model with stateless functions can enable radically-simpler, fundamentally elastic, and more user-friendly distributed data processing systems. In this model, we have one simple primitive: users submit functions that are executed in a remote container; the functions are stateless as all the state for the function, including input, output is accessed from shared remote storage. Surprisingly, we find that the performance degradation from using such an approach is negligible for many workloads and thus, our simple primitive is in fact general enough to implement a number of higherlevel data processing abstractions, including MapReduce and parameter servers. Recently cloud providers (e.g., AWS Lambda, Google Cloud Functions) and open source projects (e.g., OpenLambda [16], OpenWhisk [30]) have developed infrastructure to run event-driven, stateless functions as microservices. In this model, a function is deployed once and is invoked repeatedly whenever new inputs arrive and elastically scales with input size. Our key insight is that we can dynamically inject code into these functions, which combined with remote storage, allows us to build a data processing system that inherits the elasticity of the serverless model while addressing the simplicity for end users. We describe a prototype system, PyWren1 , developed in Python with AWS Lambda. By employing only stateless functions, PyWren helps users avoid the significant developer and management overhead that has until now been a necessary prerequisite. The complexity of state management can instead be captured by a global scheduler and fast remote storage. With PyWren, we seek to understand the trade-offs of using stateless functions for large scale data ana...",
+  "paper_file": "papers/2017/10/30/occupy-the-cloud-distributed-computing-for-the-99.pdf",
+  "topics": [
+    "distributed-systems",
+    "cloud-computing"
+  ],
+  "tags": [
+    "serverless",
+    "lambda",
+    "mapreduce",
+    "data-processing",
+    "stateless-functions",
+    "pywren",
+    "bsps",
+    "parameter-servers"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

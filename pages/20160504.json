@@ -1,0 +1,46 @@
+{
+  "date": "20160504",
+  "file_name": "20160504",
+  "slug": "btrdb-optimizing-storage-system-design-for-timeseries-processing",
+  "blog_url": "https://blog.acolyer.org/2016/05/04/btrdb-optimizing-storage-system-design-for-timeseries-processing/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights BTrDB, a time-series database implemented in Go, achieving remarkable performance with 4,709 lines of code. The system processed 2.1 trillion data points and supported 119M queries per second (53M inserts/s) in a four-node cluster, with statistical queries completing in 100-250 ms. The core innovation is a time-partitioned, copy-on-write, version-annotated k-ary tree, enabling efficient storage and querying of high-precision time-series data. Colyer emphasizes the system's scalability, space efficiency (2.9x compression), and suitability for industrial IoT applications like microsynchrophasors (uPMUs), which generate high-frequency, out-of-order telemetry data. The paper also discusses the limitations of existing TSDBs and how BTrDB addresses them through its novel data structure and abstraction.",
+  "paper_title": "BTrDB: Optimizing Storage System Design for Timeseries Processing",
+  "paper_authors": [
+    "Peter Alstone Anderson",
+    "David E. Culler"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "FAST'16",
+  "paper_url": "https://www.usenix.org/system/files/conference/fast16/fast16-papers-andersen.pdf",
+  "paper_abstract": "We focus on one such source of telemetry – microsynchophasors, or uPMUs. These are a new generation of small, comparatively cheap and extremely highprecision power meters that are to be deployed in the distribution tier of the electrical grid, possibly in the millions. In the distributed system shown in Figure 2, each device produces 12 streams of 120 Hz high-precision values with timestamps accurate to 100 ns (the limit of GPS). Motivated by the falling cost of such data sources, we set out to construct a system supporting more than 1000 of these devices per backing server – more than 1.4 million inserted points per second, and several times this in expected reads and writes from analytics. Furthermore, this telemetry frequently arrives out of order, delayed and duplicated. In the face of these characteristics, the storage system must guarantee the consistency of not only the raw streams, but all analytics derived from them. Additionally, fast response times are important for queries across time scales from years to milliseconds. These demands exceed the capabilities of current timeseries data stores. Popular systems, such as KairosDB [15], OpenTSDB [20] or Druid [7], were designed for complex multi-dimensional data at low sample rates and, as such, suffer from inadequate throughput and timestamp resolution for these telemetry streams, which have comparatively simple data and queries based on time extents. These databases all advertise reads and writes of far less than 1 million values per second per server, often with order-of-arrival and duplication constraints, as detailed in Section 2. As a solution to this problem, a novel, ground-up, useinspired time-series database abstraction – BTrDB – was constructed to provide both higher sustained throughput for raw inserts and queries, as well as advanced primitives that accelerate the analysis of the expected 44 quadrillion datapoints per year per server. The core of this solution is a new abstraction for time series t...",
+  "paper_file": "papers/2016/05/04/btrdb-optimizing-storage-system-design-for-timeseries-processing.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "time-series-database",
+    "k-ary-tree",
+    "copy-on-write",
+    "versioning",
+    "microsynchrophasors",
+    "industrial-iot",
+    "compression",
+    "high-throughput"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Locating interesting events in typical uPMU telemetry streams using statistical summaries",
+      "caption": "Figure 1: Locating interesting events in typical uPMU telemetry streams using statistical summaries"
+    },
+    {
+      "number": "Figure 2",
+      "title": "uPMU network storage and query processing system",
+      "caption": "Figure 2: uPMU network storage and query processing system"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,372 @@
+URL: https://blog.acolyer.org/2016/03/08/cryptonets-applying-neural-networks-to-encrypted-data-with-high-throughput-and-accuracy/
+Title: CryptoNets: Applying Neural Networks to Encrypted Data with High Throughput and&nbsp;Accuracy
+---
+
+CryptoNets: Applying Neural Networks to Encrypted Data with High Throughput and Accuracy - Downlin et al. 2016
+
+Fixed misspellings of homomorphic !
+
+With the rise of machine learning, it's easy to imagine all sorts of cloud services that can process your data and make predictions of some kind (Machine Learning as a Service - MLAS). But privacy is a major concern in such services - what if the input data is sensitive, such as may happen in healthcare, finance, marketing and many other fields? Can we get the utility of third-party cloud-based services while still preserving privacy? By using a technique known as homomorphic encryption, it's possible to perform operations on encrypted data, producing an encrypted result, and then decrypt the result to give back the desired answer. By combining homomorphic encryption with a specially designed neural network that can operate within the constraints of the operations supported, the authors of CryptoNet are able to build an end-to-end system whereby a client can encrypt their data, send it to a cloud service that makes a prediction based on that data - all the while having no idea what the data means, or what the output prediction means - and return an encrypted prediction to the client which can then decrypt it to recover the prediction. As well as making this possible, another significant challenge the authors had to overcome was making it practical as homomorphic encryption can be expensive.
+
+CryptoNet was tested using the MNIST optical character recognition dataset, consisting of 28&#215;28 pixel images. Processing images in batches of 8192, they were able to reduce the per image message size down to 73.5KB, the return message size is 0.94KB per image. These numbers rely on batching, sending only one image in a 'batch' would require the same absolute messages sizes: 588MB in, 7.5MB out.
+
+On a Windows 10 PC with 16GB of RAM, the initial encoding and encryption of a batch takes 122 seconds, the prediction (applying the neural network to the encoded images) takes 570 seconds, and decrypting & decoding the prediction takes 5 seconds. That's a total end-to-end latency (ignoring any network transmission times) of just under 12 minutes - making real-time predictions with homomorphic encryption is still some way off. The single PC can make about 52,000 predictions per hour though due to the batching effects. It looks like the initial applications of such homomorphic encryption prediction services will will to target low-volume offline predictions, and hence markets where each prediction is of high value. The claim of the authors to have achieved 'high throughput' is all relative... Even so, it's a very promising direction.
+
+> 
+
+ One line of criticism against homomorphic encryption is its inefficiency, which is commonly thought to make it impractical for nearly all applications. However, combining together techniques from cryptography, machine learning and software engineering, we show that CryptoNets may be efficient and accurate enough for real world applications... Note that a single prediction takes 570 seconds to complete, however, the same process can make 8192 predictions simultaneously with no added cost. Therefore, over an hour, our implementation can make 51739 predictions on average. Hence, CryptoNets are accurate, secure, private, and have a high throughput - an unexpected combination in the realm of homomorphic encryption.
+
+(Note that taking advantage of the batching would require a single client to desire to submit 8192 queries simultaneously).
+
+Not referenced in the related work section, is the paper on Machine Learning Classification over Encrypted Data that I wrote up just over a year ago on The Morning Paper. I'd love to see a comparison here because that paper also uses homomorphic encryption and the system is able to make predictions in at most a few seconds. I suspect the answer is that the methods described here are more generally applicable, but if someone in the know would like to leave a comment below and enlighten us all I'd be very grateful!
+
+CryptoNet uses a leveled homomorphic encryption scheme which allows adding and multiplying of encrypted messages, but requires that you know in advance the complexity of the arithmetic circuit that is to be applied to the data. "In other words, this crypto system allows to compute polynomial functions of a fixed maximal degree on the encrypted data." One of the main challenges the authors had to overcome was designing a neural network to fit within these constraints.
+
+A feed-forward neural network has multiple layers, with inputs connected to the bottom layer. Each of the following layers computes a function over the values of the layer beneath it, and values computed by the top layer are the outputs. Of importance then are the types of functions typically computed at the nodes. Common computations include:
+
+- A weighted sum of the vector of values at the layer below
+
+- Computing the max of some subset of the components of the layer below
+
+- Computing the mean
+
+- Computing a sigmoid function from the value of one of the components in the layer below: f(x) = 1/(1+e-x)
+
+- Computing a rectified linear from the value of one of the components in the layer below: f(x) = max(0,x)
+
+> 
+
+ Since homomorphic encryption supports only additions and multiplications, only polynomial functions can be computed in a straightforward way. Moreover, due to the increased complexity in computing circuits with nested multiplications, it is desired to restrict the computation to low-degree polynomials. The weighted-sum function can be directly implemented since it uses only additions and multiplications. Moreover, the multiplications here are between precomputed weights and the values of the feeding layer. Since the weights are not encrypted, it is possible to use a more efficient plain multiplication operation.
+
+Max-pooling and mean-pooling can be approximated. The sigmoid and rectified linear activation functions are non-polynomial. Instead of these, the authors choose to use the lowest-degree non-linear polynomial function (square!): f(x) = x2.
+
+There are some further practical considerations in mapping neural network operations under homomorphic encryption. At a high level, homomorphic encryption works by mapping values from one 'ring' to another. In maths, a homomorphism is a structure preserving transformation. Consider the mapping
+
+h(z) = z mod 7 
+
+Where z is an integer. This preserves both the additive and multiplicative structure of the integers since h(z1 + z2) = h(z1) + h(z2), and h(z1 * z2) = h(z1) * h(z2) where + and * are the addition and multiplication operations modulo 7. Homomorphic encryption works a bit like this, only the function h is more complex! The main parameters that define a homomorphic encryption function are the plaintext modulus t (we don't want to wrap, as that makes decoding problematic), a coefficient modules q (for the coefficients of the polynomial function used), and n, the degree of the polynomial.
+
+> 
+
+ The security level of the system depends on the parameters n, q, t, and the amount of noise added. The maximum amount of noise that a ciphertext can have and still be decryptable depends on the parameters q and t. When ciphertexts are added or multiplied, the noise in the resulting ciphertext is typically larger than in the inputs. Noise growth is particularly strong in multiplication. This essentially means that the parameter q should be selected to be large enough to support the increased noise, which necessitates choosing a larger n for security reasons. If the computation to be performed is expressed as an arithmetic circuit with addition and multiplication nodes, the main limitation to using the scheme is the number of multiplication gates in the path from the inputs to the outputs. This number we refer to as the level. Keeping the level low allows for selecting smaller values for the parameters, which results in faster computation and smaller ciphertexts.
+
+To further improve computation speed, we can carefully keep track of which parts of the data need to be secured. For example, while the data from a previous layer is encrypted, the weights to be used for computing the values at the next layer are in their plain form. The authors show how plain addition and multiplication can be performed in this scenario, and still produce the same result as if full arithmetic circuits had been used.
+
+> 
+
+ The encryption uses polynomials of a high degree. For example, in our case polynomials can have degrees up to 8191. If the data is encoded as a scalar, only one out of the 8192 coefficients is being used, while all the operations (additions and multiplications) act on the entire 8192 coefficient polynomials. Therefore, the operations are slow due to the high degree, but the result contains only a single significant coefficient. Another application of the CRT (Chinese Remainder Theorem) allows us to perform Single Instruction Multiple Data (SIMD) operations at no extra cost [Gentry et al. (2012b)]...
+
+For efficiency, you can compose compatible layers of the feed-forward network into a single layer (for example, collapsing a series of matrix multiplications into one). See the full paper for further details of the mapping and encoding scheme.
+
+The authors conclude:
+
+> 
+
+ The main contribution of this work is a method that enjoys the accuracy of neural networks with the simplicity of use of homomorphic encryption. By combining techniques from cryptography, machine learning, and engineering, we were able to create a setup in which both accuracy and security are achieved, while maintaining a high level of throughput. This work leaves much room for improvement, however. For example, the throughput and latency can be significantly improved by using GPUs and FPGAs to accelerate the computation. Another direction for further progress would be finding more efficient encoding schemes that allow for smaller parameters, and hence faster homomorphic computation.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Machine LearningPrivacy 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousTrajectory Data Mining: An OverviewNext &rsaquo;Neural Turing Machines
+ 
+ 
+
+ 
+ 
+## 
+ 8 thoughts on &ldquo;CryptoNets: Applying Neural Networks to Encrypted Data with High Throughput and Accuracy&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 8 March 2016 - O'Reilly Radar 
+ 
+ 
+- 
+ 
+ 
+ 
+ Morten Dahl (@mortendahlcs) says: 
+
+ 
+ March 8, 2016 at 2:22 pm 
+
+ 
+
+ 
+ 
+Recently started following your blog: very interesting selection of papers so far!
+
+In this particular paper, one limitation I see (that they also mention) is that the training phase is done on unencrypted data, leaving a privacy issue both for bootstrapping the model but also for adapting it as new data comes in. The same assumption is made in the second paper you mention.
+
+To this end, the cited paper by Aslett et al. is interesting in that they actually do both training and prediction on encrypted data (plus they have a neat trick for division on encrypted data, which is notoriously difficult in secure computation) but pay a somewhat high price in terms of computing.
+
+At any rate, this is very interesting work and it shows that real-world applications of homomorphic encryption is getting closer and closer!
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Sophie says: 
+
+ 
+ March 9, 2016 at 2:49 pm 
+
+ 
+
+ 
+ 
+Is homohorphic encryption a kind of homomorphic encryption?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ March 9, 2016 at 7:33 pm 
+
+ 
+
+ 
+ 
+Homohorphic encryption is just me consistently misspelling homomorphic! My fingers must have been having a bad day that day! 
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ Pingback: Rebar3, Docker и Гомоморфное шифрование -- Episode 0083 &laquo; DevZen Podcast 
+ 
+ 
+- 
+ 
+ Pingback: Big Analytics Roundup (March 14, 2016) | The Big Analytics Blog 
+ 
+ 
+- 
+ 
+ Pingback: CryptoNets: Applying Neural Networks to Encrypted Data with High Throughput and Accuracy | the morning paper | Big Data Cloud 
+ 
+ 
+- 
+ 
+ Pingback: BlindBox: Deep packet inspection over encrypted traffic | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

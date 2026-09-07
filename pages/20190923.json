@@ -1,0 +1,42 @@
+{
+  "date": "20190923",
+  "file_name": "20190923",
+  "slug": "the-secret-sharer",
+  "blog_url": "https://blog.acolyer.org/2019/09/23/the-secret-sharer/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this USENIX Security 2019 paper as critically important for understanding the unintended consequences of deep learning, particularly in language and generative models. The paper demonstrates that neural networks can unintentionally memorize sensitive training data (like social security numbers or passwords), even when such data is rare and the models are not overtrained. The authors show that by feeding specific prefixes (e.g., 'My social security number is'), an adversary can extract private information from models like Google Smart Compose. The key insight is that memorization occurs early in training, persists across models, and is not merely a result of overfitting. The paper also explores why traditional defenses (like differential privacy) fail to prevent this issue and proposes methods to measure and mitigate unintended memorization.",
+  "paper_title": "The Secret Sharer: Evaluating and Testing Unintended Memorization in Neural Networks",
+  "paper_authors": [
+    "Nicholas Carlini",
+    "Freda Shi",
+    "Adam D. Smith",
+    "Dawn Song"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "USENIX Security Symposium",
+  "paper_url": "https://www.usenix.org/conference/usenixsecurity19/presentation/carlini",
+  "paper_abstract": "This paper describes a testing methodology for quantitatively assessing the risk that rare or unique training-data sequences are unintentionally memorized by generative sequence models—a common type of machine-learning model. Because such models are sometimes trained on sensitive data (e.g., the text of users’ private messages), this methodology can benefit privacy by allowing deep-learning practitioners to select means of training that minimize such memorization. In experiments, we show that unintended memorization is a persistent, hard-to-avoid issue that can have serious consequences. Specifically, for models trained without consideration of memorization, we describe new, efficient procedures that can extract unique, secret sequences, such as credit card numbers. We show that our testing strategy is a practical and easy-to-use first line of defense, e.g., by describing its application to quantitatively limit data exposure in Google’s Smart Compose, a commercial text-completion neural network trained on millions of users’ email messages.",
+  "paper_file": "papers/2019/09/23/the-secret-sharer.pdf",
+  "topics": [
+    "machine-learning",
+    "systems-security"
+  ],
+  "tags": [
+    "privacy",
+    "neural-networks",
+    "memorization",
+    "language-models",
+    "adversarial-extraction",
+    "training-data-leakage",
+    "differential-privacy"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Canary exposure in trained model",
+      "caption": "Results of our testing methodology applied to a state-of-the-art, word-level neural-network language model [35]. Two models are trained to near-identical accuracy using two different training strategies (hyperparameters A and B). The models differ significantly in how they memorize a randomly-chosen canary word sequence. Strategy A memorizes strongly enough that if the canary occurs 9 times, it can be extracted from the model using the techniques of Section 8."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

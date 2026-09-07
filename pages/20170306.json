@@ -1,0 +1,43 @@
+{
+  "date": "20170306",
+  "file_name": "20170306",
+  "slug": "hopfs-scaling-hierarchical-file-system-metadata-using-newsql-databases",
+  "blog_url": "https://blog.acolyer.org/2017/03/06/hopfs-scaling-hierarchical-file-system-metadata-using-newsql-databases/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights HopFS as a transformative solution for scaling hierarchical file system metadata in large Hadoop installations. The paper proposes replacing the single-node in-memory metadata service bottleneck in HDFS with a NewSQL database (MySQL Cluster) to distribute the load across multiple nodes. Colyer praises the paper's grounding in real-world workloads from Spotify, which provides valuable insights into the scale of data at Spotify. The key insight is that HopFS, a drop-in replacement for HDFS, enables order-of-magnitude improvements in cluster size and throughput, reduces latency for concurrent clients, and eliminates downtime during failover, addressing critical scalability and operational challenges in large-scale Hadoop deployments.",
+  "paper_title": "HopFS: Scaling hierarchical file system metadata using NewSQL databases",
+  "paper_authors": [
+    "Niazi",
+    "et al."
+  ],
+  "paper_year": 2017,
+  "paper_venue": "FAST'17",
+  "paper_url": "https://www.usenix.org/system/files/conference/fast17/fast17-niazi.pdf",
+  "paper_abstract": "Recent improvements in both the performance and scalability of shared-nothing, transactional, in-memory NewSQL databases have reopened the research question of whether distributed metadata for hierarchical file systems can be managed using commodity databases. In this paper, we introduce HopsFS, a next generation distribution of the Hadoop Distributed File System (HDFS) that replaces HDFS’ single node in-memory metadata service, with a distributed metadata service built on a NewSQL database. By removing the metadata bottleneck, HopsFS enables an order of magnitude larger and higher throughput clusters compared to HDFS. Metadata capacity has been increased to at least 37 times HDFS’ capacity, and in experiments based on a workload trace from Spotify, we show that HopsFS supports 16 to 37 times the throughput of Apache HDFS. HopsFS also has lower latency for many concurrent clients, and no downtime during failover. Finally, as metadata is now stored in a commodity database, it can be safely extended and easily exported to external systems for online analysis and free-text search.",
+  "paper_file": "papers/2017/03/06/hopfs-scaling-hierarchical-file-system-metadata-using-newsql-databases.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "hdfs",
+    "namenode",
+    "metadata-management",
+    "newsql",
+    "scalability",
+    "partitioning",
+    "transactions",
+    "hotspot-mitigation",
+    "failover",
+    "garbage-collection"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "HDFS Architecture with Active and Standby NameNodes",
+      "caption": "Figure 1: HDFS Architecture with Active and Standby NameNodes. The Active NameNode (ANN) manages metadata, while the Standby NameNode (SbNN) maintains a replicated copy for high availability. Clients and datanodes interact with the ANN, which logs changes to journal nodes. ZooKeeper coordinates failover and active namenode selection."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

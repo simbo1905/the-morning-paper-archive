@@ -1,0 +1,309 @@
+URL: https://blog.acolyer.org/2015/09/22/ant-algorithms-for-discrete-optimization/
+Title: Ant Algorithms for Discrete&nbsp;Optimization
+---
+
+Ant Algorithms for Discrete Optimization - Dorigo et al. 1999
+
+It's the emergent behaviour in nature-inspired algorithms that excites me. Ant colonies provide a great example: although each individual ant is in principle capable of finding a solution, it is only the ensemble of ants - that is, the ant colony - that exhibits optimisation behaviours. Each individual ant follows very simple rules. This week of course the focus is on the amazing ways people have learned from nature and been able to apply it to optimization problems. But as we start to build systems out of more and more, smaller and smaller, components - think microservices, unikernels, and dust-clouds - then emergent behaviours become important in that context to. The old top-down centrally controlled model of systems breaks down when things are composed of many constantly changing parts. The whole system view only emerges as the aggregation of many inidividual (and individually controlled and deployed) services - and some attributes of that system, perhaps ruggedness, resilience and other besides, are emergent properties too.
+
+Onto the ants...
+
+> 
+
+ Ant algorithms were inspired by the observation of real ant colonies. Ants are social insects, that is, insects that live in colonies and whose behavior is directed more to the survival of the colony as a whole than to that of a single individual component of the colony. Social insects have captured the attention of many scientists because of the high structuration level their colonies can achieve, especially when compared to the relative simplicity of the colony’s individuals. An important and interesting behavior of ant colonies is their foraging behavior, and, in particular, how ants can ﬁnd shortest paths between food sources and their nest.
+
+Ants walking between food sources and their nest deposit a substance called pheromone, which other ants can smell. When ants are choosing where to go (what path to take), they choose paths with increased concentrations of pheromone with higher probability. The pheromone trail enables ants to find their way from the food source to the nest and vice-versa.
+
+> 
+
+ It has been shown experimentally that this pheromone trail following behavior can give rise, once employed by a colony of ants, to the emergence of shortest paths. That is, when more paths are available from the nest to a food source, a colony of ants may be able to exploit the pheromone trails left by the individual ants to discover the shortest path from the nest to the food source and back.
+
+The binary bridge experiment separates ants from a food source by a bridge with two equal length paths over it. Initially ants choose one path or the other at random, but after an initial oscillatory phase the ants all converge on one of the paths.
+
+> 
+
+ It is easy to modify the experiment above to the case in which the bridge’s branches are of diﬀerent length, and to extend the model of Equation 1 so that it can describe this new situation. In this case, because of the same pheromone laying mechanism as in the previous situation, the shortest branch is most often selected: The ﬁrst ants to arrive at the food source are those that took the two shortest branches, so that, when these ants start their return trip, more pheromone is present on the short branch than on the long branch, stimulating successive ants to choose the short branch. In this case, the importance of initial random ﬂuctuations is much reduced, and the stochastic pheromone trail following behavior of the ants coupled to diﬀerential branch length is the main mechanism at work.
+
+The ants are in effect, collectively implementing a find-the-shortest-path algorithm!
+
+> 
+
+ It is clear that what is going on in the above described process is a kind of distributed optimization mechanism to which each single ant gives only a very small contribution. It is interesting that, although a single ant is in principle capable of building a solution (i.e., of ﬁnding a path between nest and food reservoir), it is only the ensemble of ants, that is the ant colony, which presents the “shortest path ﬁnding” behavior. In a sense, this behavior is an emergent property of the ant colony. It is also interesting to note that ants can perform this speciﬁc behavior using a simple form of indirect communication mediated by pheromone laying, known as stigmergy.
+
+Stigmergy is the generic term for the stimulation of workers by the performance they have achieved - for example, termite nest-building works in a similar way. Stigmergy is a form of indirect communication "mediated by physical modifications of environmental states which are only locally accessible to the communicating agents."
+
+> 
+
+ ... the stigmergetic model of communication in general, and the one inspired by ants foraging behavior in particular, is an interesting model for artiﬁcial multi-agent systems applied to the solution of diﬃcult optimization problems. In fact, the above-mentioned characteristics of stigmergy can easily be extended to artiﬁcial agents by (i) associating to problem states appropriate state variables, and (ii) by giving the artiﬁcial agents only local access to these variables’ values.
+
+The ants perform implicit evaluation of solutions since shorter paths are completed earlier than longer paths, and hence pheromone reinforcement happens more quickly. There is a positive feedback loop (autocatalytic mechanism) the shorter the path, the more pheromone is deposited on the path, and hence the more ants use the path.
+
+> 
+
+ If appropriately used, autocatalysis can be a powerful mechanism in population-based optimization algorithms (e.g., in evolutionary computation algorithms autocatalysis is implemented by the selection/reproduction mechanism). In fact, it quickly favors the best individuals, so that they can direct the search process. When using autocatalysis some care must be taken to avoid premature convergence (stagnation), that is, the situation in which some not very good individual takes over the population just because of a contingent situation (e.g., because of a local optimum, or just because of initial random ﬂuctuations which caused a not very good individual to be much better than all the other individuals in the population) impeding further exploration of the search space.
+
+Ants know this of course ;). Thus they cleverly designed pheromone to evaporate over time, and incorporated a little randomness into the decision making of individual ants.
+
+An Ant Colony Optimisation (ACO) meta-heuristic uses a colonly of artificial ants that cooperate to find solutions to discrete optimisation problems. The solutions are an emergent property of the ants' cooperative interaction. The ants are concurrent and asynchronous entities that modify some aspects of their environment just as real ants do with pheromone. Typically, they change some information associated with a problem state (the equivalent to a 'location' in the real world) that can be read and written by any ant examining that state. The equivalent to a real ant walking along a path is an artificial ant moving step-by-step between adjacent problem states. The ants use a probabilistic decision policy to move between states.
+
+We can also make a few tweaks to impove on the behaviour of real ants with respect to solving discrete optimisation problems: in many cases artificial ants generate pheromone trails only after having generated a solution, and deposit a quantity of pheromone that is proportional to the quality of the solution found. ACO algorithms can also be enriched with capabilities such as lookahead, local optimization, and backtracking that real ants don't use.
+
+> 
+
+ In ACO algorithms a ﬁnite size colony of artiﬁcial ants with the above described characteristics collectively searches for good quality solutions to the optimization problem under consideration. Each ant builds a solution, or a component of it, starting from an initial state selected according to some problem dependent criteria. While building its own solution, each ant collects information on the problem characteristics and on its own performance, and uses this information to modify the representation of the problem, as seen by the other ants. Ants can act concurrently and independently, showing a cooperative behavior. They do not use direct communication: it is the stigmergy paradigm that governs the information exchange among the ants.... A solution is expressed as a minimum cost (shortest) path through the states of the problem in accordance with the problem’s constraints.
+
+The ant's brain is modelled by a decision table:
+
+> 
+
+ A functional composition of the locally available pheromone and heuristic values deﬁnes ant-decision tables, that is, probabilistic tables used by the ants’ decision policy to direct their search towards the most interesting regions of the search space. The stochastic component of the move choice decision policy and the previously discussed pheromone evaporation mechanism avoid a rapid drift of all the ants towards the same part of the search space. Of course, the level of stochasticity in the policy and the strength of the updates in the pheromone trail determine the balance between the exploration of new points in the state space and the exploitation of accumulated knowledge. If necessary and feasible, the ants’ decision policy can be enriched with problem-speciﬁc components like backtracking procedures or lookahead.
+
+The second part of the paper provides a catalogue of ACO algorithms for optimisation problems. ACO algorithms (as of 1999) had been developed for the following problems:
+
+- travelling salesman
+
+- quadratic assignment
+
+- job-shop scheduling
+
+- vehicle routing
+
+- sequential ordering
+
+- graph-colouring
+
+- shortest common supersequence
+
+- connection-oriented network routing
+
+- connection-less network routing
+
+The last two of these are especially interesting because they are dynamic problems:
+
+> 
+
+ ... dynamic problems are deﬁned as a function of some quantities whose value is set by the dynamics of an underlying system. The problem changes therefore at run-time and the optimization algorithm must be capable of adapting online to the changing environment.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Algorithms and data structures 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousParticle Swarm OptimizationNext &rsaquo;Firefly Algorithms for Multimodal Optimization
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;Ant Algorithms for Discrete Optimization&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 22 September 2015 - O'Reilly Radar 
+ 
+ 
+- 
+ 
+ Pingback: Distributed Information Processing in Biological and Computational Systems | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Cloud Computing Resource Scheduling and a Survey of its Evolutionary Approaches | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

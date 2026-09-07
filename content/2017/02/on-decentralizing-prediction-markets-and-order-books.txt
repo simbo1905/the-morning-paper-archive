@@ -1,0 +1,311 @@
+URL: https://blog.acolyer.org/2017/02/24/on-decentralizing-prediction-markets-and-order-books/
+Title: On decentralizing prediction markets and order&nbsp;books
+---
+
+On decentralizing prediction markets and order books Clark et al., 13th Annual Workshop on the Economics of Information Security, 2014
+
+This is the last of five papers in the ACM Queue Research for Practice series on 'Cryptocurrencies, Blockchains, and Smart Contracts .' It serves as a good example of repurposing block chains as a foundation not just for cryptocurrencies, but also as a means of providing decentralized versions of a wide range of services. In this instance, a prediction market.
+
+> 
+
+ Among [Bitcoin's] novel contributions, the block chain stands out as a useful component for forming a consensus within a decentralized network about efficiently decideable events. Repurposing this consensus mechanism for new uses, both related and non-related to finance, is a promising research direction. In our present work, we show it can be repurposed to deploy a prediction market - a useful tool for forecasting future events.
+
+All of these systems have a really interesting game theory angle to them - you need to define a system in which the best strategy for each party (i.e, when acting in their own best interests), is also the best overall strategy for the system as a whole. It's not easy to get that right!
+
+## What is a prediction market?
+
+A prediction market enables participants to trade financial shares tied to the outcome of a future event. The possible outcomes must be distinct and must partition the outcome space. Suppose Clump and Trinton are both running for president. A share in 'Clump becomes president' is worth $1 if Clump wins, and $0 otherwise. If participants believe Clump has a 60% chance of winning, the share has an expected value of $0.60.
+
+> 
+
+ All deployed prediction markets that we are aware of are run by a trusted central authority, who holds the money and the shares backing the market in escrow while providing an electronic communication network capable of matching orders and posting the bid/ask of unmatched orders. Orders that are executed are cleared and settled by the authority, and when the events being forecast are realized, the authority declares the outcome and settles the accounts.
+
+There are two key components to a market: an order matching service matches buyers and sellers that are willing to trade, and a processor enables the execution of valid trades (regardless of how they are arranged) in a timely fashion.
+
+## Design goals for a decentralized prediction market
+
+In the quote above, notice the central role of 'the authority.' We want to design a prediction market that doesn't have any central authority, or at least not for the core concerns...
+
+> 
+
+ Our design decentralizes order matching, settling, and clearing to a community of miners, where authority is held in proportion to computational ability. We argue that trusted authorities, called arbiters, are better suited to declare the outcome of an event than through community consensus, however users can adaptively move between markets to ensure they only rely on arbiters they trust (trust agility). Arbitration is also desgined to have a minimal barrier to entry...
+
+All transactions are published in a public block chain which provides transparency, and accounts are identified by public keys providing pseudonymity.
+
+- Traders buy and sell shares in outcomes. They may be malicious and attempt to steal shares, double-spend currency to obtain shares, and redeem shares in outcomes other than the declared outcome.
+
+- Miners maintain a transcript of all transactions as they do in Bitcoin
+
+- Arbiters are entities authorized to declare the outcome of an event...
+
+> 
+
+ Arbiters pose the most significant threat. A malicious arbiter can profit directly from misbehaviour, for example, by obtaining cheap shares in a low probability outcome and falsely declaring that outcome the winner. Arbiters may also be simply unreliable, and not declare outcomes in a timely fashion or at all. While these threats cannot be eliminated, we use trust, agility, reputation, and community override to control and mitigate them.
+
+## Clearing and settlement
+
+Decentralized clearing and settlement takes place by extending an altcoin (with internal currency XFT) with five additional operations: OpenMarket, BuyCompleteSets, SellCompleteSets, Exchange, and CloseMarket. Here's the summary description of the operations from the paper:
+
+OpenMarket and CloseMarket are fairly self-explanatory, but the notion of 'complete sets' is worth exploring. BuyCompleteSets enables a trader to buy a share in each outcome for 1 XFT, and SellCompleteSets enables a trader holding a share in each outcome to sell the set for 1 XFT. This mechanism ensures that over the long run, 1 XFT remains within the bid-ask spread of a complete set. For example, if the bid prices add up to 1.05 XFT, a trader can buy a complete set of 1 XFT and sell the individual shares for 1.05 XFT, netting a 0.05 XFT profit. Likewise if the ask prices add up to 0.98 XFT, a trader can buy individual shares to accumulate a complete set for 0.98 XFT, and then sell the complete set for 1 XFT netting 0.02 XFT profit.
+
+Here's an example of 'going short' that illustrates some of these mechanisms at work:
+
+> 
+
+ Alice believes candidate Thomas Fredrick is over-valued at {Bid 0.24, Ask: 0.27, Last: 0.26} for becoming his political party’s presidential nominee. She purchases a portfolio using BuyCompleteSets for 1 XFT and immediate sells the share in Fredrick for 0.24 XFT. Two weeks later, Fredrick drops out of the race, and his share price plummets to an Ask of 0.001. As long as Fredrick stays out of the race, Alice owns a share in each other option and can expect 1 XFT when the primary finishes in two months. However she will earn nothing (not even interest) between now and then. Alice purchases a share in Fredrick for 0.001 to complete her portfolio and uses SellCompleteSets to receive 1 XFT immediately. Assuming no transaction fees, Alice initial investment of 1 XFT earned her 1 + 0.24 − 0.001 = 1.239 XFT.
+
+The central and most complex transaction is the Exchange transaction. Like a Bitcoin transaction, it has a unique identifier, a set of inputs, and a set of outputs. Inputs refer outputs of previous transactions as in Bitcoin. Inputs and outputs can be one of four different types:
+
+- XFT (i.e. Basecoin)
+
+- Shares in an active market
+
+- Shares from a closed market
+
+- Portfolios (complete sets)
+
+Inputs must completely spend the output they refer to, and the sum of the inputs must meet or exceed the sum of the outputs. Any input excess above the sum of the inputs is kept by the miner as a transaction fee. Outputs are assigned to public keys, and an Exchange transaction must be signed with the signing keys associated with each of its inputs.
+
+> 
+
+ ...it is clear that for most markets arbitration requires one or more humans in the loop and cannot be automated, nor can the correctness of arbitration be defined or checked automatically. Nevertheless, the problem at least theoretically has a solution if the majority of participants are honest. This is complicated by three factors: first, participants may be pseudonymous, and anyone can create sybils. Second, some participants will have a monetary stake in subverting the vote because they hold shares in a losing outcome. Third, we would like to minimize the human effort required to reach consensus.
+
+The authors explore four different models for arbitration, the simplest being an arbiter per market. The alternatives explored including (i) giving every miner who broadcasts a block a vote in the market (works best in prominent markets where a significant fraction of miners are likely to record votes), (ii) creating virtual companies (with shares also traded on the block chain) to adjudicate markets - the value of their shares is tied to the expected future earnings, which is tied to reputation, encouraging the shareholders to vote honestly, and (iii) a model in which each of N shares in a prediction market confers one vote...
+
+> 
+
+ Of course, voters holding losing shares have a financial incentive to vote contrary to reality. To address this dilemma, all market participants are required to post a bond in addition to the price of the shares they purchase. Any voters who vote contrary to an outcome with reaches a 2N/3 consensus forfeit their bond, disincentivizing voters to vote against the likely final outcome.
+
+## Order matching
+
+The most common type of order matching system in prediction markets is a continuous two-sided auction: traders submit bid or ask orders, and an order is executed if some other trader is willing to match (or better) its conditions. Orders are executed in a sequence specified by precedence rules - for example, first sorted by best price, then by time received. With a decentralized blockchain though, any time-based precedence is hard to establish and open to manipulation (remember miners have considerable flexibility with timestamps). Traders also have an incentive to configure any nodes they own in the network not to forward orders at higher trade precedence than their own.
+
+The solution is to give precedence to price, and then execute orders at the same price relative to their volume. The mitigation for traders not forwarding orders is simply to broadcast the message to as many peers as possible. Because transactions aren't finalized until they're added to the block chain we also need to use a call market instead of a continuous market. Orders are placed over an interval of time, and then executed as a batch.
+
+> 
+
+ The only limitation to a matching service is that clearing and settlement requires block chain integration, and the timing of integration depends on the average block creation time. With a 6 block confirmation delay at 10 minutes a block (as per Bitcoin), we are left with a reasonable period of one hour. By comparison, equities often take one or three days (‘T+1’ or ‘T+3’) to clear and settle. However an external exchange that holds the shares and XFT for its traders can clear and settle immediately, at least in terms of the traders’ accounts with the exchange (while actually withdrawing the shares or XFT from the exchange is subject to the same block chain delay).
+
+## Wrapping up
+
+I skipped over a lot of detailed analysis of the incentives for the various parties (traders, miners, and arbiters), ways they can try to game the system, and how these can be protected against (the full paper runs to 21 pages). The takeaway is that it takes a lot of careful analysis to design such systems. It leaves me wanting something more rigorous than prose for reasoning about them!
+
+Let's conclude by looking at the other side of the coin: a prediction market with no central authority gains the benefits of not having a central authority, as well as the potential drawbacks:
+
+> 
+
+ In centralized PMs, the decision to allow any market is discretionary. In decentralized systems, there is little to no control over what types of markets will be opened. Markets on assassinations or terrorist attacks can be considered unethical, and were cited as reasons for cancelling at least one prediction market, developed in the US by DARPA for predicting foreign political developments. In our design, for particularly abhorrent markets, a consensus formed by a majority of miners to not include transactions opening, trading, or closing a given market will effectively stifle it. However markets with merely questionable ethics will likely proceed, and it will be left to individual users to decide to participate or not.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Blockchain 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousMaking smart contracts smarterNext &rsaquo;An experiment with awesome deep learning papers
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;On decentralizing prediction markets and order books&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: On decentralizing prediction markets and order books | Random Thoughts 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

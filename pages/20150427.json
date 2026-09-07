@@ -1,0 +1,53 @@
+{
+  "date": "20150427",
+  "file_name": "20150427",
+  "slug": "musketeer-part-i-whats-the-best-data-processing-system",
+  "blog_url": "https://blog.acolyer.org/2015/04/27/musketeer-part-i-whats-the-best-data-processing-system/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the Musketeer paper's key insight: there is no universally 'best' big data processing system—performance varies widely depending on the workload, input data size, and system design. The paper's study of Hadoop, Spark, Naiad, PowerGraph, Metis, and GraphChi reveals that no single system outperforms all others across all scenarios. For 40-80% of MapReduce jobs, a single-machine system is more efficient than distributed frameworks. The blog emphasizes the importance of context in system selection, noting that factors like input size, data structure, computation type, and engineering decisions significantly impact performance. Gog et al. also critique the blind adoption of 'new shiny' systems without considering workload-specific needs. The analysis underscores the need for a more practical approach to data processing, which Musketeer aims to address by enabling workflows to be retargeted to optimal backends.",
+  "paper_title": "Musketeer: all for one, one for all in data processing systems",
+  "paper_authors": [
+    "Ionel Gog",
+    "Malte Schwarzkopf",
+    "Natacha Crooks",
+    "Matthew P. Grosvenor",
+    "Allen Clement",
+    "Steven Hand",
+    "Eddie Kohler",
+    "Barbara Liskov",
+    " Rodrigo Rodrigues"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "EuroSys '15",
+  "paper_url": "http://www.cl.cam.ac.uk/research/srg/netos/camsas/pubs/eurosys15-musketeer.pdf",
+  "paper_abstract": "Many systems for the parallel processing of big data are available today. Yet, few users can tell by intuition which system, or combination of systems, is “best” for a given workflow. Porting workflows between systems is tedious. Hence, users become “locked in”, despite faster or more efficient systems being available. This is a direct consequence of the tight coupling between user-facing front-ends that express workflows (e.g., Hive, SparkSQL, Lindi, GraphLINQ) and the back-end execution engines that run them (e.g., MapReduce, Spark, PowerGraph, Naiad). We argue that the ways that workflows are defined should be decoupled from the manner in which they are executed. To explore this idea, we have built Musketeer, a workflow manager which can dynamically map front-end workflow descriptions to a broad range of back-end execution engines. Our prototype maps workflows expressed in four highlevel query languages to seven different popular data processing systems. Musketeer speeds up realistic workflows by up to 9× by targeting different execution engines, without requiring any manual effort. Its automatically generated back-end code comes within 5%–30% of the performance of hand-optimized implementations.",
+  "paper_file": "papers/2015/04/27/musketeer-part-i-whats-the-best-data-processing-system.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "data-processing",
+    "mapreduce",
+    "spark",
+    "hadoop",
+    "performance-evaluation",
+    "workload-optimization",
+    "single-machine-vs-distributed",
+    "graph-processing"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Decoupling front-end frameworks and back-end execution engines",
+      "caption": "Decoupling front-end frameworks and back-end execution engines (right) increases flexibility."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Different systems perform best for simple queries",
+      "caption": "Different systems perform best for simple queries. Lower is better; error bars show min/max of three runs."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

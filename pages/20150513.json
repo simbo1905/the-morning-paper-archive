@@ -1,0 +1,41 @@
+{
+  "date": "20150513",
+  "file_name": "20150513",
+  "slug": "the-design-and-implementation-of-open-vswitch",
+  "blog_url": "https://blog.acolyer.org/2015/05/13/the-design-and-implementation-of-open-vswitch/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer reviews the paper on Open vSwitch, highlighting its role in network virtualization as virtualized workloads grew. He notes that Open vSwitch emerged to address the limitations of physical network provisioning by decoupling virtual networks from physical infrastructure, leveraging general-purpose processors for flexibility. The paper emphasizes the design trade-offs between user-space and kernel functionality, particularly the evolution from a pure kernel-based OpenFlow implementation to a hybrid approach with a microflow cache and later a megaflow cache to balance performance and programmability. Colyer highlights the clever caching mechanisms (microflow and megaflow) that enable efficient packet processing in dynamic environments with thousands of peers and constant VM state changes. He also points out the paper's discussion of future directions, including user-space networking with DPDK for improved performance in NFV scenarios.",
+  "paper_title": "The Design and Implementation of Open vSwitch",
+  "paper_authors": [
+    "Justin P. Pfaff",
+    "Ben Pfaff",
+    "Teemu Koponen",
+    "Eddie Qiu",
+    "Marty Pfister",
+    "Scott Lowe",
+    "Bruce Davie"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "NSDI",
+  "paper_url": "https://www.usenix.org/system/files/conference/nsdi15/nsdi15-paper-pfaff.pdf",
+  "paper_abstract": "These pressures resulted in the emergence of network virtualization [19]. In network virtualization, virtual switches become the primary provider of network services for VMs, leaving physical datacenter networks with transportation of IP tunneled packets between hypervisors. This approach allows the virtual networks to be decoupled from their underlying physical networks, and by leveraging the flexibility of general purpose processors, virtual switches can provide VMs, their tenants, and administrators with logical network abstractions, services and tools identical to dedicated physical networks. Network virtualization demands a capable virtual switch – forwarding functionality must be wired on a per virtual port basis to match logical network abstractions configured by administrators. Implementation of these abstractions, across hypervisors, also greatly benefits from fine-grained centralized coordination. This approach starkly contrasts with early virtual switches for which a static, mostly hard-coded forwarding pipelines had been completely sufficient to provide virtual machines with L2 connectivity to physical networks. It was this context: the increasing complexity of virtual networking, emergence of network virtualization, and limitations of existing virtual switches, that allowed Open vSwitch to quickly gain popularity. Today, on Linux, its original platform, Open vSwitch works with most hypervisors and container systems, including Xen, KVM, and Docker. Open vSwitch also works “out of the box” on the FreeBSD and NetBSD operating systems and ports to the VMware ESXi and Microsoft Hyper-V hypervisors are underway. In this paper, we describe the design and implementation of Open vSwitch [26, 29]. The key elements of its design, revolve around the performance required by the production environments in which Open vSwitch is commonly deployed, and the programmability demanded by network virtualization. Unlike traditional network appliances, whether software or hard...",
+  "paper_file": "papers/2015/05/13/the-design-and-implementation-of-open-vswitch.pdf",
+  "topics": [
+    "networking",
+    "distributed-systems"
+  ],
+  "tags": [
+    "network-virtualization",
+    "openflow",
+    "software-defined-networking",
+    "virtual-switch",
+    "flow-caching",
+    "microflow-cache",
+    "megaflow-cache",
+    "DPDK",
+    "NFV"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

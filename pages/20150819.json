@@ -1,0 +1,40 @@
+{
+  "date": "20150819",
+  "file_name": "20150819",
+  "slug": "asynchronous-distributed-snapshots-for-distributed-dataflows",
+  "blog_url": "https://blog.acolyer.org/2015/08/19/asynchronous-distributed-snapshots-for-distributed-dataflows/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the Asynchronous Barrier Snapshotting (ABS) algorithm used by Apache Flink for fault tolerance in distributed dataflow systems. He notes that traditional synchronous snapshotting techniques halt execution, causing latency and inefficiency, while existing asynchronous approaches (like Chandy-Lamport) require excessive backup logging. The ABS algorithm improves upon these by avoiding backup logging for acyclic graphs and using selective logging for cyclic ones. The key insight is dividing the dataflow into stages using barrier markers, enabling consistent snapshots without halting computation. This approach decouples snapshotting from event processing windows, allowing continuous data ingestion. Colyer emphasizes the algorithm's practical implementation in Apache Flink, which provides exactly-once processing semantics for streaming workloads.",
+  "paper_title": "Asynchronous Distributed Snapshots for Distributed Dataflows",
+  "paper_authors": [
+    "Carbone",
+    "Feng",
+    "Katsifodimos",
+    "Kraska",
+    "Nijkamp",
+    "Teubner"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "",
+  "paper_url": "http://arxiv.org/abs/1506.08603",
+  "paper_abstract": "Distributed stateful stream processing enables the deployment and execution of large scale continuous computations in the cloud, targeting both low latency and high throughput. One of the most fundamental challenges of this paradigm is providing processing guarantees under potential failures. Existing approaches rely on periodic global state snapshots that can be used for failure recovery. Those approaches suffer from two main drawbacks. First, they often stall the overall computation which impacts ingestion. Second, they eagerly persist all records in transit along with the operation states which results in larger snapshots than required. In this work we propose Asynchronous Barrier Snapshotting (ABS), a lightweight algorithm suited for modern dataflow execution engines that minimises space requirements. ABS persists only operator states on acyclic execution topologies while keeping a minimal record log on cyclic dataflows. We implemented ABS on Apache Flink, a distributed analytics engine that supports stateful stream processing. Our evaluation shows that our algorithm does not have a heavy impact on the execution, maintaining linear scalability and performing well with frequent snapshots.",
+  "paper_file": "papers/2015/08/19/asynchronous-distributed-snapshots-for-distributed-dataflows.pdf",
+  "topics": [
+    "distributed-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "stream-processing",
+    "fault-tolerance",
+    "exactly-once-semantics",
+    "snapshotting",
+    "barrier-algorithm",
+    "dataflow",
+    "apache-flink",
+    "cyclic-graphs",
+    "acyclic-graphs"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

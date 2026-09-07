@@ -1,0 +1,44 @@
+{
+  "date": "20200316",
+  "file_name": "20200316",
+  "slug": "omega-gen",
+  "blog_url": "https://blog.acolyer.org/2020/03/16/omega-gen/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the significant challenge of partial failures (gray failures) in large system software, where some functionalities break while others appear normal. Traditional failure detectors often miss these issues due to their superficial nature. The paper, awarded Best Paper at NSDI'20, presents a study of partial failure causes across five major systems (ZooKeeper, Cassandra, HDFS, Apache, Mesos) and introduces OmegaGen, a novel approach to detect such failures using auto-generated, system-specific watchdogs. The study reveals that partial failures are common, severe, and often sticky, with a median diagnosis time of 6 days and 5 hours. OmegaGen addresses the limitations of existing health checks by creating intrinsic watchdogs that replicate vulnerable operations from long-running methods, capturing runtime context to detect failures with high accuracy and low overhead. The approach outperforms baseline detectors, detecting 20 out of 22 real-world partial failures with a median detection time of 4.2 seconds and pinpointing error sources in 18 cases.",
+  "paper_title": "Understanding, Detecting and Localizing Partial Failures in Large System Software",
+  "paper_authors": [
+    "Jiaqi Lou",
+    "Suli Yang",
+    "Haryadi S. Gunawi"
+  ],
+  "paper_year": 2020,
+  "paper_venue": "NSDI'20",
+  "paper_url": "https://www.usenix.org/conference/nsdi20/presentation/lou",
+  "paper_abstract": "Partial failures occur frequently in cloud systems and can cause serious damage including inconsistency and data loss. Unfortunately, these failures are not well understood. Nor can they be effectively detected. In this paper, we first study 100 real-world partial failures from five mature systems to understand their characteristics. We find that these failures are caused by a variety of defects that require the unique conditions of the production environment to be triggered. Manually writing effective detectors to systematically detect such failures is both time-consuming and error-prone. We thus propose OmegaGen, a static analysis tool that automatically generates customized watchdogs for a given program by using a novel program reduction technique. We have successfully applied OmegaGen to six large distributed systems. In evaluating 22 real-world partial failure cases in these systems, the generated watchdogs can detect 20 cases with a median detection time of 4.2 seconds, and pinpoint the failure scope for 18 cases. The generated watchdogs also expose an unknown, confirmed partial failure bug in the latest version of ZooKeeper.",
+  "paper_file": "papers/2020/03/16/omega-gen.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "partial-failures",
+    "gray-failures",
+    "fault-detection",
+    "watchdogs",
+    "runtime-monitoring",
+    "system-reliability",
+    "failure-localization",
+    "OmegaGen",
+    "Panorama",
+    "health-checks"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Code snippet showing partial failure in ZooKeeper",
+      "caption": "Figure 1: A production ZooKeeper outage due to partial failure [86]."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,416 @@
+URL: https://blog.acolyer.org/2019/01/14/serverless-computing-one-step-forward-two-steps-back/
+Title: Serverless computing: one step forward, two steps&nbsp;back
+---
+
+Serverless computing: one step forward, two steps back Hellerstein et al., CIDR'19
+
+The biennial Conference on Innovative Data Systems Research has come round again. Today’s paper choice is sure to generate some healthy debate, and it’s a good set of questions to spend some time thinking over as we head into 2019: Where do you think serverless is heading? What is it good for today? What’s the end-goal here?
+
+The authors see ‘critical gaps’ in current first-generation serverless offerings from the major cloud vendors (AWS, Azure, GCP). I’m sure some will read the paper as serverless-bashing, but I read into it more of an appeal from the heart to not stop where we are today, but to continue to pursue infrastructure and programming models truly designed for cloud platforms. Platforms that offer ‘unlimited’ data storage, ‘unlimited’ distributed processing power, and the ability to harness these only as needed.
+
+> 
+
+ We hope this paper shifts the discussion from ‘What it serverless?’ Or ‘Will serverless win?’ to a rethinking of how we design infrastructure and programming models to spark real innovation in data-rich, cloud-scale systems. We see the future of cloud programming as far, far brighter than the promise of today’s serverless FaaS offerings. Getting to that future requires revisiting the designs and limitations of what is being called ‘serverless computing’ today.
+
+## What is serverless and what is it good for today?
+
+Serverless as a term has been broadly co-opted of late (‘the notion is vague enough to allow optimists to project any number of possible broad interpretations on what it might mean’). In this paper, serverless means FaaS (Functions-as-a-Service), in the spirit of the offerings that the major cloud vendors are currently promoting.
+
+- Developers can register functions to run in the cloud, and declare when those functions should be triggered
+
+- A FaaS infrastructure monitors triggering events, allocates a runtime for the function, executes it, and persists the results
+
+- The platform is not simply elastic, in the sense that humans or scripts can add and remove resources as needed, it is autoscaling: the workload automatically drives the allocation and deallocation of resources
+
+- The user is only billed for the computing resources used during function invocation
+
+Many people have reported great results from adopting serverless. See for example ‘Serverless computing: economic and architectural impact’ that we looked at previously on The Morning Paper. The authors analysed use cases documented by Amazon and broke them down into three major buckets:
+
+- Embarrassingly parallel tasks, often invoked on-demand and intermittently. For example, re-sizing images, performing object recognition, and running integer-programming-based optimisations.
+
+- Orchestration functions, used to coordinate calls to proprietary auto-scaling services, where the back-end services themselves do the real heavy lifting.
+
+- Applications that compose chains of functions - for example workflows connected via data dependencies. These use cases showed high end-to-end latencies though.
+
+## Limitations: putting the ‘less’ in serverless
+
+Moving beyond the use cases outlined above we run into a number of limitations of the current embodiments of serverless:
+
+- Functions have limited lifetimes (15 minutes)
+
+- Functions are critically reliant on network bandwidth to communicate, but current platforms from AWS, Google, and Azure provide limited bandwidth (an order of magnitude lower than a single modern SSD) that is shared between all functions packed on the same VM.
+
+- Since functions are not directly network accessible, they must communicate via an intermediary service - which typically results in writing state out to slow storage and reading it back in again on subsequent calls.
+
+- There is no mechanism to access specialized hardware through functions, yet hardware specialisation will only accelerate in the coming years.
+
+One consequence of these limitations is that FaaS is a data-shipping architecture: we move data to the code, not the other way round.
+
+> 
+
+ This is a recurring architectural anti-pattern amongst system designers, which database aficionados seem to need to point out each generation. Memory hierarchy realities— across various storage layers and network delays — make this a bad design decision for reasons of latency, bandwidth, and cost.
+
+A second consequence is that the high cost of function interactions ‘stymies basic distributed computing.’
+
+> 
+
+ ... with all communication transiting through storage, there is no real way for thousands (much less millions) of cores in the cloud to work together efficiently using current FaaS platforms, other than via largely uncoordinated (embarrassing) parallelism.
+
+(Enlarge)
+
+Three small case studies in the paper illustrate the pain of moving outside of the serverless sweetspot:
+
+- Training machine learning models. A single Lambda function was able to perform 294 iterations before hitting the time limit, so 31 sequential executions were required to complete training. The total cost was $0.29, and the total training latency was 465 minutes. Using an m4.large instance with 8GB RAM instead, the training process takes around 21 minutes and costs $0.04.
+
+- Low-latency prediction serving. The best result using Lambda functions achieved an average latency of 447ms per batch. An alternative using two m5.large instances connected via ZeroMQ showed an average latency of 13ms per batch - 27x faster. For one million messages per second, the Lamdba + SQS solution would costs $1,584 per hour. Using EC2 instances the same throughput costs around $27.84 per hour.
+
+- Trying to implement a simple leader election protocol through functions using a blackboard architecture with DynamoDB, each round of leader election took 16.7 seconds. (And using DynamoDB as a communication mechanism in this way would cost $450 per hour to coordinate a cluster of 1000 nodes).
+
+These results fall into the "we tried to fix some screws with a hammer and it didn’t work out too well" bucket. But highlighting where current serverless designs don’t work well can help us think about ways to improve them.
+
+> 
+
+ Many of the constraints of current FaaS offerings can also be overcome, we believe, maintaining autoscaling while unlocking the performance potential of data and distributed computing.
+
+## Moving forward
+
+A ‘truly programmable environment for the cloud’ should have the following characteristics:
+
+- Fluid code and data placement: logical separation of code and data with the ability of the infrastructure to physically colocate when it makes sense, including function shipping.
+
+- Heterogenous hardware support. "Ideally, application developers could specify applications using high-level DSLs, and the cloud providers would compile those applications to the most cost-effective hardware that meets user specified SLOs"
+
+- Long-running, addressable virtual agents: "If the platform pays a cost to create an affinity (e.g. moving data), it should recoup that cost across multiple requests. This motivates the ability for programmers to establish software agents— call them functions, actors, services, etc.— that persist over time in the cloud, with known identities."
+
+- Disorderly programming: "the sequential metaphor of procedural programming will not scale to the cloud. Developers need languages that encourage code that works correctly in small, granular units— of both data and computation— that can be easily moved around across time and space." For example, Functional Reactive Programming.
+
+- A common intermediate representation (IR), that can serve as a compilation target from many languages (because a wide variety of programming languages and DSLs will be explored). Web assembly anyone?
+
+- An API for specifying service-level objectives. "Achieving predictable SLOs requires a smooth ‘cost surface’ in optimization— non-linearities are the bane of SLOs. This reinforces our discussion above regarding small granules of code and data with fluid placement and disorderly execution."
+
+- A ‘cloud-programming aware’ security model.
+
+> 
+
+ Taken together, these challenges seem both interesting and surmountable... We are optimistic that research can open the cloud’s full potential to programmers. Whether we call the new results ‘serverless computing’ or something else, the future is fluid.
+
+I’m sure you’ve noticed the trend for many things in IT to become finer-grained over time (releases, team structure, service sizes, deployment units, ...). I really need to write a longer blog post about this, but my thesis is that in many cases the ideal we’re seeking is a continuous one (e.g., in the case of serverless, continuous and seamless autoscaling of cloud resources and the associated billing). The more fine-grained we make things, the better our approximation to that ideal (it’s calculus all over again. We’re held back from making things finer-grained beyond a certain point by the transaction costs (borrowing from lean) associated with each unit. E.g. "we can’t possible release once a day, it takes us a full week to go through the release process!" Once we find a way to lower the transaction costs, we can improve our approximation and become finer-grained. If you haven’t seen it already for example, check out the work that CloudFlare have been doing with workers: V8 isolates (v low transaction costs), a web assembly runtime (the IR called for above), and JavaScript functions. Skate to where the puck is heading!
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousUnsupervised learning of artistic styles with archetypal style analysisNext &rsaquo;SageDB: a learned database system
+ 
+ 
+
+ 
+ 
+## 
+ 19 thoughts on &ldquo;Serverless computing: one step forward, two steps back&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Serverless computing: one step forward, two steps back - Latest news 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Serverless computing: one step forward, two steps back - Hckr News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Serverless computing: one step forward, two steps back - World Best News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Serverless computing: one step forward, two steps back - Outside The Know 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Serverless computing: one step forward, two steps back - News about world 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Serverless computing: one step forward, two steps back - Golden News 
+ 
+ 
+- 
+ 
+ Pingback: Serverless computing: one step forward, two steps back - Hacker News Robot 
+ 
+ 
+- 
+ 
+ Pingback: Futureseek Daily Link Review; 15 January 2019 | Futureseek Link Digest 
+ 
+ 
+- 
+ 
+ Pingback: AI & Machine Learning News. 14, January 2019 - CloudQuant 
+ 
+ 
+- 
+ 
+ Pingback: Tech roundup 6: a journal published by a bot - Javi López G. 
+ 
+ 
+- 
+ 
+ Pingback: Secure Docker in production, learn enough Docker to be useful & 5 alternatives to Docker - Docker Questions 
+ 
+ 
+- 
+ 
+ Pingback: Veritas: shared verifiable databases and tables in the cloud | the morning paper 
+ 
+ 
+- 
+ 
+ 
+ 
+ Matt says: 
+
+ 
+ February 18, 2019 at 3:17 am 
+
+ 
+
+ 
+ 
+There's a type-o here "we can’t possible release once a day."
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Cloud computing simplified: a Berkeley view on serverless computing | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Cloud computing simplified: a Berkeley view on serverless computing - GG&#039;s Place 
+ 
+ 
+- 
+ 
+ Pingback: The data and AI market landscape 2019: The next wave of hybrid emerges - TECH INSPIRED NEWS 
+ 
+ 
+- 
+ 
+ Pingback: The data and AI market landscape 2019: The next wave of hybrid emerges - Technology 
+ 
+ 
+- 
+ 
+ Pingback: The data and AI market landscape 2019: The next wave of hybrid emerges-Germany Times of News 
+ 
+ 
+- 
+ 
+ Pingback: O cenário de dados e IA de 2019 | ALEX SOUZA 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

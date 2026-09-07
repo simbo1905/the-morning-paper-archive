@@ -1,0 +1,36 @@
+{
+  "date": "20190828",
+  "file_name": "20190828",
+  "slug": "interactive-checks-for-coordination-avoidance",
+  "blog_url": "https://blog.acolyer.org/2019/08/28/interactive-checks-for-coordination-avoidance/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this VLDB'19 paper as a significant contribution to bridging the gap between database systems and application developer needs. The paper tackles the tension between strong consistency (easy reasoning but poor performance) and weak consistency (high performance but complex reasoning). The key insight is the concept of *invariant confluence*: objects that maintain application invariants even during merge operations in distributed systems, enabling coordination-free execution. The authors address the critical challenge of *automatically verifying* invariant confluence, which has historically required manual proofs. They propose a decision procedure that combines invariant closure checks with reachability analysis to determine if an object is invariant confluent. The paper also introduces *segmented invariant confluence*, allowing objects to be partitioned into confluent segments where coordination is only needed at segment boundaries. The work aims to provide developers with machine-checkable guarantees about system behavior, moving toward a more developer-friendly programming model for distributed systems.",
+  "paper_title": "Interactive checks for coordination avoidance",
+  "paper_authors": [
+    "Whittaker",
+    "Hellerstein"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.vldb.org/pvldb/vol12/p14-whittaker.pdf",
+  "paper_abstract": "1. Strongly consistent distributed systems are easy to reason about but face fundamental limitations in availability and performance. Weakly consistent systems can be implemented with very high performance but place a burden on the application developer to reason about complex interleavings of execution. Invariant confluence provides a formal framework for understanding when we can get the best of both worlds. An invariant confluent object can be efficiently replicated with no coordination needed to preserve its invariants. However, actually determining whether or not an object is invariant confluent is challenging. In this paper, we establish conditions under which a commonly used sufficient condition for invariant confluence is both necessary and sufficient, and we use this condition to design (a) a general-purpose interactive invariant confluence decision procedure and (b) a novel sufficient condition that can be checked automatically. We then take a step beyond invariant confluence and introduce a generalization of invariant confluence, called segmented invariant confluence, that allows us to replicate non-invariant confluent objects with a small amount of coordination. We implemented these formalisms in a prototype called Lucy and found that our decision procedures efficiently handle common real-world workloads including foreign keys, rollups, escrow transactions, and more. We also found that segmented invariant confluent replication can deliver up to an order of magnitude more throughput than linearizable replication for low contention workloads and comparable throughput for medium to high contention workloads. When an application designer decides to replicate a piece of data, they have to make a fundamental choice between weak and strong consistency. Replicating the data with strong consistency using a technique like distributed transactions (e.g., [12, 34]) or state machine replication (e.g., [39, 27, 31, 37]) makes the application designer’s life very easy....",
+  "paper_file": "papers/2019/08/28/interactive-checks-for-coordination-avoidance.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "consistency-models",
+    "invariant-confluence",
+    "coordination-avoidance",
+    "replication",
+    "merge-semantics",
+    "weak-consistency",
+    "distributed-transactions",
+    "decision-procedures"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

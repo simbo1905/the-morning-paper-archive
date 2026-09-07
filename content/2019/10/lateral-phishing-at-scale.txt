@@ -1,0 +1,344 @@
+URL: https://blog.acolyer.org/2019/10/04/lateral-phishing-at-scale/
+Title: Detecting and characterizing lateral phishing at&nbsp;scale
+---
+
+Detecting and characterizing lateral phishing at scale Ho et al., USENIX Security Symposium 2019
+
+This is an investigation into the phenomenon of lateral phishing attacks. A lateral phishing attack is one where a compromised account within an organisation is used to send out further phishing emails (typically to other employees within the same organisation). So ‘alice at example.com’ might receive a phishing email that has genuinely been sent by ‘bob at example.com’, and thus is more likely to trust it.
+
+> 
+In recent years, work from both industry and academia has pointed to the emergence and growth of lateral phishing attacks: a new form of phishing that targets a diverse range of organizations and has already incurred billions of dollars in financial harm.... This attack proves particularly insidious because the attacker automatically benefits from the implicit trust in the hijacked account: trust from both human recipients and conventional email protection systems.
+
+## A dataset of 113 million emails...
+
+The study is conducted in conjunction with Barracuda Networks, who obtained customer permission to use email data from the Office 365 employee mailboxes of 92 different organisations. 69 of these organisations were selected through random sampling across all organisations, and 23 through random sampling from organisations with known reports of lateral phishing.
+
+All told, the dataset comprises 113,083,695 unique employee-sent emails, spanning a total of around 230K mailboxes. In order to be able to study lateral phishing within these organisations, first we have to find the phishing attacks within the dataset. The approach to this is twofold:
+
+- Known phishing attacks come from attack emails reported to Barracuda by an organisation’s security administrators or users.
+
+- These can be used to help train a phishing detector (classifier) which can flag additional potential phishing attacks. The flagged attacks are then manually reviewed and labelled before including them.
+
+The focus is on phishing attacks which lure their victims into visiting a web page under the attacker’s control, which is the mechanism used by the vast majority of lateral phishing attacks.
+
+## Fishing for phishing attacks
+
+Analysis of the reported phishing attacks (ground truth) suggested a set of features to be used for training a classifier:
+
+- The number of unique recipients (95% of hijacked accounts send phishing emails with 25 or more distinct recipients)
+
+- The likelihood of the email recipients being genuine (Jaccard similarity of the recipient set to the closest set of historical recipients for any employee-sent email)
+
+- The presence of one or more of ~150 phishing related keywords and phrases, derived by extracting the link text from several hundred real-world phishing emails
+
+- A global URL reputation feature: the highest Cisco Umbrella domain ranking of the target sites of all URLs in the email, after filtering out those whose link text matches the hyperlink destination. The value is set at 10M for sites that don’t rank highly enough to make the list at all.
+
+- A local URL reputation feature which counts the number of days in the preceding month where at least one employee-sent email included a URL on the same FQDN (ultimately this feature proved to add little value over the global URL reputation).
+
+A Random Forest classifier is trained using these extracted features, and updated at the end of each month.
+
+The resulting classifier achieved an 87.3% detection rate with a false positive rate of 0.00036%.
+
+The counts in the above table are of phishing incidents, and incident being a unique (subject, sender email address) pair. I.e., each incident is likely to target many potential victims.
+
+## Something looks phishy round here
+
+At the end of the day, from a dataset of 113M emails spanning 230K mailboxes, the authors found that 101K mailboxes had received at least one lateral phishing email. These phishing emails were generated in just 180 incidents, sending 1,902 distinct email bodies from 154 compromised accounts.
+
+## How successful are these phishing attacks?
+
+We can’t know the true success rate for these attacks, but we can estimate a lower bound as follows: if Bob receives a phishing email from Alice’s account, and shortly afterwards (within two days) Bob’s account starts sending similar phishing emails, then it is likely that these phishing emails are related. I.e., the attack sent from Alice’s account was successful. On this basis about 11% of account takeovers successfully lead to the compromise of at least one other account.
+
+## How do attackers target accounts?
+
+Once an attacker has compromised an account within an organisation, what strategies do they use to determine the set of target accounts to send emails to?
+
+Firstly, we’re looking at broadcast attacks here, not highly personalised spear-phishing. Most attackers (94%) use a compromised account to send phishing emails to at least 100 recipients (using a mass BCC, or through many individual emails).
+
+There seem to be a variety of approaches in use for selecting the recipients, as show in the table below.
+
+- Account-agnostic attackers send emails just about anywhere, including outside of the compromised organisation.
+
+- Organisation-wide attackers send their attack emails to as many people at the compromised organisation as possible (e.g., through group distribution lists)
+
+- Lateral-organisation attackers (only 2 in the dataset mind) send emails to other organisations in similar industries
+
+- Targeted-recipient attackers draw upon prior relationships of the hijacked account (past recipients and contacts).
+
+## What does a typical phishing message look like?
+
+Very few of the collected phishing emails contained targeted content, i.e., at this level of phishing attackers are pushing out template emails.
+
+> 
+For the present moment, these attackers (across dozens of organisations) see more value in opportunistically phishing as many recipients as possible, rather than investing time to mine the hijacked accounts for personalized spearphishing fodder.
+
+There is limited support for customising the subject line and the name used within the email: e.g. from "You have a new shared document available" at one end of the spectrum to "Please see the attached announcement about FooCorp’s 25th year anniversary" at the other. 92.7% of incidents used generic messages that could be deployed at a large number of organisations with only minimal changes.
+
+There are two widespread lures in use to try and get potential victims to click on the target link:
+
+- an alarming message asserting some problem with the recipient’s account, where they are prompted to follow a link to resolve the issue, and
+
+- a message notifying the recipient of a new / updated / shared document
+
+Those links are likely to go to a page that looks something like this:
+
+## When are phishing emails sent?
+
+Contrary to popular suspicion, most phishing emails were sent at ‘normal’ working times of the day and week for the hijacked accounts.
+
+## How sophisticated are the attackers?
+
+If the recipient of a phishing email sends a follow-up asking for clarification, e.g. "Is this really genuine, Bob?," a subset of the attackers will send brief replies e.g. "Yes, I sent it to you", or "Yes, have you checked it yet?". Some attackers escalate the attack to the next level with replies such as "Hi [Alice], it’s a document about [X]. It’s safe to open. You can view it by logging in with your email and password."
+
+Another subset of attackers actively tried to hide their tracks by deleting emails within 30 seconds or so of them being sent or received (to remove them from the sent folder).
+
+Overall though, attacking behaviours remain very generic.
+
+> 
+One plausible reason for this generic behavior is that the simple methods they currently use work well enough under their economic model.
+
+## The last word
+
+> 
+Ultimately, our work provides the first large-scale insights into an emerging, widespread form of enterprise phishing attacks, and illuminates techniques and future ideas for defending against this potent threat.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousIn-toto: providing farm-to-table guarantees for bits and bytesNext &rsaquo;150 successful machine learning models: 6 lessons learned at Booking.com
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;Detecting and characterizing lateral phishing at scale&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Detecting and characterizing lateral phishing at scale - ZRaven Consulting 
+ 
+ 
+- 
+ 
+ Pingback: Daily NCSC-FI news followup 2019-10-05 - Kurittu.org 
+ 
+ 
+- 
+ 
+ 
+ 
+ Anon says: 
+
+ 
+ October 6, 2019 at 5:16 am 
+
+ 
+
+ 
+ 
+Malware has been doing this for decades. Additionally, it affects any messaging application, not just email.
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

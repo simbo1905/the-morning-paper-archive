@@ -1,0 +1,43 @@
+{
+  "date": "20150512",
+  "file_name": "20150512",
+  "slug": "queues-dont-matter-when-you-can-jump-them",
+  "blog_url": "https://blog.acolyer.org/2015/05/12/queues-dont-matter-when-you-can-jump-them/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights QJUMP, a system from the Cambridge Systems at Scale team that addresses the critical trade-off between throughput and latency in distributed systems. The paper identifies network interference—particularly queueing delays caused by throughput-intensive applications—as a major source of tail latency in datacenters, which can severely degrade performance for latency-sensitive applications like memcached or PTPd. The key insight is that by enforcing rate-limiting and prioritization, QJUMP can bound worst-case network latency, allowing latency-sensitive traffic to 'jump the queue' over bulk traffic. The system leverages IEEE 802.1Q priorities to assign different throughput-latency trade-offs to application classes, ensuring predictable performance without sacrificing throughput excessively. Colyer emphasizes the elegance of QJUMP's approach, which requires minimal changes to applications and imposes negligible overhead.",
+  "paper_title": "Queues don't matter when you can JUMP them: QJUMP and the case for in-network prioritization",
+  "paper_authors": [
+    "Malte Schwarzkopf",
+    "Andy Konwinski",
+    "Michael I. Jordan",
+    "Ion Stoica"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "NSDI'15",
+  "paper_url": "https://www.usenix.org/system/files/conference/nsdi15/nsdi15-paper-grosvenor_update.pdf",
+  "paper_abstract": "Q J UMP is a simple and immediately deployable approach to controlling network interference in datacenter networks. Network interference occurs when congestion from throughput-intensive applications causes queueing that delays trafﬁc from latency-sensitive applications. To mitigate network interference, Q J UMP applies Internet QoS-inspired techniques to datacenter applications. Each application is assigned to a latency sensitivity level (or class). Packets from higher levels are rate-limited in the end host, but once allowed into the network can “jump-the-queue” over packets from lower levels. In settings with known node counts and link speeds, Q J UMP can support service levels ranging from strictly bounded latency (but with low rate) through to line-rate throughput (but with high latency variance). We have implemented Q J UMP as a Linux Trafﬁc Control module. We show that Q J UMP achieves bounded latency and reduces in-network interference by up to 300×, outperforming Ethernet Flow Control (802.3x), ECN (WRED) and DCTCP. We also show that Q J UMP improves average ﬂow completion times, performing close to or better than DCTCP and pFabric.",
+  "paper_file": "papers/2015/05/12/queues-dont-matter-when-you-can-jump-them.pdf",
+  "topics": [
+    "distributed-systems",
+    "networking"
+  ],
+  "tags": [
+    "network-interference",
+    "tail-latency",
+    "rate-limiting",
+    "prioritization",
+    "datacenter-networking",
+    "queueing-theory",
+    "IEEE-802.1Q",
+    "throughput-latency-tradeoff"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Motivating experiments: Hadoop traffic interferes with PTPd, memcached and Naiad traffic",
+      "caption": "Figure 1: Motivating experiments: Hadoop trafﬁc interferes with (a) PTPd, (b) memcached and (c) Naiad trafﬁc."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

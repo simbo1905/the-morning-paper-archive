@@ -1,0 +1,339 @@
+URL: https://blog.acolyer.org/2018/09/05/who-left-open-the-cookie-jar-a-comprehensive-evaluation-of-third-party-cookie-policies/
+Title: Who left open the cookie jar? A comprehensive evaluation of third-party cookie&nbsp;policies
+---
+
+Who left open the cookie jar? A comprehensive evaluation of third-party cookie policies from the Franken et al., USENIX Security 2018
+
+This paper won a ‘Distinguished paper’ award at USENIX Security 2018, as well as the 2018 Internet Defense Prize. It’s an evaluation of the defense mechanisms built into browsers (and via extensions / add-ons) that seek to protect against user tracking and cross-site attacks. Testing across 7 browsers and 46 browser extensions, the authors find that for virtually every browser and extension combination there is a way to bypass the intended security policies.
+
+> 
+
+ Despite their significant merits, the way cookies are implemented in most modern browsers also introduces a variety of attacks and other unwanted behavior. More precisely, because cookies are attached to every request, including third-party requests, it becomes more difficult for websites to validate the authenticity of a request. Consequently, an attacker can trigger requests with a malicious payload from the browser of an unknowing victim... Next to cross-site attacks, the inclusion of cookies in third-party requests also allows fo users to be tracked across the various websites they visit.
+
+When you visit a site A, it can set a cookie to be included in all future requests to that site. This paper is concerned with third-party requests. This is where you visit site B, but some resource on site B triggers a request to be made to site A (for example, an img tag with a src attribute referencing site A). Cookies set for site A flow with that request (depending on the cookie policy). A good example of exploiting this mechanism is the well-known CSRF attack.
+
+There are other cross-site attacks too, such as cross-site script scripting (XSS) and cross-site timing attacks.
+
+The same-site cookie mechanism aims to protect against cross-site attacks. Same-site cookies have a SameSite attribute set by the website that sets the cookie. When set to lax the cookie can be included only in top-level (the URL in the address bar changes) requests to third-party sites, and when set to strict the cookie may never be include in cross-site requests. Browser support for same-site cookies in the major browsers is now pretty good.
+
+## Ways to generate cross-site requests
+
+In order to exhaustively test all the possible cross-site request mechanisms, the first job is to list them all. The authors found seven different mechanism categories, encompassing hundreds of individual mechanisms between them.
+
+- Perhaps the most obvious class is HTML tags with attributes that can refer to external resources (e.g. img, iframe, script). There are 196 different ways HTML tags can trigger external requests, many of them documented at HTTPLeaks. All HTML-based request generate GET requests.
+
+- Some response headers (Link headers and Content-Security-Policy) may trigger an additional request either as soon as the browser receives the headers or upon certain events. The report-uri directive indicates a URI to which violations of security policy should be reported (and the forthcoming Reporting API will enable the same). The directive and API are not yet supported by any browser and are ignored in this study.
+
+- Top-level redirects are often not regarded as cross-site requests, but there are scenarios in which they can be abused. For example, a tracker can listen for the blur event on the window element which indicates the user switched tabs - at which point it can trigger a redirect in the background.
+
+- JavaScript can initiate requests via the XHR and Fetch APIs. The Beacon API can make asynchronous POST requests, and the WebSocket API can also be used to open a communication session. The EventSource API can open a unidirectional persistent connection to a web server.
+
+- One of the most interesting mechanisms in the list for me was PDF JavaScript. PDFs can have dynamic features enabled through JavaScript embedded in the PDF file. It is possible to generate requests using this mechanism (for example, triggering POST requests when a form is filled in). Support is browser dependent. The PDFium viewer used by Chrome and Opera does support sending requests, Firefox doesn’t.
+
+- The (deprecated but still supported) AppCache API can specify additional resources to be loaded and cached when the user visits a given page.
+
+- ServiceWorkers can fetch resources and use most browser APIs to initiate additional requests (excluding XHR).
+
+All of these request-initiating mechanisms can be triggered in a variety of different ways (e.g. inclusion via iframes or importScripts in JavaScript). The composition mechanism turned out not to make a different to the test results so details are omitted from the main paper, but you can find them in appendix A if you’re interested.
+
+## Test all the things
+
+The authors put together a test framework that can exercise all of the possible cross-site request mechanisms across different browsers and extensions.
+
+> 
+
+ The primary goal of our evaluation was to analyze browsers for which inconsistencies and bypasses would have the largest impact. On the one hand, we included the most popular and widely-used browsers: Chrome, Opera, Firefox, Safari, and Edge. On the other hand, we also incorporated browsers that are specifically targeted towards privacy-aware users...
+
+Browsers were tested using the default settings for their protection mechanisms. In addition, 46 different extensions for the four most popular browsers were tested, selected based on the extension popularity as reported in the respective stores.
+
+## Results
+
+The results for the 7 evaluated browsers are summarised in the table below (filled circle indicating cookies were sent with the request).
+
+- Under default configuration, all the main browsers send cookies along with third-party requests. Safari is the exception, and only does so for redirects.
+
+- When instructed to block all third-party cookies, browsers still sent cookies with redirects (not generally considered cross-site requests). The authors also found that browsers using the PDFium reader to render PDFs also sent cookies with third-party requests initiated from JavaScript in the PDF.
+
+> 
+
+ Because PDFs can be included in iframes, and thus made invisible to the end user, and because it can be used to send authenticated POST requests, this bypass technique could be used to track users or perform cross-site attacks without raising the attention of the victim.
+
+31 ad-blocking extensions were evaluated, and bypasses found for all of them:
+
+15 tracking protection extensions were also evaluated, and bypasses found for all of them as well!
+
+A common mistake with extension developers is to register to filter http and https protocol requests, but forget about ws:// and wss:// protocols.
+
+> 
+
+ In summary, we found that for every built-in browser protection as well as for every anti-tracking and ad blocking browser extension, there exists at least one technique that can bypass the imposed policies... Based on these results, we argue that our proposed framework is a much-need tool to detect bypasses and evaluate solutions to the exposed leaks.
+
+Testing the same-site cookie mechanism, incorrect behaviours were found with Chrome, Opera, and Edge.
+
+Future work includes evaluating mobile browsers, and extending the test coverage to other policy implementations such as the Local Storage API and Content Security Policy.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousFear the reaper: characterization and fast detection of card skimmersNext &rsaquo;Unveiling and quantifying Facebook exploitation of sensitive personal data for advertising purposes
+ 
+ 
+
+ 
+ 
+## 
+ 8 thoughts on &ldquo;Who left open the cookie jar? A comprehensive evaluation of third-party cookie policies&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Michael Moy says: 
+
+ 
+ September 5, 2018 at 4:13 pm 
+
+ 
+
+ 
+ 
+Why wasn't Brave tested? I just signed up for a Facebook account. I run it in a Virtual Machine using Brave and that's the only website I use on that browser.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: A comprehensive evaluation of third-party cookie policies - New Content 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: A comprehensive evaluation of third-party cookie policies - Tech + Hckr News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: A comprehensive evaluation of third-party cookie policies - World Best News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: A comprehensive evaluation of third-party cookie policies - Latest news 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: A comprehensive evaluation of third-party cookie policies - News about world 
+ 
+ 
+- 
+ 
+ Pingback: Weekend Reads 090718 - rule 11 reader 
+ 
+ 
+- 
+ 
+ Pingback: 每周分享第 24 期 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,35 @@
+{
+  "date": "20151127",
+  "file_name": "20151127",
+  "slug": "hamt",
+  "blog_url": "https://blog.acolyer.org/2015/11/27/hamt/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a new data structure called CHAMP (Compressed Hash-Array Mapped Prefix-tree) for optimizing immutable collections in JVM-based languages like Scala and Clojure. CHAMP offers significant performance improvements over traditional Hash-Array Mapped Tries (HAMTs), with 1.3-6.7x faster iteration and 3-25.4x faster equality checking. The key insight is improving cache locality and reducing memory overhead by splitting the array into separate value and sub-node reference sections, using bitmaps for efficient indexing, and maintaining a compact canonical form even after deletions. The paper addresses inefficiencies in HAMTs when ported to the JVM due to memory indirection and lack of control over memory layout.",
+  "paper_title": "Optimizing Hash-Array Mapped Tries for Fast and Lean Immutable JVM Collections",
+  "paper_authors": [
+    "Michael Steindorfer",
+    "Jurgen J. Vinju"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "OOPSLA",
+  "paper_url": "http://michael.steindorfer.name/publications/oopsla15.pdf",
+  "paper_abstract": "1. The data structures under-pinning collection API (e.g. lists, sets, maps) in the standard libraries of programming languages are used intensively in many applications. The standard libraries of recent Java Virtual Machine languages, such as Clojure or Scala, contain scalable and well-performing immutable collection data structures that are implemented as Hash-Array Mapped Tries (HAMTs). HAMTs already feature efficient lookup, insert, and delete operations, however due to their tree-based nature their memory footprints and the runtime performance of iteration and equality checking lag behind array-based counterparts. This particularly prohibits their application in programs which process larger data sets. In this paper, we propose changes to the HAMT design that increase the overall performance of immutable sets and maps. The resulting general purpose design increases cache locality and features a canonical representation. It outperforms Scala’s and Clojure’s data structure implementations in terms of memory footprint and runtime efficiency of iteration (1.3– 6.7 x) and equality checking (3–25.4 x). In this paper we reduce memory overhead and runtime performance overhead from the implementations of immutable collections on the Java Virtual Machine (JVM). Collections under-pin many (if not most) applications in general purpose programming languages as well as domain specific languages that are compiled to the JVM. Optimizing collections implies optimizing many applications. Immutable collections are a specific area most relevant to functional/object-oriented programming such as practiced by Scala1 and Clojure2 programmers. With the advance of functional language constructs in Java 8 and functional APIs such as the stream processing API [6], immutable collections become more relevant to Java as well. Immutability for collections has a number of benefits: it implies referential transparency without giving up on sharing data [17]; it satisfies safety requirements for ...",
+  "paper_file": "papers/2015/11/27/hamt.pdf",
+  "topics": [
+    "programming-languages",
+    "data-engineering"
+  ],
+  "tags": [
+    "immutable-collections",
+    "HAMT",
+    "CHAMP",
+    "JVM",
+    "cache-locality",
+    "functional-programming",
+    "data-structures",
+    "hash-tries"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

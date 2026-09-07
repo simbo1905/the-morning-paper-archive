@@ -1,0 +1,368 @@
+URL: https://blog.acolyer.org/2016/01/20/from-aries-to-mars/
+Title: From ARIES to MARS: Transaction Support for Next-Generation Solid State&nbsp;Drives
+---
+
+From ARIES to MARS: Transaction Support for Next-Generation Solid State Drives - Coburn et al. 2013
+
+For the last couple of weeks we've been bouncing around the topics of transaction support and the implications of a non-volatile memory and super-fast networking on system design. We've seen statements such as 'the bandwidth and latency characteristics of storage class memory turn traditional system design assumptions on their head.' What I really like about today's paper, "From ARIES to MARS" is that it provides a very concrete and worked through example of this. The authors take as a starting point the ARIES write-ahead logging and recovery protocol and ask "what would be different if we designed this for the world of NVMe / storage class memory rather than spinning disk?"
+
+Here's a quick reminder of the salient points of ARIES as fit this discussion:
+
+- ARIES uses a persistent append-only write-ahead log (WAL), and writes log records ahead of making changes to the state of transactions and data. 
+
+> 
+
+ To make recovery robust and to allow disk-based optimizations, ARIES records both the old version (undo) and new version (redo) of the data. ARIES can only update the data in-place after the log reaches storage. On restart after a crash, ARIES brings the system back to the exact state it was in before the crash by applying the redo log. Then, ARIES reverts the effects of any uncommitted transactions active at the time of the crash by applying the undo log, thus bringing the system back to a consistent state.
+
+- ARIES adopts a 'No-Force' policy - update pages are written to disk lazily after commit (redo log records can be used to repair any missing updates during recovery)
+
+- ARIES adopts a 'Steal' policy - uncommitted ('dirty') pages can be written to disk by the buffer manager (undo log records can be used to undo the effects during recovery) 
+
+- ARIES uses LSN (Log Sequence Numbers) to keep track of the state of a page with respect to the log, and uses disk pages as the basic unit of data management and recovery.
+
+> 
+
+ To achieve high performance on disk-based systems, ARIES incorporates a set of design decisions that exploit the properties of disk: ARIES optimizes for long, sequential accesses and avoids short, random accesses whenever possible.
+
+But what if you weren't targeting spinning disk, but instead were able to exploit NVM (non-volatile memory) and PCIe attached storage devices...?
+
+> 
+
+ Fast non-volatile memories such as phase-change memories (PCM) [3], spin-transfer torque [15] memories, and the memristor differ fundamentally from conventional disks and from the flash-based SSDs that are beginning to replace them. The most important features of NVMs are their performance (relative to disk and flash) and their simpler interface (relative to flash). Predictions by industry and academia suggest that NVMs will have bandwidth and latency characteristics similar to DRAM. This means they will be between 500 and 1500× faster than flash and 50,000× faster than disk. In addition, technologies such as PCM will have a significant density and cost-per-bit advantage (estimated 2 to 4×) over DRAM. These device characteristics require storage architectures with topologies and interconnects capable of exploiting their low latency and high bandwidth. Modern high-end SSDs often attach to the host via PCIe, and this approach will work well for fast NVMs too. PCIe bandwidth is scalable and many high end processors have nearly as much PCIe bandwidth as main memory bandwidth. PCIe also offers scalable capacity since any number and type of memory channels (and memory controllers) can sit behind a PCIe endpoint. This makes a PCIe-attached architecture a natural candidate for capacity-intensive applications like databases, graph analytics, or caching.
+
+MARS is a Modified ARIES Redesigned for SSDs that is optimised for NVM-based storage. Let's revisit some of the ARIES design decisions when spinning disks are replaced by NVM over PCIe.
+
+## WAL: Append-only vs Update in place
+
+> 
+
+ The performance characteristics of disks and, more recently, SSDs have deeply influenced most WAL schemes. Since sequential writes are much faster than random writes, WAL schemes maintain their logs as append-only sets of records, avoiding long-latency seeks on disks and write amplification in flash-based SSDs. However, for fast NVMs, there is little performance difference between random and sequential writes, so the advantages of an append-only log are less clear. In fact, append- and write-only logs add complexity because systems must construct and maintain in-memory copies that reflect the operations recorded in the log. For large database transactions the in-memory copies can exceed available memory, forcing the database to spill this data onto disk.
+
+PCM provides true in-place updates eliminating the complex flash translation layer.
+
+> 
+
+ ...if the log data resides in a fast NVM storage system, spilling is not necessary – the updated version of the data resides in the log and the system reads or updates it without interfering with other writes to the log. Realizing this capability requires a new flexible logging primitive which we call editable atomic writes (EAW).
+
+The authors implement support for Editable Atomic Writes using a combination of software and hardware. Hardware support inside an NVM array is used for logging and copying data to ensure atomicity. I'm going to skip the details of the EAW scheme and refer you to the paper for those, as I want to focus here on showing the kinds of implications changing our assumptions about storage may have.
+
+## No-Force vs Force
+
+ARIES no-force policy eliminates synchronize random writes. In fast NVM-based storage, random writes are no slower than sequential writes, so the value of no-force is much less. Instead we can choose to Force, and thus simplify recovery by not needing redo records.
+
+## Steal vs No-Steal
+
+> 
+
+ ARIES uses a steal policy to allow the buffer manager to “page out” uncommitted, dirty pages to disk during transaction execution. This lets the buffer manager support transactions larger than the buffer pool, group writes together to take advantage of sequential disk bandwidth, and avoid data races on pages shared by overlapping transactions. However, stealing requires undo logging so the system can roll back the uncommitted changes if the transaction aborts. As a result, ARIES writes both an undo log and a redo log to disk in addition to eventually writing back the data in place. This means that, roughly speaking, writing one logical byte to the database requires writing three bytes to storage. For disks, this is a reasonable tradeoff because it avoids placing random disk accesses on the critical path and gives the buffer manager enormous flexibility in scheduling the random disk accesses that must occur. For fast NVMs, however, random and sequential access performance are nearly identical, so this trade-off needs to be re-examined.
+
+In MARS, the hardware is used to do in-place updates and the log always holds the latest copy. Data is never written back in place before a transaction commits, and so undo logging is unnecessary.
+
+## LSNs and Pages
+
+> 
+
+ ARIES uses disk pages as the basic unit of data management and recovery and uses the atomicity of page writes as a foundation for larger atomic writes. This reflects the inherently block-oriented interface that disks provide. ARIES also embeds a log sequence number (LSN) in each page to establish an ordering on updates and determine how to reapply them during recovery. As recent work highlights, pages and LSNs complicate several aspects of database design...
+
+NVMs are byte-addressable though...
+
+> 
+
+ The hardware motivation for page-based management does not exist for fast NVMs, so EAWs expose a byte-addressable interface with a much more flexible notion of atomicity. Instead of an append-only log, EAWs provide a log that can be read and written throughout the life of a transaction. This means that undo logging is unnecessary because data will never be written back in-place before a transaction commits. Also, EAWs implement ordering and recovery in the storage array itself, eliminating the need for application-visible LSNs.
+
+## In summary
+
+ARIES is optimised for spinning disks using append-only write-ahead logging with undo and redo records, no-force and steal policies, LSNs and pages.
+
+MARS (ARIES Redesigned for SSDs) uses update in-place logging with no undo or redo records, force and no-steal policies, and no LSNs or pages.
+
+In a micro-benchmark, the results give MARS a 3.7x advantage over ARIES on the target hardware.
+
+> 
+
+ Existing transaction mechanisms such as ARIES were designed to exploit the characteristics of disk, making them a poor fit for storage arrays of fast, non-volatile memories. We presented a redesign of ARIES, called MARS, that provides the same set of features to the application but utilizes a novel multi-part atomic write operation, called editable atomic writes (EAW), that takes advantage of the parallelism and performance in fast NVM-based storage. We demonstrated MARS and EAWs in our prototype storage array. Compared to transactions implemented in software, our system increases effective bandwidth by up to 3.8× and decreases latency by 2.9×. Across a range of persistent data structures, EAWs improve operation throughput by an average of 1.4×. When applied to MARS, EAWs yield a 3.7× performance improvement relative to a baseline implementation of ARIES.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ HardwareTransaction processing 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousExperience with Rules-Based Programming for Distributed Concurrent Fault-Tolerant CodeNext &rsaquo;Blurred Persistence: Efficient Transactions in Persistent Memory
+ 
+ 
+
+ 
+ 
+## 
+ 6 thoughts on &ldquo;From ARIES to MARS: Transaction Support for Next-Generation Solid State Drives&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Victor Smirnov says: 
+
+ 
+ January 20, 2016 at 9:45 am 
+
+ 
+
+ 
+ 
+>For fast NVMs, however, random and sequential access performance are nearly identical
+
+This assumption is wrong. We say that RAM is a new Disk not because RAM is large, but because it shares the same access patterns with disk: ordered access (linear, prefetchable) is faster than random one. The reason is fundamental: speed of light is finite. Fast memory can only be local, and it can't be big for that reason. From this perspective byte-addressable NVM just provides greater flexibility in ordered access pattern over spinning disks and SSDs.
+
+Good old pointer-based data structures are painfully slow on large heaps. Some well-known applications even decided to stay in 32 bits because of that. To achieve highest performance, applications must organize data in RAM in access pattern-specific way, with even several different layouts of the same data for the different access patterns (row orders vs column order, structure-of-arrays vs array-of-structures). Access locality principle results in generic block-oriented design. So, memory block is a fundamental design pattern originating from physical limits to computations.
+
+Finally, immutable log is essential when we have parallelism. Copy-on-Write data structures are essentially log-oriented. Sure, CoW introduces some non-negligible space overhead to the design, but this is the price we have to pay for efficient concurrency.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ aist11 says: 
+
+ 
+ January 20, 2016 at 9:50 am 
+
+ 
+
+ 
+ 
+>For fast NVMs, however, random and sequential access performance are nearly identical
+
+This assumption is wrong. We say that RAM is a new Disk not because RAM is large, but because it shares the same access patterns with disk: ordered access (linear, prefetchable) is faster than random one. The reason is fundamental: speed of light is finite. Fast memory can only be local, and it can’t be big for that reason. From this perspective byte-addressable NVM just provides greater flexibility in ordered access pattern over spinning disks and SSDs.
+
+Good old pointer-based data structures are painfully slow on large heaps. Some well-known applications even decided to stay in 32 bits because of that. To achieve highest performance, applications must organize data in RAM in access pattern-specific way, with even several different layouts of the same data for the different access patterns (row orders vs column order, structure-of-arrays vs array-of-structures). Access locality principle results in generic block-oriented design. So, memory block is a fundamental design pattern originating from physical limits to computations.
+
+Finally, immutable log is essential when we have parallelism. Copy-on-Write data structures are essentially log-oriented. Sure, CoW introduces some non-negligible space overhead to the design, but this is the price we have to pay for efficient concurrency.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Blurred Persistence: Efficient Transactions in Persistent Memory | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: All Change Please | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Distributed consensus and the implications of NVM on database management systems | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Let's talk about storage and recovery methods for non-volatile memory database systems | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

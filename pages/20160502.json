@@ -1,0 +1,40 @@
+{
+  "date": "20160502",
+  "file_name": "20160502",
+  "slug": "slacker-fast-distribution-with-lazy-docker-containers",
+  "blog_url": "https://blog.acolyer.org/2016/05/02/slacker-fast-distribution-with-lazy-docker-containers/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this FAST'16 paper by Harter et al. as a deep dive into the performance bottlenecks of Docker container startup, particularly when images must be pulled from a repository. The authors analyze where startup time is spent, finding that 76% of it is consumed by copying package data, yet only 6.4% of that data is actually needed for containers to begin useful work. They introduce 'Slacker', a Docker storage driver optimized for fast container startup while maintaining equivalent runtime performance. The paper also explores inefficiencies in Docker's layered file system (AUFS), such as deep layer lookups and costly copy-on-write operations for small writes, and proposes deduplication and caching strategies to mitigate these issues. Slacker achieves dramatic speedups: a 20x median improvement in container development cycles and a 5x improvement in deployment cycles.",
+  "paper_title": "Slacker: Fast Distribution with Lazy Docker Containers",
+  "paper_authors": [
+    "Tyler Harter",
+    "Dongyan Xu",
+    "Mike Swift",
+    "Andrea C. Arpaci-Dusseau",
+    "Remzi H. Arpaci-Dusseau"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "FAST'16",
+  "paper_url": "http://research.cs.wisc.edu/wind/Publications/slacker-fast16.pdf",
+  "paper_abstract": "† Tintri Unfortunately, as we will show, starting containers is much slower in practice due to le-system provisioning bottlenecks. Whereas initialization of network, compute, and memory resources is relatively fast and simple (e.g., zeroing memory pages), a containerized application requires a fully initialized le system, containing application binaries, a complete Linux distribution, and package dependencies. Deploying a container in a Docker or Google Borg [41] cluster typically involves signicant copying and installation overheads. A recent study of Google Borg revealed: “[task startup latency] is highly variable, with the median typically about 25 s. Package installation takes about 80% of the total: one of the known bottlenecks is contention for the local disk where packages are written” [41]. If startup time can be improved, a number of opportunities arise: applications can scale instantly to handle ash-crowd events [13], cluster schedulers can frequently rebalance nodes at low cost [17, 41], software upgrades can be rapidly deployed when a security aw or critical bug is xed [30], and developers can interactively build and test distributed applications [31]. Containerized applications are becoming increasingly popular, but unfortunately, current containerdeployment methods are very slow. We develop a new container benchmark, HelloBench, to evaluate the startup times of 57 different containerized applications. We use HelloBench to analyze workloads in detail, studying the block I/O patterns exhibited during startup and compressibility of container images. Our analysis shows that pulling packages accounts for 76% of container start time, but only 6.4% of that data is read. We use this and other ndings to guide the design of Slacker, a new Docker storage driver optimized for fast container startup. Slacker is based on centralized storage that is shared between all Docker workers and registries. Workers quickly provision container storage using backend clon...",
+  "paper_file": "papers/2016/05/02/slacker-fast-distribution-with-lazy-docker-containers.pdf",
+  "topics": [
+    "storage-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "docker",
+    "containerization",
+    "lazy-loading",
+    "copy-on-write",
+    "union-file-system",
+    "deduplication",
+    "NFS",
+    "image-pulling",
+    "startup-performance",
+    "layered-file-systems"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

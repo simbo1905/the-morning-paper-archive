@@ -1,0 +1,261 @@
+URL: https://blog.acolyer.org/2014/11/19/probabilistic-programming/
+Title: Probabilistic Programming
+---
+
+Probabilistic Programming - Gordon et al 2014
+
+Let's jump straight into some code - what is the meaning of this program in the PROB programming language?
+
+bool c1, c2;
+c1 = Bernoulli(0.5);
+c2 = Bernoulli(0.5);
+observe(c1 || c2);
+return (c1,c2);
+
+On lines 2 and 3, c1 and c2 are assigned to the result of a Fair Coin Toss. We then constrain the allowed outcomes (line 4) to be those in which either c1 or c2 is True. The return value of the program is a pair containing the expected probability that c1 is true, and the expected probability that c2 is true. Another way of saying this: 'given that c1 is true or c2 is true, what is the probability that c1 is true, and the probability that c2 is true?'
+
+To put it in more familiar terms:
+
+P(c1=True) = 0.5; P(c1=False)=0.5
+
+ P(c2=True) = 0.5; P(c2=False)=0.5
+
+ return P(c1=True | c1=True or c2=True), P(c2=True | c1=True or c2=True)
+
+The return value of this program is (2/3,2/3). (Exercise for the reader - or see the straightforward derivation in the paper!).
+
+> 
+
+ Probabilistic Programs are 'usual' programs with two added constructs: (1) the ability to draw values at random from a distribution, and (2) the ability to condition values of variables in a program via observe statements.... However, unlike 'usual' programs which are written for the purpose of being executed, the purpose of a probabilistic program is to implicitly specify a probability distribution.
+
+Why is this interesting?
+
+> 
+
+ The goal of probabilistic programming is to enable probabilistic modeling and machine learning to be accessible to the working programmer, who has sufficient domain expertise, but perhaps not enough expertise in probability theory or machine learning.
+
+It looks a promising and concise expression format for those who do too!
+
+The meaning of a probabilistic program is its expected return value. To calculate the probability that the program ends in a particular state, s, simply return the predicate 'state = s'.
+
+> 
+
+ The goal of a probabilistic program is to represent (and model) a probability distribution. The viewpoint taken is Bayesian, and typically a probabilistic program assigns to variables from a 'prior' distribution, and then constrains the relationships between variables using observe statements, and the goal of the program is to represent a 'posterior' distribution obtained by conditioning the prior distribution using observations.
+
+Probabilistic programming can be used to easily express Bayesian Networks and Markov Chains.
+
+> 
+
+ In general every Bayesian Network can be encoded as an acyclic probabilistic program in a straightforward manner, and conditioning can be modeled using observe statements.
+
+The inferencing needed to implement a probabilistic program can be done by either static or dynamic analysis. Static analysis is based on data flow.
+
+> 
+
+ Dynamic approaches are widely used, since running a probabilistic program is natural, regardless of the programming language used to express the program. The main challenge is that many samples that are generated during execution are ultimately rejected for not satisfying the observations. In order to improve efficiency, it is desirable to avoid generating samples that are later rejected, to the extent possible.
+
+In conclusion the authors state that 'several advances in tools and infrastructure' are needed before probabilistic programming can meet its goal of being accessible to non-experts in ML and probability.
+
+> 
+
+ Compilers need to implement the equivalent of common compiler optimizations for probabilistic programs, and runtime need to exploit the power of massive parallelism available in todays GPUs and cloud services. Diagnostic information needs to be provided ... Substantial improvements in these areas will need interplay between compiler analysis, machine learning, and usability research with programmers and data scientists.
+
+I hope this has piqued your interest to go and read the paper, it contains many good examples. The Church online tutorial linked below is also a great way to explore the ideas.
+
+Further reading:
+
+- Probabilistic Models of Cognition - online tutorial using the Church programming language.
+
+- Probabilistic-programming.org - a repository of links and information about probabilistic programming languages.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Programming Languages 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousOne VM to Rule Them AllNext &rsaquo;Life Beyond Distributed Transactions
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ %d

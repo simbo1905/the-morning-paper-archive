@@ -1,0 +1,388 @@
+URL: https://blog.acolyer.org/2016/10/20/programming-with-abstract-data-types/
+Title: Programming with Abstract Data&nbsp;Types
+---
+
+Programming with Abstract Data Types Liskov & Zilles, ACM SIGPLAN Notices, 1974
+
+This is paper 6/7 from Liskov's list, and it's by Barbara Liskov herself. What an enormous impact this paper has had on how we program today. Has there been any single advance in programming languages since this work (42 years ago) which has made such a big impact on mainstream programming? I can't think of one.
+
+It's amazing how much is in here, bar inheritance you've got pretty much all of the core features of a modern object-oriented language, including strong type checking and support for generic types.
+
+> 
+
+ Structured programming attempts to impose a discipline on the programming task so that the resulting programs are 'well-structured.' In this discipline, a problem is solved by means of a process of successive decomposition...
+
+You can start out with high-level procedures, and gradually fill-in the details at lower levels of abstraction to complete a program. (Program development by stepwise refinement, Hierarchical program structures). As Liskov notes, when working at a certain level you are concerned with the way a program makes use abstractions provided at lower levels, but not with the details of how they are realized. Higher-level programming languages could provide increasing numbers of abstractions through their built-in types, but could never hope to provide all of the useful abstractions for building programs.
+
+> 
+
+ A structured language... contains no preconceived notions about the particular set of useful abstractions, but instead must provide a mechanism whereby the language can be extended to contain the abstractions which the user requires. _A language containing such a mechanism can be viewed as a general-purpose indefinitely-high-level language.
+
+What do we want from an abstraction? A mechanism which allows us to express all relevant details for use of the abstraction, but hides all irrelevant details - the way in which the abstraction is implemented.
+
+> 
+
+ An abstract data type defines a class of abstract objects which is completely characterized by the operations available on those objects. This means that an abstract data type can be defined by defining the characterising operations for that type....
+
+When a programmer uses a built-in data type, they make use of a concept or abstraction realized at a lower level of detail - the programming language itself (and its compiler). Likewise, abstract data types are used at one level, and realized at another level - but the lower level is not part of the language itself...
+
+> 
+
+ ... an abstract data type is realized by writing a special kind of program, called an operation cluster, or cluster for short, which defines the type in terms of the operations which can be performed on it.
+
+I guess operation-cluster-oriented programming was always going to be a bit of a mouthful!
+
+Once you have abstract data types, "most of the abstract operations in a program wil belong to the sets of operations characterising abstract types." For the remaining operations not associated with an ADT, Liskov and Zilles use the term "functional abstraction." By programming in terms of ADTs and the operations they expose it is possible to defer the implementation representation decision until a later point. And thus it is possible to program according to one of Dijkstra's programming principles: build the program one decision at a time.
+
+The new-fangled support for ADTs (and abstract objects) is explained by way of an example - writing a program to convert infix expressions to polish notation. Given modern familiarity with the concepts, I'm going to cut straight to a description of the impressive set of features the language had.
+
+- The same syntax is used to declare variables of abstract types as to declare variables of built-in types (a very powerful principle)
+
+- A variable declaration must simply declare the type of the variable, or it may also specify that a new object is to be created at the point of declaration. Object creation is indicated by parentheses following the type name, and any object construction arguments inside the parentheses (a constructor invocation as we would now call it):
+
+    s: stack // s is of type stack
+    s: stack(token) // s is of type stack, 
+ // and initialized to a new stack object
+
+- The language is strongly typed, you can use an abstract object in only one of three ways: by calling the operations defined for it, by passing it as a parameter to a procedure, and by assigning it to a variable of the corresponding type.
+
+- You invoke operations on an abstract object using a type_name$operation(args) syntax. The first parameter to such an invocation is always the object to be operated on (the object.operation sugar did not exist at this time). For example: stack$push(s, t)
+
+> 
+
+ There are several reasons why the type name is included in the operation call. First, since an operation call may have several parameters of different abstract types, the absence of the type-name may lead to an ambiguity as to which object is actually being operated on. Second, the use of the compound name permits different data types to use the same names for operations without any clash of identifiers existing.
+
+- Objects may also be created outside of variable declarations simply by following the type name by parentheses: s = stack(t)
+
+- Operation clusters (classes) are defined in a module supporting independent compilation. A cluster definition contains three parts: the object representation (its internal state), the code used to create objects (constructor), and the operations themselves. Here's the stack example:
+
+    stack: cluster(element_type: type) 
+      is push, pop, top, erasetop, empty:
+
+      rep(type_param :type) = (
+        tp : integer;
+        e_type: type;
+        stk: array[1..] of type_param;
+      )
+
+      create
+        s : rep(element_type);
+
+        s.tp := 0
+        s.e_type := element_type;
+       return s;
+       end
+
+      push : operation(s : rep, v: s.e_type);
+        s.tp := s.tp + 1
+        s.stk[s.tp] := v
+        return;
+      end
+ 
+      pop : operation(s : rep) returns s.e_type;
+      ...
+
+- Type parameters are supported (as seen in the above example)
+
+> 
+
+ The rep description defines a new type, denoted by the reserved word rep, which is accessible only within the cluster and describes how objects are viewed there... The optional ("{}") rep-parameters make it possible to delay specifying some aspects of the type definition until an instance of rep is created.
+
+- Type checking is extended to incorporate type parameters
+
+- The language completely hides all implementation details of the abstraction from its user.
+
+- Program efficiency need not be sacrificed:
+
+> 
+
+ We believe it is helpful to associate two structures with a program: its logical structure and its physical structure. The primary business of a programmer is to build a program with a good logical structure -- one which is understandable and leads to ease in modification and maintenance. However, a good logical structure does not necessary imply a good physical structure -- one which is efficient to execute... We believe it is the business of the compiler to map good logical structure into good physical structure. The fact that the two structures may diverge is acceptable provided that the compiler is verified, and that all programming tools (for example, the debugging aids) are defined to hide the divergence.
+
+And finally, through experimentation with the language, Liskov and Zilles discovered something important about the ability to create new abstractions directly in the programming language:
+
+> 
+
+ Of course, program quality is most dependent on good program design. Although a language can never teach a programmer what constitutes a well-designed program, it can guide him or her into thinking about the right things. We believe that abstraction is the key to good design, and we have discovered in our experiments in using the language that it encourages the programmer to consciously search for abstractions, especially data abstractions, and to think vey hard about their use and definition.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Programming LanguagesSoftware Engineering 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousProtection in programming languagesNext &rsaquo;A design methodology for reliable software systems
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;Programming with Abstract Data Types&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ larsga says: 
+
+ 
+ October 20, 2016 at 1:36 pm 
+
+ 
+
+ 
+ 
+I think it's worth pointing out that by the time this paper appeared the concept of object-oriented programming was already 7 years old. It debuted with the Simula 67 language, released in 1967. Simula 67 basically had everything the Java object system has, except exceptions, packages, and overloading. Classes, methods, inheritance, dynamic method override, etc. It was all there, and they knew how important it was. So while this is an important paper, it did not invent the concept of developing abstract data types with hidden implementation.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Derek Jones says: 
+
+ 
+ October 20, 2016 at 11:34 pm 
+
+ 
+
+ 
+ 
+This paper really describes [CLU](https://en.wikipedia.org/wiki/CLU_(programming_language)), the language her group at MIT had been working on for several years. This language was just a bit too big for the computers of the day to compiler, so the world went to Pascal and then C and then OO languages.
+
+Simula 67 is where OO started. But that had different problems: http://shape-of-code.coding-guidelines.com/2014/12/19/snobol-4-simula-67-smalltalk-sed-sql-setl-scratch-and-spreadsheet/
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Diana (@Di4naO) says: 
+
+ 
+ October 25, 2016 at 9:11 am 
+
+ 
+
+ 
+ 
+I wonder if by comparing that to OO, at least the class oriented OO we got, you are not hiding a bigger truth.
+
+What is really interesting here is that Liskov describe only the "operations" you can make on the object. There is nothing implying the way data is represented. Especially you could have multiple objects with different data representation but the same ADT. It is closer to "ad hoc" polymorphism or full fledged generics than to classes.
+
+>which is completely characterized by the operations available on those objects
+
+It is interesting to see that this model mainly grew up in the FP world. And that is wherei would say it is close to Parnas' paper on hiding information about implementation vs interface. And i would argue that it is what is now giving an advantage to the FP world more than anything else.
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

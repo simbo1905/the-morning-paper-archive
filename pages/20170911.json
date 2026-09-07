@@ -1,0 +1,34 @@
+{
+  "date": "20170911",
+  "file_name": "20170911",
+  "slug": "learning-transferable-architectures-for-scalable-image-recognition",
+  "blog_url": "https://blog.acolyer.org/2017/09/11/learning-transferable-architectures-for-scalable-image-recognition/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this paper as a significant advancement in deep learning, building upon the authors' earlier work on Neural Architecture Search (NAS). The key innovation is the reduction of search time for optimal architectures (from weeks to days) and the demonstration that architectures learned on smaller datasets (e.g., CIFAR-10) can be effectively transferred to larger ones (e.g., ImageNet). The paper introduces a modular approach where a convolutional cell design is learned and then stacked to handle varying spatial dimensions, rather than searching for entire architectures. The authors show that these learned cells achieve state-of-the-art results on both CIFAR-10 and ImageNet, outperforming human-designed architectures while being more computationally efficient. The blog emphasizes the broader implications for transfer learning and meta-learning, suggesting a shift from designing learning systems to designing meta-learning systems.",
+  "paper_title": "Learning Transferable Architectures for Scalable Image Recognition",
+  "paper_authors": [
+    "Barret Zoph",
+    "Vijay Vasudevan",
+    "Jonathon Shlens",
+    "Quoc V. Le"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "arXiv",
+  "paper_url": "https://arxiv.org/abs/1707.07012",
+  "paper_abstract": "1. Introduction Developing neural network image classification models often requires significant architecture engineering. Starting from the seminal work of [32] on using convolutional architectures [17, 34] for ImageNet [11] classification, successive advancements through architecture engineering have achieved impressive results [53, 59, 20, 60, 58, 68]. In this paper, we study a new paradigm of designing convolutional architectures and describe a scalable method to optimize convolutional architectures on a dataset of interest, for instance the ImageNet classification dataset. Our approach is inspired by the recently proposed Neural Architecture Search (NAS) framework [71], which uses a reinforcement learning search method to optimize architecture configurations. Applying NAS, or any other search methods, directly to a large dataset, such as the ImageNet dataset, is however computationally expensive. We therefore propose to search for a good architecture on a proxy dataset, for example the smaller CIFAR-10 dataset, and then transfer the learned architecture to ImageNet. We achieve this transferrability by designing a search space (which we call “the NASNet search space”) so that the complexity of the architecture is independent of the depth of the network and the size of input images. More concretely, all convolutional networks in our search space are composed of convolutional layers (or “cells”) with identical structure but different weights. Searching for the best convolutional architectures is therefore reduced to searching for the best cell structure. Searching for the best cell structure has two main benefits: it is much faster than searching for an entire network architecture and the cell itself is more likely to generalize to other problems. In our experiments, this approach significantly accelerates the search for the best architectures using CIFAR-10 by a factor of 7× and learns architectures that successfully transfer to ImageNet. Our main result is that ...",
+  "paper_file": "papers/2017/09/11/learning-transferable-architectures-for-scalable-image-recognition.pdf",
+  "topics": [
+    "machine-learning"
+  ],
+  "tags": [
+    "neural-architecture-search",
+    "convolutional-neural-networks",
+    "transfer-learning",
+    "meta-learning",
+    "image-classification",
+    "deep-learning"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

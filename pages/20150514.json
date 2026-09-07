@@ -1,0 +1,50 @@
+{
+  "date": "20150514",
+  "file_name": "20150514",
+  "slug": "wormhole-reliable-pub-sub-to-support-geo-replicated-internet-services",
+  "blog_url": "https://blog.acolyer.org/2015/05/14/wormhole-reliable-pub-sub-to-support-geo-replicated-internet-services/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Wormhole, Facebook's pub-sub system designed to efficiently notify applications of data updates across geo-replicated storage systems like MySQL, HDFS, and RocksDB. Unlike traditional pub-sub systems, Wormhole avoids custom data stores or interposing in the update path by directly reading transaction logs from supported storage systems. This approach enables seamless geo-replication by leveraging existing mechanisms in the underlying storage systems. The key insight is that Wormhole's log-scanning mechanism simplifies deployment and scalability while providing at-least-once delivery guarantees. Colyer also notes Wormhole's innovative handling of slow or recovering subscribers through 'caravans'—clusters of flows sharing a single reader to reduce I/O overhead—and its decentralized deployment system based on runsv, which improved reliability over a centralized approach.",
+  "paper_title": "Wormhole: Reliable pub-sub to support Geo-Replicated Internet Services",
+  "paper_authors": [
+    "Sharma",
+    "Rajesh",
+    "Karthik",
+    "Narasimhan",
+    "Raj",
+    "Hari",
+    "Balakrishnan",
+    "Hari",
+    "Venugopalan"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "NSDI'15",
+  "paper_url": "https://www.usenix.org/system/files/conference/nsdi15/nsdi15-paper-sharma.pdf",
+  "paper_abstract": "News Feed Wormhole is a publish-subscribe (pub-sub) system developed for use within Facebook’s geographically replicated datacenters. It is used to reliably replicate changes among several Facebook services including TAO, Graph Search and Memcache. This paper describes the design and implementation of Wormhole as well as the operational challenges of scaling the system to support the multiple data storage systems deployed at Facebook. Our production deployment of Wormhole transfers over 35 GBytes/sec in steady state (50 millions messages/sec or 5 trillion messages/day) across all deployments with bursts up to 200 GBytes/sec during failure recovery. We demonstrate that Wormhole publishes updates with low latency to subscribers that can fail or consume updates at varying rates, without compromising efficiency. 1 Database w/ Log Wormhole Cache Index ... Geo-replication News Feed Database w/ Log Wormhole Cache Index ...",
+  "paper_file": "papers/2015/05/14/wormhole-reliable-pub-sub-to-support-geo-replicated-internet-services.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "pub-sub",
+    "geo-replication",
+    "transaction-logs",
+    "MySQL",
+    "HDFS",
+    "RocksDB",
+    "ZooKeeper",
+    "caravans",
+    "at-least-once-delivery",
+    "sharding"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Wormhole architecture overview",
+      "caption": "Wormhole reads updates from the data storage system transaction logs and transmits them to interested applications that include News Feed, index servers, Graph Search and many others."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,299 @@
+URL: https://blog.acolyer.org/2015/02/09/on-the-duality-of-resilience-and-privacy/
+Title: On the duality of resilience and&nbsp;privacy
+---
+
+On the duality of resilience and privacy - Crowcroft '15
+
+Somewhat of a philosophical start to the week this week as Jon Crowcroft makes the argument for greater privacy through some of the same mechanisms that give systems greater resilience. Plus, it includes this quote:
+
+> 
+
+ It is a truth universally acknowledged that centralized cloud services offer the opportunity to monetize vast aggregates of personal data.
+
+How could I not include a paper with lines like that? ;)
+
+The Internet is 'a vast decentralized communications system'; the Cloud is 'a small set of very large centralized storage and processing systems.
+
+> 
+
+ Many of today's information systems make use of small devices (laptops, smartphones, tablets), together with the network, to access these centralized resources. It was not always so...
+
+Centralization offers better economies of scale, but at a cost of reduced resilience. This motivates the re-introduction of an element of distribution. But Crowcroft isn't talking about multiple regions or AZs, his argument is for peer-to-peer style distribution. This he claims can offer both much better resilience, and much better privacy.
+
+> 
+
+ The key seems to be diversity, which is going to be maximized by mixing resources from many potential locations in the network at any time, rather than putting all one’s eggs in one basket. In communications systems, this distributed alternative is typically referred to as the peer-to-peer approach. Metcalfe’s Law restates the network effect that the value of a system grows faster than linearly with the number of connected contributors: since all producers are also potential consumers, each added node gives the new producer as many customers as are on the network already, hence there is a notional square-law increase in value. This symmetric network, with all participants offering as well as demanding resource, quickly overtakes any centralized system. It also maximizes diversity.
+
+Keeping data on your device, instead of in the cloud will improve access speed; replicating data (encrypted and diversely) at home and in the cloud will regain possibly lost resilience (against loss or theft of mobile devices). Simple replication though, is not ideal. "As well as being expensive, this fails to address common mode failures," and it also increases the attack surface increasing the number of places where "a single click could release all the data."
+
+Instead of simple replication schemes then, we should consider schemes that "weave a tapestry using the bits that represent data, so that threads making up particular pieces of information are repeated but meshed together with threads making up different pieces of information."
+
+> 
+
+ Such coding techniques can be made as resilient as we wish, so that equipped with a thorough a priori knowledge of faults or the risk level we wish to sustain for attacks, we can provide a given robustness.... Both distribution and diversity are well-known techniques but have been lost for economic reasons — centralized storage has dominated the Cloud because it allows the site owner to run analytics.
+
+Crowcoft admits that previous attempts at such coding schemes (in both networking and storage) have not been take up. Why should this time be any different? Because the data is CRAP:
+
+> 
+
+ The coordination costs of a decentralized service can be made tractable compared with past, excessively complex approaches, by taking advantage of the observation that the vast majority of data in the cloud today is immutable, and systems need largely to deal with append-only operations. Integrity checking in such a system is relatively simple.
+
+By distributing and coding for resiliency, we also reduce the attack surface: distribution ameliorates the risk of wholesale loss of confidentiality, while diversity makes attacks on privacy in the small more complex. Hence the duality.
+
+If the coding schemes have been tried before and failed to get uptake, we could largely say the same about peer-to-peer services too.
+
+> 
+
+ At the same time, many are the attempts to build decentralized services that run in some edge nodes in a dynamic peer-to-peer mode. Hence systems such as Diaspora, Peerson, Persona, Footlights, vis-á-vis and others have been built, but seen little use.
+
+Is this for technical, economic, or some other reason? On the technical front,...
+
+> 
+
+ The classical argument against the peer-to-peer approach is encapsulated in the "High availability, scalable storage, dynamic peer networks: pick two" paper byCharles Blake & Rodrigo Rodrigues: choosing three (perhaps orthogonal) properties so that one can show the infeasibility of a satisfactory solution to a problem by arguing not all three can be provided is a common rhetorical trick in systems papers, as well as in other disciplines.
+
+On the economic front, Crowcroft explores what might happen if a pay-per-use model (with privacy) was offered as an alternative to for-free services, and suggests that the costs could well be affordably low.
+
+> 
+
+ I would claim that the performance and symmetric market value of network economies make it timely to revisit the peer-to-peer approach, and that we will reap the benefits of massively improved resilience to failure and to attack on our privacy.
+
+Crowcroft offers a roadmap to take us to this brave new world:
+
+- Build a distributed system with a suitable resilient, privacy preserving coding scheme and see if people like it. (No advice is offered as to what to do if they don't, or how to make sure that they do!)
+
+- Introduce a low-transaction overhead payment system
+
+- Ensure the legal and regulatory systems permit pooling of resources in a peer-to-peer system
+
+- Decentralize differential privacy techniques to allow aggregate data mining without loss of privacy
+
+- Try to speed up homomorphic encryption to the point where it could be used realistically to support targeted advertising without knowledge of the subject
+
+It seems a shame after all that to bring it back to advertising though!
+
+Whether you agree with Crowcroft's vision or not, when you look at where smartphones might be in a few years time if they follow current trajectories (e.g. 8-16 cores, 1TB storage, and 8-10GB RAM, and billions of them out there) you can't help but think it makes a whole lot of sense to find some way to take advantage of that huge aggregated storage and compute power.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems, Security 
+ 
+ Privacy 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousSpecialized Evolution of the General Purpose CPUNext &rsaquo;Personal Data: Thinking Inside the Box
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;On the duality of resilience and privacy&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Personal Data: Thinking Inside the Box | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Sieve: Cryptographically Enforced Access Control for User Data in Untrusted Clouds | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Sieve: Cryptographically Enforced Access Control For User Data In Untrusted Clouds | 神刀安全网 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

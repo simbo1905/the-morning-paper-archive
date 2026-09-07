@@ -1,0 +1,431 @@
+URL: https://blog.acolyer.org/2018/07/02/the-rise-of-the-citizen-developer-assessing-the-security-impact-of-online-app-generators/
+Title: The rise of the citizen developer: assessing the security impact of online app&nbsp;generators
+---
+
+The rise of the citizen developer: assessing the security impact of online app generators Oltrogge et al., IEEE Security & Privacy 2018
+
+"Low code", "no code", "citizen developers", call it what you will, there’s been a big rise in platforms that seek to make it easy to develop applications for non-export developers. Today’s paper choice studies the online application generator (OAG) market for Android applications. When what used to be a web site (with many successful web site templating and building options around) is often in many cases now also or instead a mobile app, so it makes sense that the same kind of templating and building approach should exist there too. For a brief period at the end of last year, Apple flirted with banning such apps from their app store, before back-tracking just a couple of weeks after the initial announcement. After reading today’s paper I can’t help but feel that perhaps they were on to something. Not that templated apps are bad per se, but when the generated apps contain widespread vulnerabilities and privacy issues, then that is bad.
+
+> 
+
+ With the increasing use of OAGs the duty of generating secure code shifts away from the app developer to the generator service. This leaves the question of whether OAGs can provide save and privacy-preserving default implementations of common tasks to generate more secure apps at an unprecedented scale.
+
+Being an optimist by nature, my hope was that such app generation services would improve the state of security, because spending time and effort getting it right once would pay back across all of the generated apps. In theory that could still happen, but in practice it seems the opposite is occurring. It doesn’t seem to make a lot of difference whether you use a free online app generator (what are their incentives, and where does their revenue come from? Always good questions to ask), or a paid service, the situation is not good. The re-configuration attacks that the authors discover are particularly devastating.
+
+## Online app generation services and penetration
+
+> 
+
+ Online application generators enable app development using wizard-like, point-and-click web interfaces in which developers only need to add and suitably interconnect UI elements that represent application components... There is no need and typically no option to write custom code.
+
+The authors started by searching the web for advertised online app generation platform, resulting in the set of services shown in the table below (the Como the authors refer to is I believe now called ‘swiftic’ - https://www.swiftic.com/). For each of these application generators, it is possible to identify fingerprints in the generated apps that reveal whether or not an app was created using that generator. Such give-aways include application package names, Java package names, shared signing keys and certificates, certain files included in the distribution, and so on. Using a corpus of 2.2M free apps from Google Play (collected from Aug 2015 to May 2017) the authors found that at least 255,216 of the apps were generated using online app generators. The five most popular OAGs accounting for 73% of all generated apps.
+
+(Enlarge)
+
+As is the nature of such apps, many of them have comparatively few downloads. A small number have been more successful though, and the total number of downloads across all of the generated apps is still meaningful.
+
+## What’s in a generated app?
+
+A typical OAG offers a palette of components that can be configured together to deliver app services. The OAGs in this study offered between 12 and 128 different components. There seem to be two major app generation techniques: monolithic boilerplate and custom assembly.
+
+> 
+
+ All but two online services generate apps with the exact same application bytecode &#091;monolithic boilerplate&#093;, i.e. apps include code for all supported modules with additional logic for layout transitions independent of what the app developer has selected. Apps only differ in a configuration file that is either statically included in the apk file or dynamically loaded at runtime.
+
+Andromo and Appinventor both include only the modules actually needed by the app, with the generated code tailored to the configured modules.
+
+The authors built and studied three simple apps with each of the 13 most popular services according to the market penetration data gathered above:
+
+- A minimal ‘hello-world’ app.
+
+- The minimal hello-world app extended to also make web requests to a server controlled by the authors. "We perform both HTTP and HTTPS requests to analyze the transferred plaintext data and to test whether we can inject malicious code and emulate web-to-app attacks."
+
+- An app with a user login form or other form to submit user data to a server controlled by the authors. (Appinventor, Biznessapps, and Como did not offer such modules). 
+
+## New attack vectors
+
+From the 11 out of 13 services that use a monolithic strategy, 5 use either static or dynamic loading of configuration files exclusively, while the others combine both (e.g., a static file included in the app, with the option to download updates later on). Needless to say these configuration files are all-powerful: the monolithic app bytecode can do ‘anything,’ and it’s just the configuration that determines what a particular instance does.
+
+For the nine generators that use static files, seven of them store these files in plain text such that they can be easily read and modified. AppYet does encrypt the file, but the passphrase is hard-coded in the bytecode and the same for every generated app. There are no runtime integrity checks to determine if config files have been tampered with. Cloning or repackaging apps is therefore easy.
+
+Where things get really interesting though, is the 8 out of 11 OAGs that load config files dynamically at runtime.
+
+> 
+
+ In five cases, the config is requested via HTTP and transmitted in plain without any protection.
+
+Game over!
+
+Mobincube uses SSL by default, but the request can be downgraded to HTTP.
+
+None of them use public key pinning to prevent MITM attacks.
+
+> 
+
+ Similar to static configs, the complete absence of integrity checks and content encryption allows tampering with the app’s business logic and data. This is fatal, since in our tests we could on-the-fly re-configure app modules, compromise app data, or modify the application’s sync URL.
+
+Example attacks include phishing attacks to steal user data/credentials, or replacement of API keys for advertising to steal ad revenue.
+
+Beyond the configuration files, generated apps are also often bound to web services provided by the app generators.
+
+> 
+
+ Consequently, when considering that a single service’s infrastructure can server many hundreds or thousands of generated apps, it is paramount that the app generator service not only follows best practices, such as correctly verifying certificates, but also that the service’s infrastructure maintains the highest security standards for their web services.
+
+You know where this is going by now.... "the results of analyzing the communication with the server backend are alarming". Only two of the providers use HTTPS consistently (Apps Geyser uses HTTP exclusively!). Several send sensitive data from user input forms in plain text. Only three use a valid and trusted certificate. All of them are running outdated SSL libraries.
+
+In addition to putting their customers at risk, these OAGs are also leaking their own credentials in the form of API keys to e.g. Google Maps and Twitter, that are shared across all generated apps.
+
+> 
+
+ All identified keys were exactly the same across all analyzed apps, underlining the security impact of boilerplate apps. We could not find a single attempt to obfuscate or protect these keys/secrets.
+
+## Tried and trusted attack vectors
+
+In addition to the OAG-specific attacks outlined above, the authors also analysed the generated code for other violations of security best practices on Android. One obvious-with-hindsight finding is that all the OAGs using the monolith strategy generate over-privileged apps by design. Overall, the situation is not good, as summarised in this table. See section VI in the paper for the full details behind it.
+
+## Privacy leaks and tracking
+
+The authors checked outgoing traffic from generated apps and compared it with the privacy policies provided by the online services. None of them contacted sites known for distributing malware, but four of them (Como, Mobincube, Biznessapps, and Appy Pie) "clearly exhibited questionable tracking behavior".
+
+- Apps generated with Mobincube sent more than 250 tracking requests within the first minute of execution
+
+- Mobincub also includes the BeaconsInSpace library to perform user tracking via Bluetooth beacons
+
+- AppyPie tracks using Google Analytics, Facebook, and its own backend
+
+- Como registers with multiple tracking sites including Google Analytics and its own servers
+
+- Biznessapps is tracking your location
+
+> 
+
+ While such extensive tracking behavior is already questionable for the free services of Appy Pie and Mobincube, one would certainly not expect this for paid services like Como and Biznessapps.
+
+## Where are the gatekeepers?
+
+Perhaps Apple was onto something when it flirted with banning such apps. Not that I think templated apps in general should be banned, but if it’s as easy to identify app generators as the authors in this post demonstrate, and an app generator with known security issues has been used to generate an app, then in order to protect users of their platforms I do think such apps should be blocked. It’s probably the only way to force the generator platforms to up their game and start taking security seriously.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousDebugging data flows in reactive programsNext &rsaquo;Privacy risks with Facebook’s PII-based targeting: auditing a data broker’s advertising interface
+ 
+ 
+
+ 
+ 
+## 
+ 6 thoughts on &ldquo;The rise of the citizen developer: assessing the security impact of online app generators&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ simbo1905 says: 
+
+ 
+ July 2, 2018 at 8:55 am 
+
+ 
+
+ 
+ 
+First paragraph "non-export" should be non-expert.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Aankhen says: 
+
+ 
+ July 2, 2018 at 4:27 pm 
+
+ 
+
+ 
+ 
+I honestly feel, sometimes, that the only solution is to give up on software forever. As hard as it is to write good software (secure, functional, usable), the one thing that’s even harder is explaining to people that they’re not as good at it as they think.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Ivan Milosavljevic (@_The_Java_Guy_) says: 
+
+ 
+ July 2, 2018 at 8:20 pm 
+
+ 
+
+ 
+ 
+Hi Adrian, there's a small typo in the first sentence: "non-export developers" -> "non-expert developers"
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Instant applications considered harmful? | Tim Anderson&#039;s IT Writing 
+ 
+ 
+- 
+ 
+ 
+ 
+ Firefox Support says: 
+
+ 
+ August 17, 2018 at 5:35 pm 
+
+ 
+
+ 
+ 
+Due to increase no of the users the developers are lagging behind and hence there are lots of online ap generator which will help you in building applications online.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ logo victoria says: 
+
+ 
+ January 14, 2019 at 11:34 am 
+
+ 
+
+ 
+ 
+Nice Content. My observation tells me that mobile apps are on the rise, every famous company with a website is looking for app development packages to get an Android or IOS apps of their website.
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

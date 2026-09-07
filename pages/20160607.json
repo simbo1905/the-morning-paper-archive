@@ -1,0 +1,45 @@
+{
+  "date": "20160607",
+  "file_name": "20160607",
+  "slug": "bigdebug-debugging-primitives-for-interactive-big-data-processing-in-spark",
+  "blog_url": "https://blog.acolyer.org/2016/06/07/bigdebug-debugging-primitives-for-interactive-big-data-processing-in-spark/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights BigDebug as a groundbreaking tool that brings real-time interactive debugging capabilities to Apache Spark, a popular Data-Intensive Scalable Computing (DISC) system. The paper addresses a critical gap in debugging DISC applications, which traditionally rely on post-mortem analysis or local testing with limited data samples, often failing to reproduce cloud-based failures. BigDebug introduces several innovative features, including breakpoints, watchpoints, latency monitoring, forward and backward tracing, crash monitoring, and a real-time fix-and-resume capability. The tool is notable for its low overhead (less than 24% for record-level tracing) and its ability to provide detailed crash culprits, stack traces, and provenance data. The key insight is enabling developers to debug DISC applications interactively and efficiently, reducing wasted computing cycles and improving productivity.",
+  "paper_title": "BigDebug: Debugging primitives for interactive big data processing in Spark",
+  "paper_authors": [
+    "Muhammad Gulzar",
+    "Simone Liu",
+    "Cong Liu",
+    "Miryung Kim"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "ICSE 2016",
+  "paper_url": "http://web.cs.ucla.edu/~miryung/Publications/icse2016-gulzar-bigdebug.pdf",
+  "paper_abstract": "Developers use cloud computing platforms to process a large quantity of data in parallel when developing big data analytics. Debugging the massive parallel computations that run in today’s datacenters is time consuming and error-prone. To address this challenge, we design a set of interactive, real-time debugging primitives for big data processing in Apache Spark, the next generation data-intensive scalable cloud computing platform. This requires rethinking the notion of step-through debugging in a traditional debugger such as gdb, because pausing the entire computation across distributed worker nodes causes significant delay and naively inspecting millions of records using a watchpoint is too time consuming for an end user. First, B IG D EBUG’s simulated breakpoints and on-demand watchpoints allow users to selectively examine distributed, intermediate data on the cloud with little overhead. Second, a user can also pinpoint a crash-inducing record and selectively resume relevant sub-computations after a quick fix. Third, a user can determine the root causes of errors (or delays) at the level of individual records through a fine-grained data provenance capability. Our evaluation shows that B IG D EBUG scales to terabytes and its record-level tracing incurs less than 25% overhead on average. It determines crash culprits orders of magnitude more accurately and provides up to 100% time saving compared to the baseline replay debugger. The results show that B IG D EBUG supports debugging at interactive speeds with minimal performance impact.",
+  "paper_file": "papers/2016/06/07/bigdebug-debugging-primitives-for-interactive-big-data-processing-in-spark.pdf",
+  "topics": [
+    "data-engineering",
+    "programming-languages"
+  ],
+  "tags": [
+    "debugging",
+    "apache-spark",
+    "big-data",
+    "data-provenance",
+    "record-level-tracing",
+    "breakpoints",
+    "watchpoints",
+    "crash-monitoring",
+    "fix-and-resume",
+    "lineageRDD"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Data transformations in word count with 3 tasks",
+      "caption": "Figure 1: Data transformations in word count with 3 tasks"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

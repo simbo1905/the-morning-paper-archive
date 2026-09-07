@@ -1,0 +1,334 @@
+URL: https://blog.acolyer.org/2018/12/03/securify-practical-security-analysis-of-smart-contracts/
+Title: Securify: practical security analysis of smart&nbsp;contracts
+---
+
+Securify: practical security analysis of smart contracts Tsankov et al., CCS'18
+
+Sometimes the perfect is the enemy of the good. When we’re talking about securing smart contracts, we need all the help we can get! Bugs can cost millions of dollars. Securify uses a set of expert heuristics (patterns) to help identify issues in smart contracts. It’s available at https://securify.ch, has analysed over 18K uploaded contracts, and is used by security auditors as part of their arsenal.
+
+> 
+
+ The increased adoption of smart contracts demands strong security guarantees. Unfortunately, it is challenging to create smart contracts that are free of security bugs. As a consequence, critical vulnerabilities in smart contracts are discovered and exploited every few months. In turn, these exploits have led to losses reaching millions worth of USD in the past few years.... Despite their potential, repeated security concerns have shaken the trust in handling billions of USD by smart contracts.
+
+Too right! We’ve examined some of the challenges involved in creating correct smart contracts in previous editions of The Morning Paper, as well as tools such as Zeus that help with verification.
+
+It’s not a solvable problem in the general case (i.e., ‘perfect’ doesn’t exist):
+
+> 
+
+ The main challenge in creating an effective security analyzer for smart contracts is the Turing-completeness of the programming language, which renders automated verification of arbitrary properties undecidable.
+
+That doesn’t mean we can’t build tools that are helpful though. Securify’s approach to the problem is to identify a set of patterns in contract data-flow graphs, expressed as rules in Datalog, that can verify either compliance with a desired security property, or violation. In addition to a catalog of out-of-the-box patterns, users of Security can also express their own contract-specific rules.
+
+> 
+
+ A key benefit in working with patterns, instead of their corresponding property, is that patterns are substantially more amenable to automated reasoning.
+
+## Securify’s high-level approach
+
+Securify starts with EVM bytecode (or Solidity contracts which are then compiled to bytecode). It translates the bytecode into a set of Datalog facts (asserting instructions executed, and ‘follow’ relationships between instructions). A set of patterns expressed as Datalog rules are then evaluated, and matches are compiled into a report.
+
+Patterns are divided into compliance patterns, which indicate than a property is considered to be satisfied, and violation patterns which indicate a property does not hold. When a property cannot be definitively categorised via compliance or violation patterns for a given contract, then a warning is flagged to the user and human inspection will be required.
+
+## Inferring facts
+
+EVM bytecode is first transformed into static-single assignment (SSA) form, as is standard for code analysis. Many opcodes (such as push, dump etc.) are eliminated during this translation to a stackless representation.
+
+For the instructions that are left, Securify infers a set of base facts of the form where is the instruction name, is the instruction label, is the instruction storing the instruction result (if any), and are the arguments. In addition, Securify adds a follow fact, to indicate that the instruction with label immediately follows instruction . The joining of then/else branches is captured by a fact.
+
+Given these base facts, we now add some flow-dependency and data-dependency predicates.
+
+MayFollow and MustFollow track transitive follow relationships across multiple instructions. MayDepOn tracks whether the derived value of a variable depends on a given tag (contract variable or instruction). MemTag and StorageTag assign tags to variables in memory or storage. Taint propagates tags on branches:
+
+## A pattern language
+
+Given the set of facts inferred from the bytecode, we can now write predicate to capture patterns of interest. In condensed form, the grammar of Security rules looks like this:
+
+It’s easier to see the concrete examples of pattern predicates for the seven properties built into Securify though:
+
+(Enlarge)
+
+## Security properties and patterns
+
+Each of the seven security properties above is associated with one or more compliance and one or more violation patterns. If a compliance pattern matches, the corresponding property holds, and if a violation pattern matches we know it does not.
+
+Let’s take a brief look at each of the seven properties.
+
+- Ether Liquidity (LQ). This property ensures that ether cannot get lost inside a contract. That is, there exists a trace that decreases the contracts balance. As an example violation, $160M was frozen in November 2017 when a contract relied on another contract to perform ether transfers (i.e., used it as a library), and then the library contract was ‘killed’ (removed from the chain). (Aside: the fact that this can happen seems to make it super-hard in general to write any contract that depends on some other library contract the author does not also control).
+
+- No writes after calls (NW). This captures a scenario where a contract calls out to user controlled code, and that code is able to alter the state inside the contract before it returns. Such a bug in the DAO contract led to an attacker stealing $60M.
+
+- Restricted Writes (RW). An attacker stole $30M by finding a route to change the owner field in a contract. This property guarantees that writes to storage are restricted.
+
+- Restricted Transfer (RT). Detects Ponzi schemes by checking that ether transfers via call cannot be invoked by any user.
+
+- Handled Exception (HE). This property checks that the return value of all call instructions is actually checked.
+
+- Transaction Ordering Dependency (TOD). This pattern requires the amount of ether sent by a call instruction to be independent of the state of storage and the contract’s balance. It helps to detect transaction ordering attacks by miners: "An inherent issue is the blockchain model is that there is no guarantee on the order of transactions. While this has been known, it recently became critical in the context of Initial Coin Offerings, a popular means for startups to collect money by selling tokens. The initial tokens are sold at a low price while offering a high bonus, and as demand increases the price increases and the bonus decreases. It has been observed that miners exploit this to create their transactions to win the big bonus at a low rate."
+
+- Validate Arguments (VA). Checks that all method arguments are verified before being used/stored.
+
+In addition, auditors can (and commonly will) write contract-specific patterns to be checked by Security as well.
+
+The implementation of Security is built on top of the Soufflé Datalog solver.
+
+## Evaluation
+
+Securify is evaluated on 24,594 smart contracts created using the parity client, and the first 100 Solidity contracts uploaded to the online Securify contract checker in 2018.
+
+For the real-world deployed smart contracts, the following chart shows the fraction of instructions that can be verified compliant with a property, shown to be in violation of a property, or in-doubt. E.g. the HE bar shows that almost 80% of calls do not include a check of the return code afterwards.
+
+(Note that this shows a lot of security property violations in real-world contracts!).
+
+For the Solidity dataset (the 100 uploaded contracts), the authors also did manual classification of all warnings to give insight into true warnings and false warnings:
+
+In general the number of security issues found in this dataset is higher, which could well be due to (a) people uploading contracts during development to verify them, and (b) people uploading contracts with known issues to see if Securify can spot them. In contrast, the contracts in Fig 11 are deployed live so you would hope have undergone more thorough testing.
+
+It takes Security 30 seconds per contract on average to check all the compliance and violation patterns.
+
+> 
+
+ Overall, our results indicated that Securify’s patterns are effective in finding violation and establishing correctness of contracts.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ BlockchainSecurity 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousLEMNA: explaining deep learning based security applicationsNext &rsaquo;FairSwap: how to fairly exchange digital goods
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;Securify: practical security analysis of smart contracts&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Quentin Hibon says: 
+
+ 
+ December 3, 2018 at 9:00 am 
+
+ 
+
+ 
+ 
+The core code is also available there:
+
+https://github.com/eth-sri/securify
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: MadMax: surviving out-of-gas conditions in Ethereum smart contracts | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: MadMax: surviving out-of-gas conditions in Ethereum smart contracts | Daily AI 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,40 @@
+{
+  "date": "20150501",
+  "file_name": "20150501",
+  "slug": "staring-into-the-abyss-an-evaluation-of-concurrency-control-with-one-thousand-cores",
+  "blog_url": "https://blog.acolyer.org/2015/05/01/staring-into-the-abyss-an-evaluation-of-concurrency-control-with-one-thousand-cores/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes a 2014 paper by Yu et al. that evaluates seven major concurrency control algorithms for OLTP DBMSs under extreme scaling (1024 cores). The study finds that none of the algorithms can defy the Universal Scalability Law, with performance degrading after an initial peak as cores increase. The paper explores pathological workloads (e.g., hotspot contention) and highlights the trade-offs between shared-nothing and shared-memory designs. Colyer notes that the work provides a comprehensive overview of concurrency control schemes, dividing them into two-phase locking (2PL) and timestamp ordering families, and discusses their scalability bottlenecks. The key insight is that no single algorithm scales perfectly for all workloads, emphasizing the need to optimize for typical OLTP characteristics (short-lived, repetitive transactions with small data access).",
+  "paper_title": "Staring into the Abyss: An Evaluation of Concurrency Control with One Thousand Cores",
+  "paper_authors": [
+    "Xiangyao Yu",
+    "George Bezerra",
+    "Andrew Pavlo",
+    "Srinivas Devadas",
+    "Michael Stonebraker"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "PVLDB (Proceedings of the VLDB Endowment)",
+  "paper_url": "http://www.vldb.org/pvldb/vol8/p209-yu.pdf",
+  "paper_abstract": "that instruction-level parallelism and single-threaded performance will give way to massive thread-level parallelism. As Moore’s law continues, the number of cores on a single chip is expected to keep growing exponentially. Soon we will have hundreds or perhaps a thousand cores on a single chip. The scalability of single-node, shared-memory DBMSs is even more important in the many-core era. But if the current DBMS technology does not adapt to this reality, all this computational power will be wasted on bottlenecks, and the extra cores will be rendered useless. In this paper, we take a peek at this dire future and examine what happens with transaction processing at one thousand cores. Rather than looking at all possible scalability challenges, we limit our scope to concurrency control. With hundreds of threads running in parallel, the complexity of coordinating competing accesses to data will become a major bottleneck to scalability, and will likely dwindle the gains from increased core counts. Thus, we seek to comprehensively study the scalability of OLTP DBMSs through one of their most important components. We implemented seven concurrency control algorithms in a main memory DBMS and used a high-performance, distributed CPU simulator to scale the system to 1000 cores. Implementing a system from scratch allows us to avoid any artificial bottlenecks in existing DBMSs and instead understand the more fundamental issues in the algorithms. Previous scalability studies used existing DBMSs [24, 26, 32], but many of the legacy components of these systems do not target many-core CPUs. To the best of our knowledge, there has not been an evaluation of multiple concurrency control algorithms on a single DBMS at such large scale. Our analysis shows that all algorithms fail to scale as the number of cores increases. In each case, we identify the primary bottlenecks that are independent of the DBMS implementation and argue that even state-of-the-art systems suffer from these limit...",
+  "paper_file": "papers/2015/05/01/staring-into-the-abyss-an-evaluation-of-concurrency-control-with-one-thousand-cores.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "concurrency-control",
+    "oltp",
+    "two-phase-locking",
+    "timestamp-ordering",
+    "scalability",
+    "many-core",
+    "database-systems",
+    "locking-protocols",
+    "deadlock-detection",
+    "memory-allocation"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

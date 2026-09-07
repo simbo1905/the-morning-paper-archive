@@ -1,0 +1,37 @@
+{
+  "date": "20200928",
+  "file_name": "20200928",
+  "slug": "fpspy",
+  "blog_url": "https://blog.acolyer.org/2020/09/28/fpspy/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses a paper from HPDC'20 that highlights the often-overlooked pitfalls of floating-point arithmetic in scientific computing applications. Adrian Colyer notes that despite the critical role of floating-point operations in these applications, developers frequently neglect the quirks of IEEE 754 representations, such as inaccuracies in representing numbers like 0.1 or 1/3. The paper introduces FPSpy, a tool designed to monitor floating-point operations in unmodified scientific applications by leveraging hardware features to detect exceptional events. The tool operates with minimal overhead and reveals widespread issues like NaNs and division by zero in real-world applications. The authors also demonstrate that rounding errors are pervasive and suggest that targeting a small subset of instructions could mitigate precision loss, potentially improving computational accuracy without modifying the original binaries.",
+  "paper_title": "Spying on the floating point behavior of existing, unmodified scientific applications",
+  "paper_authors": [
+    "Peter A. Dinda",
+    "John R. Lange",
+    "Patrick C. McCormick"
+  ],
+  "paper_year": 2020,
+  "paper_venue": "HPDC'20",
+  "paper_url": "http://pdinda.org/Papers/hpdc20.pdf",
+  "paper_abstract": "Scientific (and other) applications are critically dependent on calculations done using IEEE floating point arithmetic. A number of concerns have been raised about correctness in such applications given the numerous gotchas the IEEE standard presents for developers, as well as the complexity of its implementation at the hardware and compiler levels. The standard and its implementations do provide mechanisms for analyzing floating point arithmetic as it executes, making it possible to find and track problematic operations. However, this capability is seldom used in practice. In response, we have developed FPSpy, a tool that provides this capability when operating underneath existing, unmodified x64 application binaries on Linux, including those using thread- and process-level parallelism. FPSpy can observe application behavior without any cooperation from the application or developer, and can potentially be deployed as part of a job launch process. We present the design, implementation, and performance evaluation of FPSpy. FPSpy operates conservatively, getting out of the way if the application itself begins to use any of the OS or hardware features that FPSpy depends on. Its overhead can be throttled, allowing a tradeoff between which and how many unusual events are to be captured, and the slowdown incurred by the application, with the low point providing virtually zero slowdown. We evaluated FPSpy by using it to methodically study seven widely-used applications/frameworks from a range of domains (five of which are in the NSF XSEDE top-20), as well as the NAS and PARSEC benchmark suites. All told, these comprise about 7.5 million lines of source code in a wide range of languages, and parallelism models (including OpenMP and MPI). FPSpy was able to produce trace information for all of them. The traces show that problematic floating point events occur in both the applications and the benchmarks. Analysis of the rounding behavior captured in our traces also suggests th...",
+  "paper_file": "papers/2020/09/28/fpspy.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "floating-point-arithmetic",
+    "scientific-computing",
+    "precision-errors",
+    "NaN",
+    "division-by-zero",
+    "rounding-errors",
+    "IEEE-754",
+    "hardware-monitoring",
+    "LD_PRELOAD"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

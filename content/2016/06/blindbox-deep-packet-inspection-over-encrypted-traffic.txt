@@ -1,0 +1,303 @@
+URL: https://blog.acolyer.org/2016/06/21/blindbox-deep-packet-inspection-over-encrypted-traffic/
+Title: BlindBox: Deep packet inspection over encrypted&nbsp;traffic
+---
+
+BlindBox: Deep packet inspection over encrypted traffic Sherry et al. SIGCOMM 2015
+
+This is the final paper from the inaugural Research for Practice selections, and the third of Justine Sherry's three picks. The fundamental problem addressed is the same as we looked at yesterday: how do you accommodate middleboxes in HTTPS traffic? More specifically, this paper looks at deep packet inspection (DPI) network functions as used for intrusion detection and prevention (IDS/IPS). Sherry et al. have a more evocative way to describe the state-of-the-practice Split TLS solution than yesterday's paper authors:
+
+> 
+
+ To enable middlebox processing, some currently deployed middlebox system support HTTPS in an insecure way: they mount a man-in-the-middle attack on SSL and decrypt the traffic at the middlebox. This approach violates the end-to-end security guarantees of SSL and thus cause an unfortunate set of issues as surveyed in Jeff Jarmoc's SSL/TLS Interception Proxies and Transitive Trust talk at Black Hat Europe 2012.
+
+BlindBox presents us with another option for dealing with the middlebox conundrum: implement the network function (in this case DPI) on the encrypted data without ever decrypting it! Thus we preserve privacy but still get middlebox functionality. How is this even possible??? There are schemes such as homomorphic encryption but these will be way too slow...
+
+> 
+
+ Building a practical such system is challenging: networks operate at very high rates requiring cryptographic operations on the critical path to run in micro or even nano seconds; further, some middleboxes require support for rich operations such as matching regular expressions.
+
+BlindBox introduces a new searchable encryption scheme called DPIEnc, together with a fast detection protocol, that enables packet inspection at a rate of up to 186Mbps per core (standard IDS implementations operate at around 100Mbps, so BlindBox is competive with existing deployments). The initial setup of the HTTPS connection is still slower than desirable though - it depends on the number of rules to be checked, but for larger IDS installations may take up to 1.5 minutes.
+
+> 
+
+ We see BlindBox as a first step towards a general protocol that will allow middleboxes and end-to-end encryption to coexist, without sacrificing the benefits of either. BlindBox shows that this coexistence is possible for the class of middleboxes performing deep packet inspection.
+
+Before we go on, let me say that this is a paper that demands close reading. And after a period of such reading, I arrived at the state of "ok, I think I understand the big picture of what you're doing here." I am absolutely not qualified to pass any judgement on the soundness of the encryption schemes etc.. But that doesn't mean there isn't a lot of value to be had from an appreciation of the general scheme...
+
+So here's the setup we're going to be talking about: a sender (S) sends HTTPS traffic to a receiver (R). Inbetween S and R is a middlebox (MB) performing deep packet inspection looking for traffic patterns that match a set of rules. The rules themselves are provided by a third-party rule generator (RG), for example a commercial vendor suchas Lastline or McAfee Stonesoft.
+
+The middlebox must be able to do its job, and the endpoints must not gain knowledge of the ruleset (this is the proprietary IP of the the IDS vendor). Moreover, the middlebox must not be able to learn private data from the traffic and violate the privacy of the endpoints. It has to know something of course - whether or not the traffic matches its rules - and to enable this BlindBox introduces two privacy models, exact match privacy and probable cause privacy.
+
+## BlindBox privacy models
+
+Under the exact match privacy model, a middlebox can discover portions of traffic that are exact matches for known attack keywords (the fact that there is a match, and its offset), but does not learn anything about the rest of the traffic. This works when there is an external rule generator (e.g. a trusted service) that the communicating parties and the middlebox both trust with rule generation. (If the middlebox itself were in charge of generating the attack keywords, it could probe the traffic for anything of its choosing).
+
+The probable cause privacy model goes further and says that the middlebox will also be able to decrypt a flow, but only if a substring of the flow is an exact match for a known attack keyword. This mirrors the notion of 'probable cause' from criminal law. The main reason to decrypt a flow is to be able to perform more detailed regular expression matching on it.
+
+> 
+
+ ... most rules in Snort [a standard IDS tool] that contain regular expressions first attempt to find a suspicious keyword in the packet – this keyword is selective so only a small fraction of the traffic matches this string and is passed through the regexp. Indeed, the Snort user manual urges the presence of such selective keywords because otherwise, detection would be too slow. Since rules are structured this way, it becomes easier to implement our probable cause privacy model by decrypting the stream if there is a match to the suspicious keyword.
+
+## System architecture
+
+The rule generator (RG) creates a set of rules containing a list of suspicious keywords, signs them with its private key, and shares them with its customer MB. S and R (the parties that wish to communicate) locally install a BlindBox HTTPS configuration, which includes RG's public key. RG plays no further part.
+
+During connection setup the SSL connection handshake lets S and R agree on a key from which S and R derive keys kSSL which is used to encrypt SSL traffic, and k which is used in the detection protocol. An obfuscated rule encryption dance ends up with the middlebox knowing AESk(r) for each rule r , while the middlebox never learns k, and S and R never learn the rules r. This dance takes place using Yao garbled circuits and oblivious transfer. (This is the part that is slow during connection setup).
+
+To send traffic S encrypts the traffic with SSL as normal, then tokenizes the traffic (using one of two different tokenization schemes), and encrypts the tokens using the DPIEnc encryption scheme.
+
+The middlebox therefore receives both the SSL-encrypted traffic and the DPIEnc-encrypted tokens. Using BlindBox Detect it can search for matches between the encrypted tokens and the encrypted rules that it learned during the obfuscated rule encryption dance at setup. After completing detection, MB forwards the good SSL traffic and the encrypted tokens to the receiver.
+
+The receiver decrypts and authenticates the SSL traffic, and further checks that the encrypted tokens were encrypted properly by the sender (since in the threat model, at most one endpoint may be malicious).
+
+## The detection protocols
+
+The basic detection protocol supports detection of a single keyword. Supporting detection of multiple keywords, and full IDS with probable cause privacy are both then possible with relatively simple extensions to the basic protocol.
+
+Attack keywords are detected based on the token stream generated by the sender. To find a keyword absolutely anywhere in the packet stream, a simple sliding window tokenization (using 8 bytes per token) can be used. (So the stream "alice apple" would result in tokens "alice ap", "lice app", "ice appl", and so on). This enables MB to detect rule keywords of length 8 bytes or greater. The disadvantage of this scheme is that after encryption, each token is 5 bytes long, and there is one token per byte of traffic giving a 5x bandwidth overhead. For an HTTP-only IDS, a delimiter-based tokenization suits the vast majority of rules that match keywords starting or ending on delimiter based offsets. (Delimiters are punctuation, spacing, and special symbols). For example, given "login.php?user=alice" the rules may typically look for "login.php", "login", "?user=" and so on, but not "logi". In a test replicating the Snort Emerging Threats ruleset, delimiter-based tokenization detected 97.1% of the attack keywords, and 99% of the attack rules that would have been detected with Snort.
+
+Given the tokens, they need to be encrypted using the DPIEnc encryption scheme. Recall that the MB knows AESk(r) for each rule r. So if the sender encrypted each token t as AESk(t) then MB could trivially test for matches. This is the basic idea, but to avoid every occurence of t having the same ciphertext, the protocol adds a little randomization using a salt. With knowledge of the salt, MB can now perform a match test for every token t and rule r. Unfortunately this is too slow (linear in the number of rules), so BlindBox implements an optimisation that gives performance logarithmic in the number of rules instead (4 orders of magnitude faster with 10,000 keywords).
+
+The optimisation has two parts: firstly using a counter table to reuse salts where possible in a predictable manner, and to increment salts in a known manner when tokens are repeated in the stream; secondly, this enables MB to precompute the encodings of each rule with the (smaller number of) possible salts and arrange these in a search tree for efficient matching.
+
+Using sliding-window based tokenization, the protocol as described above is sufficient to detect multiple keywords. With delimiter-based tokenization, the sender also needs to attach to each encrypted token the offset in the stream where it appeared.
+
+> 
+
+ Detection happens similarly to before. For each encrypted token, MB checks if it appears in the rule tree. If so, it checks whether the offset of this encrypted token satisfies any range that might have been specified in the relevant rule. If all the fields of the relevant rule are satisfied, MB takes the action indicated by the rule.
+
+For the probable cause model, we want MB to be able to decrypt the traffic if it is given probable cause (a matching rule). This then enables it to run regexp matching on the decrypted data. To do this, MB needs the key kSSL used to encrypt the SSL traffic, but it should only have this if a rule matches. To support this the sender replaces the encrypted token Enck(salt, t) with Enck(salt, t) XOR kSSL. If r == t then MB has AESk(t), which is enough for it to obtain kSSL. This unfortunately slows down detection because the XOR messes up the tree lookup scheme. So instead the sender generates a pair (original encrypted token, XOR'd encrypted token) allowing both fast matching and key recovery on a match.
+
+## Performance
+
+> 
+
+ When evaluating BlindBox, we aimed to answer two questions. First, can BlindBox support the functionality of our target applications – data exfiltration (document watermarking), parental filtering, and HTTP intrusion detection? Second, what are the performance overheads of BlindBox at both the endpoints and the middlebox?
+
+Table 1 below shows the fraction of attack rules addressable with Protocols I (single keyword), II (multiple keywords), and III (probable cause) respectively:
+
+The detailed performance evaluations were conducted using protocol II.
+
+> 
+
+ To summarize our performance results, BlindBox is practical for long-lived connections: the throughput of encryption and detection are competitive with rates of current (unencrypted) deployments. Additionally, BlindBox is 3 to 6 orders of magnitude faster than relevant implementations using existing cryptography; these solutions, by themselves, are incomplete in addition to being slow. The primary overhead of BlindBox is setting up a connection, due to the obfuscated rule encryption. This cost is small for small rulesets, but canxtake as long as 1.5 minutes for rulesets with thousands of rules; hence, BlindBox is not yet practical for systems with thousands of rules and short-lived connections that need to run setup frequently.
+
+Whole page download overheads for popular sites range from 10-13% on the low-end to 2x at the high-end using 20Mbps links. With 1Gbps links though, the penalty can be as high as 16x and the CPU is saturated. BlinbBox takes 30x longer than standard HTTPS to encrypt a packet. Bandwidth overhead varies between 1.1x and 14x. Throughput at the middlebox is good though, measured at 166Mbps in the test, versus a measured throughput for Snort of 85Mbps (BlindBox uses DPDK, which Snort does not).
+
+> 
+
+ Nevertheless, the point of this experiment is not to show that BlindBox is faster than Snort, but instead to demonstrate that BlindBox provides competitive performance to today's deployments.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ NetworkingPrivacy 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousMulti-context TLS (mcTLS): Enabling secure in-network functionality in TLSNext &rsaquo;Hacking Blind
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;BlindBox: Deep packet inspection over encrypted traffic&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Pretzel: email encryption and provider-supplied functions are compatible | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

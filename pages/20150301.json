@@ -1,0 +1,37 @@
+{
+  "date": "20150301",
+  "file_name": "20150301",
+  "slug": "cant-we-all-just-agree",
+  "blog_url": "https://blog.acolyer.org/2015/03/01/cant-we-all-just-agree/",
+  "blog_title": "",
+  "blog_summary": "The blog post introduces a mini-series on consensus protocols in distributed systems, highlighting the complexity and importance of understanding consensus algorithms. Adrian Colyer notes the extensive body of work in this space and aims to cover key papers over two weeks. The series includes foundational works like Lamport's Paxos papers, Viewstamped Replication, and more recent protocols like Raft and Zab. The author emphasizes the historical and technical significance of these papers, particularly their role in making consensus algorithms more accessible and practical for real-world systems. The series serves as a comprehensive exploration of the evolution and nuances of consensus protocols.",
+  "paper_title": "In Search of an Understandable Consensus Algorithm (Extended Version)",
+  "paper_authors": [
+    "Diego Ongaro",
+    "John Ousterhout"
+  ],
+  "paper_year": 2013,
+  "paper_venue": "ACM Operating Systems Review (OSR)",
+  "paper_url": "http://www.cl.cam.ac.uk/~ms705/pub/papers/2015-osr-raft.pdf",
+  "paper_abstract": "state space reduction (relative to Paxos, Raft reduces the degree of nondeterminism and the ways servers can be inconsistent with each other). A user study with 43 students at two universities shows that Raft is significantly easier to understand than Paxos: after learning both algorithms, 33 of these students were able to answer questions about Raft better than questions about Paxos. Raft is similar in many ways to existing consensus algorithms (most notably, Oki and Liskov’s Viewstamped Replication [29, 22]), but it has several novel features: • Strong leader: Raft uses a stronger form of leadership than other consensus algorithms. For example, log entries only flow from the leader to other servers. This simplifies the management of the replicated log and makes Raft easier to understand. • Leader election: Raft uses randomized timers to elect leaders. This adds only a small amount of mechanism to the heartbeats already required for any consensus algorithm, while resolving conflicts simply and rapidly. • Membership changes: Raft’s mechanism for changing the set of servers in the cluster uses a new joint consensus approach where the majorities of two different configurations overlap during transitions. This allows the cluster to continue operating normally during configuration changes. We believe that Raft is superior to Paxos and other consensus algorithms, both for educational purposes and as a foundation for implementation. It is simpler and more understandable than other algorithms; it is described completely enough to meet the needs of a practical system; it has several open-source implementations and is used by several companies; its safety properties have been formally specified and proven; and its efficiency is comparable to other algorithms. The remainder of the paper introduces the replicated state machine problem (Section 2), discusses the strengths and weaknesses of Paxos (Section 3), describes our general approach to understandability (Section 4), prese...",
+  "paper_file": "papers/2015/03/01/cant-we-all-just-agree.pdf",
+  "topics": [
+    "distributed-systems"
+  ],
+  "tags": [
+    "consensus-protocols",
+    "raft",
+    "paxos",
+    "viewstamped-replication",
+    "primary-backup"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Replicated state machine architecture",
+      "caption": "Replicated state machine architecture. The consensus algorithm manages a replicated log, which in turn drives the state machines."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,353 @@
+URL: https://blog.acolyer.org/2018/02/09/omniledger-a-secure-scale-out-decentralized-ledger-via-sharding/
+Title: OmniLedger: a secure, scale-out decentralized ledger via&nbsp;sharding
+---
+
+OmniLedger: A secure, scale-out, decentralized ledger via sharding Kokoris-Kogias et al., IEEE S&P 2018
+
+OmniLedger makes a nice complement to Chainspace that we looked at yesterday. The two systems were developed independently at the same time. OmniLedger combines Visa levels of scalability (caution: the authors compare against the average Visa tps, the peak tps in the Visa network is considerably higher) with a secure decentralised ledger. It’s also a demonstration of how quickly the field is progressing, and something of a wake-up call if you’ve been working in the field of distributed systems and transaction processing but so far ignoring developments in decentralised ledgers. Standard building blocks are emerging and being combined in novel ways, and there’s a lot to learn!
+
+> 
+
+ This paper introduces OmniLedger, the first distributed ledger architecture that provides “scale-out” transaction processing capacity competitive with centralized payment processing systems such as Visa, without compromising security or support for permissionless decentralisation.
+
+The goals of OmniLedger are as follows:
+
+- Full decentralisation, with no trusted third parties and no single points of failure
+
+- Shard robustness (OmniLedger partitions state into multiple shards processing in parallel) — each shard must correctly and continuously process transactions assigned to it.
+
+- Secure atomic transactions, but within and across shards
+
+- Scale-out performance with throughput that increases linearly in the number of participating validators
+
+- Low storage overhead so that validators do not need to store the full transaction history
+
+- Low latency for transaction confirmations.
+
+A lot of moving parts need to come together to support all of this.
+
+First we need a way of enabling new validators to join the system, and a secure way of sharding validators so that adversaries cannot easily overpower a shard (per the discussion we had yesterday around Chainspace). Underpinning this part of the system is an identity blockchain, and secure distributed randomness generation with RandHound (a scalable secure multi-party computation protocol providing unbiased decentralised randomness in a Byzantine setting) and cryptographic sortition (that we first saw with Algorand).
+
+Next we need a secure and reliable way of processing transactions within a shard, for which OmniLedger introduces the Omnicon protocol which combines a tree communication pattern based on groups with a PBFT-like view-change procedure. Transactions are recorded on the transaction ledger. UTXOs (the unspent transaction output model) give us a (explicit) causal+ consistency model which means we can identify non-conflicting transactions and process blocks of these in parallel. The causality graph is maintained across blocks, not individual transactions, reducing some of the metadata overheads.
+
+It’s not enough to reach consensus within a shard though, we also need atomic transactions across shards. For this OmniLedger introduces the Atomix protocol, based an a lock-then-unlock protocol.
+
+The pieces all come together like this:
+
+(Enlarge)
+
+## Sharding securely
+
+We can’t allow the validators themselves to choose a shard to join, as this would permit an adversary to concentrate all his validators in one shard. If the assignment of validators to shards is random though, then with high probability all shards will have about the same fraction of malicious nodes. Suppose we have a suitable source of randomness, then we can proceed as follows:
+
+- Validators who wish to participate in the ledger starting from epoch have to first register to a global identity blockchain. 
+
+- Identities are created through a Sybil-attack resistant mechanism in epoch and broadcast, together with the respective proofs, on the gossip network at most before epoch ends.
+
+- Randomness is used to elect a leader for epoch and assign nodes to shards (more on this shortly)
+
+- The leader requests a (BFT) collective signature on a block with all identities provably established thus far. If at least of these validators endorse the block it becomes valid and the leader appends it to the identity blockchain. 
+
+> 
+
+ The security of OmniLedger’s validator assignment mechanism is modeled as a random sampling problem with two possible outcomes (honest or malicious). Assuming an infinite pool of potential validators, we can use the binomial distribution...
+
+A failed assignment is one which allows a shard to be controlled by an adversary. For given adversarial power (percentage of controlled nodes), the following chart shows the required shard sizes to peg the failure probability at ~$10^{-6}$.
+
+But where does the source of randomness come from?
+
+> 
+
+ We require that the distributed randomness generation protocol provides unbiasability, unpredictability, third-party verifiability, and scalability. Multiple proposals exist... we focus on RandHound due to better documentation and open-source implementation.
+
+RandHound itself relies on a leader to orchestrate the protocol run. So now we need away to select one of the validators for the role. Cryptographic sortition is used for this. Cryptographic sortition is based on verifiable random functions, VRFs.
+
+> 
+
+ At the beginning of an epoch , each validator computes a ticket where is the configuration containing all properly registered validators of epoch (as stored in the identity blockchain) and is a view counter.
+
+Validators gossip the tickets for a time , after which they lock in the lowest value valid ticket they have seen thus far and accept the corresponding node as the leader of the RandHound protocol run.
+
+To maintain operability during transition phases, OmniLedger swaps in the new validators gradually in each shard per epoch. See section IV.B for details.
+
+## Cross-shard transactions
+
+In the UTXO model (which OmniLedger adopts), the outputs of a transaction create new UTXOs, and inputs completely “spend” existing UTXOs. With UTXOs randomly assigned to shards for processing, we can expect cross-shard transactions to be common.
+
+OmniLedger uses a Byzantine Shard Atomic Commit protocol called Atomix to atomically process transactions across shards. It builds on the fact that shards are collectively honest, do not crash infinitely, and run ByzCoin internally (providing BFT consensus). The protocol is client-driven and proceeds in three phases:
+
+- In the initialize phase a client creates a cross-shard transaction spending UTXOs of some input shards, and creating new UTXOs in some output shards. The transaction is gossiped on the network and eventually reaches all input shards. 
+
+- In the lock phase all input shards associated with a transaction first validate the transaction to be sure the inputs can be spent. Then if the transaction is valid the transaction is logged in the shard’s ledger and a proof-of-acceptance is gossiped. (Think “PREPARE” in classic 2PC). If the transaction is not accepted then a proof-of-rejection is gossiped instead. The transaction inputs are now locked, but the transaction is not yet committed. The client can inspect the input shard ledgers to verify the proofs and that the transaction was indeed locked. The client holds enough proofs to either commit the transaction or abort it and reclaim any locked funds, but not both. 
+
+- In the unlock phase the client either unlocks-to-commit or unlocks-to-abort by creating an gossiping the appropriate unlock transaction. Each involved output shard validates the transaction and includes it in the next block of its ledger in order to update the state and enable the expenditure of the new funds.
+
+If you’ve had any operational experience with distributed transaction systems before, you may be wondering what happens if the client crashes or otherwise fails to proceed to phase 3 leaving the transactions in-doubt in the ledger. In this case funds are not automatically reclaimed. The funds themselves provide the incentive for clients to complete transactions.
+
+> 
+
+ We argue that a client who crashes indefinitely is equivalent to a client who lost his private key, which prevents him from spending the corresponding UTXOs. Furthermore, any entity in the system, for example a validator in exchange for a fee, can fill in for the client to create an unlock transaction, as all necessary information is gossiped.
+
+## Scalable BFT-consensus with Omnicon
+
+OmniLedger builds on the ByzCoin Byzantine consensus scheme, which uses collective signing (CoSi) to make PBFT more scalable. ByzCoin distributes blocks using multicast trees for performance, and falls back to a less-scalable star topology for fault tolerance.
+
+Omnicon trades-off some of ByzCoin’s high scalability to achieve better fault tolerance without resorting to a PBFT like all-to-all communication pattern:
+
+> 
+
+ During the setup of OmniLedger in an epoch, the generated randomness is not only used to assign validators to shards, but also to assign them evenly to groups within a shard.... At the beginning of an Omnicon roundtrip, the protocol leader randomly selects one of the validators in each group to the group leader, who is responsible for managing communication between the protocol leader and the respective group members.
+
+Transactions that don’t conflict can be committed in different blocks and safely processed in parallel. A block-based DAG in which each block can have multiple parents captures the concurrent processing of blocks. The metadata overhead of tracking causality is reduced by noting that UTXO dependencies are transitive, so we only need to track causality between blocks, not individual transactions within blocks.
+
+## Low latency transactions
+
+For clients with frequent latency-sensitive low-value transactions, OmniLedger supports an optional “trust but verify” model. Optimistic validators process transaction quickly, and core validators subsequently verify the transactions again to provide finality and ensure verifiability.
+
+> 
+
+ As a result, some bad transactions might be committed but ultimately core validators verify all provisional commitments, detecting any inconsistencies and their culprits, which makes it possible to punish rogue validators and to compensate the defrauded customer for the damages.
+
+## Ledger pruning
+
+Bitcoin’s blockchain grows by about 144MB per day, but next-generation systems with Visa-level throughput (e.g., 4000 tps, and 500 B/tx) can produce over 150GB per day. This is a problem if a new validator needs to download and process the entire ledger in order to bootstrap. So OmniLedger introduces stable checkpoint state blocks. At the end of an epoch, the shard’s leader stores the UTXOs in an ordered Merkle tree, and puts the Merkle tree’s root hash in the header of a state block. Validators run consensus on this block, and if approved it becomes the genesis block for the next epoch.
+
+## OmniLedger and Chainspace
+
+> 
+
+ Our approach is synergistic to Chainspace as we focus on an open scalable UTXO style DL (distributed ledger), whereas Chainspace focuses on sharded smart-contracts and small-scale shards that can be deployed only under weak adversaries (e.g., in a permissioned setting). As a result, combining OmniLedger and Chainspace has great potential to create an open, scalable, smart-contract platform that provides scalability and security under strong adversaries.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Blockchain 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousChainspace: a sharded smart contracts platformNext &rsaquo;SoK: Consensus in the age of blockchains
+ 
+ 
+
+ 
+ 
+## 
+ 5 thoughts on &ldquo;OmniLedger: a secure, scale-out decentralized ledger via sharding&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: SoK: Consensus in the age of blockchains | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: ICO Review: Emotiq - Quantalysus 
+ 
+ 
+- 
+ 
+ Pingback: RapidChain: scaling blockchain via full sharding | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: RapidChain: scaling blockchain via full sharding | Daily AI 
+ 
+ 
+- 
+ 
+ Pingback: RapidChain: scaling blockchain via full sharding - Official Blockchain News & Information 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

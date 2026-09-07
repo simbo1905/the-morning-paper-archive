@@ -1,0 +1,40 @@
+{
+  "date": "20150414",
+  "file_name": "20150414",
+  "slug": "mojim-a-reliable-and-highly-available-non-volatile-memory-system",
+  "blog_url": "https://blog.acolyer.org/2015/04/14/mojim-a-reliable-and-highly-available-non-volatile-memory-system/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Mojim, a system that provides replicated, reliable, and highly-available Non-Volatile Main Memory (NVMM) as an operating system service. The paper addresses the challenge of leveraging emerging byte-addressable NVMM technologies (like PCM and STTMs) which blur the line between memory and storage, offering DRAM-like performance with persistence. Mojim introduces novel system calls (msync and gmsync) to manage replication and synchronization between primary and mirror nodes over high-speed RDMA links (Infiniband), enabling trade-offs between reliability, availability, consistency, and cost. Notably, Mojim achieves a 40-45% latency reduction compared to unreplicated NVMM by offloading cache flushes to RDMA transfers. The paper also explores cost-effective configurations, such as using SSDs for mirror nodes or tiered backups over Ethernet. Colyer emphasizes how NVMM's performance characteristics necessitate rethinking traditional storage system designs, particularly replication protocols optimized for slower media.",
+  "paper_title": "Mojim: A Reliable and Highly-Available Non-Volatile Memory System",
+  "paper_authors": [
+    "Yuan Zhang",
+    "Yingjun Wu",
+    "Jun Yang",
+    "Yunpeng Chai",
+    "Yongwei Wu"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "ASPLOS '15",
+  "paper_url": "http://cseweb.ucsd.edu/~swanson/papers/ASPLOS2015Mojim.pdf",
+  "paper_abstract": "Next-generation non-volatile memories (NVMs) promise DRAM-like performance, persistence, and high density. They can attach directly to processors to form non-volatile main memory (NVMM) and offer the opportunity to build very low-latency storage systems. These high-performance storage systems would be especially useful in large-scale data center environments where reliability and availability are critical. However, providing reliability and availability to NVMM is challenging, since the latency of data replication can overwhelm the low latency that NVMM should provide. We propose Mojim, a system that provides the reliability and availability that large-scale storage systems require, while preserving the performance of NVMM. Mojim achieves these goals by using a two-tier architecture in which the primary tier contains a mirrored pair of nodes and the secondary tier contains one or more secondary backup nodes with weakly consistent copies of data. Mojim uses highlyoptimized replication protocols, software, and networking stacks to minimize replication costs and expose as much of NVMM’s performance as possible. We evaluate Mojim using raw DRAM as a proxy for NVMM and using an industrial NVMM emulation system. We find that Mojim provides replicated NVMM with similar or even better performance than un-replicated NVMM (reducing latency by 27% to 63% and delivering between 0.4 to 2.7× the throughput). We demonstrate that replacing MongoDB’s built-in replication system with Mojim improves MongoDB’s performance by 3.4 to 4×. Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than the author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on serv...",
+  "paper_file": "papers/2015/04/14/mojim-a-reliable-and-highly-available-non-volatile-memory-system.pdf",
+  "topics": [
+    "storage-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "non-volatile-memory",
+    "NVMM",
+    "replication",
+    "RDMA",
+    "persistence",
+    "memory-mapped-files",
+    "msync",
+    "gmsync",
+    "consistency",
+    "high-availability"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

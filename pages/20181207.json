@@ -1,0 +1,47 @@
+{
+  "date": "20181207",
+  "file_name": "20181207",
+  "slug": "rapidchain-scaling-blockchain-via-full-sharding",
+  "blog_url": "https://blog.acolyer.org/2018/12/07/rapidchain-scaling-blockchain-via-full-sharding/",
+  "blog_title": "",
+  "blog_summary": "RapidChain is a sharding-based public blockchain protocol that scales by partitioning nodes into multiple committees (shards) operating in parallel on disjoint transaction blocks. Adrian Colyer highlights its impressive performance metrics: over 7,300 transactions per second with ~8.7 seconds confirmation latency in a 4,000-node network, while maintaining Byzantine fault tolerance up to 1/3 of participants and no trusted setup. The paper introduces novel mechanisms for bootstrapping, committee reconfiguration, and cross-shard transaction handling. Key innovations include a pay-to-play proof-of-work scheme for node admission, Cuckoo rule-based shuffling to prevent adversarial committee targeting, and an efficient gossip-based consensus protocol (IDA-Gossip) combined with synchronous Byzantine consensus. The system also addresses challenges like churn and adversarial behavior through periodic reconfiguration and random leader selection.",
+  "paper_title": "RapidChain: scaling blockchain via full sharding",
+  "paper_authors": [
+    "Mahdi Zamani",
+    "Mingchao Yu",
+    "Dahlia Malkhi",
+    "Jason Xue",
+    "Senthilnathan Gopal",
+    "Marvin Sirbu",
+    "Venkatesan T. Chakaravarthy",
+    "Y. Richard Yang"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "CCS'18",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3243853",
+  "paper_abstract": "Sharding provides an opportunity to overcome the inherent scalability challenges of the blockchain, which is the infrastructure for the next generation of the Web. In a sharding blockchain, the state is partitioned into smaller groups known as \"shards.\" Since the states are placed on different shards, cross-shard transactions are inevitable, which is detrimental to the performance of the sharding blockchain. Existing solutions place states based on heuristic algorithms or redistribute states via graph-partitioning-based methods, which are either less effective or costly. In this paper, we present SPRING, the first deep-reinforcement-learning(DRL)-based sharding framework for state placement. SPRING formulates the state placement as a Markov Decision Process, which considers the crossshard transaction ratio and workload balancing and employs DRL to learn the effective state placement policy. Experimental results based on real Ethereum transaction data demonstrate the superiority of SPRING compared to other state placement solutions. In particular, it decreases the cross-shard transaction ratio by up to 26.63% and boosts throughput by up to 36.03%, all without unduly sacrificing the workload balance among shards. Moreover, updating the training model and making decisions takes only 0.1s and 0.002s, respectively, which shows the overhead is acceptable.",
+  "paper_file": "papers/2018/12/07/rapidchain-scaling-blockchain-via-full-sharding.pdf",
+  "topics": [
+    "distributed-systems",
+    "blockchain"
+  ],
+  "tags": [
+    "sharding",
+    "byzantine-fault-tolerance",
+    "consensus-protocols",
+    "proof-of-work",
+    "gossip-protocols",
+    "cross-shard-transactions",
+    "committee-reconfiguration",
+    "cuckoo-rule"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Two phases in each epoch of a sharding blockchain",
+      "caption": "The two phases in each epoch of a sharding blockchain. In the consensus phase, TXs in the upcoming blocks are processed. In the reconfiguration phase, the consensus nodes are redistributed for security reasons."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

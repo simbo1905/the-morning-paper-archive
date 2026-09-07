@@ -1,0 +1,37 @@
+{
+  "date": "20150811",
+  "file_name": "20150811",
+  "slug": "cloud-types-for-eventual-consistency",
+  "blog_url": "https://blog.acolyer.org/2015/08/11/cloud-types-for-eventual-consistency/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this 2012 paper as introducing 'cloud types'—programming abstractions for cloud storage and synchronization that automatically handle eventual consistency. The key innovation is a model where programmers declare shared data structures (cloud integers, strings, arrays, etc.) that are automatically synchronized across devices and cloud storage with conflict resolution built-in. Unlike CRDTs, cloud types support non-commutative operations while still achieving eventual consistency, and include stronger synchronization primitives like 'flush' for critical operations. The paper formalizes this using fork-join automata (FJ-QUA) and revision diagrams, with a clever use of round numbers and vector clocks to ensure correctness. Colyer emphasizes how the design modularizes the complex parts of such systems (persistence, caching, conflict resolution) into reusable components, enabling a clean separation between client code and system implementation.",
+  "paper_title": "Cloud Types for Eventual Consistency",
+  "paper_authors": [
+    "Sebastian Burckhardt",
+    "Daan Leijen",
+    "Jonathan Protzenko",
+    "Bastian Koller"
+  ],
+  "paper_year": 2012,
+  "paper_venue": "",
+  "paper_url": "http://research.microsoft.com/pubs/163842/final-with-color.pdf",
+  "paper_abstract": "Mobile devices commonly access shared data stored on a server. To ensure responsiveness, many applications maintain local replicas of the shared data that remain instantly accessible even if the server is slow or temporarily unavailable. Despite its apparent simplicity and commonality, this scenario can be surprisingly challenging. In particular, a correct and reliable implementation of the communication protocol and the conflict resolution to achieve eventual consistency is daunting even for experts. To make eventual consistency more programmable, we propose the use of specialized cloud data types. These cloud types provide eventually consistent storage at the programming language level, and thus abstract the numerous implementation details (servers, networks, caches, protocols). We demonstrate (1) how cloud types enable simple programs to use eventually consistent storage without introducing undue complexity, and (2) how to provide cloud types using a system and protocol comprised of multiple servers and clients.",
+  "paper_file": "papers/2015/08/11/cloud-types-for-eventual-consistency.pdf",
+  "topics": [
+    "distributed-systems",
+    "programming-languages"
+  ],
+  "tags": [
+    "eventual-consistency",
+    "cloud-types",
+    "CRDTs",
+    "fork-join-automata",
+    "revision-diagrams",
+    "conflict-resolution",
+    "synchronization",
+    "distributed-data-structures"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

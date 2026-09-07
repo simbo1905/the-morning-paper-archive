@@ -1,0 +1,38 @@
+{
+  "date": "20191211",
+  "file_name": "20191211",
+  "slug": "a-tale-of-two-abstractions",
+  "blog_url": "https://blog.acolyer.org/2019/12/11/a-tale-of-two-abstractions/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the paper's exploration of object pointer representation and the mapping of virtual object spaces to physical address spaces, focusing on the challenges of persistent data structures in byte-addressable non-volatile memory (BNVM). The key insight is the need for 'global' pointers that remain valid beyond process lifetimes while accommodating hardware requirements for efficient bulk data transfers across heterogeneous memory systems. The paper introduces the concept of 'object spaces'—global and logical—to bridge software and hardware needs, enabling data-centric programming models that eliminate the traditional overhead of volatile/persistent data separation. Colyer notes the potential synergy with persistent actor models and praises the prototype implementation's performance, where pointer dereferencing costs are competitive with L1 cache latency.",
+  "paper_title": "A tale of two abstractions: the case for object space",
+  "paper_authors": [
+    "Daniel Bittman",
+    "Dustin Nguyen",
+    "Linhai Song",
+    "Ethan L. Miller",
+    "Darrell D. E. Long"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "HotStorage '19",
+  "paper_url": "https://www.usenix.org/system/files/hotstorage19-paper-bittman.pdf",
+  "paper_abstract": "The increasing availability of byte-addressable non-volatile memory on the system bus provides an opportunity to dramatically simplify application interaction with persistent data. However, software and hardware leverage different abstractions: software operating on persistent data structures requires “global” pointers that remain valid after a process terminates, while hardware requires that a diverse set of devices all have the same mappings they need for bulk transfers to and from memory, and that they be able to do so for a potentially heterogeneous memory system. Both abstractions must be implemented in a way that is efficient using existing hardware. We propose to abstract physical memory into an object space, which maps objects to physical memory, while providing applications with a way to refer to data that may have a lifetime longer than the processes accessing it. This approach reduces the coordination required for access to multiple types of memory while improving hardware security and enabling more hardware autonomy. We describe how we can use existing hardware support to implement these abstractions, both for applications and for the OS and devices, and show that the performance penalty for this approach is minimal.",
+  "paper_file": "papers/2019/12/11/a-tale-of-two-abstractions.pdf",
+  "topics": [
+    "storage-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "persistent-memory",
+    "object-pointers",
+    "non-volatile-memory",
+    "object-space",
+    "single-address-space",
+    "virtualization-hardware",
+    "data-centric-programming",
+    "BNVM"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

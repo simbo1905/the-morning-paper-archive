@@ -1,0 +1,34 @@
+{
+  "date": "20151117",
+  "file_name": "20151117",
+  "slug": "hierarchical-delta-debugging",
+  "blog_url": "https://blog.acolyer.org/2015/11/17/hierarchical-delta-debugging/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights that the original Delta Debugging (ddmin) approach can simplify inputs like C programs without understanding their syntax, but often produces unnatural or terse results. Hierarchical Delta Debugging (HDD) improves upon this by incorporating knowledge of the input's hierarchical structure (e.g., parse trees for programs, XML/HTML/JSON documents), ensuring that all tested subsets are syntactically valid. This approach is significantly more efficient—reducing test cases from 680 to 86 for a C program example—and produces more readable output. HDD works top-down, recursively minimizing failure-inducing configurations at each level of the parse tree using ddmin, and includes optimizations like HDD+ and HDD* to further refine results. The paper demonstrates HDD's practicality with a lightweight Python implementation for XML (150 lines) and argues that for systems dealing with hierarchical inputs, investing in a test-case minimizer is highly beneficial.",
+  "paper_title": "Hierarchical Delta Debugging",
+  "paper_authors": [
+    "Grigore Rosu",
+    "Zhendong Su"
+  ],
+  "paper_year": 2006,
+  "paper_venue": "ICSE '06",
+  "paper_url": "http://web.cs.ucdavis.edu/~su/publications/icse06-hdd.pdf",
+  "paper_abstract": "Inputs causing a program to fail are usually large and often contain information irrelevant to the failure. It thus helps debugging to simplify program inputs. The Delta Debugging algorithm is a general technique applicable to minimizing all failure-inducing inputs for more effective debugging. In this paper, we present HDD, a simple but effective algorithm that significantly speeds up Delta Debugging and increases its output quality on tree structured inputs such as XML. Instead of treating the inputs as one flat atomic list, we apply Delta Debugging to the very structure of the data. In particular, we apply the original Delta Debugging algorithm to each level of a program’s input, working from the coarsest to the finest levels. We are thus able to prune the large irrelevant portions of the input early. All the generated input configurations are syntactically valid, reducing the number of inconclusive configurations that need to be tested and accordingly the amount of time spent simplifying. We have implemented HDD and evaluated it on a number of real failure-inducing inputs from the GCC and Mozilla bugzilla databases. Our Hierarchical Delta Debugging algorithm produces simpler outputs and takes orders of magnitude fewer test cases than the original Delta Debugging algorithm. It is able to scale to inputs of considerable size that the original Delta Debugging algorithm cannot process in practice. We argue that HDD is an effective tool for automatic debugging of programs expecting structured inputs.",
+  "paper_file": "papers/2015/11/17/hierarchical-delta-debugging.pdf",
+  "topics": [
+    "programming-languages",
+    "software-engineering"
+  ],
+  "tags": [
+    "delta-debugging",
+    "input-minimization",
+    "parse-trees",
+    "hierarchical-inputs",
+    "ddmin",
+    "test-case-reduction",
+    "syntax-aware-minimization"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

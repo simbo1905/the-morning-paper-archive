@@ -1,0 +1,36 @@
+{
+  "date": "20180302",
+  "file_name": "20180302",
+  "slug": "towards-web-based-delta-synchronization-for-cloud-storage-systems",
+  "blog_url": "https://blog.acolyer.org/2018/03/02/towards-web-based-delta-synchronization-for-cloud-storage-systems/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the inefficiency of current web-based file synchronization systems, which upload entire files even when only small changes have been made, unlike desktop clients that use delta-sync protocols like rsync. The authors of this paper set out to address this gap by implementing an rsync-like delta synchronization protocol for web clients, initially called WebRsync. However, their first attempt performed terribly—16-35x slower than rsync—due to heavy client-side computation and browser unresponsiveness. After experimenting with native client plugins and web workers without success, they pivoted to a redesign, WebR2sync+, which shifts the computationally intensive chunk search and comparison operations to the server. This redesign dramatically improves performance, reducing sync times to near-rsync levels while lowering both client and server resource usage. The key insight is that offloading work to the server and optimizing hash computations (replacing MD5 with SipHash) can make web-based delta synchronization feasible and efficient.",
+  "paper_title": "Towards web-based delta synchronization for cloud storage systems",
+  "paper_authors": [
+    "Yongle Xiao",
+    "Kai Ren",
+    "Garth A. Gibson"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "FAST'18",
+  "paper_url": "https://www.usenix.org/conference/fast18/presentation/xiao",
+  "paper_abstract": "Delta synchronization (sync) is crucial for network-level efficiency of cloud storage services. Practical delta sync techniques are, however, only available for PC clients and mobile apps, but not web browsers—the most pervasive and OS-independent access method. To understand the obstacles of web-based delta sync, we implement a delta sync solution, WebRsync, using state-ofthe-art web techniques based on rsync, the de facto delta sync protocol for PC clients. Our measurements show that WebRsync severely suffers from the inefficiency of JavaScript execution inside web browsers, thus leading to frequent stagnation and even hanging. Given that the computation burden on the web browser mainly stems from data chunk search and comparison, we reverse the traditional delta sync approach by lifting all chunk search and comparison operations from the client side to the server side. Inevitably, this brings considerable computation overhead to the servers. Hence, we further leverage locality-aware chunk matching and lightweight checksum algorithms to reduce the overhead. The resulting solution, WebR2sync+, outpaces WebRsync by an order of magnitude, and is able to simultaneously support 6800– 8500 web clients’ delta sync using a standard VM server instance based on a Dropbox-like system architecture.",
+  "paper_file": "papers/2018/03/02/towards-web-based-delta-synchronization-for-cloud-storage-systems.pdf",
+  "topics": [
+    "storage-systems",
+    "algorithms",
+    "cloud-computing"
+  ],
+  "tags": [
+    "delta-synchronization",
+    "rsync",
+    "web-clients",
+    "chunking",
+    "hashing",
+    "SipHash",
+    "client-server-optimization"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,42 @@
+{
+  "date": "20180425",
+  "file_name": "20180425",
+  "slug": "espresso-brewing-java-for-more-non-volatility-with-non-volatile-memory",
+  "blog_url": "https://blog.acolyer.org/2018/04/25/espresso-brewing-java-for-more-non-volatility-with-non-volatile-memory/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer discusses the Espresso paper which explores integrating non-volatile memory (NVM) into Java's runtime system. The paper introduces a Persistent Java Heap (PJH) backed by NVM and a Persistent Java Object (PJO) programming abstraction that maintains backward compatibility with the Java Persistence API (JPA). The key insight is that NVM can enable direct persistence of object state without the overhead of traditional ORM mappings like JPA, which accounts for significant execution time (41.9% in tests). Espresso achieves up to 3.24x speedup over JPA with H2 and up to 256x speedup over Intel's PCJ, a competing NVM-aware framework. The paper addresses challenges such as crash consistency, garbage collection for long-lived objects, and type safety in mixed DRAM/NVM heaps. The PJH design avoids generational GC and ensures crash consistency through careful memory operations and modified GC algorithms.",
+  "paper_title": "Espresso: Brewing Java for More Non-Volatility with Non-Volatile Memory",
+  "paper_authors": [
+    "Jian Huang",
+    "Anand Venkat",
+    "Michael D. Bond",
+    "Sarita V. Adve"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "ASPLOS'18",
+  "paper_url": "https://arxiv.org/abs/1710.09968",
+  "paper_abstract": "straction brought by the language virtual machine (e.g., JVM) complicates the persistence management. The mainstream persistent programming model leverages a coarse-grained abstraction like Java Persistence API (JPA) [9] to provide easy-to-use transactional APIs for programmers to persist their data. However, it does not consider the emergence of NVM, and creates unnecessary transformation overhead between Java objects and native serialized data. In contrast, the recent proposed Persistent Collections for Java (PCJ) [14] provides a fine-grained programming model to enable users to manipulate persistent data in object level. However, it has built an independent type system against the original one in Java, which makes it hard to be compatible with existing Java programs since it mandates the use of the collections defined by itself. Furthermore, PCJ manages persistent data as native objects on their own, which ends up with poor performance2. Besides, these two approaches target different application scenarios and programmers cannot uniformly use one approach to applications that have both requirements. This paper proposes Espresso, a unified persistence framework that supports both fine-grained and coarse-grained persistence management while being mostly compatible with data structures in existing Java programs and notably boost the persistence management performance. Espresso provides Persistent Java Heap (PJH), an NVM-based heap to seamlessly store persistent Java objects. PJH allows users to manipulate persistent objects as if they were stored in a normal Java heap and thus requires no data structure changes. To allocate data on PJH, Espresso provides a lightweight keyword pnew to create Java objects in NVM. PJH serves as an NVM-aware allocator, which should tolerate machine crashes to create a safe runtime environment for programmers. Hence, PJH provides crash-consistent allocation and deallocation (garbage collection), which guarantee that the metadata of the he...",
+  "paper_file": "papers/2018/04/25/espresso-brewing-java-for-more-non-volatility-with-non-volatile-memory.pdf",
+  "topics": [
+    "storage-systems",
+    "programming-languages"
+  ],
+  "tags": [
+    "non-volatile-memory",
+    "java-heap",
+    "crash-consistency",
+    "garbage-collection",
+    "JPA",
+    "object-persistence",
+    "NVM"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "The infrastructure of DataNucleus",
+      "caption": "The infrastructure of DataNucleus"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

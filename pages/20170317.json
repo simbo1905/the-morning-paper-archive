@@ -1,0 +1,46 @@
+{
+  "date": "20170317",
+  "file_name": "20170317",
+  "slug": "omid-reloaded-scalable-and-highly-available-transaction-processing",
+  "blog_url": "https://blog.acolyer.org/2017/03/17/omid-reloaded-scalable-and-highly-available-transaction-processing/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Omid as a transaction processing service designed for industrial use at Yahoo, powering systems that handle billions of events daily. He notes its unique approach of adding transaction processing as a layer on top of a distributed key-value store (Apache HBase), emphasizing its simplicity in operations with a centralized transaction manager (primary-backup configuration) to ensure ease of deployment and maintenance. Colyer praises Omid's scalability to hundreds of thousands of transactions per second over multi-petabyte storage and its support for snapshot isolation, though he cautions about potential write skew. The key insight is Omid's layered design, which leverages existing battle-tested storage technology while introducing minimal overhead for transaction management, making it a practical solution for large-scale systems.",
+  "paper_title": "Omid, reloaded: scalable and highly-available transaction processing",
+  "paper_authors": [
+    "Ohad Shacham",
+    "Idit Keidar",
+    "Ori Rottenstreich",
+    "Niv Gilad",
+    "Eshcar Hillel"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "FAST'17",
+  "paper_url": "https://www.usenix.org/system/files/conference/fast17/fast17-shacham.pdf",
+  "paper_abstract": "We present Omid – a transaction processing service that powers web-scale production systems at Yahoo. Omid provides ACID transaction semantics on top of traditional key-value storage; its implementation over Apache HBase is open sourced as part of Apache Incubator. Omid can serve hundreds of thousands of transactions per second on standard mid-range hardware, while incurring minimal impact on the speed of data access in the underlying key-value store. Additionally, as expected from always-on production services, Omid is highly available.",
+  "paper_file": "papers/2017/03/17/omid-reloaded-scalable-and-highly-available-transaction-processing.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "transaction-processing",
+    "snapshot-isolation",
+    "consistency",
+    "key-value-store",
+    "hbase",
+    "primary-backup",
+    "conflict-detection",
+    "commit-table",
+    "tentative-writes",
+    "high-availability"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Omid architecture",
+      "caption": "Omid architecture. Clients manipulate data that resides in data tables in the underlying data store (for example, HBase) and use the TM for conflict detection. Only the primary TM is active, and the backup is in hot standby mode. The TM maintains persistent metadata in the data store as well as separately managed recovery state (for example, using Zookeeper)."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

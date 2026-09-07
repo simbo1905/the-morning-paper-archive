@@ -1,0 +1,46 @@
+{
+  "date": "20180511",
+  "file_name": "20180511",
+  "slug": "inaudible-voice-commands-the-long-range-attack-and-defense",
+  "blog_url": "https://blog.acolyer.org/2018/05/11/inaudible-voice-commands-the-long-range-attack-and-defense/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a concerning advancement in inaudible voice command attacks, demonstrating how Roy et al. significantly extend the range of such attacks from mere feet to over 25ft (7.6m) using a technique called LipRead. The paper leverages the non-linearity of microphones, where high-frequency ultrasound signals are shifted to audible frequencies within the microphone hardware, allowing encoded voice commands to be executed without the user hearing them. LipRead further enhances this by using multiple spatially separated speakers to amplify the attack range while minimizing audible leakage at the source. The authors also propose a software-only defense mechanism based on detecting sub-50Hz spectral traces of the attack signal, which exploits the inherent structure of voice signals and their harmonics. The paper's key insight is the exploitation of hardware non-linearity and the clever use of multi-speaker arrays to bypass traditional range limitations of inaudible attacks.",
+  "paper_title": "LipRead: Robust Long-Range Acoustic Attack Against Voice Assistants Using Nonlinear Demodulation",
+  "paper_authors": [
+    "Anindya M. Roy",
+    "Mridula Singh",
+    "Tavish Vaidya",
+    "Yinzhi Cao",
+    "Yuan Tian",
+    "Vyas Sekar",
+    "Yuvraj Agarwal"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "NSDI",
+  "paper_url": "https://www.usenix.org/conference/nsdi18/presentation/roy",
+  "paper_abstract": "Recent work has shown that inaudible signals (at ultrasound frequencies) can be designed in a way that they become audible to microphones. Designed well, this can empower an adversary to stand on the road and silently control Amazon Echo and Google Home-like devices in people’s homes. A voice command like “Alexa, open the garage door” can be a serious threat. While recent work has demonstrated feasibility, two issues remain open: (1) The attacks can only be launched from within 5 f t of Amazon Echo, and increasing this range makes the attack audible. (2) There is no clear solution against these ultrasound attacks, since they exploit a recently discovered loophole in hardware non-linearity. This paper is an attempt to close both these gaps. We begin by developing an attack that achieves 25 f t range, limited by the power of our amplifier. We then develop a defense against this class of voice attacks that exploit non-linearity. Our core ideas emerge from a careful forensics on voice, i.e., finding indelible traces of nonlinearity in recorded voice signals. Our system, LipRead, demonstrates the inaudible attack in various conditions, followed by defenses that only require software changes to the microphone. Briefly, non-linearity is a hardware property that makes high frequency signals arriving at a microphone, say shi , get shifted to lower frequencies slow (see Figure 1). If shi is designed carefully, then slow can be almost identical to shi but shifted to within the audibility cutoff of 20kHz inside the microphone. As a result, even though humans do not hear shi , non-linearity in microphones produces slow , which then become legitimate voice commands to devices like Amazon Echo. This is the root opportunity that empowers today’s attacks. A number of recent research papers have focused on the topic of inaudible voice commands [37, 48, 39]. Backdoor [37] showed how hardware non-linearities in microphones can be exploited, such that inaudible ultrasound signals can be...",
+  "paper_file": "papers/2018/05/11/inaudible-voice-commands-the-long-range-attack-and-defense.pdf",
+  "topics": [
+    "systems-security",
+    "networking"
+  ],
+  "tags": [
+    "inaudible-attacks",
+    "voice-assistants",
+    "ultrasound",
+    "microphone-nonlinearity",
+    "LipRead",
+    "long-range-attacks",
+    "defense-mechanisms",
+    "signal-processing"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Hardware non-linearity creates frequency shift",
+      "caption": "Figure 1: Hardware non-linearity creates frequency shift. Voice commands transmitted over inaudible ultrasound frequencies get shifted into the lower audible bands after passing through the non-linear microphone hardware."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

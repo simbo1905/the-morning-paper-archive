@@ -1,0 +1,51 @@
+{
+  "date": "20160331",
+  "file_name": "20160331",
+  "slug": "ernest-efficient-performance-prediction-for-large-scale-advanced-analytics",
+  "blog_url": "https://blog.acolyer.org/2016/03/31/ernest-efficient-performance-prediction-for-large-scale-advanced-analytics/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the paper 'Ernest: Efficient Performance Prediction for Large-Scale Advanced Analytics' by Venkataraman et al. (2016), which tackles the challenge of predicting optimal configurations for large-scale analytics jobs in cloud environments like Amazon EC2. The key insight is that users often face a vast number of choices in instance types and configurations, making exhaustive testing impractical. Ernest addresses this by observing a small number of training runs on subsets of data and building a performance model to predict job performance across different configurations. The author highlights that Ernest achieves an average prediction error under 20%, with a training overhead of less than 5% for long-running jobs. Notably, using experiment design improves prediction error by 30-50% for some algorithms over a cost-based scheme. The paper demonstrates that for a speech recognition pipeline, Ernest can reduce costs by around 4x compared to a greedy allocation scheme. The blog author, Adrian Colyer, expresses excitement about the work, drawing parallels to his own company's efforts in using machine learning to optimize applications for throughput, latency, and cost.",
+  "paper_title": "Ernest: Efficient Performance Prediction for Large-Scale Advanced Analytics",
+  "paper_authors": [
+    "Vijay Vasudevan",
+    "David G. Andersen",
+    "Michael Kaminsky",
+    "Hyeontaek Lim",
+    "David A. Eckhardt",
+    "Gregory R. Ganger"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "NSDI'16",
+  "paper_url": "https://www.usenix.org/system/files/conference/nsdi16/nsdi16-paper-venkataraman.pdf",
+  "paper_abstract": "of instances are crucial choices that determine the running time and thus indirectly the cost of running a given job. Using common machine learning kernels we show in §2.2 that choosing the right conﬁguration can improve performance by up to 1.9x at the same cost. In this paper, we address the challenge of choosing the conﬁguration to run large advanced analytics applications in heterogeneous multi-tenant environments. The choice of conﬁguration depends on the user’s goals which typically includes either minimizing the running time given a budget or meeting a deadline while minimizing the cost. The key to address this challenge is developing a performance prediction framework that can accurately predict the running time on a speciﬁed hardware conﬁguration, given a job and its input. One approach to address this challenge is to predict the performance of a job based on monitoring the job’s previous runs [39, 44]. While simple, this approach assumes the job runs repeatedly on the same or “similar” data sets. However, this assumption does not always hold. First, even when a job runs periodically it typically runs on data sets that can be widely different in both size and content. For example, a prediction algorithm may run on data sets corresponding to different days or time granularities. Second, workloads such as interactive machine learning [9, 55] and parameter tuning generate unique jobs for which we have little or no relevant history. Another approach to predict job performance is to build a detailed parametric model for the job. Along these lines, several techniques have been recently proposed in the context of MapReduce-like frameworks [77, 52]. These techniques have been aided by the inherent simplicity of the two-stage MapReduce model. However, the recent increase in the popularity of more complex parallel computation engines such as Dryad [51] and Spark [83] make these parametric techniques much more difﬁcult to apply. In this paper, we propose a new approac...",
+  "paper_file": "papers/2016/03/31/ernest-efficient-performance-prediction-for-large-scale-advanced-analytics.pdf",
+  "topics": [
+    "distributed-systems",
+    "cloud-computing",
+    "data-engineering"
+  ],
+  "tags": [
+    "performance-prediction",
+    "analytics-workloads",
+    "machine-learning",
+    "instance-configuration",
+    "experiment-design",
+    "non-negative-least-squares",
+    "scalability-models",
+    "cost-optimization"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Comparison of memory bandwidths across Amazon EC2 m3/c3/r3 instance types",
+      "caption": "Comparison of memory bandwidths across Amazon EC2 m3/c3/r3 instance types. There are only three sizes for m3. Smaller instances (large, xlarge) have better memory bandwidth per core."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Comparison of network bandwidths with prices across different EC2 r3 instance sizes",
+      "caption": "Comparison of network bandwidths with prices across different EC2 r3 instance sizes normalized to r3.large. r3.8xlarge has the highest bandwidth per core."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

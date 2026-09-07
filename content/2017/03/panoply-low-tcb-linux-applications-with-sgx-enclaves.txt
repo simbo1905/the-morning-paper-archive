@@ -1,0 +1,307 @@
+URL: https://blog.acolyer.org/2017/03/14/panoply-low-tcb-linux-applications-with-sgx-enclaves/
+Title: Panoply: Low-TCB Linux applications with SGX&nbsp;enclaves
+---
+
+Panoply: Low-TCB Linux applications with SGX enclaves Shinde et al., NDSS, 2017
+
+Intel's Software Guard Extensions (SGX) supports a kind of reverse sandbox. With the normal sandbox model you're probably used to, we download untrusted code and run it in a trusted environment that we control. SGX supports running trusted code that you wrote, but in an environment you don't control (and therefore don't trust). For example, a public cloud environment. SGX protects the application and its data from a compromised system. For a more detailed introduction, see "Shielding applications from an untrusted cloud with Haven." We also recently looked at "SCONE: Securing Linux containers with IntelSGX." Both of those papers consider the security of a single enclave process. Today's paper, Panoply, brings in a very interesting new dimension by considering what happens when you decompose an application into multiple smaller services (called micro-containers or microns in this work) each running in its own enclave, and they need to communicate with each other.
+
+The key design goals of Panoply are to support rich OS abstractions with a low TCB (Trusted Compute Base), and to secure inter-enclave communications. Supporting a rich subset of the POSIX interface clearly helps in porting applications to run within an enclave. And given that you're clearly concerned about security to be considering SGX in the first place, a lower TCB makes absolute sense too (providing that you can put up with the performance overheads induced by the trade-off). It's worth looking a little closer at the need for secure inter-enclave communications though.
+
+## Example attacks
+
+The goal is to be able to divide a system up into a number of components, and run each in its own enclave. Panoply introduces an abstraction called a micro-container (micron) to support this. When two enclaves communicate with each other, their communication necessarily goes through an adversarial channel under the OS control (for example, in an IPC call).
+
+Consider the following code snippet from the FreeTDS (Tabular Data Stream) application, allowing communication with SQLServer and Sybase.
+
+The FreeTDS application and a trusted certificate manager are each deployed in their own separate SGX enclaves, and need to communicate:
+
+- The OS could drop the call on line 5 meaning that the callback never gets registered (and hence the security checks on line 22 never execute)
+
+- The call to priority&#095;set&#095;direct on line 22 could also be dropped, which opens up an opportunity for a session downgrade attack
+
+- The OS could replay a message from an earlier session and also cause a downgrade ("Specifically, the OS can record the inter-enclave message transcript from a different session consisting of an invalid certificate with weaker parameters. The previous session would have failed, however the OS can replay one recorded message from that transcript in a session with a strong certificate to cause it to downgrade.")
+
+- The OS could drop a message on line 22 where the certificate manager returns false (signaling an invalid certificate), and return true instead.
+
+Basically, once you allow an untrusted intermediary to intercept communications, all bets are off unless you take precautions.
+
+> 
+
+ These attacks highlight that applications that aren't designed with the objective of running on an enclave abstraction will be susceptible to subtle vulnerabilities. Further, there is a gap between the SGX-native low-level guarantees (of remote attestation and memory isolation) and those needed to ensure safe end-to-end execution of applications.
+
+## Panoply design
+
+Panoply consists of a set of runtime libraries (including a shim library) and a build toolchain that helps developers to prepare microns. A programmer adds per-function annotations to specify which micron should execute a function - to partition an application into multiple microns simply use multiple micron identifiers. Unmarked functions will be assigned to one specially designated 'default' micron. Panoply will then instrument the application and create multiple micron binaries. It will also add code for inter-micron flow integrity during this stage.
+
+One of the key design points when working with enclaves is what should go inside the enclave (increasing the size of the TCB) and what should go outside (higher overheads for invocation). Panoply optimises for low TCB, while still allowing applications access to a rich subset of the POSIX API. Calls to glibc are intercepted, meaning that (unlike in Scone for example) libc is outside of the enclave. Panoply performs custom checks on all system call return values inside of the enclave.
+
+> 
+
+ ... we show that the total TCB of Panoply can be about 20Kloc (excluding the original application logic), which is 2 orders of magnitude smaller than previous LibraryOS systems. We believe such a TCB is within the realm of automated verification in the near future.
+
+Unlike many other SGX-based designs, Panoply also supports unrestricted threading as well as forking.
+
+When microns start up Panoply assigns each a micron-identity which is used for all further inter-micron interactions. "Before starting any interactions, the Panoply shim code attests other microns by asking the processor for an attestation quote and verifying the measurement from the public attestation service." Panoply then protects microns from attacks such as silent aborts, tampering, or replay.
+
+- Panoply provides authenticated encryption of every incoming and outgoing message
+
+- Panoply prevents impersonation of sender or receiver microns by verifying against the secure mapping of micron identities to instances established during the micron initialization phase. Messages from unauthorized microns are discarded and execution is aborted (so you can conduct a denial of service attack, but silent failures aren't possible via this mode)
+
+- Panoply using unique sequence numbers for messages to prevent replay attacks
+
+- Panoply adds an acknowledgement message for every inter-enclave function call. The sender micron aborts its execution if the ACK is either not received or contains an invalid session id.
+
+Panoply supports unlimited multi-threading. Most other SGX designs have a hard limit on thread pool size, because in the SGX SDK an application has to statically determine how many threads it wants. Panoply multiplexes virtual threads onto the underlying enclave threads. If a micron reaches its maximum concurrent thread limit, then Panoply launches a new micron and all shared memory operations are performed securely via a thread control manager.
+
+Even though the SGX SDK only supports spin locks and mutexes, Panoply provides the full set of higher level synchronization primitives (semaphores, conditional variables, barriers, read/write locks) by implementing them on top of SGX's mutex support.
+
+> 
+
+ For all synchronization operations which are local to a micron’s code, PANOPLY keeps the synchronization objects inside the micron. For global synchronizations across microns, PANOPLY creates a notion of inter-micron locks. The thread control manager micron holds and manages all such shared objects and all global changes are synchronized via this micron.
+
+Forking is supported by taking a full replica of the parent micron's data and communicating it to the child over a secure communication channel. This can be expensive, so there is also an option for a developer to explicitly annotate a subset of the data to be shared between parent and child. Shared memory communication between microns is supported using a public page as the shared memory resource and encryption based on a shared secret established using a secure inter-micron protocol. Finally, Panoply supports event listeners, callbacks, dispatch handlers and so on via hooks into the OS signals and interrupts.
+
+Panoply was implemented on top of the Intel SDK 1.5 beta for Linux Kernel v3.13. Support for fork and exec required patching the SGX SDK and the corresponding SGX Linux driver.
+
+## Panoply in action
+
+Panoply was used in Tor to secure the Tor Directory Authority (DA) service against a malicious OS on the DA servers. It was also used to create a privilege-separated H2O webserver with RSA operations moved to a separate micron, and to run OpenSSL inside a single micron and access it from a FreeTDS micron. On average it took 905 lines of code to port each application to Panoply.
+
+> 
+
+ Panoply achieves 2 orders of magnitude lower TCB as compared to state-of-the-art approaches such as Graphene-SGX and Haven.  The size of compiled micros in MB is an order of magnitude smaller than Graphene-SGX.
+
+As expected though, Panoply pays for this is performance, adding a 24% overhead to an applications execution time on average.
+
+We can see that creating and destroying enclaves is expensive, as is copying enclave data to-and-from non-enclave memory. This effect can be seen in the chart below as the size of the served web page is increased in H2O:
+
+A third source of the overhead though is that the hardware AES support is not correctly detected from inside the enclave, forcing a fallback to a software-only solution when using SSL. This issue is expected to be fixed.
+
+> 
+
+ Panoply bridges the gap between the expressiveness of the SGX-native abstractions and the requirements of feature-rich Linux applications. Panoply offers a new design point, prioritizing TCB over performance, without sacrificing compatibility. It achieves 2 orders of magnitude lower TCB than previous systems.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Security 
+ 
+ HardwareOperating SystemsSecurity 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousEnlightening the I/O path: A holistic approach for application performanceNext &rsaquo;Application crash consistency and performance with CCFS
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;Panoply: Low-TCB Linux applications with SGX enclaves&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Deconstructing Xen | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: SGXIO: Generic trusted I/O path for Intel SGX | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Cloud Security – Part 2 | Computer Science Blog 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

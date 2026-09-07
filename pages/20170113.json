@@ -1,0 +1,43 @@
+{
+  "date": "20170113",
+  "file_name": "20170113",
+  "slug": "incremental-consistency-guarantees-for-replicated-objects",
+  "blog_url": "https://blog.acolyer.org/2017/01/13/incremental-consistency-guarantees-for-replicated-objects/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a paper that introduces 'incremental consistency guarantees' (ICG), a novel approach to balance strong and weak consistency in distributed systems. The key idea is to provide applications with both a preliminary (fast but possibly inconsistent) result and a final correct result, using a Promise-like abstraction called a 'Correctable'. The blog author finds this concept intriguing, comparing it to 'a Promise, but with multiple futures'. The paper demonstrates that this model reduces complexity, enables useful speculation on preliminary results, and is implementable in practice. Colyer emphasizes the practical benefits through several case studies, including an advertising system, online ticket sales, a smartphone news reader, and blockchain transaction tracking, where ICG improves performance by allowing speculative work to begin early. The approach is shown to reduce latency by up to 40% in some scenarios, though with a trade-off in throughput.",
+  "paper_title": "Incremental Consistency Guarantees for Replicated Objects",
+  "paper_authors": [
+    "Rachid Guerraoui",
+    "Vincent Gramoli",
+    "Muhammad A. Nusrat"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/system/files/conference/osdi16/osdi16-guerraoui.pdf",
+  "paper_abstract": "Gray Zone (no single choice is ideal) Weaker Consistency Weak Low Demand for Performance High Figure 1: Many applications fall into a gray zone, torn between the need for both performance and correctness. 12th USENIX Symposium on Operating Systems Design and Implementation 169 the result is often sub-optimal, as developers still end up with fixing a certain side of the consistency/performance trade-off (and sacrificing the other side). Moreover, programming in the gray area is difficult, as developers have to juggle different consistency models in their applications [24, 43]. If programming with a single consistency model (such as weak consistency [26]) is non-trivial, then mixing multiple models is even harder [50]. In their struggle to optimize performance with consistency, developers must go up against the full complexity of the underlying storage stack. This includes choosing locations (cache or backup or primary replica), dealing with coherence and cache-bypassing, or selecting quorums. These execution details reflect as a burden on developers, complicate application code, and lead to bugs [31, 55]. Our goal is to help with the programming of applications located in the gray area. We accept as a fact that no single consistency model is ideal, providing both high performance and strong consistency (correctness) at the same time [14, 33]. Our insight is to approach this ideal in complementary steps, by combining consistency models in a single operation. Briefly, developers can invoke an operation on a replicated object and obtain multiple, incremental views on the result, at successive points in time. Each view reflects the operation result under a particular consistency model. Initial (preliminary) views deliver with low latency—but weak consistency—while stronger guarantees arrive later. We call this approach incremental consistency guarantees (ICG). We introduce Correctables, an abstraction which grants developers a clean, consistency-based interface for acces...",
+  "paper_file": "papers/2017/01/13/incremental-consistency-guarantees-for-replicated-objects.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "consistency-models",
+    "speculative-execution",
+    "quorum-replication",
+    "cassandra",
+    "zookeeper",
+    "promise",
+    "correctable",
+    "latency-optimization",
+    "replicated-objects"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Gray zone between consistency and performance",
+      "caption": "Many applications fall into a gray zone, torn between the need for both performance and correctness."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

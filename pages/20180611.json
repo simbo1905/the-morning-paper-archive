@@ -1,0 +1,50 @@
+{
+  "date": "20180611",
+  "file_name": "20180611",
+  "slug": "improving-the-expressiveness-of-deep-learning-frameworks-with-recursion",
+  "blog_url": "https://blog.acolyer.org/2018/06/11/improving-the-expressiveness-of-deep-learning-frameworks-with-recursion/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this EuroSys'18 paper by Jeong et al., which introduces recursion as a first-class control flow construct in deep learning frameworks like TensorFlow. The key insight is that recursion enables cleaner expression of models with recursive data structures (e.g., trees or graphs) and improves performance by exploiting parallelism. The authors demonstrate this with TreeLSTM, a recursive neural network, showing that recursive formulations preserve the natural structure of the model and allow concurrent execution of independent nodes. The paper also addresses challenges like automatic differentiation for recursive operations and evaluates the approach on three models (TreeRNN, RNTN, TreeLSTM), showing significant throughput improvements over iterative and unrolled implementations, especially for inference.",
+  "paper_title": "Improving the expressiveness of deep learning frameworks with recursion",
+  "paper_authors": [
+    "Jeong Jeong",
+    "Minsoo Rhu",
+    "Sangkug Lym",
+    "Shin Yoo",
+    "Jinwoo Shin",
+    "Sungjoo Yoo"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "EuroSys'18",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3190530",
+  "paper_abstract": "GPUs are critical for maximizing the throughput-per-Watt of deep neural network (DNN) applications. However, DNN applications often underutilize GPUs, even when using large batch sizes and eliminating input data processing or communication stalls. DNN workloads consist of data-dependent operators, with different compute and memory requirements. While an operator may saturate GPU compute units or memory bandwidth, it often leaves other GPU resources idle. Despite the prevalence of GPU sharing techniques, current approaches are not sufficiently fine-grained or interferenceaware to maximize GPU utilization while minimizing interference at the granularity of 10s of 𝜇s. We propose Orion, a system that transparently intercepts GPU kernel launches from multiple clients sharing a GPU. Orion schedules work on the GPU at the granularity of individual operators and minimizes interference by taking into account each operator’s compute and memory requirements. We integrate Orion in PyTorch and demonstrate its benefits in various DNN workload collocation use cases. Orion significantly improves tail latency compared to state-of-the-art baselines for a highpriority inference job while collocating best-effort inference jobs to increase per-GPU request throughput by up to 7.3×, or while collocating DNN training, saving up to 1.49× in training costs compared to dedicated GPU allocation. (a) GPU Compute Throughput Utilization (b) GPU Memory Bandwidth Utilization Figure 1. GPU resource utilization for a MobileNetV2 training iteration with batch size 96 [84]. Utilization is bursty and often low as individual operators saturate compute units or memory bandwidth, often leaving one resource type idle. 1",
+  "paper_file": "papers/2018/06/11/improving-the-expressiveness-of-deep-learning-frameworks-with-recursion.pdf",
+  "topics": [
+    "machine-learning",
+    "distributed-systems"
+  ],
+  "tags": [
+    "recursion",
+    "deep-learning-frameworks",
+    "automatic-differentiation",
+    "recursive-neural-networks",
+    "treelstm",
+    "subgraph",
+    "invokeop",
+    "parallelism"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "GPU resource utilization for a MobileNetV2 training iteration",
+      "caption": "GPU resource utilization for a MobileNetV2 training iteration with batch size 96 [84]. Utilization is bursty and often low as individual operators saturate compute units or memory bandwidth, often leaving one resource type idle."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Existing GPU collocation techniques leave performance on the table",
+      "caption": "Figure 2 shows that state-of-the-art GPU sharing techniques leave performance on the table. We collocate three pairs of DNN jobs whose aggregate resource requirements fit on a single V100-16GB GPU (see Table 1). The first job in each pair is high-priority while the second is best-effort. Each job issues one request at a time in a closed loop. The stacked bar plot shows each job’s throughput on a shared GPU with various techniques, compared to the total throughput when jobs execute on dedicated GPUs (denoted as Ideal). Temporal sharing, MPS, Streams, and Tick-Tock (proposed for training job collocation) achieve far below ideal aggregate throughput. REEF achieves high performance for the high-priority job, but barely executes the best-effort job."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

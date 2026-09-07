@@ -1,0 +1,36 @@
+{
+  "date": "20170823",
+  "file_name": "20170823",
+  "slug": "growing-a-protocol",
+  "blog_url": "https://blog.acolyer.org/2017/08/23/growing-a-protocol/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer reviews a HotCloud'17 paper from Elastic and Peter Alvaro's research group that tackles the challenge of implementing and evolving fault-tolerant distributed systems protocols without introducing unintended bugs. The paper critiques the status quo, where even minor optimizations or changes over time can erode the guarantees of proven protocols like Paxos or Primary/Backup, leading to false confidence in systems that are only 'essentially' correct. Regression testing and root cause analysis are inadequate for fault tolerance because bugs often depend on execution schedules rather than inputs. The authors advocate for a middle ground between testing and verification, proposing Lineage Driven Fault Injection (LDFI), which builds models from good executions to explore only fault scenarios that could lead to bad states. The paper demonstrates LDFI's effectiveness in finding bugs in Elastic's replication protocol and validating optimizations, highlighting its potential to improve distributed software quality by catching schedule-dependent faults that traditional methods miss.",
+  "paper_title": "Growing a Protocol",
+  "paper_authors": [
+    "Ravi Ramasubramanian",
+    "Peter Alvaro"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "HotCloud'17",
+  "paper_url": "https://www.usenix.org/conference/hotcloud17/program/presentation/ramasubramanian",
+  "paper_abstract": "Verification is often regarded as a one-time procedure undertaken after a protocol is specified but before it is implemented. However, in practice, protocols continually evolve with the addition of new capabilities and performance optimizations. Existing verification tools are illsuited to “tracking” protocol evolution and programmers are too busy (or too lazy?) to simultaneously co-evolve specifications manually. This means that the correctness guarantees determined at verification time can erode as protocols evolve. Existing software quality techniques such as regression testing and root cause analysis, which naturally support system evolution, are poorly suited to reasoning about fault tolerance properties of a distributed system because these properties require a search of the execution schedule rather than merely replaying inputs. This paper advocates that our community should explore the intersection of testing and verification to better ensure quality for distributed software and presents our experience evolving a data replication protocol at Elastic using a novel bug-finding technology called Lineage Driven Fault Injection (LDFI) as evidence.",
+  "paper_file": "papers/2017/08/23/growing-a-protocol.pdf",
+  "topics": [
+    "distributed-systems",
+    "cloud-computing"
+  ],
+  "tags": [
+    "fault-tolerance",
+    "protocol-design",
+    "regression-testing",
+    "lineage-driven-fault-injection",
+    "ldfi",
+    "primary-backup",
+    "protocol-evolution",
+    "schedule-dependent-bugs",
+    "formal-verification"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

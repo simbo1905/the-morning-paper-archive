@@ -1,0 +1,46 @@
+{
+  "date": "20180614",
+  "file_name": "20180614",
+  "slug": "analytics-with-smart-arrays-adaptive-and-efficient-language-independent-data",
+  "blog_url": "https://blog.acolyer.org/2018/06/14/analytics-with-smart-arrays-adaptive-and-efficient-language-independent-data/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer reviews a paper from Oracle on 'smart arrays,' adaptive data structures designed to optimize big data analytics workloads in NUMA (Non-Uniform Memory Access) systems. The paper highlights the inefficiencies in modern servers where remote memory accesses, bandwidth saturation, and interconnect bottlenecks can cripple performance. Smart arrays offer multiple implementations of the same array interface, allowing trade-offs between memory usage, bandwidth, and compute resources. The key insight is that the optimal configuration (e.g., single-socket allocation, replication, interleaving, or compression) depends heavily on the machine's architecture and the application's access patterns. The authors demonstrate that smart arrays can reduce memory space requirements and improve performance by up to 4x. The paper also introduces an automated selection algorithm that uses machine-specific and workload-specific data to choose the best configuration, achieving near-optimal performance across various benchmarks.",
+  "paper_title": "Analytics with Smart Arrays: Adaptive and Efficient Language-Independent Data Processing",
+  "paper_authors": [
+    "Ippokratis Psaroudakis",
+    "Thomas Neumann",
+    "Wolfgang Lehner"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "EuroSys'18",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3190514",
+  "paper_abstract": "ACM Reference Format: Alessandro Fogli, Bo Zhao, Peter Pietzuch, and Jana Giceva. 2026. CHARM: Chiplet Heterogeneity-Aware Runtime Mapping System. In 21st European Conference on Computer Systems (EUROSYS ’26), April 27–30, 2026, Edinburgh, Scotland, UK. ACM, New York, NY, USA, 16 pages. https://doi.org/10.1145/3767295.3769390 This work is licensed under a Creative Commons Attribution 4.0 International License. EUROSYS ’26, April 27–30, 2026, Edinburgh, Scotland, UK © 2026 Copyright held by the owner/author(s). ACM ISBN 979-8-4007-2212-7/26/04 https://doi.org/10.1145/3767295.3769390 4 Speedup 3 2 Graph Processing Parallel Computing Statistical Analytics (SGD) 1.80 1.61 1.90 1.65 1 3.85 OLAP OLTP 2.34 1.54 2.81 1.93 1.51 1.08 1.04 CC GU Gr PS ap h5 00 St re SSS P am clu ste r L Gr oss ca ad l ie nt c. co m p. TP CH YC SB TP CC PR 0 BF S The growing disparity between CPU core counts and available memory bandwidth has intensified memory contention in servers. This particularly affects highly parallelizable applications, which must achieve efficient cache utilization to maintain performance as CPU core counts grow. Optimizing cache utilization, however, is complex for recent chipletbased CPUs, whose partitioned L3 caches lead to varying latencies and bandwidths, even within a single NUMA domain. Classical NUMA optimizations and task scheduling fail to address the performance issues of chiplet-based CPUs. We describe Chiplet Heterogeneity Aware Runtime Mapping (CHARM), a new runtime system designed for chipletbased CPUs. CHARM combines chiplet-aware task scheduling heuristics, hardware-aware memory allocation, and fine-grained performance monitoring to optimize workload execution. It implements a lightweight concurrency model that combines user-level threading features, such as individual stacks, per-task scheduling, and state management, with coroutine-like behavior, allowing tasks to suspend and resume execution at defined points while efficiently managing task migratio...",
+  "paper_file": "papers/2018/06/14/analytics-with-smart-arrays-adaptive-and-efficient-language-independent-data.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "numa",
+    "memory-bandwidth",
+    "data-compression",
+    "smart-arrays",
+    "analytics-workloads",
+    "data-placement",
+    "performance-optimization"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "CHARM speedups compared to NUMA-aware systems",
+      "caption": "CHARM speedups compared to NUMA-aware systems across various benchmarks and workloads"
+    },
+    {
+      "number": "Figure 2",
+      "title": "AMD EPYC Milan chiplet architecture",
+      "caption": "AMD EPYC Milan"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

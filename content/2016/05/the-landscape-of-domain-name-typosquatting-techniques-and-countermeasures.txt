@@ -1,0 +1,387 @@
+URL: https://blog.acolyer.org/2016/05/20/the-landscape-of-domain-name-typosquatting-techniques-and-countermeasures/
+Title: The landscape of domain name typosquatting: techniques and&nbsp;countermeasures
+---
+
+The landscape of domain name typosquatting: techniques and countermeasures - Spaulding et al. arXiv upload 9 Mar 2016.
+
+We round up our series of posts on internet deceptions by looking at domain squatting. My "favourite" advanced technique is bitsquatting, which turns out to be a great demonstration of the inevitable failures that occur with sufficient scale. And developers should definitely be wary of Typosquatting Cross-Site Scripting mistakes...
+
+> 
+
+ In this paper, we review the landscape of domain name typosquatting, highlighting models and advanced techniques for typosquatted domain names generation, models for their monetization, and the existing literature on countermeasures. We further highlight potential fruitful directions on technical countermeasures that are lacking in the literature.
+
+Please note: since WordPress insists on converting anything that looks like a URL into a hyperlink, I've directed all typosquat domains in this posts into links that direct back to this page...
+
+## What is domain squatting?
+
+Typosquatting is the deliberate registration of domain names that uses typographical variants of other target domain names. The variants are generated to exploit common errors made by users manually typing URLs into web browsers. Beyond typosquatting, other techniques have also emerged using visually-similar letters, similar-sounding words, and even hardware errors.
+
+## Typo-based techniques
+
+- Missing dot typos: e.g. wwwexample.com
+
+- Character omission typos - where one character in the original domain name is omitted, e.g. www.exmple.com
+
+- Character permutation typos - swapping two adjacent characters e.g. www.examlpe.com
+
+- Character substitution typos - replacing characters with their adjacent ones on a specific keyboard layout e.g. www.ezample.com, with "x" replaced by the qwerty-adjacent character "z"
+
+- Character duplication typos - when characters are mistakenly typed twice e.g. www.exaample.com
+
+- 1-mod-inplace - the typosquatter substitutes a character in the original domain name with all possible alphabet letters
+
+- 1-mod-deflate - removing one character from the original domain name
+
+- 1-mod-inflate - increasing the length of a domain name by one character
+
+> 
+
+ After probing for the existing of a possible typo domain, Banerjee et al. observed that approximately 99% of the "phony" typosquatted sites they identified utilized a one-character modification of the popular domain names they targeted.
+
+## Advanced squatting techniques
+
+Homograph attacks rely on the visual similarity of letters, e.g. replacing the letter 'l' in paypal with a letter 'i'. In san-serif font this looks very similar to the original, and can be used to fool users in phishing attacks.
+
+Bitsquatting relies on random bit errors to redirect connections intended for popular domains.
+
+> 
+
+ To test this theory, Dinaburg conducted an experiment and registered 30 bitsquatted versions of popular domains (e.g. www.mic2osoft.com) and logged all HTTP requests. Much to his surprise, there were a total of 52,317 bitsquat requests from 12,949 unique IP addresses over an eight-month period. Nikiforakis et al. [28] studied Dinaburg’s findings further and conducted one of the first large-scale analysis of the bitsquatting phenomenon. Their results show that new bitsquatting domains are registered daily and that these attackers monetize their domains through the use of ads, abuse of affiliate programs and even malware installations and distribution. While typosquatting relies on humans to make mistakes, bitsquatting on the other hand relies on computers (hardware) to make mistakes.
+
+Soundsquatting uses words that sound similar (e.g. ate and eight).
+
+> 
+
+ To verify how much this soundsquatting technique is used in the wild, Nikiforakis et al. developed a tool to generate possible soundsquatted domains from a list of target domains. Using the Alexa top 10,000 sites, they were able to generate 8,476 soundsquatted domains where 1,823 (21.5%) of those were already registered.
+
+Another typosquatting related vulnerability is typosquatting cross-site scripting (TXSS). This occurs when a developer mistypes the address of a JavaScript library in their HTML pages or JavaScript code...
+
+> 
+
+ This simple mistake allows an attacker to register the mistyped domain and easily compromise the site that includes the script. To further explore the impact of this type of attack, the researchers registered a typo variation of a popular JavaScript inclusion domain (googlesyndicatio.com vs. googlesyndication.com) and observed its traffic: 163,188 unique visitors over the course of 15 days. Nikiforakis et al. argue that the damage of TXSS is much greater than that of typosquatting, since every user visiting the page containing the typo will be exposed to malicious code hosted on the attacker’s site.
+
+## Which sites tend to get domain squatted?
+
+In the early days of typosquatting, shorter domain names were more often targeted. But now it seems domains of any length are fair game. Likewise typosquatters have also begun targeting the 'long tail' of domain names, with 95% of typo domains targeting less popular sites. For nearly a quarter of all initial .com URLs, at least 50% of all possible phony sites exist; confirming that a domain name with .com has a high chance of being typosquatted.
+
+> 
+
+ Additionally, the TLD portion of a domain name may also be a target for exploitation. For example, one .com domain may have a malicious .org counterpart unbeknownst to the original registrant of the .com domain. A noteworthy example of this was mentioned in [12], where unsuspecting viewers inadvertently typed www.whitehouse.com instead of www.whitehouse.gov and got exposed to questionable contents instead of the official White House website
+
+## Why do domain squatters do it?
+
+"Parked" typosquatted domains have no real content except for advertisements, domain parking is the most popular scheme chosen by squatters. Parked domain names can also be used for click fraud, traffic stealing, and spam delivery, all of which generate more than 40% of the revenue for some parking services.
+
+Typo domain names may also be held for ransom. For example, the cyber-criminal John Zuccarini owned typosquatted domains that redirected to sexually explicit content. For the owners of the legitimate domains being targeted, this increased their willingness to pay.
+
+Typo squatters may abuse affiliate programs by redirecting visitors to the originally intended site, and collecting referral fees from the authoritative owner. They can also forward visitors to websites of the target's competitors. Essentially these registrations 'steal' traffic from authoritative domains.
+
+Finally, typosquatted sites may be used for scams. For example, wikapedia.com and twtter.com emulated the real sites and displayed advertisements for contests... ultimately, users were prompted to enter their credit card number and other sensitive information as part of the contest to claim their prizes.
+
+## Countermeasures
+
+Using the typosquatting domain name generation techniques listed above, it's easy to look for typosquatting domains. But if you find one, what can you do about it?
+
+In the US, the Anti-cybersquatting Consumer Protection Act (ACPA) became law in 1999. It makes it illegal for a person to registor or use with 'bad faith' intent to profit from an internet domain name that is 'identical or confusingly similar' to the distinctive or famous trademark or internet domain name of another person or company. Typosquatters targeting Facebook were ordered to pay $2.8M in damages.
+
+Defensive registration still remains one of the best strategies though:
+
+> 
+
+ Defensive registration is a tactic where companies and trademark owners will deliberately register typo variations of their own domains, keeping it out of the hands of typosquatters and thus redirecting users to the proper domain. Despite this simple strategy, the results of Agten et al. shows that only 156 of the Alexa top 500 have defensive domain registrations, meaning that 344 domains (68.8%) have no defensive registrations whatsoever.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousUnderstanding malvertising through ad-injecting browser extensionsNext &rsaquo;Efficiently compiling efficient query plans for modern hardware
+ 
+ 
+
+ 
+ 
+## 
+ 7 thoughts on &ldquo;The landscape of domain name typosquatting: techniques and countermeasures&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ simbo1905 says: 
+
+ 
+ May 20, 2016 at 8:13 am 
+
+ 
+
+ 
+ 
+There is an expansion typo in the word "afffiliate".
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ May 20, 2016 at 8:02 pm 
+
+ 
+
+ 
+ 
+Fixed, thank you!
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Boris Gorelik says: 
+
+ 
+ May 23, 2016 at 1:06 pm 
+
+ 
+
+ 
+ 
+this was a typosquatting attempt :-)
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ Pingback: Big Analytics Roundup (May 23, 2016) | The Big Analytics Blog 
+ 
+ 
+- 
+ 
+ Pingback: Interesting piece on *squatting - lastmover 
+ 
+ 
+- 
+ 
+ Pingback: Small world with high risks: a study of security threats in the npm ecosystem - the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Small world with high risks: a study of security threats in the npm ecosystem - Bravo Reporter 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

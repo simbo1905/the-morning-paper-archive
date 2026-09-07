@@ -1,0 +1,357 @@
+URL: https://blog.acolyer.org/2015/10/05/ipfs-content-addressed-versioned-p2p-file-system/
+Title: IPFS &#8211; Content Addressed, Versioned, P2P File&nbsp;System
+---
+
+IPFS - Content Addressed, Versioned, P2P File System - Benet 2014
+
+This paper has sat on my reading list for almost a year! I first heard about it in Joe Armstrong's 2014 talk at CodeMesh "Connecting things together is really difficult but it could and should be rather easy". CodeMesh 2015 is just around the corner already...
+
+IPFS is the InterPlanetary File System - a distributed peer-to-peer file system and hypermedia distribution protocol.
+
+> 
+
+ Coupled with the browser, HTTP has had enormous technical and social impact. It has become the de facto way to transmit files across the internet. Yet, it fails to take advantage of dozens of brilliant file distribution techniques invented in the last fifteen years. From one perspective, evolving Web infrastructure is near-impossible, given the number of backwards compatibility constraints and the number of strong parties invested in the current model. But from another perspective, new protocols have emerged and gained wide use since the emergence of HTTP. What is lacking is upgrading design: enhancing the current HTTP web, and introducing new functionality without degrading user experience.
+
+IFPS brings together a collection of key ideas: distributed hash tables, block exchanges, git, and self-certified file systems. "The contribution of IPFS is simplifying, evolving, and connecting proven techniques into a single cohesive system, greater than the sum of its parts. IPFS presents a new platform for writing and deploying applications, and a new system for distributing and versioning large data. IPFS could even evolve the web itself."
+
+It is designed for the new era of data distribution...
+
+> 
+
+ ...we are entering a new era of data distribution with new challenges: (a) hosting and distributing petabyte datasets, (b) computing on large data across organizations, (c) high-volume high- definition on-demand or real-time media streams, (d) versioning and linking of massive datasets, (e) preventing accidental disappearance of important files, and more. Many of these can be boiled down to “lots of data, accessible everywhere.”
+
+## Identity, Routing, and Data Distribution
+
+IPFS uses a Distributed Sloppy Hash Table (DSHT) for routing. The DHT part comes from Kademlia DHT as used in BitTorrent. The 'sloppy' part comes from the Coral DSHT which extends Kademlia:
+
+> 
+
+ Coral relaxes the DHT API from get_value(key) to get_any_values(key) (the “sloppy” in DSHT). This still works since Coral users only need a single (working) peer, not the complete list. In return, Coral can distribute only subsets of the values to the “nearest” nodes, avoiding hot-spots (overloading all the nearest nodes when a key becomes popular).
+
+Node identification follows the scheme from S/Kademlia:
+
+> 
+
+ Nodes are identified by a NodeId, the cryptographic hash of a public-key, created with S/Kademlia’s static crypto puzzle. Nodes store their public and private keys (encrypted with a passphrase). Users are free to instatiate a “new” node identity on every launch, though that loses accrued networkbenefits. Nodes are incentivized to remain the same.
+
+The crypto-puzzle is a proof-of-work scheme that makes it hard for an attacker to quickly create lots of identities (a Sybil attack).
+
+Data distribution is based on a variant of BitTorrent called BitSwap.
+
+> 
+
+ Like BitTorrent, BitSwap peers are looking to acquire a set of blocks (want_list), and have another set of blocks to offer in exchange (have_list). Unlike BitTorrent, BitSwap is not limited to the blocks in one torrent. BitSwap operates as a persistent marketplace where node can acquire the blocks they need, regardless of what files those blocks are part of. The blocks could come from completely unrelated files in the filesystem. Nodes come together to barter in the marketplace.
+
+Incentives are designed in to encourage nodes to store blocks for for others, and to prevent freeloaders. The strategy used in BitSwap to exchange information with peers is pluggable. The choice of function should aim to:
+
+- maximize the trade performance for the node, and the whole exchange
+
+- prevent freeloaders from exploiting and degrading the exchange
+
+- be effective with, and resistant to other, unknown, strategies
+
+- be lenient to trusted peers
+
+> 
+
+ The exploration of the space of such strategies is future work.
+
+In order to have something to barter with, a node that has nothing its peers want seeks the pieces that its peers want, with lower priority than it seeks its own blocks. "This incentivizes nodes to cache and disseminate rare pieces, even if they are not interested in them directly."
+
+BitSwap credit encourages nodes to play fair:
+
+> 
+
+ The protocol must also incentivize nodes to seed when they do not need anything in particular, as they might have the blocks others want. Thus, BitSwap nodes send blocks to their peers optimistically, expecting the debt to be repaid. But leeches (free-loading nodes that never share) must be protected against. A simple credit-like system solves the problem: 1. Peers track their balance (in bytes verified) with other nodes. 2. Peers send blocks to debtor peers probabilistically, according to a function that falls as debt increases. Note that if a node decides not to send to a peer, the node subsequently ignores the peer for an ignore-cooldown time- out. This prevents senders from trying to game the probability by just causing more dice-rolls. (Default BitSwap is 10 seconds).... One choice of function that works in practice is a sigmoid, scaled by a debt retio: Let the debt ratio r between a node and its peer be r = bytes-sent / (bytes-received + 1) Given r, let the probability of sending to a debtor be 1 - 1/(1 + exp(6-3r)). This function drop off quickly as the nodes' debt ratio surpasses twice the established credit.
+
+The credit system is backed up by a ledger:
+
+> 
+
+ BitSwap nodes keep ledgers accounting the transfers with other nodes. This allows nodes to keep track of history and avoid tampering. When activating a connection, BitSwap nodes exchange their ledger information. If it does not match exactly, the ledger is reinitialized from scratch, losing the accrued credit or debt. It is possible for malicious nodes to purposefully “lose” the Ledger, hoping to erase debts. It is unlikely that nodes will have accrued enough debt to warrant also losing the accrued trust; however the partner node is free to count it as misconduct, and refuse to trade.
+
+## Content Addressing and Paths
+
+> 
+
+ The DHT and BitSwap allow IPFS to form a massive peer-to-peer system for storing and distributing blocks quickly and robustly. On top of these, IPFS builds a Merkle DAG, a directed acyclic graph where links between objects are cryptographic hashes of the targets embedded in the sources. This is a generalization of the Git data structure. Merkle DAGs provide IPFS many useful properties, including: content addressing, tamper resistance, and deduplication.
+
+All content, including links, is uniquely identified by its multihash checksum. Paths in IPFS are of the format:
+
+ipfs/<hash-of-object>/<name-path-to-object>
+
+> 
+
+ IPFS is globally distributed. It is designed to allow the files of millions of users to coexist together. The DHT, with content-hash addressing, allows publishing objects in a fair, secure, and entirely distributed way. Anyone can publish an object by simply adding its key to the DHT, adding themselves as a peer, and giving other users the object’s path. Note that Objects are essentially immutable, just like in Git. New versions hash differently, and thus are new objects. Tracking versions is the job of additional versioning
+
+ objects.
+
+## Files
+
+IPFS provides a set of objects for modeling a versioned filesystem on top of the Merkle DAG. The object model is similar to Git's and includes block, list, tree, and commit objects.
+
+> 
+
+ I hoped to use the Git object formats exactly, but had to depart to introduce certain features useful in a distributed filesystem, namely (a) fast size lookups (aggregate byte sizes have been added to objects), (b) large file deduplication (adding a list object), and (c) embedding of commits into trees. However, IPFS File objects are close enough to Git that conversion between the two is possible. Also, a set of Git objects can be introduced to convert without losing any information (unix file permissions, etc).
+
+Blobs represent files. Large or deduplicated files are made up of several IPFS blobs to be concatenated together, and are represented by a list (which can also contain other lists). The tree object represents a directory, and the commit object represents a snapshot in the version history of any object.
+
+> 
+
+ Path-based access traverses the object graph. Retrieving each object requires looking up its key in the DHT, connecting to peers, and retrieving its blocks. This is considerable overhead, particularly when looking up paths with many components. This is mitigated by:
+
+- tree caching: since all objects are hash-addressed, they can be cached indefinitely. Additionally, trees tend to be small in size so IPFS prioritizes caching them over blobs.
+
+- flattened trees: for any given tree, a special flattened tree can be constructed to list all objects reachable from the tree
+
+## Mutable references and Human-readable names!
+
+> 
+
+ Consider the properties of IPFS that fall out of the Merkle DAG: objects can be (a) retrieved via their hash, (b) integrity checked, (c) linked to others, and (d) cached indefinitely. In a sense, objects are permanent. These are the critical properties of a high-performance distributed system, where data is expensive to move across network links. Object content addressing constructs a web with (a) significant bandwidth optimizations, (b) untrusted content serving, (c) permanent links, and (d) the ability to make
+
+ full permanent backups of any object and its references.
+
+But with content addressing, how do you address mutable references??? The InterPlanetary Name Space (ipns) prefix is introduced specifically for this use case.
+
+> 
+
+ Because this is not a content-addressed object, publishing it relies on the only mutable state distribution system in IPFS, the Routing system. The process is (1) publish the object as a regular immutable IPFS object, (2) publish its hash on the Routing system as a metadata value.
+
+Every user is assigned a mutable namespace at ipns/<NodeId> (recall that in IPFS NodeIds are based on a hash of the node's public key).
+
+> 
+
+ While IPNS is indeed a way of assigning and reassigning names, it is not very user friendly, as it exposes long hash values as names, which are notoriously hard to remember....
+
+Mitigations include providing direct links, DNS lookups via DNS TXT records and the use of name shortening services.
+
+## Towards the Permanent Web...
+
+> 
+
+ IPFS is an ambitious vision of new decentralized Internet infrastructure, upon which many different kinds of applications can be built. At the bare minimum, it can be used as a global, mounted, versioned filesystem and namespace, or as the next generation file sharing system. At its best, it could push the web to new horizons, where publishing valuable information does not impose hosting it on the publisher but upon those interested, where users can trust the content they receive without trusting the peers they receive it from, and where old but important files do not go missing. IPFS looks forward to bringing us toward the Permanent Web.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Distributed SystemsStorage 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousCloud Computing Resource Scheduling and a Survey of its Evolutionary ApproachesNext &rsaquo;Dapper, A Large Scale Distributed Systems Tracing Infrastructure
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;IPFS - Content Addressed, Versioned, P2P File System&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Interplanetary File System | Crab Log 
+ 
+ 
+- 
+ 
+ Pingback: InterPlanetary File System (IPFS) on Jupyter - IBM Emerging Technologies Blog 
+ 
+ 
+- 
+ 
+ Pingback: IPFS 教學和筆記 | 懒得折腾 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,338 @@
+URL: https://blog.acolyer.org/2019/05/15/seer/
+Title: Seer: leveraging big data to navigate the complexity of performance debugging in cloud&nbsp;microservices
+---
+
+Seer: leveraging big data to navigate the complexity of performance debugging in cloud microservices Gan et al., ASPLOS'19
+
+Last time around we looked at the DeathStarBench suite of microservices-based benchmark applications and learned that microservices systems can be especially latency sensitive, and that hotspots can propagate through a microservices architecture in interesting ways. Seer is an online system that observes the behaviour of cloud applications (using the DeathStarBench microservices for the evaluation) and predicts when QoS violations may be about to occur. By cooperating with a cluster manager it can then take proactive steps to avoid a QoS violation occurring in practice.
+
+> 
+We show that Seer correctly anticipates QoS violations 91% of the time, and avoids the QoS violation to begin with in 84% of cases. Finally, we show that Seer can identify application level design bugs, and provide insights on how to better architect microservices to achieve predictable performance.
+
+Seer uses a lightweight RPC-level tracing system to collect request traces and aggregate them in a Cassandra database. A DNN model is trained to recognise patterns in space and time that lead to QoS violations. This model makes predictions at runtime based on real-time streaming trace inputs. When a QoS violation is predicted to occur and a culprit microservice located, Seer uses a lower level tracing infrastructure with hardware monitoring primitives to identify the reason behind the QoS violation. It then provides the cluster manager with recommendations on how to avoid the performance degradation altogether.
+
+The cluster manager may take one of several resource allocation actions depending on the information provided to it by Seer. For example, resizing a Docker container, using Intel’s Cache Allocation Technology for last level cache (LLC) partitioning, or the Linux traffic control’s hierarchical token bucket (HTB) queueing discipline in qdisc for network bandwidth partitioning.
+
+## Distributed tracing and instrumentation
+
+Most of the time Seer is just using its high-level RPC tracing which adds low overhead (less than 0.1% on end-to-end latency) and less than 0.15% on throughput. This tracing system is similar to Dapper and Zipkin and records per-microservice latencies and number of outstanding requests. By instrumenting both the client-side of a request and the server-side it’s possible to figure out wait times. There are multiple sources of queueing in both hardware and software, and Seer works best when using deep instrumentation to capture these. E.g., in memcached there are five main internal stages, each of which has a hardware or software queue associated with it.
+
+Deep instrumentation of internals is not always possible or easy, in which case Seer will simply use information on requests queued in the NIC.
+
+> 
+Using network queue depths alone is enough to signal a large fraction of QoS violations, although smaller than when the full instrumentation is available. Exclusively polling NIC queues identifies hotspots caused by routing, incast, failures, and resource saturation, but misses QoS violations that are caused by performance and efficiency bugs in the application implementation such as blocking behaviour between microservices.
+
+When Seer does need to turn on its lower level instrumentation to pinpoint the likely cause of a predicted QoS violation, it has two different modes for doing this. When available, it can use hardware level performance counters. In a public cloud setting these won’t be available, and instead Seer use a set of tunable microbenchmarks to figure out which resources are under pressure (see e.g. ‘Bolt’ which we looked at a couple of years ago on The Morning Paper).
+
+## Predicting QoS violations
+
+At the core of Seer is a DNN making predictions based on the RPC-level traces that are gathered.
+
+> 
+...the problem Seer must solve is a pattern matching problem of recognizing conditions that result in QoS violations, where the patterns are not always knows in advance or easy to annotate. This is a more complicated task than simply signaling a microservice with many enqueued requests for which simpler classification, regression, or sequence labeling techniques would suffice.
+
+Seer’s DNN works with no a priori knowledge about dependencies between individual microservices, and the system is designed to cope with online evolution of microservices and the dependencies between them.
+
+The most valuable feature for prediction turned out to be the per-microservice queue depths. The input layer has one neuron per active microservice with input value corresponding to the microservice queue depth. The output layer also has one neuron per microservice, with the value representing the probability for that microservice to initiate a QoS violation. Since one of the desired properties is to accommodate changes in the microservices graph over time, I’m assuming the model actually has n inputs and outputs, where n is the maximum predicted number of microservice instances, and we simply don’t use some of them with smaller deployments?
+
+So now it’s just a matter of figuring out what should happen between the input and output neurons! We have to balance inference time (Seer is operating in a pretty small window of predictions 10-100ms out, and needs to give the cluster manager time to react as well) and accuracy. The best performing combination was a hybrid network using a CNN first to reduce dimensionality followed by an LSTM with a softmax final layer.
+
+When trained on a weeks worth of trace data from a 20 server cluster, and then tested on traces collected from a different week (after servers had been patched, and the OS had been upgraded), Seer was correctly able to anticipate 93.45% of violations.
+
+When deployed in production, Seer is continually and incrementally retrained in the background to account for frequent application updates. This retraining uses transfer learning with weights from previous training rounds stored on disk as a starting point. When the application "changes in a major way, e.g. microservices on the critical path change" Seer will retrain from scratch in the background, with online inference happening via the incrementally-trained interim model until the new model is ready. We’re not told how Seer figures out that a major architectural change has happened. Perhaps full retraining is an operator-initiated action, or maybe the system could be configured to initiated full-retraining whenever the number of missed QoS violations (false negatives) starts to rise above some threshold.
+
+## Seer in action
+
+For the services under study, Seer has a sweet spot when trained with around 100GB of data and a 100ms sampling interval for measuring queue depths.
+
+Seer also works best when making prediction 10-100ms into the future.
+
+> 
+This is because many QoS violations are caused by very short, bursty events that do not have an impact on queue lengths until a few milliseconds before the violation occurs.
+
+A ground truth analysis of QoS violation causes shows that a large fraction are due to application level inefficiencies, including correctness bugs, unnecessary synchronisation and/or blocking behaviour, and misconfigured iptables rules. An equally large fraction are due to compute contention, followed by network, cache, memory, and disk contention. Seer is accurately able to follow this breakdown in its predictions and determination of causes.
+
+> 
+Out of the 89 QoS violations Seer detects, it notifies the cluster manager early enough to avoid 84 of them. The QoS violations that were not avoided correspond to application level bugs, which cannot be easily corrected online.
+
+Here’s a really interesting plot showing detection accuracy for Seer during a period of time in which the microservices system is being frequently updated, including the addition of new microservices, changing the backend from MongoDB to Cassandra, and switching the front-end from nginx to node.js.
+
+Blue dots represent correctly predicted upcoming QoS violations, and red crosses are misses. All the misses correspond with the application being updated.
+
+> 
+Shortly after the update, Seer incrementally retrains in the background and starts recovering its accuracy until another major update occurs.
+
+Seer is also tested on a 100-server GCE cluster with the Social Network microservices application. This was deployed for a two-month period and had 582 registered users with 165 daily actives. On average the cluster had 386 containers active at any one time. (I know the whole point is to test a microservices architecture, but I can’t help pausing to note the ridiculousness of a 100-node cluster with 386 containers serving 165 daily actives. That’s more than two containers per daily active user, and a workload I could probably serve from my laptop!!).
+
+On the public cloud Seer’s inference times increased from 11.4ms for the 20-node private cluster setting to 54ms for the 100 server GCE setting. Offloading training and inference to Google’s TPUs (or FPGA’s using Microsoft’s Project Brainwave) brought these times back down again.
+
+During the two month study, the most common sources of QoS violations were memcached (on the critical path for almost all query types, as well as being very sensitive to resource contention), and Thrift services with high request fanout.
+
+> 
+Seer has now been deployed in the Social Network cluster for over two months, and in this time it has detected 536 upcoming QoS violations (90.6% accuracy) and avoided 495 (84%) of them. Furthermore, by detecting recurring patterns that lead to QoS violations, Seer has helped the application developers better understand bugs and design decisions that lead to hotspots, such as microservices with a lot of back-and-forth communication between them, or microservices forming cyclic dependencies, or using blocking primitives. This has led to a decreasing number of QoS violations over the two month period (seen in Fig. 16), as the application progressively improves.
+
+> 
+Systems like Seer can be used not only to improve performance predictability in complex cloud systems, but to help users better understand the design challenges of microservices, as more services transition to this application model.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Distributed SystemsOperationsPerformance 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousAn open-source benchmark suite for microservices and their hardware-software implications for cloud & edge systemsNext &rsaquo;Understanding real-world concurrency bugs in Go
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;Seer: leveraging big data to navigate the complexity of performance debugging in cloud microservices&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: RPCValet: NI-driven tail-aware balancing of &micro;s-scale RPCs | the morning paper 
+ 
+ 
+- 
+ 
+ 
+ 
+ Christina Delimitrou says: 
+
+ 
+ May 20, 2019 at 9:16 pm 
+
+ 
+
+ 
+ 
+Thanks for the article Adrian! W.r.t. to the cluster size for the Social Network, this is 100 instances, not 100 servers (there was a typo in an earlier version), where an instance is quite a bit smaller than a server. Also, a large fraction of these instances is dedicated to sharded and replicated databases, not microservices.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Michał Matusiak says: 
+
+ 
+ April 8, 2020 at 12:21 am 
+
+ 
+
+ 
+ 
+Hi, first of all great paper thanks! I've got a couple questions regarding it. 
+
+I can not figure out what exactly is Seer's input. If I got it right when using LSTM layers the interval between consecutive inputs has to be fixed time interval. But traces are flowing to the database constantly, so we could bucket them but what should be the interval of such bucketing?
+
+Another thing is that we might have missing data for some microservices if no requests passed through it in the previously mentioned bucket what will be specified as the queue size of such microservice in this bucket?
+
+ 
+
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

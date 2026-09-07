@@ -1,0 +1,306 @@
+URL: https://blog.acolyer.org/2016/11/18/the-honey-badger-of-bft-protocols/
+Title: The Honey Badger of BFT&nbsp;protocols
+---
+
+The Honey Badger of BFT Protocols Miller et al. CCS 2016
+
+> 
+The surprising success of cryptocurrencies (blockchains) has led to a surge of interest in deploying large scale, highly robust, Byzantine fault tolerant (BFT) protocols for mission critical applications, such as financial transactions.
+
+In a ‘traditional’ distributed system consensus algorithm setting we assume a relatively small number of cooperating nodes that can tolerate some number of faults. But in a cryptocurrency setting we have large numbers of mutually distrustful nodes operating in network conditions likely to be less predictable. The fancy way of saying that a distributed system can cope with active adversaries is Byzantine Fault Tolerance (BFT). The trade-offs we make with cryptocurrencies may be different too:
+
+> 
+Cryptocurrencies demonstrate the demand for and viability of an unusual operating point that prioritizes robustness above all else, even at the expense of performance. In fact, Bitcoin provides terrible performance by distributed systems standards: a transaction takes on average 10 minutes to be committed, and the system as a whole achieves throughput on the order of 10 transactions per second. However, in comparison with traditional fault tolerant deployment scenarios, cryptocurrencies thrive in a highly adversarial environment, where well-motivated and malicious attacks are expected (if not commonplace).
+
+Moreover, response time and contention are not the critical factors for many blockchain applications (e.g. some classes of payment and settlement networks). What these applications often do need though is throughput in order to be able to sustain high volumes of requests. As regular readers of The Morning Paper will know, what do you do when you want to trade latency for throughput? Batch. And indeed we’ll see that HoneyBadgerBFT does indeed employ a clever batching strategy…
+
+The problem with existing BFT systems, show Miller et al., is that they rely on some variation of weak synchrony. In practical terms, they use timeouts to tolerate network delays within some bounds. “The liveness properties of weakly synchronous protocols can fail completely when the expected timing assumptions are violated (e.g. due to a malicious network adversary).” Even when the weak synchrony assumptions are satisfied in practice, such protocols can significantly degrade in throughput when the underlying network is unpredictable. See §3 in the paper for a discussion and demonstration.
+
+> 
+HoneyBadgerBFT [is] the first BFT atomic broadcast protocol to provide optimal asymptotic efficiency in the asynchronous setting. We therefore directly refute the prevailing wisdom that such protocols are necessarily impractical.
+
+All of which makes this paper interesting on a number of levels: from a CS perspective it covers a lot of ground, enough to fill up my paper queue for several days covering gaps in my knowledge; and from an application point of view it’s highly relevant in the blockchain and cryptocurrency world. HoneyBadgerBFT (https://github.com/amiller/HoneyBadgerBFT) is designed for two key deployment scenarios among others:
+
+- Confederation cryptocurrencies in which a conglomerate of financial institutions jointly contribute to a Byzantine agreement protocol to allow fast and robust settlement of transactions.
+
+- Permissionless blockchains with enrolment open to everyone, but that can still deliver acceptable throughput and latency:
+
+> 
+To achieve security in this setting, known consensus protocols rely on proofs-of-work to defeat Sybil attacks, and pay an enormous price in terms of throughput and latency, e.g., Bitcoin commits transactions every ∼ 10 min, and its throughput is limited to 7 tx/sec even when the current block size is maximized.
+
+## HoneyBadger BFT goals
+
+HoneyBadger is designed to be resilient to censorship (aka ‘fairness’), which means that an adversary cannot block proposals from target nodes, and to deliver practical throughput.
+
+> 
+Our overall goal is to build a replicated state machine, where clients generate and submit transactions and a network of nodes receives and processes them. Abstracting away from application specific details (such as how to represent state and compute transitions), it suffices to build a totally globally-consistent, totally-ordered, append-only transaction log. Traditionally, such a primitive is called total order or atomic broadcast; in Bitcoin parlance, we would call it a blockchain.
+
+The system model assumes that each pair of nodes is connected by a reliable authenticated point-to-point channel (which can be built on top of unreliable foundations of course). “The delivery schedule is entirely determined by the adversary, but every message sent between correct nodes must eventually be delivered” That sentence caught my eye - it would be a strange adversary that had the power to delay messages, but not to drop them! Perhaps we treat this as a very long eventually, whereby with enough retries it is assumed the internet infrastructure does its work and a way is found through in the end? The adversary can control up to f faulty nodes, giving correct operation so long as there are N ≥ 3f +1 nodes.
+
+- If any correct node outputs a transaction tx, then every correct node outputs tx.
+
+- If one correct node has an output transaction sequence s1 and another correct node has an output transaction sequence s2 then s1 is a prefix of s2 or vice-versa.
+
+- If a transaction tx is input to N-f correct nodes, then it is eventually output by every correct node (Censorship resilience).
+
+## HoneyBadger BFT implementation
+
+HoneyBadger proceeds in epochs, with a new batch of transactions appended to the (shared) committed log at the end of each epoch. In each epoch, nodes choose a subset of the transactions in their input buffer and provide them as input to a randomized agreement protocol. At the end of the agreement protocol, the final set of transactions for the epoch is chosen.
+
+> 
+At this high level, our approach is similar to existing asynchronous atomic broadcast protocols, and in particular to Cachin et al., the basis for a large scale transaction processing system (SINTRA). Like ours, Cachin’s protocol is centered around an instance of the Asynchronous Common Subset (ACS) primitive. Roughly speaking, the ACS primitive allows each node to propose a value, and guarantees that every node outputs a common vector containing the input values of at least N −2 f correct nodes. It is trivial to build atomic broadcast from this primitive — each node simply proposes a subset of transactions from the front its queue, and outputs the union of the elements in the agreed-upon vector.
+
+Standard ACS would not give the desired censorship resilience or throughput properties though. HoneyBadger uses threshold encryption to prevent an adversary from learning which transactions are proposed by which nodes until after agreement has been reached, and it uses an array of techniques to improve the throughput of ACS:
+
+> 
+In this paper, we show that by stitching together a carefully chosen array of sub-components, we can efficiently instantiate ACS and attain much greater throughput both asymptotically and in practice. Notably, we improve the asymptotic cost (per node) of ACS from O(N2) (as in Cachin et al.) to O(1).
+
+In a threshold encryption scheme, any one party can encrypt a message using a master public key, and it requires f+1 correct nodes to compute and reveal decryption shares for a ciphertext before the plaintext can be recovered.
+
+In order to make ACS scalable in terms of throughput a batching policy is used in which of N nodes proposes B/N transactions from its queue in each epoch (B is the overall batch size). The batch size is chosen so that the communication overhead of a round is absorbed. The set of transactions chosen by a node is encrypted using threshold encryption. One the instance of ACS is complete, the output is therefore a vector of ciphertexts which can then be decrypted. Thus the set of transactions is fully determined before any adversary can learn what they are.
+
+For ACS itself, whereas Cachin et al. use multi-valued byzantine agreement (MVBA), HoneyBadger uses an alternative scheme proposed by Ben-Or et al.:
+
+> 
+The instantiation we use is due to Ben-Or et al. [9] and has, in our view, been somewhat overlooked. In fact, it predates CKPS01 [15], and was initially developed for a mostly unrelated purpose (as a tool for achieving efficient asynchronous multi-party computation [9]). This protocol is a reduction from ACS to reliable broadcast (RBC) and asynchronous binary Byzantine agreement (ABA). Only recently do we know of efficient constructions for these subcomponents, which we explain shortly.
+
+In the first phase RBC is used to disseminate proposed values, and then N instances of the ABA protocol are used to agree on which proposed values are to be included in the final set. The binary agreement element is instantiated with a protocol from Moustefaoui et al. based on a cryptographic common coin and with O(1) running time. Explanation is given in the full version of the paper.
+
+## Evaluation
+
+> 
+We demonstrate that HoneyBadgerBFT is indeed scalable by performing an experiment in a wide area network, including up to 104 nodes in five continents. Even under these conditions, HoneyBadgerBFT can reach peak throughputs of thousands of transactions per second. Furthermore, by a comparison with PBFT, a representative partially synchronous protocol, HoneyBadgerBFT performs only a small constant factor worse. Finally, we demonstrate the feasibility of running asynchronous BFT over the Tor anonymous communication layer.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ BlockchainConsistencyDistributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousTwice the bits, twice the trouble: vulnerabilities induced by migrating to 64-bit platformsNext &rsaquo;Artificial Intelligence and life in 2030
+ 
+ 
+
+ 
+ 
+## 
+ 5 thoughts on &ldquo;The Honey Badger of BFT protocols&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: "A Distributed Systems Seminar Reading List," Spring 2017 edition | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Asynchronous BFT protocols - the case for Honey Badger | The Information Age 
+ 
+ 
+- 
+ 
+ Pingback: Blockchain’s Best And Brightest Gather At IC3 Ethereum Crypto Boot Camp - The Crypto Team 
+ 
+ 
+- 
+ 
+ Pingback: SoK: Consensus in the age of blockchains | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: BEAT: asynchronous BFT made practical | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

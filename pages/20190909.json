@@ -1,0 +1,49 @@
+{
+  "date": "20190909",
+  "file_name": "20190909",
+  "slug": "ms-approx-query",
+  "blog_url": "https://blog.acolyer.org/2019/09/09/ms-approx-query/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the practical implementation and benefits of approximate query processing in Microsoft's massive production big-data clusters, which span tens of thousands of machines and exabytes of data. The paper demonstrates how query-time sampling can significantly reduce query execution time and cluster load while maintaining acceptable accuracy. Colyer emphasizes the novel aspects of the work, including the three sampling operators (UNIFORM, UNIVERSE, DISTINCT) and the query optimizer transformations that push sampling operations early in the query plan to maximize efficiency. The blog also notes the surprising challenge of convincing users to adopt approximation despite clear benefits, with adoption often depending on user familiarity with data science concepts. The paper provides compelling case studies showing substantial performance improvements with minimal overhead.",
+  "paper_title": "Experiences with approximating queries in Microsoft's production big data clusters",
+  "paper_authors": [
+    "Kandula et al."
+  ],
+  "paper_year": 2019,
+  "paper_venue": "VLDB",
+  "paper_url": "https://www.microsoft.com/en-us/research/publication/experiences-with-approximating-queries-in-microsofts-production-big-data-clusters/",
+  "paper_abstract": "– With the rapidly growing volume of data, it is more attractive than ever to leverage approximations to answer analytic queries. Sampling is a powerful technique which has been studied extensively from the point of view of facilitating approximation. Yet, there has been no largescale study of effectiveness of sampling techniques in big data systems. In this paper, we describe an in-depth study of the sampling-based approximation techniques that we have deployed in Microsoft’s big data clusters. We explain the choices we made to implement approximation, identify the usage cases, and study detailed data that sheds insight on the usefulness of doing sampling based approximation. 1.",
+  "paper_file": "papers/2019/09/09/ms-approx-query.pdf",
+  "topics": [
+    "data-engineering",
+    "cloud-computing"
+  ],
+  "tags": [
+    "approximate-query-processing",
+    "sampling",
+    "query-optimization",
+    "big-data",
+    "TPC-H",
+    "batch-analytics",
+    "distributed-systems"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Workflow for Query-time Sampling",
+      "caption": "Workflow for Query-time Sampling"
+    },
+    {
+      "number": "Figure 2",
+      "title": "Illustrating the use of samplers for TPC-H query #5",
+      "caption": "Figure 2: Illustrating the use of samplers for TPC-H query #5; here, the user expresses the intent to compute the group-by and aggregation over a 5% uniform sample of the joined relation. Our QO pushes sampler down automatically w/o changing accuracy; see Figure 3."
+    },
+    {
+      "number": "Figure 3",
+      "title": "Plan after sampler pushdown",
+      "caption": "Figure 3: Plan after sampler pushdown"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

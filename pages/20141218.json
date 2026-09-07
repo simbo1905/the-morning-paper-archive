@@ -1,0 +1,39 @@
+{
+  "date": "20141218",
+  "file_name": "20141218",
+  "slug": "the-network-is-reliable",
+  "blog_url": "https://blog.acolyer.org/2014/12/18/the-network-is-reliable/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the critical importance of network reliability in distributed systems design, noting that the common assumption of a reliable network (Fallacy #1 in Peter Deutsch's 'Eight fallacies of distributed computing') is far from reality. The paper, co-authored by Peter Bailis and Kyle Kingsbury, compiles numerous real-world anecdotes of network failures—ranging from partitions and device failures to high packet loss and maintenance issues—that disrupt distributed systems. The cumulative effect of these stories underscores the severity of network unreliability, which can lead to split-brain scenarios, data unavailability, and system outages. The authors argue that partitions are not merely theoretical concerns but frequent occurrences that demand explicit consideration in system design. While acknowledging that some highly reliable networks exist (e.g., in financial firms), the paper cautions against relying on such reliability for future architectures, especially in cloud deployments. The key insight is that network failures are disruptive enough to warrant proactive design choices, even if they are rare in specific environments.",
+  "paper_title": "The Network is Reliable",
+  "paper_authors": [
+    "Peter Bailis",
+    "Kyle Kingsbury"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "",
+  "paper_url": "https://queue.acm.org/detail.cfm?id=2655736",
+  "paper_abstract": "Distributed datastores underpin highly concurrent, read-intensive applications, ensuring consistency, availability, and performance. They use crash-tolerant protocols to replicate data and endure replica server crashes. To ensure safety and meet the performance demands, replication must support high-throughput, strongly consistent (i.e., linearizable) reads without assuming any synchrony. However, existing protocols either 1 relax consistency, or provide linearizable reads that are 2 fully asynchronous but remote (involving multiple replicas), or 3 local but require synchrony. This work explores the tradeoffs between consistency, asynchrony, and performance in crash-tolerant protocols, and proves that in linearizable asynchronous read/write registers tolerating a single crash, no reads can be local. Building on this, we introduce almost-local reads (ALRs), a new abstraction that ensures crash tolerance and linearizability under asynchrony. While ALRs have slightly higher latency than local reads, they remain lightweight, with computation and network costs close to single-node reads. We present two simple yet effective ALR schemes that enhance protocols across all three categories. For protocols with local reads, ALRs address consistency or synchrony issues with minimal throughput loss. In asynchronous linearizable protocols, they improve performance without compromises. Our evaluation shows that ALRenhanced ZAB and Hermes achieve within 2% and 5% of their original throughput in 95% reads while ensuring linearizability under asynchrony. On Raft, ALRs deliver over 2.5× higher throughput without compromising consistency or asynchrony. PVLDB Reference Format: Antonios Katsarakis, Emmanouil Giortamis, Vasilis Gavrielatos, Pramod Bhatotia, Aleksandar Dragojevic, Boris Grot, Vijay Nagarajan, and Panagiota Fatourou. The LAW theorem: Local Reads and Linearizable Asynchronous Replication. PVLDB, 18(9): 2831-2845, 2025. doi:10.14778/3746405.3746411 PVLDB Artifact Availability:...",
+  "paper_file": "papers/2014/12/18/the-network-is-reliable.pdf",
+  "topics": [
+    "distributed-systems",
+    "networking"
+  ],
+  "tags": [
+    "network-partitions",
+    "split-brain",
+    "fault-tolerance",
+    "distributed-systems-fallacies",
+    "network-failures",
+    "Jepsen-reports"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Three-way tradeoff of crash-tolerant protocols",
+      "caption": "Three-way tradeoff of crash-tolerant protocols."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

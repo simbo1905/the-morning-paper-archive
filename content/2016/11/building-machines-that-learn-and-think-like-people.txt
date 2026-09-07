@@ -1,0 +1,540 @@
+URL: https://blog.acolyer.org/2016/11/25/building-machines-that-learn-and-think-like-people/
+Title: Building machines that learn and think like&nbsp;people
+---
+
+Building machines that learn and think like people Lake et al., arXiv 2016
+
+Pro-tip: if you're going to try and read and write up a paper every weekday, it's best not to pick papers that run to over 50 pages. When the paper is as interesting as "Building machines that learn and think like people" though, it's a pleasure to take a little extra time. You may recall from Monday's write-up of "AI and Life in 2030" that alongside steady progress, I harbour a secret hope that we have one or more big breakthroughs over the next decade.  Where might those breakthroughs come from? I'm sure we'll be able to take on problems of increasing scale, but I suspect progress there will feel more incremental. The places where we could still make order-of-magnitude style improvements seem to be:
+
+- Data efficiency - training a model to a certain level of proficiency using much less training data than today's models require.
+
+- Training time - closely correlated to data efficiency, achieving a certain level of proficiency with greatly reduced training time.
+
+- Adaptability - being able to more effectively take advantage of prior 'knowledge' (trained models) when learning a new task (which also implies needing less data, and shorter training times of course). (See e.g. "Progressive neural networks" ).
+
+Plus I hope, a few wonderful surprises coming out of research teams and industrial labs.  'Building machines that learn and think like people' investigates some of these questions by asking how humans seem to learn, where we still outperform state-of-the-art machine learning systems, and why that might be. It's in a similar vein to "Towards deep symbolic reinforcement learning", one of my favourite papers from the last couple of months.
+
+For those of you short on time, here's the TL;DR version from the abstract:
+
+> 
+
+ We review progress in cognitive science suggesting that truly human-like learning and thinking machines will have to reach beyond current engineering trends in both what they learn, and how they learn it. Specifically, we argue that these machines should (a) build causal models of the world that support explanation and understanding, rather than merely solving pattern recognition problems; (b) ground learning in intuitive theories of physics and psychology, to support and enrich the knowledge that is learned; and (c) harness compositionality and learning-to-learn to rapidly acquire and generalize knowledge to new tasks and situations.
+
+You'll be missing out on a whole lot if you just stop there though.
+
+## Pattern recognition vs model building
+
+Like Garnelo et al., Lake et al. see an important difference between learning systems that are fundamentally based on statistical pattern recognition, and learning systems that build some model of the world they can reason over.
+
+The pattern recognition approach discovers features that have something in common - classification labels for example - across a large diverse set of training data. The model building approach creates models to understand and explain the world, to imagine consequences of actions, and make plans.
+
+> 
+
+ The difference between pattern recognition and model-building, between prediction and explanation, is central to our view of human intelligence. Just as scientists seek to explain nature, not simply predict it, we see human thought as fundamentally a model-building activity.
+
+## Two challenges that reveal current limitations
+
+In cognitive science, the mind is not perceived as starting out as a collection of general purpose neural networks with few initial constraints. Instead, (most) cognitive scientists believe we start out with a number of early inductive biases that include core concepts such as number, space, agency, and objects, as well as learning algorithms that rely on prior knowledge to extract knowledge from small amounts of training data.  Lake et al. present two simple challenge problems that highlight some of these differences.
+
+## Character recognition
+
+If the field of machine learning has a pet store / pet shop equivalent, then recognising the digits 0-9 from the MNIST data set might be it. Machines can now achieve human-level performance on this task, so what's the problem?  Compared to a machine learning system, people:
+
+- Learn from fewer examples (we can learn to recognise a new handwritten character from a single example)
+
+- Learn richer representations...
+
+> 
+
+ People learn more than how to do pattern recognition, they learn a concept - that is, a model of the class that allows their acquired knowledge to be flexibly applied in new ways. In addition to recognising new example, people can also generate new examples, parse a character into its most important parts and relations, and generate new characters given a small set of related characters. These additional abilities come for free along with the acquisition of the underlying concept. Even for these simple visual concepts, people are still better and more sophisticated learners than the best algorithms for character recognition. People learn a lot more from a lot less, and capturing these human-level learning abilities in machines is the Characters Challenge.
+
+## Playing Frostbite
+
+Frostbite is one of the 49 Atari games that the DeepMind team trained a DQN to play. Human-level performance was achieved on 29 of the games, but Frostbite was one the DQN had particular trouble with as it requires longer-range planning strategies. "Frostbite Bailey" must construct an igloo within a time limit while jumping on ice floes, gathering fish, and avoiding hazards.
+
+> 
+
+ Although it is interesting that the DQN learns to play games at human-level performance while assuming very little prior knowledge, the DQN may be learning to play Frostbite and other games in a very different way than people do.
+
+- It needs much more training time - the DQN was compared to professional gamers who each had 2 hours of training time; DQN had 38 days and achieved less than 10% of human-level performance during a controlled test session.
+
+- Humans can grasp the basics of the game after just a few minutes of play. "We speculate that people do this by inferring a general schema to describe the goals of the game and the object types and their interactions, using the kinds of intuitive theories, model-building abilities and model-based planning mechanisms we describe below."
+
+- Humans can quickly adapt what they have learned to new goals. For example: get the lowest possible score; get closest to some score without ever going over; pass each level at the last possible minute, right before the time hits zero; get as many fish as you can; and so on.
+
+> 
+
+ This range of goals highlights an essential component of human intelligence: people can learn models and use them for arbitrary new tasks and goals.
+
+Of course, one of the reasons that humans can learn and adapt so quickly is that we can approach new problems armed with extensive prior experience, whereas the DQN is starting completely from scratch. How can we build machine learning systems that don't always need to start from scratch?
+
+> 
+
+ How do we bring to bear rich prior knowledge to learn new tasks and solve new problems so quickly? What form does that prior knowledge take, and how is it constructed, from some combination of inbuilt capacities and previous experience?
+
+The next three sections highlight some of the core ingredients en-route to meeting this challenge.
+
+> 
+
+ ... future generations of neural networks will look very different from the current state-of-the-art. They may be endowed with intuitive physics, theory of mind, causal reasoning, and other capacities...
+
+## Intuitive physics
+
+What do you get if you cross Deep Learning and Wolfram Alpha++? Humans have an understanding of several core domains very early in their development cycle, including numbers, space, physics, and psychology.
+
+> 
+
+ At the age of 2 months, and possibly earlier, human infants expect inanimate objects to follow principles of persistence, continuity, cohesion, and solidity. Young infants believe objects should move along smooth paths, not wink in and out of existing, not inter-penetrate and not act at a distance....
+
+At 6 months further expectations are developed around rigid bodies, soft bodies, and liquids. At 12 months concepts such as inertia, support, containment, and collisions.
+
+> 
+
+ What are the prospects for embedding or acquiring this kind of intuitive physics in deep learning systems?
+
+A promising recent paper from the Facebook AI team on PhysNet may be a step in this direction - it can learn to do simple 'Jenga-style' calculations on the stability of block towers with two, three, or four cubical blocks. It matches human performance on real images, and exceeds human performance on synthetic ones. PhysNet does require extensive training though, whereas people require much less and can generalize better.
+
+> 
+
+ Could deep learning systems such as PhysNet capture this flexibility, without explicitly simulating the causal interactions between objects in three dimensions? We are not sure, but we hope this is a challenge they will take on.
+
+## Intuitive psychology
+
+Pre-verbal infants can distinguish animate agents from inanimate objects....
+
+> 
+
+ ... infants expect agents to act contingently and reciprocally, to have goals, and to take efficient actions towards those goals subject to constraints. These goals can be socially directed; at around three months of age, infants begin to discriminate anti-social agents that hurt or hinder others from neutral agents and they later distinguish between anti-social, neutral, and pro-social agents. It is generally agreed that infants expect agents to act in a goal-directed, efficient, and socially sensitive fashion.
+
+While we don't know exactly how this works, one explanation is the use of generative models of action choice ("Bayesian theory-of-mind" models). These models formalise concepts such as 'goal', 'agent', 'planning', 'cost', 'efficiency', and 'belief.' By simulating the planning process of agents, people can predict what they might do next, or use inverse reasoning from a series of actions to infer agent beliefs and utilities.
+
+> 
+
+ As with objects and forces, it is unclear whether a complete representation of these concepts (agents, goals, etc.) could emerge from deep neural networks trained in a purely predictive capacity...
+
+Consider the Frostbite challenge - watching an expert play, intuitive psychology lets us infer the beliefs, desires and intentions of the player. "For instance, we can learn that birds are to be avoided from seeing how the experienced player appears to avoid them. We do not need to experience a single example of encountering a bird - and watching Frostbite Bailey die because of the bird - in order to infer that birds are probably dangerous."
+
+> 
+
+ There are several ways that intuitive psychology could be incorporated into contemporary deep learning systems.... a simple inductive bias, for example the tendency to notice things that move other things, can bootstrap reasoning about more abstract concepts of agency. Similarly, a great deal of goal-directed and socially-directed can also be boiled down to simple utility-calculus in a way that could be shared with other cognitive abilities.
+
+## Learning as model building
+
+Children (and adults) have a great capacity for 'one-shot' learning - a few examples of a hairbrush, pineapple, or light-sabre and a child understands the category, "grasping the boundary of the infinite set that defines each concept from the infinite set of all possible objects."
+
+> 
+
+ Contrasting with the efficiency of human learning, neural networks - by virtue of their generality as highly flexible function approximations - are notoriously data hungry.
+
+Even with just a few examples, people can learn rich conceptual models. For example, after seeing an example of a novel two-wheeled vehicle, a person can sketch new instances, parse the concept into its most important components, or even create new complex concepts though the combination of familiar concepts.
+
+> 
+
+ This richness and flexibility suggests that learning as model building is a better metaphor than learning as pattern recognition. Furthermore, the human capacity for one-shot learning suggests that these models are built upon rich domain knowledge rather than starting from a blank slate.
+
+The authors of this paper developed an algorithm using Bayesian Program Learning (BPL) that represents concepts as simple stochastic programs - structured procedures that generate new example of a concept when executed.
+
+> 
+
+ These programs allow the model to express causal knowledge about how the raw data are formed, and the probabilistic semantics allow the model to handle noise and perform creative tasks. Structure sharing across concepts is accomplished by the compositional reuse of stochastic primitives that can combine in new ways to create new concepts.
+
+BPL can perform a challenging one-shot classification task at human-level performance. One for a future edition of The Morning Paper perhaps.
+
+Another interesting kind of model is a causal model. In the interests of space I won't discuss it here, but see §4.2.2 in the paper for details.
+
+A final area the authors discuss in this section is "learning to learn":
+
+> 
+
+ While transfer learning and multi-task learning are already important themes across AI, and in deep learning in particular, they have not led to systems that learn new tasks as rapidly and flexibly as humans do... To gain the full benefit that humans get from learning-to-learn, AI systems might first need to adopt the more compositional (or more language-like) and causal forms of representations that we have argued for above.
+
+A system for example that learned compositionally structured causal models of a game - built on a foundation of intuitive physics and psychology - could transfer knowledge more efficiently and thus learn new games much more quickly.
+
+## Thinking fast
+
+> 
+
+ Hierarchical Bayesian models operating over probabilistic programs are equipped to deal with theory-like structures and rich causal representations of the world, yet there are formidable challenges for efficient inference... For domains where programs or theory learning happens quickly, it is possible that people employ inductive biases not only to evaluate hypotheses, but also to guide hypotheses selection.
+
+For example , "20 inches" cannot possibly be the answer to the question "What year was Lincoln born?" Recent work has attempted to tackle this challenge using feed-forward mappings to amortize probabilistic inference computations. See §4.3.1 for references.
+
+## Outside of the ML mainstream?
+
+This is already about 50% longer than my target write-up length (but to be fair, the paper is >> 50% longer than the average paper length!) so I shall stop here and encourage you to dive into the full paper if this piques your interest. I'll leave you with this closing thought: if we are going to see such breakthroughs in machine learning, it's highly likely they'll be developed either by those who remember earlier eras of AI, or those working a little bit outside of the mainstream. Keep your eye on the left-side of the field :).
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Machine Learning 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousSmart Reply: Automated response suggestion for emailNext &rsaquo;Kraken: Leveraging live traffic tests to identify and resolve resource utilization bottlenecks in large scale web services
+ 
+ 
+
+ 
+ 
+## 
+ 16 thoughts on &ldquo;Building machines that learn and think like people&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Seanny123 says: 
+
+ 
+ November 25, 2016 at 9:56 am 
+
+ 
+
+ 
+ 
+I still maintain that "Towards deep symbolic reinforcement learning" is just a simpler implementation of Spaun. Additionally, when you talk about the "character problem" you're actually talking about One Shot Learning. Finally, adapting to new goals rapidly given only reinforcement-learning feedback, this is the hallmark of Model-based Reinforcement Learning. 
+
+Hopefully these terms will guide you through further readings on the topic.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ November 25, 2016 at 11:37 am 
+
+ 
+
+ 
+ 
+Thanks for the pointers. Spaun definitely sounds interesting, I'll look that up.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Seanny123 says: 
+
+ 
+ February 26, 2017 at 8:15 am 
+
+ 
+
+ 
+ 
+Let me know if you have any questions about the paper. Sorry for the late reply, I apparently didn't have my email settings configured properly.
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ Pingback: Four short links: 25 November 2016 | A bunch of data 
+ 
+ 
+- 
+ 
+ Pingback: Roundup 11/28/2016 | ML/DL 
+ 
+ 
+- 
+ 
+ Pingback: Good review of AI research and where it might lead - Sherlock Codes 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 25 November 2016 | Vedalgo 
+ 
+ 
+- 
+ 
+ Pingback: Welcome to 2017 | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Interaction networks for learning about objects, relations and physics | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Matching networks for one shot learning | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Strategic attentive writer for learning macro-actions | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: AI: Pattern Recognition & Model-Building | Delightful & Distinctive COLRS 
+ 
+ 
+- 
+ 
+ Pingback: Value iteration networks | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Value iteration networks | ZHANG RONG 
+ 
+ 
+- 
+ 
+ 
+ 
+ Paul Golding (@pgolding) says: 
+
+ 
+ January 17, 2018 at 7:38 am 
+
+ 
+
+ 
+ 
+It reinforces what Chomsky has been saying for a long time about the difference between much of AI and what he calls human "discovery" of solutions, the methods of which remain mysterious. His analogy is that pattern matching is like doing physics by pointing a camera out of a window and slowly making predictions over time, which it might do well, but with zero explanatory power. The irony is that much of ML is considered to be about generating "insights" whereas it is the human that does that bit.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ papierdesoi says: 
+
+ 
+ October 10, 2019 at 2:56 am 
+
+ 
+
+ 
+ 
+Reblogged this on Papier de soi and commented:
+
+https://adnumerique.blog
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

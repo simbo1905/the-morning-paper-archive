@@ -1,0 +1,318 @@
+URL: https://blog.acolyer.org/2019/05/08/distributed-consensus-revised-part-ii/
+Title: Distributed consensus revised &#8211; Part&nbsp;II
+---
+
+Distributed consensus revised (part II) Howard, PhD thesis
+
+In today’s post we’re going to be looking at chapter 3 of Dr Howard’s thesis, which is a tour ("systematisation of knowledge", SoK) of some of the major known revisions to the classic Paxos algorithm.
+
+## Negative responses (NACKs)
+
+In classic Paxos acceptors only send replies to proposer messages with an epoch greater than or equal to the acceptors last promised epoch (Property 6). The algorithms relies on timeouts to determine when a proposer abandons the current phase and retries with a new epoch number. We can eliminate the timeout delays by adding negative responses, for example and , to be sent by the acceptor in response to prepare or propose messages with an invalid epoch number. These negative acknowledgements (NACKS) can also include further information such as the acceptor’s last promised epoch and last accepted proposal value. (There’s no point a proposer retrying with a new epoch less than the acceptor’s last promised one for example).
+
+> 
+
+ NACKs have replaced timeouts as we assume that messages are eventually delivered. We can therefore remove the synchrony assumptions from our progress proof.
+
+## Bypassing phase two
+
+If a proposer learns during phase one that a value has been decided (the same proposal is returned by a majority of acceptors), then the proposer may skip phase two and simply return the learned value. This requires amending the algorithm to keep track of the set of acceptors who have promised and returned a given proposal with their promise.
+
+Now that we have the possibility of skipping phase two, there are a number of further tricks we can do to increase the probability. For example, if we’re one short of a majority and the timeout is about expire with responses still outstanding, it might make more sense to wait for an additional grace period rather than restart phase one. Or we could start phase two but keep phase one ‘open’, and if that additional promise comes in for phase one while phase two is still in flight the proposer can return the decided value immediately. Another twist would be to remember promises from previous epochs during proposal tracking...
+
+## Termination
+
+So far we’re getting pretty good at deciding a value, but there’s room for improvement in how proposers learn the decided value. Specifically, even when a value has been decided proposers still need to communicate with a majority of acceptors to learn that value. This means that we need the majority of acceptors up and communicating for a proposer to execute its algorithm and return a value.
+
+> 
+
+ We can improve this by adding an optional phase three to Classic Paxos, in which the acceptors learn the value has been decided. The acceptors can then notify future proposers that the value has been decided, enabling the proposer to return a decided value without waiting upon the majority of acceptors. Adding phase three to Classic Paxos serves an important purpose that may not be immediately apparent, namely that the liveness conditions are no longer necessary for progress.
+
+Raft and Viewstamped Replication Revisited use a related idea to communicate a learned decision by including a commit index in messages instead of an explicit phase three.
+
+## Distinguished proposer
+
+You may have picked up on that odd-sounding requirement in the progress conditions we looked at in the last instalment that there be only a single fixed proposer in order for progress to be guaranteed. This condition is to avoid a pathology in which two (or more) proposers continually duel, overriding each others proposals. We can make it much more likely that only a single proposer is executing Classic Paxos at any given time by introducing the notion of a distinguished proposer. Non-distinguished proposers forward their candidate values to this proposer, and only the distinguished proposer initiates Paxos.
+
+> 
+
+ If the distinguished proposer appears to be slow or unresponsive, another proposer can become a distinguished proposer and thus propose values directly. It is always safe for there be to no distinguished proposer, multiple distinguished proposers or inconsistent knowledge of the distinguished proposer. However to guarantee progress, there should be exactly one distinguished proposer at a given time and all proposers should be aware of its identity.
+
+The distinguished proposer (leader) optimisation is widely utilised.
+
+## Phase ordering
+
+A proposer doesn’t make any use of the value they intend to propose until phase two. So it’s entirely possible to run phase one without even knowing that value, and then when the proposer does learn the value to propose it can decide the value in one round trip rather than two provided no other proposer has also executed the proposer algorithm for a greater epoch. We can greatly increase the chances of this fortuitous situation occurring of course if the proposer is the distinguished proposer.
+
+## Multi-Paxos
+
+Multi-Paxos is an optimisation of Classic Paxos for consensus over a sequence of values. In Classic Paxos we’d need to run phases one and two for each value in the sequence (i.e., an instance of Paxos for every value). In Multi-Paxos phase one is shared by all instances.
+
+> 
+
+ Each acceptor needs only to store the last promised epoch once. Prepare and promise messages are not instance-specific and therefore do not need an index included in the phase one messages. Once phase one is completed, we will refer to this proposer as the Leader. The leader is the distinguished proposer and thus is responsible for making decisions.
+
+During the steady state, we can reach each decision in one round trip to the majority of acceptors and one synchronous write to persistent storage. The Multi-Paxos optimisation is so common that an unqualified reference to Paxos often means Multi-Paxos.
+
+One disadvantage of Multi-Paxos is that it places substantial load on the leader, which often becomes the bottleneck.
+
+## Roles
+
+Proposers and acceptors don’t have to be separate processes (participants). So for example we could combine the roles of acceptor and proposer in a participant, which means one less remote acceptor to communicate with. We could also introduce additional roles, e.g. a reader role that simply asks acceptors for the last accepted proposal to try and determine if a value has been decided.
+
+## Epochs
+
+A classic approach is to use the natural numbers as epoch numbers and divide them round-robin style between participants. A similar idea is to use lexicographically-ordered tuples where sid is a monotonically increasing proposal sequence number and pid is the unique proposer id (fixed at configuration time). In either case, proposals must begin with a synchronous write to storage (strictly, the write must be completed before phase two starts). There are a couple of tricks for reducing the number of persistent writes required. For example, using epochs of the form where vid is a proposer version number incremented each time the proposer (re)starts. Now sids no longer have to be persisted.
+
+## Phase one voting for epochs
+
+Classic Paxos does not strictly require that epochs are unique so long as acceptors require a proposer’s epochs be strictly greater than the last promised proposal. If we revise the acceptor algorithm to keep track of the proposer of the last promised epoch, then we can additionally accept a prepare from a proposer when the epoch is the last promised epoch, and the proposer is the same proposer. This variation is called ‘epochs by voting’, and means that we don’t have to allocated a disjoint subset of epochs to proposers: any proposer can use any epoch from the set (though of course, the proposer may not be successful).
+
+## Proposal copying
+
+If we include last accepted proposals (epoch and value) in NACKs, then proposers learn about the state of the acceptors. In proposal copying proposers can use this information to jump straight to phase two. Furthermore, when proposing that value, the acceptor(s) from which they learned it can count towards the phase two quorum already.
+
+## Quorum generalisation
+
+Classic Paxos requires majority participation and can handle a minority of acceptors failing (typically expressed as out of total).
+
+> 
+
+ This approach tightly couples the total number of acceptors, the number of acceptors needed to participate in consensus and the number of failures tolerated. Ideally, we would like to minimise the number of acceptors in the system and the number required to participate in consensus, as the proposer must wait upon the acceptors to reply and send more messages.
+
+Strict majorities are used in Classic Paxos in order to ensure that all quorums intersect. The majority requirement can be generalised to use any quorum system which guarantees all quorums intersect. Quorum systems other than strict majority are rarely utilised in practice.
+
+## Miscellaneous
+
+There’s more! The miscellaneous section (3.12) gives brief treatment to another six variations, see the full thesis for details.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Distributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousDistributed consensus revised - Part INext &rsaquo;Distributed consensus revised - Part III
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;Distributed consensus revised - Part II&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ simbo1905 says: 
+
+ 
+ May 10, 2019 at 9:22 am 
+
+ 
+
+ 
+ 
+None majority quorum the are said to be rare allow for one excellent optimisation which is to use an even number of nodes. With a strict majority using 4 nodes is slower than 3 nodes without any additional resilience. Likewise 6 nodes is slower with no additional resilience. However you can commit on 50% accept responses as that will overlap with a majority propose response. In steady state a 4 or 6 node cluster is then no slower than one less node and you get one more hot spare and can make each cloud resilience zone balanced. I wrote a blog about this optimisation at https://simbo1905.blog/2016/09/30/the-fpaxos-even-nodes-optimisation/
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

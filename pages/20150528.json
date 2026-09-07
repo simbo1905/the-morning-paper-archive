@@ -1,0 +1,40 @@
+{
+  "date": "20150528",
+  "file_name": "20150528",
+  "slug": "distributed-graphlab-a-framework-for-machine-learning-and-data-mining-in-the-cloud",
+  "blog_url": "https://blog.acolyer.org/2015/05/28/distributed-graphlab-a-framework-for-machine-learning-and-data-mining-in-the-cloud/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Distributed GraphLab as an extension of the original GraphLab framework to support distributed graph processing for large-scale machine learning and data mining (MLDM) tasks. The paper demonstrates that GraphLab outperforms Hadoop by 20-60x on equivalent tasks and is comparable to tailored MPI implementations, while also being more cost-effective (e.g., two orders of magnitude cheaper for Netflix recommendations). Key innovations include data versioning to reduce network congestion, pipelined distributed locking to mitigate latency, and the introduction of 'atom graphs' for efficient data locality and ingress. The paper also adapts the Chandy-Lamport snapshot algorithm for fault tolerance. Colyer emphasizes the elegance of the chromatic engine's graph-coloring-based execution model and the flexibility of the locking engine for different consistency models. The work is motivated by the growing scale and complexity of MLDM problems, with real-world applications like Netflix recommendations, video co-segmentation, and named-entity recognition.",
+  "paper_title": "Distributed GraphLab: A Framework for Machine Learning and Data Mining in the Cloud",
+  "paper_authors": [
+    "Yucheng Low",
+    "Joseph E. Gonzalez",
+    "Aapo Kyrola",
+    "Danny Bickson",
+    "Carlos Guestrin",
+    "Joseph M. Hellerstein"
+  ],
+  "paper_year": 2012,
+  "paper_venue": "VLDB",
+  "paper_url": "http://vldb.org/pvldb/vol5/p716_yuchenglow_vldb2012.pdf",
+  "paper_abstract": "to address race conditions, deadlocks, distributed state, and communication protocols while simultaneously developing mathematically complex models and algorithms. Nonetheless, the demand for large-scale computational and storage resources, has driven many [2, 14, 15, 27, 30, 35] to develop new parallel and distributed MLDM systems targeted at individual models and applications. This time consuming and often redundant effort slows the progress of the field as different research groups repeatedly solve the same parallel/distributed computing problems. Therefore, the MLDM community needs a high-level distributed abstraction that specifically targets the asynchronous, dynamic, graph-parallel computation found in many MLDM applications while hiding the complexities of parallel/distributed system design. Unfortunately, existing high-level parallel abstractions (e.g. MapReduce [8, 9], Dryad [19] and Pregel [25]) fail to support these critical properties. To help fill this void we introduced [24] GraphLab abstraction which directly targets asynchronous, dynamic, graph-parallel computation in the shared-memory setting. In this paper we extend the multi-core GraphLab abstraction to the distributed setting and provide a formal description of the distributed execution model. We then explore several methods to implement an efficient distributed execution model while preserving strict consistency requirements. To achieve this goal we incorporate data versioning to reduce network congestion and pipelined distributed locking to mitigate the effects of network latency. To address the challenges of data locality and ingress we introduce the atom graph for rapidly placing graph structured data in the distributed setting. We also add fault tolerance to the GraphLab framework by adapting the classic Chandy-Lamport [6] snapshot algorithm and demonstrate how it can be easily implemented within the GraphLab abstraction. We conduct a comprehensive performance analysis of our optimized C++ ...",
+  "paper_file": "papers/2015/05/28/distributed-graphlab-a-framework-for-machine-learning-and-data-mining-in-the-cloud.pdf",
+  "topics": [
+    "distributed-systems",
+    "machine-learning",
+    "data-engineering"
+  ],
+  "tags": [
+    "graph-processing",
+    "distributed-locking",
+    "graph-coloring",
+    "consistency-models",
+    "fault-tolerance",
+    "data-locality",
+    "machine-learning-frameworks",
+    "graph-partitioning"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

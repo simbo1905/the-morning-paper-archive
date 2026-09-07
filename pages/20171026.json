@@ -1,0 +1,52 @@
+{
+  "date": "20171026",
+  "file_name": "20171026",
+  "slug": "the-quic-transport-protocol-design-and-internet-scale-deployment",
+  "blog_url": "https://blog.acolyer.org/2017/10/26/the-quic-transport-protocol-design-and-internet-scale-deployment/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the QUIC transport protocol, developed by Google to improve HTTPS performance. Adrian Colyer highlights three key aspects: the motivations behind QUIC (Why), its design and features (What), and its real-world deployment and evolution (How). QUIC addresses latency issues in web applications by combining the cryptographic and transport handshakes into a single round trip, enabling 0-RTT connections for repeat visits. It avoids head-of-line blocking through stream multiplexing, improves loss recovery with packet-level sequence numbers, and enhances security by encrypting transport headers. The protocol is built on UDP to bypass kernel dependencies and middlebox ossification. Google's iterative, Internet-scale experimentation with QUIC in Chrome, YouTube, and Google Search demonstrated measurable latency reductions and fewer playback interruptions, though at the cost of higher CPU usage compared to TCP/TLS.",
+  "paper_title": "The QUIC transport protocol: design and Internet-scale deployment",
+  "paper_authors": [
+    "D. Langley",
+    "M. Lobbezoo",
+    "C. Wilkins",
+    "E. Upadhyay",
+    "A. Barth",
+    "B. Lerner"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "SIGCOMM'17",
+  "paper_url": "https://dl.acm.org/authorize.cfm?key=N33907",
+  "paper_abstract": "We present our experience with QUIC, an encrypted, multiplexed, and low-latency transport protocol designed from the ground up to improve transport performance for HTTPS traffic and to enable rapid deployment and continued evolution of transport mechanisms. QUIC has been globally deployed at Google on thousands of servers and is used to serve traffic to a range of clients including a widely-used web browser (Chrome) and a popular mobile video streaming app (YouTube). We estimate that 7% of Internet traffic is now QUIC. We describe our motivations for developing a new transport, the principles that guided our design, the Internet-scale process that we used to perform iterative experiments on QUIC, performance improvements seen by our various services, and our experience deploying QUIC globally. We also share lessons about transport design and the Internet ecosystem that we learned from our deployment. Figure 1: QUIC in the traditional HTTPS stack. TCP (Figure 1). We developed QUIC as a user-space transport with UDP as a substrate. Building QUIC in user-space facilitated its deployment as part of various applications and enabled iterative changes to occur at application update timescales. The use of UDP allows QUIC packets to traverse middleboxes. QUIC is an encrypted transport: packets are authenticated and encrypted, preventing modification and limiting ossification of the protocol by middleboxes. QUIC uses a cryptographic handshake that minimizes handshake latency for most connections by using known server credentials on repeat connections and by removing redundant handshake-overhead at multiple layers in the network stack. QUIC eliminates head-of-line blocking delays by using a lightweight data-structuring abstraction, streams, which are multiplexed within a single connection so that loss of a single packet blocks only streams with data in that packet. On the server-side, our experience comes from deploying QUIC at Google’s front-end servers, which collectively ha...",
+  "paper_file": "papers/2017/10/26/the-quic-transport-protocol-design-and-internet-scale-deployment.pdf",
+  "topics": [
+    "networking",
+    "distributed-systems"
+  ],
+  "tags": [
+    "transport-protocols",
+    "udp",
+    "tls",
+    "http2",
+    "handshake-optimization",
+    "stream-multiplexing",
+    "loss-recovery",
+    "congestion-control",
+    "middlebox-ossification",
+    "0-rtt"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "QUIC in the traditional HTTPS stack",
+      "caption": "QUIC in the traditional HTTPS stack."
+    },
+    {
+      "number": "Figure 2",
+      "title": "QUIC deployment statistics",
+      "caption": "QUIC is widely deployed: it currently accounts for over 30% of Google’s total egress traffic in bytes and consequently an estimated 7% of global Internet traffic [61]."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

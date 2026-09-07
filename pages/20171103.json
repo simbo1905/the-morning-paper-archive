@@ -1,0 +1,44 @@
+{
+  "date": "20171103",
+  "file_name": "20171103",
+  "slug": "log20-fully-automated-optimal-placement-of-log-printing-statements-under-specified-overhead-threshold",
+  "blog_url": "https://blog.acolyer.org/2017/11/03/log20-fully-automated-optimal-placement-of-log-printing-statements-under-specified-overhead-threshold/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses a paper that tackles the challenge of optimally placing logging statements in software systems to balance information utility and performance overhead. Adrian Colyer highlights that current logging practices are often retrospective and manually adjusted, leading to inefficiencies. The paper introduces Log20, an automated tool that uses an entropy-based model to determine the most informative log placements under a specified overhead constraint. Log20 samples execution paths in production systems and selects log statement locations that minimize uncertainty (entropy) while staying within performance budgets. The algorithm employs a greedy approximation to efficiently solve this NP-hard problem. The paper also explores extensions like logging variable values to further reduce entropy. Evaluation on systems like HDFS and HBase shows significant entropy reduction with minimal overhead, outperforming manual logging approaches.",
+  "paper_title": "Log20: Fully Automated Optimal Placement of Log Printing Statements under Specified Overhead Threshold",
+  "paper_authors": [
+    "Yuhao Zhao",
+    "Shilin He",
+    "Jian Li",
+    "Michael R. Lyu",
+    "Yingnong Dang",
+    "Hongyu Zhang"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "SOSP'17",
+  "paper_url": "http://www.eecg.toronto.edu/~yuan/papers/p125-Zhao.pdf",
+  "paper_abstract": "When systems fail in production environments, log data is often the only information available to programmers for postmortem debugging. Consequently, programmers’ decision on where to place a log printing statement is of crucial importance, as it directly affects how effective and efficient postmortem debugging can be. This paper presents Log20, a tool that determines a near optimal placement of log printing statements under the constraint of adding less than a specified amount of performance overhead. Log20 does this in an automated way without any human involvement. Guided by information theory, the core of our algorithm measures how effective each log printing statement is in disambiguating code paths. To do so, it uses the frequencies of different execution paths that are collected from a production environment by a low-overhead tracing library. We evaluated Log20 on HDFS, HBase, Cassandra, and ZooKeeper, and observed that Log20 is substantially more efficient in code path disambiguation compared to the developers’ manually placed log printing statements. Log20 can also output a curve showing the trade-off between the informativeness of the logs and the performance slowdown, so that a developer can choose the right balance.",
+  "paper_file": "papers/2017/11/03/log20-fully-automated-optimal-placement-of-log-printing-statements-under-specified-overhead-threshold.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "logging",
+    "instrumentation",
+    "entropy",
+    "performance-overhead",
+    "execution-paths",
+    "debugging",
+    "automated-placement"
+  ],
+  "figures": [
+    {
+      "number": "Table 1",
+      "title": "Number of log printing statements under different verbosity levels",
+      "caption": "Number of log printing statements under different verbosity levels in the source code, excluding testing code. *HBase used Debug as default log verbosity from 2008-2015."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

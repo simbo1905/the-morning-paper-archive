@@ -1,0 +1,50 @@
+{
+  "date": "20141210",
+  "file_name": "20141210",
+  "slug": "why-events-are-a-bad-idea",
+  "blog_url": "https://blog.acolyer.org/2014/12/10/why-events-are-a-bad-idea/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes this 2003 paper by von Behren et al., which argues against the prevailing trend of favoring event-based programming for high-concurrency servers. The authors, including Eric Brewer (of CAP theorem fame), contend that threads can match or exceed the performance of event-based systems while offering a simpler and more natural programming model. They systematically address common criticisms of threads (poor scalability, restrictive control flow, heavyweight synchronization, inefficient stack management) and demonstrate that modern threading implementations can handle 100,000 threads efficiently. The paper highlights that threads provide clearer control flow, easier exception and state management, and better integration with compilers and runtime systems. The authors built a threaded version of the SEDA web server that outperformed the event-based version under high concurrency, attributing the difference to overheads in event handling. The key insight is that threads are not inherently inferior to events for high-concurrency servers and often lead to simpler, more maintainable code.",
+  "paper_title": "Why Events Are A Bad Idea (for High Concurrency Servers)",
+  "paper_authors": [
+    "Robert von Behren",
+    "Eric Brewer",
+    "Adrian Colyer",
+    "Mike Burrows",
+    "Fahad Dogar",
+    "Naveen Kr. Sharma",
+    "David E. Culler"
+  ],
+  "paper_year": 2003,
+  "paper_venue": "USENIX HotOS",
+  "paper_url": "https://www.usenix.org/legacy/events/hotos03/tech/full_papers/vonbehren/vonbehren.pdf",
+  "paper_abstract": "Event-based programming has been highly touted in recent years as the best way to write highly concurrent applications. Having worked on several of these systems, we now believe this approach to be a mistake. Speciﬁcally, we believe that threads can achieve all of the strengths of events, including support for high concurrency, low overhead, and a simple concurrency model. Moreover, we argue that threads allow a simpler and more natural programming style. We examine the claimed strengths of events over threads and show that the weaknesses of threads are artifacts of speciﬁc threading implementations and not inherent to the threading paradigm. As evidence, we present a user-level thread package that scales to 100,000 threads and achieves excellent performance in a web server. We also reﬁne the duality argument of Lauer and Needham, which implies that good implementations of thread systems and event systems will have similar performance. Finally, we argue that compiler support for thread systems is a fruitful area for future research. It is a mistake to attempt high concurrency without help from the compiler, and we discuss several enhancements that are enabled by relatively simple compiler changes.",
+  "paper_file": "papers/2014/12/10/why-events-are-a-bad-idea.pdf",
+  "topics": [
+    "operating-systems",
+    "concurrency"
+  ],
+  "tags": [
+    "event-driven-programming",
+    "thread-based-programming",
+    "seda",
+    "web-servers",
+    "control-flow",
+    "state-management",
+    "scalability"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Dual notions in thread and event systems",
+      "caption": "A selection of dual notions in thread and event systems, paraphrased from Lauer and Needham. We have converted their terminology to contemporary terms from event-driven systems."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Threaded vs. Event-Based Server Performance",
+      "caption": "A repeat of the threaded server benchmark from the SEDA paper [17]. The threaded server uses a preallocated thread pool to process requests, while the event server uses a single thread to pull items from the queue."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

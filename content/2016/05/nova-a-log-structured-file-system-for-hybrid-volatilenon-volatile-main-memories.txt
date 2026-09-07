@@ -1,0 +1,308 @@
+URL: https://blog.acolyer.org/2016/05/06/nova-a-log-structured-file-system-for-hybrid-volatilenon-volatile-main-memories/
+Title: NOVA: A Log-Structured File System for Hybrid Volatile/Non-Volatile Main&nbsp;Memories
+---
+
+NOVA: A Log-structured file system for hybrid volatile/non-volatile main memories - Xu & Swanson 2016
+
+Another paper looking at the design implications of mixed DRAM and NVMM systems (it's the future!), this time in the context of file systems. (NVMM = Non-volatile Main Memory).
+
+> 
+
+ Hybrid DRAM/NVMM storage systems present a host of opportunities and challenges for system designers. These systems need to minimize software overhead if they are to fully exploit NVMM's high performance and efficiently support more flexible access patterns, and at the same time they must provide the strong consistency guarantees that applications require and respect the limitations of emerging memories (e.g. limited program cycles).
+
+Why can't we just take an existing file system and run it on top of a hybrid memory system? These file systems were built for the performance characteristics of disks (spinning or SSDs) - whereas NVMM and DRAM provide vastly improved performance. They where also built to rely on the consistency guarantees of disks (e.g. atomic sector updates), but memory provides different consistency guarantees from disks. One of the central issues here is the under-the-covers reordering of memory stores, and the need to explicitly flush data from CPU caches to compensate. This can easily destroy any performance gains from NVMM if you're not careful.
+
+> 
+
+ To overcome all these limitations, we present the NOn-Volatile memory Accelerated (NOVA) log-structured file system. NOVA adapts conventional log-structured file system techniques to exploit the fast random access provided by hybrid memory systems. This allows NOVA to support massive concurrency, reduce log size, and minimize garbage collection costs while providing strong consistency guarantees for conventional file operations and mmap-based load/store accesses.
+
+All of this hard work pays off: "We find that NOVA is significantly faster than existing file systems in a wide range of applications and outperforms file systems that provide the same data consistency guarantees by between 3.1x and 13.5x in write-intensive workloads."
+
+There is a lot of detailed information about NOVA's implementation in the paper. Here I want to focus on the authors' excellent discussion of what's different about hybrid memory systems, and how they approached the high-level design of NOVA as a consequence.
+
+## Challenges in designing for hybrid memory systems
+
+Xu & Swanson outline three fundamental challenges when designing for hybrid memory systems:
+
+- Realising the performance potential of the hardware
+
+- Write reordering and its impact on consistency
+
+- Providing atomicity for operations
+
+## Performance
+
+> 
+
+ The low latencies of NVMMs alters the trade-offs between hardware and software latency. In conventional storage systems, the latency of slow storage devices (e.g., disks) dominates access latency, so software efficiency is not critical. Previous work has shown that with fast NVMM, software costs can quickly dominate memory latency, squandering the performance that NVMMs could provide...
+
+It is possible to bypass the DRAM page cache and access NVMM directly using a technique called Direct Access (DAX), or eXecute In Place (XIP), avoiding extra copies between NVMM and DRAM in the storage stack.
+
+> 
+
+ NOVA is a DAX file system, and we expect that all NVMM file systems will provide for these (or similar) features.
+
+## Write re-ordering
+
+> 
+
+ Modern processors and their caching hierarchies may reorder store operations to improve performance. The CPU’s memory consistency protocol makes guarantees about the ordering of memory updates, but existing models (with the exception of research proposals [20, 46]) do not provide guarantees on when updates will reach NVMMs. As a result, a power failure may leave the data in an inconsistent state.
+
+It's possible to explicitly flush caches and issue memory barriers to enforce write ordering. However, while an mfence will enforce order on memory operations before and after the barrier, it only guarantees all CPUs have the same view of the memory. It does not impose any constraints on the order of data writebacks to the NVMM.
+
+Intel has proposed new instructions to fix these problems, which include clflushopt, clwb and pcommit. "NOVA is built with these instructions in mind..."
+
+## Atomicity
+
+> 
+
+ Existing file systems use a variety of techniques like journaling, shadow paging, or log-structuring to provide atomicity guarantees.
+
+A journaling (WAL) system records all updates to a journal before applying them, and in the case of a power failure replays the journal to restore the system to a consistent state. Shadow paging is a copy-on-write mechanism in which a new copy of affected pages is written to storage on a write, before swapping out any references to the old pages for the new ones. Log-structured file systems (LFS) buffer random writes in memory and then convert them into larger sequential writes to the disk. This frequent a steady supply of contiguous free regions of disk, which in turn entails frequent cleaning and compacting of the log to reclaim space.
+
+RAMCloud is an example of a DRAM based storage system that keeps all its data in DRAM to service reads, and keeps a persistent version on disk. It uses log structure for both DRAM and disk.
+
+## NOVA design principles
+
+> 
+
+ NOVA is a log-structured, POSIX file system that builds on the strengths of LFS and adapts them to take advantage of hybrid memory systems. Because it targets a different storage technology, NOVA looks very different from conventional log-structured file systems that are built to maximize disk bandwidth.
+
+Three observations influenced the design:
+
+- Logs that support atomic updates are easy to implement in NVMM, but are not efficient for search operations (e.g. directory lookup and file random access). Data structures that support fast search (e.g. trees) are more difficult to implement correctly and efficiently in NVMM.
+
+- The complexity of log cleaning in LFS comes from the need for contiguous free regions of storage. In NVMM however, random access is cheap and therefore we don't need to write in contiguous regions and hence don't need such complex cleaning protocols.
+
+- NVMMs support fast, highly concurrent random accesses, and therefore using multiple logs does not negatively impact performance. 
+
+Based on this, NOVA:
+
+- Keeps logs in NVMM, and indexes (radix trees) in DRAM.
+
+- Gives each inode its own log, which allows concurrent updates across files without synchronization. During recovery, NOVA can replay multiple logs simultaneously. 
+
+- Uses logging and lightweight journaling for complex atomic updates. NOVA's log-structure provides cheaper atomic updates than journaling or shadow paging. "To atomically write to a log, NOVA first appends data to the log, and then atomically updates the log tail to commit the updates, thus avoiding both the duplicate writes overhead of journaling file systems and the cascading update costs of shadow paging systems." 
+
+- Implements the log as a singly linked list! The locality benefits of sequential logs are less important in NVMM, so NOVA uses a linked list of 4KB NVMM pages. 
+
+> 
+
+ Allowing for non-sequential log storage provides three advantages. First, allocating log space is easy since NOVA does not need to allocate large, contiguous regions for the log. Second, NOVA can perform log cleaning at fine-grained page-size granularity. Third, reclaiming log pages that contain only stale entries requires just a few pointer assignments.
+
+- Finally, NOVA does not log file data. NOVA uses copy-on-write for modified pages, and appends metadata about the write to the log. 
+
+The high-level layout of the NOVA data structures looks like this:
+
+NOVA's atomicity comes from a combination of:
+
+- 64-bit atomic updates - NOVA exploits processor support for 64-bit atomic writes to memory to directly modify metadata for some operations (e.g. a file's atime for reads), and to commit updates to the log by updating the inode's log tail pointer.
+
+- Logging in the inode's log to record operation that modify a single node.
+
+- Lightweight journaling for directory operations that require changes to multiple nodes.
+
+- Enforced write ordering by: (1) committing data and log entries to NVMM before updating the log tail; (2) committing journal data to NVMM before propagating updates; and (3) committing new versions of data pages to NVMM before recycling stale ones. If NOVA is running on a system that supports the new clflushopt' clwb, and pcommit instructions it will use these to enforce the write ordering, otherwise it uses movntq, "a non-temporal move instruction that bypasses the CPU cache hierarchy to perform direct writes to NVMM," and a combination of clflush and mfence.
+
+## Evaluation
+
+Figure 6 shows how NOVA file system operation latency compares to other file system across different NVMM configurations.
+
+Note that NOVA is more sensitive to NVMM performance than the other file systems because NOVA's software overheads are lower, and so overall performance more directly reflects the underlying memory performance.
+
+Figure 7 shows how NOVA compares to other file systems across four Filebench workloads: a file server, web proxy, web server, and varmail (emulates an email server).
+
+> 
+
+ Overall, NOVA achieves the best performance in almost all cases, and provides data consistency guarantees that are as strong or stronger than the other file systems. The performance advantages of NOVA are largest on write-intensive workloads with large numbers of files.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ HardwareStorage 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousUncovering bugs in Distributed Storage Systems during Testing (not in production!)Next &rsaquo;Finding surprising patterns in a time series database in linear time and space
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

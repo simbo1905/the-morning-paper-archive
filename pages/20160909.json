@@ -1,0 +1,68 @@
+{
+  "date": "20160909",
+  "file_name": "20160909",
+  "slug": "reflections-on-trusting-trust",
+  "blog_url": "https://blog.acolyer.org/2016/09/09/reflections-on-trusting-trust/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Ken Thompson's 1984 Turing Award Lecture as a masterclass in subtle, insidious security vulnerabilities. The paper builds from self-reproducing programs (quines) to show how a compiler can be subverted to inject trojan horses into other programs, including itself. Thompson demonstrates a 'double-blind' attack where a malicious compiler inserts a backdoor into the login command while also embedding a self-replicating mechanism to reinstall the backdoor in future compiler versions. The brilliance lies in the attack leaving no trace in source code—only the compiled binary carries the infection. Colyer emphasizes the paper's shocking 'oh *!$&#' moment, where the realization hits that trusting any part of the software stack (even the compiler) is perilous. The moral is stark: you cannot trust code you didn't create entirely yourself, and the attack surface extends to any program-handling tool (assemblers, loaders, microcode).",
+  "paper_title": "Reflections on Trusting Trust",
+  "paper_authors": [
+    "Ken Thompson"
+  ],
+  "paper_year": 1984,
+  "paper_venue": "Turing Award Lecture",
+  "paper_url": "https://www.ece.cmu.edu/~ganger/712.fall02/papers/p761-thompson.pdf",
+  "paper_abstract": "TURING AWARD LECTURE\n\nReflections on Trusting Trust\nTo what extent should one trust a statement that a program is free of Trojan\nhorses? Perhaps it is more important to trust the people who wrote the\nsoftware.\n\nKEN THOMPSON\n\nINTRODUCTION\nI thank the ACM for this award. I can't help but feel\nthat I am receiving this honor for timing and serendipity as much as technical merit. UNIX 1 swept into popularity with an industry-wide change from central mainframes to autonomous minis. I suspect that Dani",
+  "paper_file": "papers/2016/09/09/reflections-on-trusting-trust.pdf",
+  "topics": [
+    "systems-security",
+    "operating-systems"
+  ],
+  "tags": [
+    "compiler-security",
+    "trojan-horse",
+    "backdoor",
+    "self-reproducing-programs",
+    "quine",
+    "trusting-trust-attack"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Self-reproducing program in C",
+      "caption": "Figure 1 shows a self-reproducing program in the C programming language. (The purist will note that the program is not precisely a self-reproducing program, but will produce a self-reproducing program.)"
+    },
+    {
+      "number": "Figure 2.1",
+      "title": "Original escape sequence interpreter",
+      "caption": null
+    },
+    {
+      "number": "Figure 2.2",
+      "title": "Modified escape sequence interpreter with vertical tab support",
+      "caption": null
+    },
+    {
+      "number": "Figure 2.3",
+      "title": "ASCII-based vertical tab representation",
+      "caption": null
+    },
+    {
+      "number": "Figure 3.1",
+      "title": "High-level control of the C compiler",
+      "caption": null
+    },
+    {
+      "number": "Figure 3.2",
+      "title": "Trojan horse compiler modification",
+      "caption": "Figure 3.2 shows a simple modification to the compiler that will deliberately miscompile source whenever a particular pattern is matched. If this were not deliberate, it would be called a compiler \"bug.\" Since it is deliberate, it should be called a \"Trojan horse.\""
+    },
+    {
+      "number": "Figure 3.3",
+      "title": "Self-reproducing Trojan horse compiler",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

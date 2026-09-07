@@ -1,0 +1,35 @@
+{
+  "date": "20190403",
+  "file_name": "20190403",
+  "slug": "establishing-software-root-of-trust-unconditionally",
+  "blog_url": "https://blog.acolyer.org/2019/04/03/establishing-software-root-of-trust-unconditionally/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes this award-winning NDSS'19 paper by Gligor & Woo, which presents a groundbreaking approach to establishing a software root of trust (RoT) unconditionally—meaning without relying on trusted hardware, secrets, or computational bounds. The key insight is that even in the presence of persistent malware (e.g., in firmware or peripherals), the system can verify a trusted initial state by leveraging space-time optimal computations (via polynomial evaluation using Horner’s rule) and second pre-image resistant hash functions. The verifier challenges the untrusted system to perform a computation that cannot be completed faster or with less memory than expected, ensuring no malware or unauthorized code can execute. The paper combines theoretical rigor (e.g., cWRAM model, WRAM proofs) with practical considerations (e.g., DMA interfaces, cache disabling) to achieve this unconditional security. Colyer highlights the paper’s depth and the need for close reading, noting its significance as a rare solution to a software security problem without external dependencies.",
+  "paper_title": "Establishing Software Root of Trust Unconditionally",
+  "paper_authors": [
+    "Virgil D. Gligor",
+    "Yih-Chun Hu"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "NDSS",
+  "paper_url": "https://www.ndss-symposium.org/wp-content/uploads/2019/02/ndss2019_10-4_Gligor_paper.pdf",
+  "paper_abstract": "—Root-of-Trust (RoT) establishment ensures either that the state of an untrusted system contains all and only content chosen by a trusted local verifier and the system code begins execution in that state, or that the verifier discovers the existence of unaccounted for content. This ensures program booting into system states that are free of persistent malware. An adversary can no longer retain undetected control of one’s local system. We establish RoT unconditionally; i.e., without secrets, trusted hardware modules and instructions, or bounds on the adversary’s computational power. The specification of a system’s chipset and device controllers, and an external source of true random numbers, such as a commercially available quantum RNG, is all that is needed. Our system specifications are those of a concrete Word Random Access Machine (cWRAM) model – the closest computation model to a real system with a large instruction set. We define the requirements for RoT establishment and explain their differences from past attestation protocols. Then we introduce a RoT establishment protocol based on a new computation primitive with concrete (non-asymptotic) optimal space-time bounds in adversarial evaluation on the cWRAM. The new primitive is a randomized polynomial, which has kindependent uniform coefficients in a prime order field. Its collision properties are stronger than those of a k-independent (almost) universal hash function in cWRAM evaluations, and are sufficient to prove existence of malware-free states before RoT is established. Preliminary measurements show that randomizedpolynomial performance is practical on commodity hardware even for very large k. To prove the concrete optimality of randomized polynomials, we present a result of independent complexity interest: a Hornerrule program is uniquely optimal whenever the cWRAM execution space and time are simultaneously minimized. I. I NTRODUCTION Suppose a user has a trustworthy program, such as a formally verified...",
+  "paper_file": "papers/2019/04/03/establishing-software-root-of-trust-unconditionally.pdf",
+  "topics": [
+    "systems-security"
+  ],
+  "tags": [
+    "root-of-trust",
+    "malware-detection",
+    "unconditional-security",
+    "polynomial-evaluation",
+    "hash-functions",
+    "space-time-optimality",
+    "second-pre-image-resistance",
+    "DMA-verification",
+    "cWRAM-model"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

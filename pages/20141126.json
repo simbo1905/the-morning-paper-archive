@@ -1,0 +1,35 @@
+{
+  "date": "20141126",
+  "file_name": "20141126",
+  "slug": "the-log-structured-merge-tree-lsm-tree",
+  "blog_url": "https://blog.acolyer.org/2014/11/26/the-log-structured-merge-tree-lsm-tree/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the Log-Structured Merge-Tree (LSM Tree) as a crucial data structure for efficiently indexing large datasets with high write throughput, particularly in systems like BigTable, Cassandra, and HBase. The key insight is the deferred and batched merging of index changes from faster, smaller storage (e.g., RAM) to slower, larger storage (e.g., disk), which reduces I/O costs and improves performance for write-heavy workloads. The paper introduces the rolling merge process, where data migrates from a memory-resident component (C0) to disk-resident components (C1, C2, etc.) in a geometric progression to optimize cost-performance trade-offs. Colyer emphasizes the paper's analysis of concurrency, recovery, and cost-performance, including the Five-Minute Rule for determining optimal component sizes.",
+  "paper_title": "The Log-Structured Merge-Tree (LSM-Tree)",
+  "paper_authors": [
+    "Patrick O'Neil",
+    "Edward Cheng",
+    "Donghui Zhang",
+    "Ying Chen"
+  ],
+  "paper_year": 1996,
+  "paper_venue": "",
+  "paper_url": "http://paperhub.s3.amazonaws.com/18e91eb4db2114a06ea614f0384f2784.pdf",
+  "paper_abstract": "High-performance transaction system applications typically insert rows in a History table to provide an activity trace; at the same time the transaction system generates log records for purposes of system recovery. Both types of generated information can benefit from efficient indexing. An example in a well-known setting is the TPC-A benchmark application, modified to support efficient queries on the History for account activity for specific accounts. This requires an index by account-id on the fast-growing History table. Unfortunately, standard disk-based index structures such as the B-tree will effectively double the I/O cost of the transaction to maintain an index such as this in real time, increasing the total system cost up to fifty percent. Clearly a method for maintaining a real-time index at low cost is desirable. The Log-Structured Merge-tree (LSM-tree) is a disk-based data structure designed to provide low-cost indexing for a file experiencing a high rate of record inserts (and deletes) over an extended period. The LSM-tree uses an algorithm that defers and batches index changes, cascading the changes from a memory-based component through one or more disk components in an efficient manner reminiscent of merge sort. During this process all index values are continuously accessible to retrievals (aside from very short locking periods), either through the memory component or one of the disk components. The algorithm has greatly reduced disk arm movements compared to a traditional access methods such as B-trees, and will improve costperformance in domains where disk arm costs for inserts with traditional access methods overwhelm storage media costs. The LSM-tree approach also generalizes to operations other than insert and delete. However, indexed finds requiring immediate response will lose I/O efficiency in some cases, so the LSM-tree is most useful in applications where index inserts are more common than finds that retrieve the entries. This seems to be a co...",
+  "paper_file": "papers/2014/11/26/the-log-structured-merge-tree-lsm-tree.pdf",
+  "topics": [
+    "storage-systems",
+    "algorithms"
+  ],
+  "tags": [
+    "log-structured-merge-tree",
+    "lsm-tree",
+    "write-optimized-indexing",
+    "rolling-merge",
+    "five-minute-rule",
+    "cost-performance-analysis"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

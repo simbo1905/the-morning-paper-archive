@@ -1,0 +1,438 @@
+URL: https://blog.acolyer.org/2017/09/06/rem-resource-efficient-mining-for-blockchains/
+Title: REM: Resource-efficient mining for&nbsp;blockchains
+---
+
+REM: Resource-efficient mining for blockchains Zhang et al., USENIX Security 2017
+
+The proof-of-work (PoW) used in most blockchains could just as easily be called proof-of-wasted-energy. All that hashing serves no useful end beyond electing the next block in the chain. The combined energy waste is actually pretty staggering:
+
+> 
+
+ PoWs serve no useful purpose beyond consensus and incur huge monetary and environmental costs. Today the Bitcoin network uses more electricity than produced by a nuclear reactor, and is projected to consume as much as Denmark by 2020.
+
+As a result other consensus schemes have been explored, including BFT-based and Proof of Stake, but these either "restrict consensus participation or have notable security limitations." Instead of trying to avoid doing work, in today's paper the authors suggest that we instead find a way to make the work that is done useful beyond the blockchain. Instead of a Proof of Work, we would therefore have a Proof of Useful Work (PoUW).
+
+> 
+
+ In a PoUW system, users can utilize their CPUs for any desired workload, and can simultaneously contribute their work towards securing a blockchain.
+
+The overhead for doing work under the PoUW scheme, vs just running it natively, turns out to be around 5-15%.
+
+At the core of REM (Resource-Efficient Mining) is a reliance on Intel's SGX, but as we'll see, there any many parts that have to come together to make the overall scheme work. One key part of the scheme addresses the question of resilience in the face of compromised SGX devices. Let's look first at the basic execution model, and then we can dive into the security model.
+
+## Proof of useful work
+
+Here's the big picture:
+
+There are blockchain agents, REM miners, and one or more useful work clients. Agents collect transactions and generate a block template, which is a candidate block lacking a PoUW. Miners take a block template and obtain a useful workload from a useful work client, in the form of a PoUW task.
+
+A PoUW task is based on a PoUW SGX enclave together with some input. Starting with any SGX-compliant program (something like SCONE would be possible to run containers inside of SGX), it is easy to turn it into a PoUW enclave by running it through the REM toolchain. A PoUW enclave wraps the provided program to ensure single-threaded execution (needed for security), and to add code to detect whether the work has resulted in a valid block. To help with this, the toolchain also instruments the program so that it accurately tracks the number of executed instructions.
+
+When the PoUW task completes, the enclave has to decide whether it resulted in a valid block.
+
+> 
+
+ The PoUW enclave randomly determines whether the work results in a block by treating each instruction as a Bernoulli trial. Thus mining times are distributed in much the same manner as in proof-of-work systems. While in, e.g., Bitcoin, effort is measured in terms of executed hashes, in REM, it is the number of executed useful-work instructions.
+
+To decide whether an instruction is a 'winner' the PoUW enclave generates a random number using the SGX random number generator (SRNG) and looks for a value smaller than the target prescribed by the current difficulty level. Doing this process after every instruction would be prohibitively expensive, so instructions are batched into sub-tasks (of say 10 seconds duration) and run the random number generator once, looking for a result less than the target weighted by the number of counted instructions in the batch. Instruction counts are used because unlike CPU cycles, they are not vulnerable to manipulation outside of the enclave. This sub-task batching process is described in §5.1. However, in §5.2 on secure instruction counting the suggestion is that the random draw happens only once at the end of the whole task based on the total instruction count. Either way, the principle is the same.
+
+> 
+
+ The security of instruction counting relies on the assumption that once instrumented, the code cannot alter its behavior. To realize this assumption in SGX, we need to require two invariants. First, code pages must be non-writeable; second, the useful work program must be single threaded.
+
+REM checks that code pages in the enclave code (usefulwork.so) have permission - this can be verified directly from the ELF program headers. Ensuring single thread access is necessary to prevent multiple threads tampering with the instruction count register value through the shared State Save Area (SSA). To achieve this end, the PoUW enclave instruments the enclave entry point with a spinlock that only allows the first thread to pass. REM also requires a subset of Software Fault Isolation (SFI): indirect control transfers alignment. This prevents jumping to the middle of an instruction to create an alternate execution (as in ROP) to falsify the instruction count.
+
+> 
+
+ Our implementation does not include SFI, as off the shelf solutions such as Google's Native Client could be integrated with the PoUW toolchain and runtime with well quantified overheads.
+
+If the enclave determines that a block has been successfully mined, it produces a PoUW based on SGX-generated attestations: one confirming the enclave's compliance with REM (the miner ran a valid program), and one confirming the difficulty parameter that the block was mined with.
+
+The blockchain agent concatenates the PoUW to the block template and publishes it to the network. I'll describe the process by which other agents can verify the block in the next section.
+
+## Security model
+
+The attestation model is anchored in Intel's Attestation Service (IAS) and relies on Intel to behave honestly: signing keys must only be allocated to valid CPUs, and valid nodes should not have their attestations rendered invalid when IAS is queried. The reputational damage to Intel of either of these things not being true is considered sufficient deterrent.
+
+> 
+
+ REM uses attestations as proofs for new blocks, so miners need to access IAS to verify blocks. The current way in which IAS works forces miners to access IAS on every single verification, adding an undesirable round-trip time to and from Intel’s server to the block verification time. This overhead, however, is not inherent, and is due only to a particular design choice by Intel.
+
+The simple change is for Intel to include the request it is verifying as part of the report generated in response to an IAS request (currently this is not present). With this change, only one access to IAS would be needed globally for every new block, and other validators could simply check the resulting signed report.
+
+We still have the problem of how validators know that the program run in the enclave was correctly instrumented (wrapped in the PoUW enclave). Putting the programs in the blockchain (a bit like smart contract code) would incur prohibitive overhead (and preclude private code). Alternatively, having a single authority that verifies program compliance would also be an unacceptable centralisation of authority.
+
+> 
+
+ To resolve this predicament, we form PoUW attestations with what we call two-layer hierarchical attestations. We hard-code only a single program’s fingerprint into the blockchain, a static-analysis tool called compliance checker. The compliance checker runs in a trusted environment and takes a user-supplied program as input... it calculates the program's fingerprint and outputs an attestation including this fingerprint.
+
+(The compliance checker verifies the instruction counting instrumentation, the entry point spinlock protection, and that the PoUW runtime is correctly linked and identical to the expected runtime).
+
+A PoUW includes two parts: the useful work program attestation on the mining success, and an attestation from the compliance checker.
+
+Both must be signed by the same CPU, otherwise an attacker that compromises a single CPU could create fake compliance attestations for invalid tasks.
+
+## Compromised SGX nodes
+
+This leads on nicely to a major part of the overall REM design, which is protection against compromised SGX chips (it could happen!).
+
+> 
+
+ ... even if we assume SGX chips are manufactured in a secure fashion, some number of individual instances could be broken by well-resourced adversaries. A single compromised node could be catastrophic to an SGX-based cryptocurrency, allowing an adversary to create blocks at will and perform majority attacks on the blockchain.
+
+Well, we don't want that do we!
+
+To protect against compromised chips, REM includes a block acceptance policy which adds an extra test on top of the instruction count lottery we've seen so far. is based on statistical testing. Starting with an estimate of the rate at which the fastest honest miners (fastest CPU type) can find valid PoUWs, test blocks statistically to determine whether a miner is mining blocks too quickly and thus may be compromised. Of course, an adversary with knowledge of can publish blocks at the fastest rate that it will accept. The algorithm can be tuned ($\alpha$) to trade-off between the amount of waste (falsely rejected blocks) and the advantage that such an adversary can gain.
+
+With = 0.4 the waste level is 0.6%, and the adversaries advantage is capped at 100.6%.
+
+## Integrating REM into the Bitcoin consensus layer
+
+> 
+
+ It is important to note that REM is a consensus framework, i.e., a means to generate blocks, not a cryptocurrency. REM can be integrated into a cryptocurrency, as we show by swapping it into the Bitcoin consensus layer.
+
+REM was evaluated with four sample useful work workloads: protein folding, an SVM classifier, zlib compression (iterated), and SHA3-256 hashing (iterated). The running times were compared for native code execution, execution under SGX, and execution under SGX inside a PoUW enclave.
+
+The results show an overhead of 5-15% for converting useful work benchmarks into REM PoUW enclaves.
+
+> 
+
+ In summary, our results show that REM is a practically deployable and promising path to fair and environmentally friendly blockchains in partially-decentralized blockchains.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Blockchain 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousLuck is hard to beat: the difficulty of sports predictionNext &rsaquo;SmartPool: Practical decentralized mining
+ 
+ 
+
+ 
+ 
+## 
+ 7 thoughts on &ldquo;REM: Resource-efficient mining for blockchains&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Thomas Knauth says: 
+
+ 
+ September 6, 2017 at 4:23 pm 
+
+ 
+
+ 
+ 
+At least in its current revision (v2) IAS includes the request in its response: https://software.intel.com/sites/default/files/managed/7e/3b/ias-api-spec.pdf p24
+
+(Disclaimer: I work for Intel.)
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ September 6, 2017 at 4:38 pm 
+
+ 
+
+ 
+ 
+Good to know, thanks for the update!
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ 
+ 
+ d10r says: 
+
+ 
+ September 11, 2017 at 12:42 pm 
+
+ 
+
+ 
+ 
+http://www.truthcoin.info/blog/pow-cheapest/ explains (imo convincingly) how the idea of a PoW which isn't wasteful is a fallacy.
+
+I think the problem here is that producing electricity has externalized costs (to the environment). Mining for crypto-currencies just makes this problem more obvious in an intuitive way.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ James says: 
+
+ 
+ October 3, 2017 at 3:14 pm 
+
+ 
+
+ 
+ 
+If this consensus layer was added to a cryptocurrency with an incentive for doing so, wouldn't it incentivize miners to run meaningless programs constantly (perhaps programs that Intel chips are highly optimized for) thus creating a similar energy problem?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Fan says: 
+
+ 
+ November 7, 2017 at 5:04 pm 
+
+ 
+
+ 
+ 
+It depends on how optimized it can be and how much money miners can earn from doing useful work. For the second factor, ec2 pricing (https://aws.amazon.com/ec2/pricing/) is a reasonable estimation. The first factor is hard to quantitate though.
+
+Disclaimer: I'm one of the authors :)
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ Pingback: El nuevo dinero también contamina - Leequid.es 
+ 
+ 
+- 
+ 
+ Pingback: SoK: Consensus in the age of blockchains | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

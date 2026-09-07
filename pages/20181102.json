@@ -1,0 +1,45 @@
+{
+  "date": "20181102",
+  "file_name": "20181102",
+  "slug": "the-fuzzylog-a-partially-ordered-shared-log",
+  "blog_url": "https://blog.acolyer.org/2018/11/02/the-fuzzylog-a-partially-ordered-shared-log/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the FuzzyLog paper as an innovative approach to distributed systems by introducing a partially ordered shared log abstraction, which simplifies building distributed systems without requiring a total order. The key insight is that causal consistency is often sufficient, and FuzzyLog provides partial ordering via a directed acyclic graph (DAG) of interlinked chains, enabling linear scalability, flexible consistency, and network partition tolerance. The paper demonstrates that applications built on FuzzyLog are compact (often under 500 lines of code), fast, and retain strong semantics like durability and failure atomicity. The evaluation shows impressive performance, such as supporting 3M/sec single-key writes and 150K/sec atomic cross-shard renames in a 6-node deployment.",
+  "paper_title": "The FuzzyLog: A Partially Ordered Shared Log",
+  "paper_authors": [
+    "Spencer Lockerman",
+    "Austen Barker",
+    "James R. Wilcox",
+    "Irene Zhang",
+    "Dan R. K. Ports"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/conference/osdi18/presentation/lockerman",
+  "paper_abstract": "The FuzzyLog is a partially ordered shared log abstraction. Distributed applications can concurrently append to the partial order and play it back. FuzzyLog applications obtain the benefits of an underlying shared log – extracting strong consistency, durability, and failure atomicity in simple ways – without suffering from its drawbacks. By exposing a partial order, the FuzzyLog enables three key capabilities for applications: linear scaling for throughput and capacity (without sacrificing atomicity), weaker consistency guarantees, and tolerance to network partitions. We present Dapple, a distributed implementation of the FuzzyLog abstraction that stores the partial order compactly and supports efficient appends / playback via a new ordering protocol. We implement several data structures and applications over the FuzzyLog, including several map variants as well as a ZooKeeper implementation. Our evaluation shows that these applications are compact, fast, and flexible: they retain the simplicity (100s of lines of code) and strong semantics (durability and failure atomicity) of a shared log design while exploiting the partial order of the FuzzyLog for linear scalability, flexible consistency guarantees (e.g., causal+ consistency), and network partition tolerance. On a 6-node Dapple deployment, our FuzzyLogbased ZooKeeper supports 3M/sec single-key writes, and 150K/sec atomic cross-shard renames.",
+  "paper_file": "papers/2018/11/02/the-fuzzylog-a-partially-ordered-shared-log.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "shared-log",
+    "partial-ordering",
+    "causal-consistency",
+    "geo-replication",
+    "sharding",
+    "DAG",
+    "consensus",
+    "chain-replication",
+    "Skeen's-algorithm"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "FuzzyLog structure with shards and regions",
+      "caption": "In the FuzzyLog, each color contains updates to a data shard, while each chain contains updates from a geographical region."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

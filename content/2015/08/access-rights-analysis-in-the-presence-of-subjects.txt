@@ -1,0 +1,244 @@
+URL: https://blog.acolyer.org/2015/08/07/access-rights-analysis-in-the-presence-of-subjects/
+Title: Access Rights Analysis in the Presence of&nbsp;Subjects
+---
+
+Access Rights Analysis in the Presence of Subjects - Centonze et al. 2015
+
+Security in application code is a cross-cutting concern and hence very difficult to get right since the analysis often depends on non-local effects. Java and the .NET CLR both have a declarative permissions model that can grant permissions both to code, and to Subjects that might execute that code (perform privileged actions).
+
+> 
+
+ Decoupling access-control definition and enforcement from the application code promotes code portability and reusability, and minimizes the risk of security holes. Nevertheless, configuring the access-control policy of an application can be complicated. A security administrator must be informed of all the security-sensitive operations that an application may attempt to perform at run time and grant the program components all the permissions necessary to complete those operations. If some of the necessary permissions are not granted, run-time authorization failures will occur. On the other hand, granting unnecessary permissions would constitute a violation of a fundamental security rule, known as the Principle of Least Privilege (PLP). Therefore, it is essential that exactly the permissions necessary for the program to execute without authorization failures be granted.
+
+This paper describes SARA, the first access rights analysis tool that can also deal with Subject-based access control (doAs...). The motivation for SARA was porting IBM's WebSphere Application Server (WAS) to Java's permission and subject-based security model in order to obtain a Common Criteria for Information Level Security Evaluation Assurance Level 4 (CC EAL 4).
+
+SARA can analyse a library to look for missing permissions (which could lead to runtime failures), unneccessary permissions (which violate the PLP principle), and redundant permissions - e.g. where both code and subject permissions are granted (also a violation of the PLP). It can then repair these violations by synthesising the appropriate policy.
+
+> 
+
+ The first scenario is detection of missing Permissions under consideration of Subjects. The solution, similarly to existing approaches, is to grant the missing Permissions. However, unlike existing approaches, SARA grants the Permissions by default to the subject rather than to the code. This is the more conservative policy, as granting Permissions to the code enables the respective operations per all subjects as well as the code itself. This is, however, configurable if the user wishes to override the default policy. The second scenario arises when there is duplicity across the Permissions granted to the code and subject. That is, the code already possesses a needed Permission, but there is also a call to doAs or doAsPrivileged to enable that same Permission via the Subject. This form of redundancy constitutes a PLP violation. For the same rationale explained above, by default SARA revokes the Permission from the code rather than the subject, though again this is a configurable choice.
+
+If you've done any analysis of cross-cutting concerns in codebases before, you won't be in the least bit surprised to learn that before analysis with SARA, things were in a pretty bad state. WAS consists of 348 libraries:
+
+- 105 of these did not have any policy at all
+
+- 141 had an access-control policy that only accounted for permissions granted to code, and ignored the permissions granted to subjects
+
+- The other 102 libraries accounted for both code and subject permissions, using policies defined by developers.
+
+As a result of the analysis SARA detected 263 PLP violations where the same rights were granted to both code and subject, and 219 violations due to insufficient policies. The results were independently evaluated by dozens of developers who confirmed them to be correct. SARA generated PLP optimal policies for all libraries.
+
+> 
+
+ In the future we plan to enable SARA as an IDE tool. This requires real-time performance and incremental analysis capabilities, which we are currently developing.
+
+## How SARA Works
+
+> 
+
+ The first step of SARA is to model the behavior of the program P in the form of a call graph. The call-graph representation conveys the global control flow of the program. This is done by iteratively computing the structure of calls within P starting from the entry-point methods (i.e., those that are externally invocable). Since some (in reality, most) of the call sites are virtual, requiring resolution of the receiver to disambiguate the target method(s), call-graph construction is interleaved with pointer analysis. While other call-graph construction techniques exist, combining pointer analysis into call-graph construction boosts precision and makes points-to information available to downstream analyses, which we indeed utilize in SARA.
+
+SARA also needs to determine the implies relationships between Permission objects, and these are typically buried in the code implementations of the the implies method. So SARA instantiates Permission objects in a sandbox where it can so that it can invoke implies on pairs of Permission objects to determine the hierarchy. Some string analysis is also done as a fallback if sandbox instantiation fails.
+
+> 
+
+ Having a model of the program’s calling structure and the relationships between the various Permission objects, SARA identifies, within the call graph, invocations of the access-rights-related APIs: namely checkPermission and doPrivileged. At a given call site invoking checkPermission, SARA retrieves a conservative approximation of the checked Permissions as the points-to set of the argument.
+
+From here SARA can simulate the stack inspection mechanism by propagating the permission requirement up the stack.
+
+> 
+
+ To account for Subjects, SARA next traverses the call graph in order to identify doAs and doAsPrivileged calls, wherein the first parameter is of type Subject. Again thanks to points-to information, that parameter is resolved into one or more abstract Subject instances. SARA then consults the points-to graph per each of the instances.
+
+Sections 4 and 5 contain more detail about the data flow analysis and some of the subtleties, for example, collapsing strongly connected componets in the permissions graph into single nodes for the analysis, and how nodes in the graph are made context-sensitive since where they are called from is significant. For 162 native methods such as Thread.start(), SARA is augmented with automatically constructruted control and data-flow equivalent synthetic models.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousCooking the Books: Formalizing the JMM Implementation RecipesNext &rsaquo;Eventually Consistent Transactions
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

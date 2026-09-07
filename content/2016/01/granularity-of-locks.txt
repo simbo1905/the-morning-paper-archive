@@ -1,0 +1,320 @@
+URL: https://blog.acolyer.org/2016/01/05/granularity-of-locks/
+Title: Granularity of Locks and Degree of Consistency in a Shared Data Base &#8211; Part&nbsp;I
+---
+
+Granularity of Locks and Degree of Consistency in a Shared Data Base - Gray et al. 1975
+
+This is part 2 of a 7 part series on (database) 'Techniques Everyone Should Know.'
+
+This is a paper of two halves, connected by the common theme of locking. The first part of the paper examines the tradeoff between locking overhead and concurrency, the second part of the paper examines the tradeoff between consistency and concurrency. It's a joy to go back and read these early papers where everything is explained very simply and without assuming implicit knowledge of decades of work. We'll look at lock granularity today, and come back for part two of the paper tomorrow.
+
+## Granularity of Locks
+
+Holding fine-grained locks increases the potential for concurrency, but incurs a higher locking overhead if many resources are to be locked. Conversely, holding coarse-grained locks reduces locking overhead but reduces potential for concurrency. The fine-grained locking strategy will penalize complex transactions that lock many units, and the coarse-grained strategy is overkill for a simple transaction that only needs to lock one member of a file. A better strategy is to have lockable units of different granularities co-existing in the same system.
+
+Consider a hierarchy of resources (Gray et al. show later that the approach can generalize to any DAG) such as you might find in many systems. The example in the paper is a database made up of multiple areas, each containing files that in turn contain records - but any containment hierarchy will do. Each node in the hierarchy can be locked. Locking a node implicitly grants access to all of its descendants as well. An exclusive access lock (X) grants exclusive access, and a shared access lock (S) grants shared access.
+
+How can this implicit locking be implemented? Suppose a resource R is locked (for example, in exclusive mode). We need to prevent anyone from taking a lock on any ancestor of R in the hierarchy (because this would also grant it implicit access to R, which would be a conflict). Furthermore, when we want to obtain the lock on R in the first place, we have no way of ensuring that no descendant (finer-grained) locks are held which would be in conflict with R (this would require an R-level lock, the very thing we are trying to obtain).
+
+The solution is to introduce a third type of lock, an intention lock (I)...
+
+> 
+
+ The protocol to lock a subtree rooted at node R in exclusive or share mode is to lock all ancestors of R in intention mode, and to lock R in exclusive or share mode.
+
+There are two flavours of intention locks: intention share (IS) locks, and intention exclusive (IX) locks. Intention share mode only requests share or intention share locks at lower nodes in the tree, and thus is efficient for read-only access. An intention share lock on a node can be converted (promoted) to a share lock at a later time, but an intention exclusive lock cannot.
+
+> 
+
+ We recognize one further refinement of modes, namely share and intention exclusive mode (SIX). Suppose one transaction wants to read an entire subtree and to update particular nodes of that subtree. Using the modes provided so far it would have the options of: (a) requesting exclusive access to the root of the subtree and doing no further locking, or (b) requesting intention exclusive access to the root of the subtree and explicitly locking the lower nodes in intention, share, or exclusive mode. Alternative (a) has low concurrency. If only a small fraction of the read nodes are updated then alternative (b) has high locking overhead. The correct access mode would be to share access to the subtree thereby allowing the transaction to read all nodes of the subtree without further locking and intention exclusive access to the subtree thereby allowing the transaction to set exclusive locks on those nodes in the subtree which are to be updated and IX or SIX locks on the intervening nodes. Since this is such a common case, SIX mode is introduced for this purpose. It is compatible with IS mode since other transactions requesting IS mode will explicitly lock lower nodes in IS or S mode thereby avoiding any updates (IX or X mode) produced by the SIX mode transaction. However, SIX mode is not compatible with IX, S, SIX, or X mode requests.
+
+If we include NL (no locking), then there are in total six different modes of access to a resource:
+
+- NL: Grants no access to a node
+
+- IS: Grants intention share access to a requested node, and allows the requestor to lock descendant nodes in S or IS mode
+
+- IX: Grants intention exclusive access to the requested node and allows the requestor to explicitly lock descendants in X, S, SIX, IX or IS mode.
+
+- S: Grants share access to the requested node and to all descendants of the requested node, without setting further locks.
+
+- SIX: Grants share and intention exclusive access to the requested node. All descendants are implicitly locked in share mode, and the requestor may lock descendant nodes in X, SIX, or IX mode.
+
+- X: Grants exclusive access to the requested node and to all descendants of the requested node, without setting further locks. 
+
+Locks must be requested in order from root to leaf, and released in order from leaf to root. All transactions must obey the following protocol:
+
+- Before requesting an S or IS lock on a node, all ancestor nodes must be held in IX or IS mode by the requestor.
+
+- Before requesting an X, SIX, or IX lock on a node, all ancestor nodes must be held in SIX or IX mode by the requestor.
+
+- Locks should be released either at the end of the transaction (in any order), or in leaf to root order. In particular, if locks are not held to the end of the transaction, one should not hold a lower lock after releasing its ancestor.
+
+To generalise to an acyclic DAG (which differs from the simple containment hierarchy in that a node may have multiple parents / inbound edges) we make the following tweaks: (i) before requesting an S or IS lock on a node, at least one immediate parent node must be held in IS (or greater) mode, and (ii) before requesting IX, SIX, or X mode access to a node, all immediate parent nodes must be held in IX (or greater) mode.
+
+Gray et al. provide a proof that the multi-level locking scheme is equivalent to a conventional scheme which uses only S and X mode locks and which locks only atomic resources (leaf nodes).
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ ConsistencyDatastoresTransaction processing 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousAccess Path Selection in a Relational Database Management SystemNext &rsaquo;Granularity of Locks and Degree of Consistency in a Shared Data Base - Part II
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;Granularity of Locks and Degree of Consistency in a Shared Data Base - Part I&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Chen. Brown says: 
+
+ 
+ March 30, 2016 at 2:38 am 
+
+ 
+
+ 
+ 
+Nice article, cleared a lot of concepts for me.
+
+Still I am confused by the second last paragraph about the DAG schema. Think about a leaf node(L) with two parents(P1 and P2). If requester A is granted a S lock on node L and a IS lock on node P1. (As said this is sufficient) What if requester B asks for an X lock on node P2? The second requester should not be granted X lock on node P2, since the S lock of one of its descendants is held by requester A. However, there isn't any mechanism preventing requester B from doing this.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Ragnar Mogk says: 
+
+ 
+ August 8, 2016 at 2:07 pm 
+
+ 
+
+ 
+ 
+When extending to a DAG then having X on the parent does no longer implicitly grant X on the descendant, instead only if all parents of a node are in X mode (implicitly or not) then the node also (implicitly) is in X mode.
+
+For your example B can be granted X on P2, but that only (implicitly) grants S (not X) mode on L, which is compatible with the S mode A has on L.
+
+So for B to actually change L it would have to get X (or IX) on both P1 and P2.
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ Pingback: (Database) Techiques Everyone Should Know | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,56 @@
+{
+  "date": "20150911",
+  "file_name": "20150911",
+  "slug": "jupiter-rising-a-decade-of-clos-topologies-and-centralized-control-in-googles-datacenter-network",
+  "blog_url": "https://blog.acolyer.org/2015/09/11/jupiter-rising-a-decade-of-clos-topologies-and-centralized-control-in-googles-datacenter-network/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Google's decade-long journey in designing and deploying custom datacenter network architectures to meet rapidly growing bandwidth demands. The paper details five generations of hardware and software innovations, starting with the failed but foundational Firehose 1.0, evolving through Watchtower, Saturn, and culminating in Jupiter—a fabric scaled to 6x the size of previous deployments. Key principles included Clos topologies for scalability and redundancy, merchant silicon for cost efficiency, and centralized control protocols to simplify management. The blog emphasizes Google's shift from traditional networking protocols to a control plane resembling large-scale storage/compute systems, leveraging static topologies and dynamic centralized management. Notable technical achievements include custom interconnect cables, fiber bundling for cost reduction, depopulated deployment strategies, and the integration of intra- and inter-cluster networking via BGP-based solutions like Freedome.",
+  "paper_title": "Jupiter Rising: A Decade of Clos Topologies and Centralized Control in Google's Datacenter Network",
+  "paper_authors": [
+    "Arjun Singh",
+    "Xiaowei Jiang",
+    "Guillermo H. Regis",
+    "Hyojeong Kim",
+    "Faez Ahmed",
+    "Yuliang Li",
+    "Subhasree Mandal",
+    "Edoarndo A. Leon",
+    "Amin Vahdat"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "ACM SIGCOMM 2015",
+  "paper_url": "http://conferences.sigcomm.org/sigcomm/2015/pdf/papers/p183.pdf",
+  "paper_abstract": "abler for cloud computing. Bandwidth demands in the datacenter are doubling every 12-15 months (Figure 1), even faster than the wide area Internet. A number of recent trends drive this growth. Dataset sizes are continuing to explode with more photo/video content, logs, and the proliferation of Internet-connected sensors. As a result, network-intensive data processing pipelines must operate over ever-larger datasets. Next, Web services can deliver higher quality results by accessing more data on the critical path of individual requests. Finally, constellations of co-resident applications often share substantial data with one another in the same cluster; consider index generation, web search, and serving ads. Ten years ago, we found the cost and operational complexity associated with traditional datacenter network architectures to be prohibitive. Maximum network scale was limited by the cost and capacity of the highest end switches available at any point in time [24]. These switches were engineering marvels, typically recycled from products targeting wide area deployments. WAN switches were differentiated with hardware support/offload for a range of protocols (e.g., IP multicast) or by pushing the envelope of chip memory (e.g., Internet-scale routing tables, off chip DRAM for deep buffers, etc.). Network control and management protocols targeted autonomous individual switches rather than pre-configured and largely static datacenter fabrics. Most of these features were not useful for datacenters, increased cost, complexity, delayed time to market, and made network management more difficult. Datacenter switches were also built as complex chassis targeting the highest levels of availability. In a WAN Internet deployment, losing a single switch/router can have substantial impact on applications. Because WAN links are so expensive, it makes sense to invest in high availability. However, more plentiful and cheaper datacenter bandwidth makes it prudent to trade cost for some...",
+  "paper_file": "papers/2015/09/11/jupiter-rising-a-decade-of-clos-topologies-and-centralized-control-in-googles-datacenter-network.pdf",
+  "topics": [
+    "networking",
+    "distributed-systems"
+  ],
+  "tags": [
+    "clos-topology",
+    "datacenter-networking",
+    "merchant-silicon",
+    "centralized-control",
+    "bgp",
+    "firehose",
+    "watchtower",
+    "jupiter",
+    "sdn",
+    "fiber-bundling",
+    "depopulated-deployment"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Aggregate server traffic in our datacenter fleet",
+      "caption": "Aggregate server traffic in our datacenter fleet."
+    },
+    {
+      "number": "Figure 2",
+      "title": "A traditional 2Tbps four-post cluster (2004)",
+      "caption": "A traditional 2Tbps four-post cluster (2004). Top of Rack (ToR) switches serving 40 1G-connected servers were connected via 1G links to four 512 1G port Cluster Routers (CRs) connected with 10G sidelinks."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

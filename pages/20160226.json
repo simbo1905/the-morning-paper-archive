@@ -1,0 +1,40 @@
+{
+  "date": "20160226",
+  "file_name": "20160226",
+  "slug": "distributed-consistency-and-session-anomalies",
+  "blog_url": "https://blog.acolyer.org/2016/02/26/distributed-consistency-and-session-anomalies/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer analyzes the distinctions between serializability and linearizability in distributed systems, highlighting their roles as gold standards in database and distributed systems communities respectively. He explains that serializability ensures transactions execute in a total order without overlap, while linearizability guarantees single operations appear atomic at a single point in time across distributed replicas. The post clarifies the terminology confusion around 'consistency' in different contexts, noting that linearizability is sometimes called atomic consistency. Colyer also discusses session anomalies that arise at weaker consistency levels, such as non-monotonic reads, writes, and transactions, and explains how guarantees like Monotonic Reads, Monotonic Writes, and Read Your Writes combine to form PRAM consistency. The key insight is the fundamental difference in how these two communities define and prioritize consistency models, and the trade-offs between strong guarantees and performance in distributed systems.",
+  "paper_title": "Linearizability versus Serializability",
+  "paper_authors": [
+    "Peter Bailis",
+    "Ali Ghodsi"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "",
+  "paper_url": "http://www.bailis.org/blog/linearizability-versus-serializability/",
+  "paper_abstract": "data types; it permits a high degree of concurrency, yet it permits programmers to specify and reason about concurrent objects using standard verification techniques. Unlike alternative correctness conditions such as sequential consistency [31] or serializability [40], linearizability is a local property: a system is linearizable if each individual object is linearizable. Locality enhances modularity and concurrency, since objects can be implemented and verified independently, and run-time scheduling can be completely decentralized. Linearizability is also a nonblocking property: processes invoking totally-defined operations are never forced to wait. Nonblocking enhances concurrency and implies that linearizability is an appropriate condition for systems for which real-time response is critical. Linearizability is a simple and intuitively appealing correctness condition that generalizes and unifies a number of correctness conditions both implicit and explicit in theliterature. Using axiomatic specifications and our notion of linearizability, we can reason about two kinds of problems: (1) We reason about the correctness of linearizable object implementations using new techniques that generalize the notions of representation invariant and abstraction function [18, 251 to the concurrent domain. (2) We reason about computations that use linearizable objects by transforming assertions about concurrent computations into simpler assertions about their sequential counterparts. Section 2 presents our model of a concurrent system and the formal definition of linearizability. Section 3 discusses linearizability’s locality and nonblocking properties and compares it to other correctness conditions. Section 4 presents our proof technique for reasoning about implementations of linearizable objects, and illustrates this technique on two novel implementations of a highly concurrent queue. Section 5 presents examples of reasoning about concurrent registers and queues, given that they...",
+  "paper_file": "papers/2016/02/26/distributed-consistency-and-session-anomalies.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "linearizability",
+    "serializability",
+    "consistency-models",
+    "transaction-processing",
+    "distributed-consistency",
+    "isolation-levels",
+    "session-anomalies"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "FIFO queue histories",
+      "caption": "FIFO queue histories."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

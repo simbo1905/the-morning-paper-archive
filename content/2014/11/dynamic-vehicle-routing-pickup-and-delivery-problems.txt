@@ -1,0 +1,287 @@
+URL: https://blog.acolyer.org/2014/11/04/dynamic-vehicle-routing-pickup-and-delivery-problems/
+Title: Dynamic vehicle routing, pickup, and delivery&nbsp;problems
+---
+
+A double-header today: 
+
+- A review of dynamic vehicle routing problems - Pillac et al. 2012, and
+
+- Dynamic pickup and delivery problems - Berbeglia et al. 2010
+
+With the ubiquity of location-enabled smartphones we're increasingly seeing new startup businesses that take advantage of a mobile workforce to pick up and deliver goods (e.g. groceries, meals, parcels) or people. 
+
+Given a number of drivers - perhaps in a variety of different vehicle types - and orders (requests) that arrive in real time, the efficiency with which such a business can assign and route drivers quickly becomes important as the business scales. It influences for example how many drivers you need, how much those drivers can make, how quickly you can get goods to a customer or arrive to pick up a passenger (customer satisfaction), and how many orders (requests) you can satisfy in a given unit of time.
+
+Solving this problem effectively at scale is hard, and the bulk of the literature on routing problems (beginning with the venerable travelling salesman) only addresses the static situation where you know all the places to be visited up front. For today I've selected two papers that taken together provide a good summary of the problem space and current approaches. 
+
+> 
+Pickup and delivery problems are a class of problems in which objects or people have to be transported between an origin and a destination.
+
+The variant we're primarily interested in today is the one-to-one pickup and delivery problem in which there is no central depot and each commodity (or request) has a given origin and destination. Of course, this is a graph problem. 
+
+At any moment in time, a vehicle is either serving a vertex, moving towards a vertex, or waiting at a vertex. 
+
+> 
+The decisions that need to be taken can be divided into two types of decision epochs: (i) wait-or-go and (ii) accept or reject.
+
+A wait-or-go decision involves deciding whether to wait at the current location, or to move towards a vertex that either has a known request or is a known good 'waiting' location.
+
+Accept or reject decisions are moments when the system has to decide whether to accept or reject a request (or perhaps, what kind of offer to make in response to a request). 
+
+These decisions need to be taken quickly:
+
+> 
+
+Dynamic routing problems require making decisions in an online manner, which often compromises reactiveness with decision quality. In other words, the time invested searching for better decisions comes at the price of a lower reactiveness to input changes. This aspect is of particular importance in contexts where customers call for a service and a good decision must be made as fast as possible.
+
+The dynamic one-to-one pickup and delivery space can be further subdivided into those that transport objects and can service more than one request at at time, those where the vehicle can only transport one object at a time, and those where the transportation request consists of passengers. These are respectively known as the dynamic vehicle routing problem with pickups and deliveries (dynamic VRPPD), the dynamic stacker crane problem (dynamic SCP) and the dynamic Dial-a-Ride problem (DARP).
+
+> 
+Dynamic DARP differs from dynamic VRPPD because of its tight time windows and maximum ride time constraints which are generally imposed to ensure a good quality of service to users.
+
+Hence Dynamic DARP is also the variant of interest even if you're not transporting people, but you still have some time sensitivity in your operations.
+
+There are two basic approaches to solving a dynamic vehicle routing problem: running a full static solver each time new information comes in, or creating an initial solution and then incrementally updating it each time new information comes in. The latter is most commonly used and of course more scalable. 
+
+In one further twist, although you may not know the exact requests until they arrive, you may be able to approximate a probability distribution through historic data. Exploiting this information to improve routing is the domain of dynamic and stochastic pickup and delivery problems.
+
+> 
+Although studies on dynamic and stochastic routing problems are very scarce [c. 2010] , there has been in the last few years an increasing effort to determine how stochastic information can be exploited to improve the performance of dynamic strategies for dynamic vehicle routing problems
+
+Stochastic information can be used to inform your waiting and buffering strategies. It turns out the greedy algorithm - immediately sending a driver that has just serviced a request to the next available order, and/or immediately assigning a new request to a vehicle route is not optimal. By waiting at a vertex before resuming its route, a vehicle increases the chances of getting a more favourable next assignment. 
+
+> 
+Theoretical and experimental results on different problems have shown the importance of waiting and buffering strategies.
+
+..., and ...
+
+> 
+Mitrovic-Minic et al. proved that in all cases it is better to wait after servicing a customer, but a more refined strategy can lead to further improvements.... the problem in general is to evaluate the likelihood of a new request in the neighbourhood of a serviced request and to plan a waiting period accordingly.
+
+References to several papers reporting work on solving the dynamic DARP problem are given in Berbeglia 2010. 
+
+> 
+Xiang et al (2008) have studied a sophisticated dynamic DARP in which travel and service times have a stochastic component. In addition, there may be no-shows or cancellations and vehicles may be stuck in traffic jams or breakdown. New requests are inserted into the established routes by means of a local search procedure based on simple inter-trip moves. The local search was complemented with a diversification strategy that uses a secondary objective measuring the idle time of the vehicles.
+
+(The study of a dynamic dial-a-ride problem under time-dependent and stochastic environments - Xiang et al 2008).
+
+Pillac et al. (2012) conclude
+
+> 
+Our review of the existing literature revealed that a large fraction of work done in the area of dynamic routing does not consider stochastic aspects. We are convinced that developing algorithms that make use of stochastic information will improve the fleet performance and reduce operating costs. Thus this line of research should become a priority in the near future.
+
+A further opportunity is the development of parallell algorithms that can exploit the GPU to improve the performance of time-consuming methods such as those based on sampling.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Algorithms and data structures 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousAn unsupervised algorithm for person-name disambiguation on the webNext &rsaquo;Route planning in transportation networks
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;Dynamic vehicle routing, pickup, and delivery problems&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: A survey on dynamic and stochastic vehicle routing problems | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

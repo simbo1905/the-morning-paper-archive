@@ -1,0 +1,46 @@
+{
+  "date": "20201109",
+  "file_name": "20201109",
+  "slug": "delos",
+  "blog_url": "https://blog.acolyer.org/2020/11/09/delos/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Delos, a system developed by Facebook to address the challenge of rapidly deploying a consensus-based table store for core control plane services while ensuring durability, consistency, and availability. The key insight is the introduction of a virtual shared log (VirtualLog) abstraction, which acts as an indirection layer over existing consensus implementations (Loglets). This allows Facebook to initially deploy with a ZooKeeper-backed Loglet and later hot-swap it with a custom-built NativeLoglet, achieving a 10x improvement in end-to-end latency without disrupting operations. The VirtualLog chains multiple Loglets into a single logical log, enabling seamless upgrades and reconfiguration. Colyer emphasizes the elegance of separating reconfiguration complexity into the VirtualLog control plane, simplifying Loglet implementations to focus solely on the data plane. The system's ability to seal Loglets and reconfigure via a MetaStore is noted as a powerful and practical solution.",
+  "paper_title": "Virtual Consensus in Delos",
+  "paper_authors": [
+    "Balakrishnan",
+    "Mahesh Balakrishnan",
+    "Jason Flinn",
+    "Sandeep Kulkarni",
+    "Lorenzo Alvisi",
+    "Mike Dahlin"
+  ],
+  "paper_year": 2020,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/conference/osdi20/presentation/balakrishnan",
+  "paper_abstract": "Consensus-based replicated systems are complex, monolithic, and difficult to upgrade once deployed. As a result, deployed systems do not benefit from innovative research, and new consensus protocols rarely reach production. We propose virtualizing consensus by virtualizing the shared log API, allowing services to change consensus protocols without downtime. Virtualization splits the logic of consensus into the VirtualLog, a generic and reusable reconfiguration layer; and pluggable ordering protocols called Loglets. Loglets are simple, since they do not need to support reconfiguration or leader election; diverse, consisting of different protocols, codebases, and even deployment modes; and composable, via RAID-like stacking and striping. We describe a production database called Delos1 which leverages virtual consensus for rapid, incremental development and deployment. Delos reached production within 8 months, and 4 months later upgraded its consensus protocol without downtime for a 10X latency improvement. Delos can dynamically change its performance properties by changing consensus protocols: we can scale throughput by up to 10X by switching to a disaggregated Loglet, and double the failure threshold of an instance without sacrificing throughput via a striped Loglet.",
+  "paper_file": "papers/2020/11/09/delos.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "consensus-protocols",
+    "virtual-log",
+    "reconfiguration",
+    "shared-log",
+    "zookeeper",
+    "raft",
+    "paxos",
+    "hot-swapping",
+    "control-plane"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Virtual consensus architecture",
+      "caption": "Virtual consensus: servers replicate state via a VirtualLog, which is mapped to underlying Loglets."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

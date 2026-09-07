@@ -1,0 +1,503 @@
+URL: https://blog.acolyer.org/2015/09/09/out-of-the-fire-swamp-part-ii-peering-into-the-mist/
+Title: Out of the Fire Swamp &#8211; Part II, Peering into the&nbsp;mist
+---
+
+## Peering into the mist
+
+In Part I we examined the data crisis, accepted that anomalies are inevitable, and realized the central importance of the application. But what should we do about it? Here I'm peering into the mist and speculating about a way forward, navigating via the signposts that the database research community has put in place for us. Hopefully those objects in the mist aren't just (chaos) gorillas coming to get me...
+
+## Application-Datastore Mapping
+
+So far we've seen that the most efficient approaches we know require an understanding at the application level, and programmers want control at the application level. This seems like a good starting point. What shape might that take? A new programming language is a real long shot if you want to impact the mainstream directly. Instead, we'll need to meet the programmers where they are and look at solutions that work with mainstream application development languages: Java, C#, Python, JavaScript, Ruby, et al. The tools at our disposal therefore are embedded DSLs, annotations, libraries and frameworks. The work on Bloom shows just how far you can take this approach.
+
+The logical starting point is an expression of application level invariants in a form amenable to I-Confluence analysis, for example, through annotations. I-Confluence analysis looks at the combination of application transactions and correctness criteria (invariants), so we're going to need to specify transaction demarcation too. If you want to change behaviour, you need to make the right thing to do the easiest thing to do, and so close attention must be paid to making this easy and natural for the programmer. From the I-Confluence analysis (which could be integrated into the development tool chain - potentially into the compilation phase with annotation pre-processors etc. - or invoked at runtime on application initialisation using introspection) we can divide the results into three categories:
+
+- Invariants that can be maintained without any need for coordination. 
+
+- Invariants that can be maintained under causal consistency and causal transactions
+
+- Invariants that cannot be guaranteed unless a stronger-than-causal consistency model is used.
+
+The first category is of course the best case, and has produced some stunning results with workloads as traditional as the TPC-C benchmark. The Feral Concurrency Control paper also showed that in addition to a number of application integrity constraints that are likely to be broken without adequate coordination, 87% of the validation annotations used in typical Rails applications could be maintained without coordination.
+
+For the second category, those invariants that do require some coordination, my choice would be to go for causal consistency since it's the strongest available to cloud applications. A really smart framework could optimise this, using just enough session coordination along the spectrum from none to causal as appropriate to the case in hand (based on the I-Confluence analysis results). See Highly Available Transactions for a good discussion of session guarantees. The programmer's model should be one of causal consistency though. We know that programmers struggle with weaker consistency models, and causal consistency lines up well with human intuitions and expectations. For scalability, as previously noted, that means our application will need to provide explicit causality information. The easy answer is to have the programmer explicitly specify causal dependencies on a write, but perhaps there are also declarative approaches that would allow a framework to infer the explicit causal dependencies without needing that.
+
+If we had a wide choice of causally consistent production-ready back-end datastores to choose from all might be good. Pragmatically, we don't. And if you consider the 'really smart framework' optimisation that can choose weaker-than-causal consistency where it is adequate, perhaps we want the flexibility of weaker (eventual) consistency at that layer. This is where the work on Bolt-on Consistency looks especially promising for three reasons: (i) it shows that you can layer causal consistency on top of an eventually consistent store, (ii) it can provide uniformity across a number of backend stores, important to meet the application programmer's desire not to be a slave to the database and necessary for a generalised solution, and (iii) it can be implemented as an embedded library as part of the application. The Bolt-on consistency paper considers key-value stores, "but our results generalize to richer data models." A challenge here is that the mechanism relies on an interface layer between the client and the underlying datastore. With richer data models come richer interfaces which leads us back down the path towards store-specific implementations. An especially interesting question is whether bolt-on consistency can generalize to a full relational model (SQL interface).
+
+We have to accept there will always be the third category of invariants - those that cannot be maintained in an ALPS system. We want the results of the I-Confluence analysis to tell us which ones these are, so that we can implement appropriate apologies. Note that the explicit causal dependency tracking information may also help us to make better apologies as it provides an insight into why something happened.
+
+We can now start to see the shape of a new-generation of data frameworks. We need to be able to specify application invariants, transactions, and explicit causality dependencies, and provide apology callbacks. The framework (an ADM? - Application Datastore Mapper) is integrated into the development tool chain (or uses runtime introspection) to provide warnings if needed apology callbacks aren't present. At runtime it passes requests through to an underlying eventually consistent store when coordination is not required, and bolts-on causal consistency when it is. For application integrity constraints that can't be guaranteed, it monitors the underlying store for violations and invokes the appropriate callback to repair them when they occur. On the assumption that apologies only need to be generated on a human timescale the hope is that the violation detection overhead can be made reasonable. A related bet is that the potential dangers of causal consistency can be mitigated by the combination of explicit causality and only using coordination for invariants that actually need it (rather than as a blanket policy for everything).
+
+The result might look something like this:
+
+Distributed data types (e.g. CRDTs) fit naturally into this scheme. To the extent that an application is able to exploit them, the ADM should recognise that their integrity is not dependent on coordination. Everything else falls out: the more we are able to use them, the less overall coordination is required, and the better our system will perform. Thus natural incremental adoption of CRDTs within applications as we develop a richer library of distributed data types and learn how to compose them is well catered for.
+
+There's one potentially interesting refinement worth noting. For invariants that can't be guaranteed with causal+ consistency, we provide a guarantee that either the invariant is upheld (we got lucky) or the appropriate apology callback is invoked. If we also know application SLO information (service level objectives), and the current situation makes it possible (e.g., we're not currently partitioned, concurrency levels are lower, latencies are acceptable, ....) there's nothing stopping us using increased coordination to further reduce violations (and hence the incidence of apologies). This would especially be a good thing if the apology mechanism involves inconvenience to end users. We can put coordination behind a brownout dimmer switch, guaranteeing a minimum of causal+, but doing better when we can.
+
+## What about transactions?
+
+The COPS paper provides a motivating example for causally-consistent read-only and write-only transactions. In the spirit of giving the application developer as much help as we possibly can while still retaining the ALPS properties, we'd like to support such transactions.
+
+SwiftCloud further describes a 'Transactional Causal+ Consistency' model supporting read-write transactions: "every transaction reads a causally consistent snapshot; updates of a transaction are atomic (all-or-nothing) and isolated (no concurrent transaction observes an intermediate state); and concurrently committed updates do not conflict."
+
+In Bolt-on Causal Consistency Bailis et al. postulate that such transactions can be provided by a bolt-on shim (and hence in an ADM framework) with high availability.
+
+Life Beyond Distributed Transactions (2007) had a huge impact on the design of NoSQL stores, and taught us that we couldn't hope to have transactions spanning more than one aggregate entity, because we couldn't guarantee that multiple aggregate entities would be co-located, and distributed transactions kill scalability.
+
+> 
+
+ In recent years, many 'NoSQL' designs have avoided cross-partition transactions entirely, effectively providing Read Uncommitted isolation
+
+(Bailis et al. : Scalable Atomic Visibility with RAMP Transactions)
+
+7 years later, Bailis et al. showed us that we can have scalable multi-partition transactions (RAMP transactions) using an isolation model called Read Atomic. These can help to enforce association constraints across partitions, to atomically update secondary indices, and to ensure materialized views stay consistent. Warp also introduced a multiple-key transaction mechanism built on top of HyperDex.
+
+This is where the data store must play its part, and we can't leave all the heavy lifting to the ADM.
+
+My mind has been grappling with the intersection of bolt-on causal+ transactions and RAMP transactions. I don't yet see clearly enough to say more here. Fortunately there are those who are wiser than me that will be able to!
+
+## What if there are multiple applications interacting with the same store?
+
+The issue with concurrency control implemented above the datastore is that even if you get it right within your application, as soon as more than one application interacts with the same underlying data all bets are off again. (Which feels like the kind of lesson that would be right at home in 'What Goes Around Comes Around' ;) ).
+
+The I-Confluence analysis we've discussed so far looks at the invariants of an application, and sees only the scope of that one application. It seems we have two basic choices here:
+
+(a) Don't allow multiple applications to directly write to the same database, instead create a service responsible for its integrity, and specify all of the business integrity constraints in that service. This model leads us towards a microservices style architecture. (And it's interesting to see an argument for that coming from the data direction up, whereas we more normally see data as the obstacle in moving towards microservices).
+
+(b) Push the I-Confluence analysis down to a shared layer - most likely the datastore itself - where we can have visibility across all client applications. This is reminiscent of today's database constraint mechanisms that exist for good reason but have been eschewed by many application programmers. This allows for 'whole system analysis' (cf. whole program analysis). In the presence of ever increasing rates of deployment of applications, maintaining this coordination may prove difficult.
+
+Let's assume we go with option (a), whereby microservices own their data (within a bounded context for example). This leads us on to thinking about the flow of data between microservices....
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems 
+ 
+ Distributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousOut of the Fire Swamp* - Part I, 'The Data Crisis'Next &rsaquo;Out of the Fire Swamp - Part III, Go with the flow.
+ 
+ 
+
+ 
+ 
+## 
+ 6 thoughts on &ldquo;Out of the Fire Swamp - Part II, Peering into the mist&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Byron Ruth says: 
+
+ 
+ September 9, 2015 at 11:12 am 
+
+ 
+
+ 
+ 
+> (within a bounded context for example)
+
+I am not sure if you were alluding to this, but as I was reading this post and the last, I was thinking about DDD the whole time. In this context the *domain expert* is the developer who must define the invariants, causality, and apology callbacks based on knowledge of how the application can and should work. In that sense, it's to the developer's benefit that data stores with simple models exist because they are simpler to reason about when it comes to contention.
+
+I was watching a [presentation](https://www.youtube.com/watch?v=sI8vtAjO7x4) on [Treode](http://treode.github.io/) and the author calls out the fact that the classic `BEGIN; DO WHATEVER; COMMIT` block essentially encourages poor use of the database since the developer assumes "the database is smarter than me so it will figure out the best way to lock and update all the things being referenced." Although probably true in many cases, it will undoubtedly be less efficient if the developer applies more *domain knowledge* of the application.
+
+Thanks for the post!
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Out of the Fire Swamp - Part III, Go with the flow. | the morning paper 
+ 
+ 
+- 
+ 
+ 
+ 
+ Matthew Skelton (@matthewpskelton) says: 
+
+ 
+ September 29, 2015 at 11:30 pm 
+
+ 
+
+ 
+ 
+Reblogged this on Matthew Skelton and commented:
+
+Brilliant insights into data consistency from Adrian Colyer
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: A Year in Papers | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: A Year in Papers-IT大道 
+ 
+ 
+- 
+ 
+ Pingback: The many faces of consistency | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Loading Comments...
+ 
+ 
+ 
+ 
+
+ 
+ 
+ Write a Comment...
+ 
+ 
+ 
+ 
+ Email (Required)
+ 
+ 
+ 
+ Name (Required)
+ 
+ 
+ 
+ Website
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,39 @@
+{
+  "date": "20151126",
+  "file_name": "20151126",
+  "slug": "asip",
+  "blog_url": "https://blog.acolyer.org/2015/11/26/asip/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a growing mismatch between efficient asynchronous machine learning algorithms and traditional distributed dataflow systems like Hadoop and Spark, which are optimized for coarse-grained, synchronous models. He notes that while asynchronous, lock-free implementations (e.g., HOGWILD!) can significantly speed up algorithms like stochastic gradient descent (SGD) by avoiding synchronization barriers, these approaches are not well-supported by commodity dataflow frameworks. The paper introduces an asynchronous communication mechanism called Asynchronous Sideways Information Passing (ASIP) that integrates into existing BSP-like dataflow systems with minimal changes. ASIP enables fine-grained, asynchronous communication between operators within the same stage, allowing algorithms like ASIP-SGD and ASIP-ADMM to bypass synchronous barriers and achieve better performance. The blog emphasizes the practicality of this approach, demonstrating that it can be implemented on top of Apache Spark with minor modifications while addressing challenges like fault tolerance and task scheduling.",
+  "paper_title": "Asynchronous Complex Analytics in a Distributed Dataflow Architecture",
+  "paper_authors": [
+    "Joseph E. Gonzalez",
+    "Yucheng Low",
+    "Alexandre M. Bayen",
+    "Michael I. Jordan"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "VLDB 2015",
+  "paper_url": "http://arxiv.org/pdf/1510.07092v1.pdf",
+  "paper_abstract": "Scalable distributed dataflow systems have recently experienced widespread adoption, with commodity dataflow engines such as Hadoop and Spark, and even commodity SQL engines routinely supporting increasingly sophisticated analytics tasks (e.g., support vector machines, logistic regression, collaborative filtering). However, these systems’ synchronous (often Bulk Synchronous Parallel) dataflow execution model is at odds with an increasingly important trend in the machine learning community: the use of asynchrony via shared, mutable state (i.e., data races) in convex programming tasks, which has—in a single-node context—delivered noteworthy empirical performance gains and inspired new research into asynchronous algorithms. In this work, we attempt to bridge this gap by evaluating the use of lightweight, asynchronous state transfer within a commodity dataflow engine. Specifically, we investigate the use of asynchronous sideways information passing (ASIP) that presents single-stage parallel iterators with a Volcano-like intra-operator iterator that can be used for asynchronous information passing. We port two synchronous convex programming algorithms, stochastic gradient descent and the alternating direction method of multipliers (ADMM), to use ASIPs. We evaluate an implementation of ASIPs within on Apache Spark that exhibits considerable speedups as well as a rich set of performance trade-offs in the use of these asynchronous algorithms.",
+  "paper_file": "papers/2015/11/26/asip.pdf",
+  "topics": [
+    "distributed-systems",
+    "machine-learning",
+    "data-engineering"
+  ],
+  "tags": [
+    "asynchronous-communication",
+    "stochastic-gradient-descent",
+    "ADMM",
+    "BSP",
+    "dataflow",
+    "fault-tolerance",
+    "lock-free",
+    "SGD",
+    "ASIP"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

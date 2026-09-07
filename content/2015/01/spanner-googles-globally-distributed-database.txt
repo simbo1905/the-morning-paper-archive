@@ -1,0 +1,380 @@
+URL: https://blog.acolyer.org/2015/01/08/spanner-googles-globally-distributed-database/
+Title: Spanner: Google&#8217;s Globally Distributed&nbsp;Database
+---
+
+Spanner: Google's Globally Distributed Database - Google 2012
+
+Since we've spent the last two days looking at F1 and its online asynchronous schema change support, it seems appropriate today to look at Spanner, the system that underpins them both. There are three interesting stories that come out of the paper for me, each of which could be a post on its own:
+
+- Google's experiences with MySQL, and at the other end of the spectrum, with eventual consistency. When you give developers free choice, what happens next?
+
+- The TrueTime API, and how a reliance on accurate time intervals simplified the design of a complex distributed system, and
+
+- Spanner itself as a distributed store.
+
+Let's take a brief look at each of these in turn.
+
+## Choosing database properties to suit application and developer needs
+
+The first production workload on top of Spanner was F1, Google's AdWord database. Previously F1 was based on a manually sharded MySQL database. The dataset is on the order of 10s of TBs.
+
+> 
+
+ Resharding this revenue-critical database as it grew in the number of customers and their data was extremely costly. The last resharding took over two years of intense effort, and involved coordination and testing across dozens of teams to minimize risk.
+
+When something is that painful, you really want to stop doing it. This lead the team to start storing data outside of MySQL in external tables in order to prevent further growth... which is a slippery slope to creating a mess.
+
+First lesson: if you need to shard, try and avoid a solution that requires manual sharding. It will come back to bite you!
+
+Google had BigTable (an eventually consistent store) freely available internally for application development teams to use. But it turned out that lots of application development teams within Google were electing not to use BigTable, and instead built apps on top of another Google system called MegaStore - despite the fact that MegaStore did not perform especially well. Why?
+
+> 
+
+ The need to support schematized semi-relational tables and synchronous replication is supported by the popularity of Megastore [5]. At least 300 applications within Google use Megastore (despite its relatively low performance) because its data model is simpler to manage than Bigtable’s, and because of its support for synchronous replication across datacenters. (Bigtable only supports eventually-consistent replication across datacenters.)
+
+Second lesson: eventual consistency comes at a cost, and if application developers can avoid needing to deal with inconsistencies, they vote with their feet and choose not to do so.
+
+Surely though these weren't key Google apps that were electing to trade performance in return for a better dev experience? The list of apps includes Gmail, Calendar, AppEngine and many more! A fine example of 'developers are the new kingmakers' in action.
+
+Another example of watching and learning from application development team self-selection was the widespread popularity of Dremel within Google indicating that SQL is still alive and well.
+
+> 
+
+ The need to support a SQL- like query language in Spanner was also clear, given the popularity of Dremel as an interactive data- analysis tool.
+
+Third lesson: SQL is still really useful!
+
+Good old-fashioned transactions help to simplify application logic a lot too:
+
+> 
+
+ The F1 team chose to use Spanner for several reasons. First, Spanner removes the need to manually re-shard. Second, Spanner provides synchronous replication and automatic failover. With MySQL master-slave replication, failover was difficult, and risked data loss and downtime. Third, F1 requires strong transactional semantics, which made using other NoSQL systems impractical. Application semantics requires transactions across arbitrary data, and consistent reads.
+
+Fourth lesson: Transactions significantly simplify business logic
+
+There is a great piece by Michael Stonebraker in this months CACM 'A Valuable Lesson, and Whither Hadoop?' (scroll down past the first of the pieces on that page), that also indicates the results of these large scale 'experiments' at Google on building applications that work with large volumes of data. I can't resist an extensive quote:
+
+> 
+
+ ...The second recent announcement comes from Google, who announced MapReduce is yesterday's news and they have moved on, building their software offerings on top of better systems such as Dremmel, Big Table, and F1/Spanner. In fact, Google must be "laughing in their beer" about now. They invented MapReduce to support the Web crawl for their search engine in 2004. A few years ago they replaced MapReduce in this application with BigTable, because they wanted an interactive storage system and Map Reduce was batch-only. Hence, the driving application behind MapReduce moved to a better platform a while ago. Now Google is reporting they see little-to-no future need for MapReduce. ... It is indeed ironic that Hadoop is picking up support in the general community about five years after Google moved on to better things. Hence, the rest of the world followed Google into Hadoop with a delay of most of a decade. Google has long since abandoned it. I wonder how long it will take the rest of the world to follow Google's direction and do likewise.
+
+Fifth lesson: take note of what is happening in Google's petri-dish!
+
+## TrueTime
+
+> 
+
+ One aspect of our design stands out: the linchpin of Spanner’s feature set is TrueTime. We have shown that reifying clock uncertainty in the time API makes it possible to build distributed systems with much stronger time semantics. In addition, as the underlying system enforces tighter bounds on clock uncertainty, the overhead of the stronger semantics decreases. As a community, we should no longer depend on loosely synchronized clocks and weak time APIs in designing distributed algorithms.
+
+TrueTime is central to Spanner's desgin. The TrueTime API is fundamentally only one method!
+
+TTinterval TT.now()
+
+You can ask what the time is, and get back a time window (interval) in which the correct current time is guaranteed to exist. The interval captures the window of uncertainty. There are also two convenience methods built on top of that: TT.before(t) tells you if t has definitely not arrived yet (is greater than the upper bound of TT.now), and TT.after(t) tells you if t has definitely passed (is less than the lower bound of TT.now).
+
+The way TrueTime is implemented is pretty interesting and well described in the paper. It uses a combination of GPS clocks and atomic clocks as references, and is able to give small confidence intervals (varying from about 1 to 7ms).
+
+> 
+
+ An atomic clock is not that expensive: the cost of an Armageddon master is of the same order as that of a GPS master.
+
+All clock masters periodically sychronize, between synchronizations clocks advertise a slowly increasing time uncertainty to accommodate potential drift.
+
+> 
+
+ Between synchronizations, Armageddon masters advertise a slowly increasing time uncertainty that is derived from conservatively applied worst-case clock drift. GPS masters advertise uncertainty that is typically close to zero.
+
+TrueTime assumes an upper bound on worst-case clock drift. It turns out clocks are pretty reliable though:
+
+> 
+
+ Our machine statistics show that bad CPUs are 6 times more likely than bad clocks. That is, clock issues are extremely infrequent, relative to much more serious hardware problems. As a result, we believe that True-Time’s implementation is as trustworthy as any other piece of software upon which Spanner depends.
+
+## Spanner the datastore
+
+This already been a pretty long post, so I'll just give you a few salient points here and refer you to the full paper (link at the top) for more details.
+
+A Spanner universe comprises a number of zones. Zones are the unit of administrative deployment. I like this quote, which makes it sound like Google add and remove datacenters in the same way that the rest of us add and remove servers:
+
+> 
+
+ Zones can be added to or removed from a running system as new datacenters are brought into service and old ones are turned off, respectively...
+
+A zone contains between one hundred and several thousand spanservers.
+
+> 
+
+ Spanner is designed to scale up to millions of machines across hundreds of datacenters and trillions of database rows.
+
+Even for Google though, I can't help thinking that this design point might be overkill! The most important application, AdWords, uses 5 datacenters, and
+
+> 
+
+ Most other applications will probably replicate their data across 3 to 5 datacenters in one geographic region, but with relatively independent failure modes.
+
+Spanservers in turn look after tablets (100 to 1000 of them each), which store timestamped key-value pairs in set of B-tree like files and a write-ahead log. All of this is kept on the successor to the Google File System, Colossus.
+
+Spanner gives applications control over data replication configurations (policies) :
+
+> 
+
+ Applications can specify constraints to control which datacenters contain which data, how far data is from its users (to control read latency), how far replicas are from each other (to control write latency), and how many replicas are maintained (to control durability, availability, and read performance).
+
+It can also transparently rebalance resource usage across datacenters (no more manual resharding).
+
+Several other key features depend on TrueTime:
+
+> 
+
+ [Spanner] provides externally consistent reads and writes, and globally-consistent reads across the database at a timestamp. These features enable Spanner to support consistent backups, consistent MapReduce executions, and atomic schema updates, all at global scale, and even in the presence of ongoing transactions. These features are enabled by the fact that Spanner assigns globally-meaningful commit timestamps to transactions, even though transactions may be distributed.
+
+Normally when someone says they've thrown a spanner in the works, that's a bad thing. But in Google's case, it seems to be rather good...
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ DatastoresGoogle 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousReflections on 100 editions of #themorningpaperNext &rsaquo;A Brief History of the Internet
+ 
+ 
+
+ 
+ 
+## 
+ 8 thoughts on &ldquo;Spanner: Google's Globally Distributed Database&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Mesa: Geo-Replicated, Near Real-Time, Scalable Data Warehousing | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Consistency, Availability, and Convergence + COPS | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: MillWheel: Fault-Tolerant Stream Processing at Internet Scale | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Building Consistent Transactions with Inconsistent Replication | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: FIT: A Distributed Database Performance Trade-off | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Diamond: Automating data management and storage for wide-area, reactive applications | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Spanner: becoming a SQL system | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Performance analysis of cloud applications | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

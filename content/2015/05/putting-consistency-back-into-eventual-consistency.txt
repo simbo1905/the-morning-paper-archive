@@ -1,0 +1,327 @@
+URL: https://blog.acolyer.org/2015/05/04/putting-consistency-back-into-eventual-consistency/
+Title: Putting Consistency Back into Eventual&nbsp;Consistency
+---
+
+Putting Consistency Back into Eventual Consistency - Balegas et al. 2015
+
+Today's choice is another pick from the recent crop of Eurosys 2015 papers. Balegas et al. show us that we don't have to put up with weak forms of eventual consistency, even in geo-replicated settings.
+
+In Building on Quicksand Helland argued that we need to understand and reason about distributed applications at the level of the applications' operations (and not underlying reads and writes in some data store). In Coordination Avoidance in Database Systems, Bailis et al. show us that by understanding invariants at the application level - and using only the minimum coordination necessary to achieve those invariants - we can get much better scalability at the same time as giving stronger guarantees than many eventually consistent stores. In today's paper choice "Putting Consistency Back into Eventual Consistency" Balegas et al. build on Bailis' invariant-driven approach with mitigating strategies in the cases where coordination is still required.
+
+> 
+
+ The downside of weak consistency models is that applications have to deal with concurrent operations, which can lead to non-intuitive and undesirable semantics... In this paper, we propose Explicit Consistency as an alternative consistency model, in which an application specifies the invariants, or consistency rules, that the system must maintain. Unlike models defined in terms of execution orders, Explicit Consistency is defined in terms of application properties: the system is free to reorder execution of operations at different replicas, provided that the specified invariants are maintained.
+
+In the prototype, programmers express global and operation-level invariants within Java annotations, using a simple invariant specification language. The invariant specification is then analysed using the satisfiability module theory (SMT) solver Z3 to infer which combinations of operations can be safely executed without coordination. For those remaining operations that do require some coordination, the programmer may choose between invariant-repair and violation avoidance mechanisms. The application code is then instrumented to insert the necessary calls to the supplied middleware library.
+
+> 
+
+ The results show that the modified applications have performance similar to weak consistency for most operations, while being able to enforce application invariants.
+
+Invariants must be true at all times and can be expressed using predicates and functions. Operation postconditions must also be defined. Here's a snippet showing what the annotations look like:
+
+ @Invariant(”forall (P : p , T : t) : enrolled (p,t) =>
+ player(p) and tournament(t) ”)
+ @Invariant(”forall(P : p) : budget(p) >= 0”)
+ @Invariant(”forall(T : t) : nrPlayers(t) nrPlayers(t) >= 1”)
+ @Invariant(”forall(T : t , P : p) : active(t) and
+ enrolled(p , t) => participant(p , t) ”)
+ public interface ITournament {
+ 
+ @True(”player($0)”)
+ void addPlayer(P p);
+ 
+ @False(”player($0) ”)
+ void removePlayer(P p);
+ 
+ @True(”tournament($0)”
+ void addTournament(T t);
+ 
+ @False(”tournament($0) ”)
+ void removeTournament(T t);
+ 
+ @True(”enrolled($0 , $1) ”)
+ @False(”participant($0 , $1) ”)
+ @Increments(”nrPlayers($1 , 1) ”) 
+ @Decrements(”budget($0 , 1) ”)
+ void enrollTournament(P p, T t);
+ 
+ ...
+
+Not the prettiest perhaps, but enough to construct the prototype. I'm reminded of Eiffel - Bertrand Meyer's object-oriented language first introduced in the early '90s, which had strong support for design-by-contract built-into the language. (And as a result looked much more elegant to my eye than modern annotation-heavy approaches).
+
+The invariant repair strategy allows conflicting operations to execute concurrently, and then repairs violations after the fact.
+
+> 
+
+ Indigo [the authors implementation] has only limited support for this approach, since it can only address invariants defined in the context of a single database object (even though the object can be complex, such as a tree or a graph). To this end, Indigo provides a library of objects that repair invariants automatically using techniques proposed in the literature, e.g., sets, maps, graphs, trees with different conflict resolution policies.
+
+Helland's model of (memories), guesses and apologies is the same idea expressed at a higher level.
+
+The violation avoidance strategy is the most interesting & novel part for me, and is based on a system of reservations.
+
+> 
+
+ The multi-level lock reservation (or simply multi-level lock) is our base mechanism to restrict the concurrent execution of operations that can break invariants. A multi-level lock can provide the following rights: (i) shared forbid, giving the shared right to forbid some action to occur; (ii) shared allow, giving the shared right to allow some action to occur; (iii) exclusive allow, giving the exclusive right to execute some action. When a replica holds one of the above rights, no other replica holds rights of a different type. For instance, if a replica holds a shared forbid, no other replica has any form of allow.
+
+(My margin note here simply says "partitions?")
+
+Examples of the use of these locks are given in the context of a multi-player tournament game:
+
+> 
+
+ For executing removePlayer (P), it is necessary to obtain the right "shared allow" on the reservation for removePlayer (P). For executing enrollTournament(P, T), it is necessary to obtain the "shared forbid" right on the reservation for removePlayer (P). This guarantees that enrolling some player will not execute concurrently with deleting the same player. However, concurrent enrolls or concurrent removes are allowed. In particular, if all replicas hold the shared forbid right on removing players, the most frequent enroll operation can execute in any replica, without coordination with other replicas. The exclusive allow right, in turn, is necessary when an operation is incompatible with itself, i.e., when executing concurrently the same operation may lead to an invariant violation.
+
+A multi-level mask reservation acts as a vector of multi-level locks in the case of multi-predicate (more than 2) disjunctions. Escrow reservations are used for numeric invariants - for example x &geq; k, or nrPlayers(T) < k.
+
+> 
+
+ For numeric invariants of the form x ≥ k, we include an escrow reservation for allowing some decrements to execute without coordination. Given an initial value for x = x0, there are initially x0 - k rights to execute decrements. These rights can be split dynamically among replicas. For executing x.decrement(n), the operation must acquire and consume n rights to decrement x in the replica it is submitted. If not enough rights exist in the replica, the system will try to obtain additional rights from other replicas. If this is not possible, the operation will fail.
+
+Finally, partition lock reservations enable reservation of part of a resource...
+
+> 
+
+ For some invariants, it is desirable to have the ability to reserve part of a partitionable resource. For example, consider the invariant that forbids two tournaments to overlap in time.
+
+The system is implemented on top of SwiftCloud.
+
+> 
+
+ Indigo maintains information about reservations as objects stored in the underlying causally consistent storage system. For each type of reservation, a specific object class exists. Each reservation instance maintains information about the rights assigned to each of the replicas; in Indigo, each datacenter is considered a single replica... Reservation objects are stored in the underlying storage system and they are replicated in all datacenters. Reservation rights are assigned to datacenters individually, which keeps the information small.
+
+In the cases where another data center needs to be contacted to obtain some right, the approach is obvious vulnerable to high latency. Therefore Indigo proactively obtains and allocates rights. Escrow lock rights are divided amongst the data centers, and multi-level lock rights are pre-allocated to allow executing the most commonly expected operations.
+
+And now my partition question is answered:
+
+> 
+
+ If a datacenter (fails or) gets partitioned from other datacenters, it is impossible to transfer rights from and to the partitioned datacenter. In each partition, operations that only require rights available in the partition can execute normally. Operations requiring rights not available in the partition will fail. When the partition is repaired (or the datacenter recovers with its state intact), normal operation is resumed.
+
+So Indigo does not guarantee availability of all operations in the event of a partition.
+
+Overall, the direction looks promising in the case of a single application accessing data. What happens when multiple applications work off of the same underlying data store (which could even be multiple versions of the same application during an upgrade) is much less clear. It seems on the surface that we would need to do a global invariant analysis across all applications interacting with the data, and that introducing new applications into the mix after the initial deployment will be problematic. I await future developments with keen interest!
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems 
+ 
+ ConsistencyDistributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousStaring into the abyss: An evaluation of concurrency control with one thousand coresNext &rsaquo;Taming uncertainty in distributed systems with help from the network
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;Putting Consistency Back into Eventual Consistency&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Out of the Fire Swamp - Part II, Peering into the mist | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: 'Cause I'm Strong Enough: Reasoning About Consistency Choices in Distributed Systems | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: IPA: invariant-preserving applications for weakly consistent replicated databases - the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

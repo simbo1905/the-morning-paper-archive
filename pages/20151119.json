@@ -1,0 +1,33 @@
+{
+  "date": "20151119",
+  "file_name": "20151119",
+  "slug": "fail-at-scale-controlling-queue-delay",
+  "blog_url": "https://blog.acolyer.org/2015/11/19/fail-at-scale-controlling-queue-delay/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights two papers: 'Fail at Scale' by Maurer (2015) and 'Controlling Queue Delay' by Nichols & Van Jacobsen (2012). In 'Fail at Scale,' Maurer discusses Facebook's strategies for maintaining reliability amid rapid changes, focusing on mitigating resource exhaustion through three techniques: CoDel (a variant of the controlled delay algorithm), Adaptive LIFO, and Concurrency Control. CoDel prevents standing queues by enforcing short timeouts, Adaptive LIFO prioritizes recent requests during high queueing periods, and Concurrency Control limits client-side resource monopolization. Nichols & Van Jacobsen's paper introduces CoDel as an 'Active Queue Management' (AQM) strategy to combat bufferbloat in network routers. The paper explains how standing queues in buffers cause excessive latency without improving throughput, a problem misclassified as congestion. CoDel addresses this by distinguishing between benign queues (absorbing bursts) and harmful standing queues, offering a 'no-knobs' solution that works across diverse scenarios.",
+  "paper_title": "Controlling Queue Delay",
+  "paper_authors": [
+    "Kathleen Nichols",
+    "Van Jacobson"
+  ],
+  "paper_year": 2012,
+  "paper_venue": "ACM Queue",
+  "paper_url": "http://queue.acm.org/detail.cfm?id=2209336",
+  "paper_abstract": "1 Programmable packet scheduling enables scheduling algorithms to be programmed into the data plane without changing the hardware. Existing proposals either have no hardware implementations for switch ASICs or require multiple strict-priority queues. We present Admission-In First-Out (AIFO) queues, a new solution for programmable packet scheduling that uses only a single first-in first-out queue. AIFO is motivated by the confluence of two recent trends: shallow buffers in switches and fast-converging congestion control in end hosts, that together leads to a simple observation: the decisive factor in a flow’s completion time (FCT) in modern datacenter networks is often which packets are enqueued or dropped, not the ordering they leave the switch. The core idea of AIFO is to maintain a sliding window to track the ranks of recent packets and compute the relative rank of an arriving packet in the window for admission control. Theoretically, we prove that AIFO provides bounded performance to Push-In First-Out (PIFO). Empirically, we fully implement AIFO and evaluate AIFO with a range of real workloads, demonstrating AIFO closely approximates PIFO. Importantly, unlike PIFO, AIFO can run at line rate on existing hardware and use minimal switch resources—as few as a single queue. Packet scheduling is a central research topic in computer networking. Over the past several decades, a great many packet scheduling algorithms have been designed to provide different properties and optimize diverse objectives [6, 11, 23, 40, 41]. Unfortunately, most of these algorithms, despite many novel ideas among them, never have found their way to impact the real world. This is largely due to the high cost to design and deploy switch ASICs to implement them, since packet scheduling algorithms must run in the data plane at line rate in order to process every single packet. Programmable packet scheduling is a holy grail for packet scheduling as it enables scheduling algorithms to be programmed i...",
+  "paper_file": "papers/2015/11/19/fail-at-scale-controlling-queue-delay.pdf",
+  "topics": [
+    "networking",
+    "distributed-systems"
+  ],
+  "tags": [
+    "bufferbloat",
+    "active-queue-management",
+    "CoDel",
+    "latency",
+    "network-congestion",
+    "queueing-theory"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

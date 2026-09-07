@@ -1,0 +1,314 @@
+URL: https://blog.acolyer.org/2015/08/20/virtual-time/
+Title: Virtual Time
+---
+
+Virtual Time - Jefferson 1985
+
+Justin LaPre sent me a tweet last week, "I think you would enjoy reading 'Virtual Time' by David Jefferson. Give it a read if you find yourself with some down time. " Thank you Justin, I did read it and I thought it was absolutely wonderful!
+
+This paper has time warps, space-time, matter and anti-matter, and more! It's also easy to read and a refreshingly different take on distributed systems.
+
+> 
+
+ Lamport ('Time, Clocks, and the Ordering of Events in a distributed system' - #themorningpaper no. 15) seems to have been among the first to recognize that real-time temporal order, simultaneity, and causality between events in a distributed system bear a strong resemblance to the same concepts in special relativity. In particular, he showed that the real-time temporal relationships happens before and happens after that are operationally definable within a distributed system form only a partial order instead of a total order, and that distinct concurrent events are incomparable under that partial order. He further showed that it is always possible to effectively extend this partial order to a total order by defining a system of artificial clocks, one clock for each process, that labels each event with a unique value from a totally ordered set in a manner consistent with the partial order. The important point for our purposes is that he gives an algorithm for accomplishing this, starting from a particular execution of a distributed system and yielding an assignment of totally ordered clock values to the events of that execution.
+
+The virtual time approach exploits the same mechanisms, but in reverse:
+
+> 
+
+ With virtual time we do the reverse: we assume that every event is labeled with a clock value from a totally ordered virtual time scale in a manner obeying Lamport’s Clock Conditions (Rules 1 and 2), and we show how to unfold a fast concurrent execution (i.e., a wide and shallow partial ordering that is consistent with the total ordering). The Time Warp mechanism (which we describe in Section 4) is thus an inverse of Lamport’s algorithm. One of the virtues of adopting the virtual time paradigm is that we can reason correctly about the relations before and after in virtual time, using ordinary Newtonian intuition. The more difficult “relativistic” reasoning that Lamport shows is necessary to understand before and after in real time is unnecessary for virtual time. In a very practical sense virtual time is easier to understand and reason about than real time.
+
+Every process has its own local virtual clock, and processes exchange messages that are stamped with (sender name, virtual send time, receiver name, virtual receive time). Send time must be less then receive time, and the virtual time of each event at a process must be less than the virtual time of the next event. "These rules are exactly Lamport’s Clock Conditions, and embody our desire that the arrow of causality, or the direction of information transfer, always be pointed in the direction of increasing virtual time. ".
+
+> 
+
+ From now on we refer to the virtual receive time of a message as its timestamp. For correct implementation of virtual time, it is necessary and sufficient that at each process messages are handled in timestamp order... It is not obvious how incoming messages at each process can be processed in timestamp order because they will not generally arrive in timestamp order, and, since we assume virtual times are real numbers, it is impossible for a process, on the basis of local information alone, to block and wait for the message with the “next” timestamp. No matter which one is presumed to be “next” it is always possible that another message with an earlier timestamp will arrive later. Thus, even when the message with the “next” timestamp does arrive, it cannot be recognized as such. This is the central problem in implementing virtual time that is solved by the Time Warp mechanism.
+
+Time Warp has a local control mechanism (based on the local clock of a process), and a global control mechanism that advances a minimum threshold for local clocks.
+
+> 
+
+ The local virtual clock of a process does not change during an event at that process; it changes only between events, and then only to the value in the timestamp of the next message from the input queue. At any moment some local virtual clocks will be ahead of others, but this fact is invisible to the processes themselves because they can read only their own virtual clock. Whenever a message is sent, its virtual send time is copied from the sender’s virtual clock. The receiver and virtual receive time fields may be assigned by any one of a variety of application-specific conventions to be discussed later.
+
+Ideally no message ever arrives with a virtual receive time in the "past" (prior to the current local clock time) - but this is bound to happen occassionally.
+
+> 
+
+ ...the semantics of virtual time demands that incoming messages be received by each process strictly in timestamp order. The only way to accomplish this is for the receiver to roll back to an earlier virtual time, canceling all intermediate side effects, and then to execute forward again, this time receiving the late message in its proper sequence. Whenever a process has processed all input messages in its input queue, its virtual clock is set to +infinity, and the process is said, by convention, to terminate. However, it is not destroyed becausethe arrival of a new message later may cause it to roll back and unterminate.
+
+Processes keep moving forward, processing messages from their input queue on a gamble that no message will be received with an earlier timestamp. So long as it wins this bet, execution proceeds smoothly.
+
+> 
+
+ The name “Time Warp” derives from the fact that the virtual clocks of different processes need not agree, and the fact that they go both forward and backward in time. Over a lengthy computation, each process may roll back many times while generally progressing forward. The fact that virtual clocks are sometimes set back does not violate our stated intention that “the global virtual clock always progresses forward (or at least never backward)” because rollback is completely transparent to the process being rolled back. Programmers can write correct software without paying any attention to late-arriving messages,and even with no knowledge of the possiblity of rollback, just as they can write without any attention to, or knowledge of, the possibility of page faults in a virtual memory system.
+
+Rollback seems hard to achieve though? A process may have sent outbound messages in response to receiving a message, or initiated output or other irreversible actions.
+
+> 
+
+ Some of them may be physically in transit and therefore out of the system’s control for arbitrary durations. The paths followed by these direct and indirect messages from process to process may not form a tree, but may converge or even cycle, leading to worries about infinite loops or deadlock. Nevertheless, all such messages, direct or indirect, in transit or not, causing I/O or not, must be effectively “unsent” and their side effects, if any, reversed. The Time Warp rollback mechanism is able to accomplish all this quite efficiently, and without stopping any part of the system.
+
+The rollback mechanism is ingenious. Each process keeps its own local virtual clock time, its current state, a history of recent states (back to the global virtual time low watermark), an input queue with recently arrived messages sorted by their virtual receive time, and an output queue containing negative copies of the messages the process has recently sent, kept in send time order. These are needed in case of a rollback, to 'unsend' them.
+
+> 
+
+ For every message there exists an antimessage that is exactly like it in format and content except in one field, its sign. Two messages that are identical except for opposite signs are called antimessages of one another. All messages sent explicitly by user programs have a positive (+) sign; their antimessages have a
+
+ negative (-) sign. Whenever a process sends a message, what actually happens is that a faithful copy of the messageis transmitted to the receiver’s input queue, and a negative copy, the antimessage, is retained in the sender’s output queue for use in case the sender rolls back.... What makes antimessages so useful is the queueing discipline defined for them. Whenever a message and its antimessage occur in the same queue, they immediately annihilate one another. Thus, the result of enqueueing a message may be to shorten the queue by one message rather than lengthen it by one. It does not matter which message, negative or positive, arrives at the queue first; if and when the second one arrives, the annihilation happens. In general, messages and antimessages are created in pairs and annihilated in pairs, and at any moment the algebraic sum of all messages in a Time Warp system is zero. It is no doubt unnecessary to point out that this annihilation discipline is reminiscent of the behavior of particles and antiparticles in physics.
+
+So what happens when we receive a message with an earlier timestamp t than local virtual time?
+
+- Search the state history for the first saved state before t and restore it.
+
+- Transmit to their receivers all anti-messages in the output queue from virtual send time t onwards
+
+The process is now in the same state as it would have been if the message had arrived in its proper order, and anti-messages are en-route to their destinations. A negative message causes a rollback at its receiver if its virtual receive time is less than the receivers local time, just as a positive message would . At the receiver, there are three cases to consider:
+
+- If the original positive message has arrived but not yet been processed, then the receivers virtual time must be less than the receive time. The negative message simply cancels out the positive message (removes it from the input queue).
+
+- If the original positive message has a virtual receive time that is now in the present or past then the negative message will also arrive in the past. The process rollsback, and the negative message annihilates the positive one so that as the process moves forward again it is as if the message never existed.
+
+- The negative messages arrives before the positive one - in this case it is simply enqueued. If the positive message arrives before the negative message is processed they will annihilate each other. If the negative message is processed first, the processing can simply be a no-op because we know any action taken will be rolled back when the positive message arrives. 
+
+> 
+
+ This antimessage protocol is extremely robust, and works correctly under all possible circumstances. The levels of indirection may be to any depth, and there may even be circularity in the graph of antimessage paths with no ill effects. The rollback process need not be atomic, and indeed many interacting rollbacks may be going on simultaneously with no special synchronization. There is no possibility of deadlock (simply because there is no blocking). There is also no possibility of the “domino effect” (i.e., a cascading of rollbacks far into the past); the worst case is that all processes in the system roll back to the same virtual time as the original one did, and then proceed forward again.
+
+How do we stop state histories and message buffers growing indefinitely? The answer lies in global virtual time (GVT). GVT is the minimum of (i) all virtual times in all virtual clocks at time r, and (ii) the virtual send times of all messages that have been sent but not yet processed at time r. Because GVT is a low watermark it doesn't have to be exact.
+
+> 
+
+ Fortunately, GVT can be characterized more operationally as being less than or equal to the minimum of (a) all virtual times in all virtual clocks in the snapshot, (b) all virtual send times of messages that have been sent but not yet acknowledged (and may therefore be in transit at the moment of the snapshot), and (c) all virtual send times of messages in input queues that have not yet been processed by the receiving process. This characterization leads to a fast, distributed GVT- estimation algorithm that takes O(d) time, where d is the delay required for one broadcast to all processors in the system. The algorithm runs concurrently with the main computation and returns a value that is between the true GVT at the moment the algorithm starts and the true GVT at the moment of its completion. It thus gives a slightly out-of-date value for GVT, which is fundamentally the best we can do without synchronizing the entire system.
+
+Because local clocks always move forward, GVT always moves forward. The current data of a process includes old states in the state queues, messages stored in output queues, past messages in input queues that have already been processed, and future messages in input queues that have not yet been processed. All bar the future messages are used to support rollback. When notification of GVT arrives, any message with a virtual receive time less than GVT can be discarded, as can all but one saved state older than GVT. Dealing with messages queued for future processing is simply the normal flow control problem.
+
+With regards to those problematic side-effects:
+
+> 
+
+ When a process sends a command to an output device, or any other external agent, it is important that the physical output activity not be committed immediately, because the sending process may roll back and cancel the output request. Output can only be physically performed when GVT exceeds the virtual receive time of the message containing the command. After that point, no antimessage for the command can ever be generated, and the output can be safely committed (in timestamp order, of course).
+
+GVT also provides a very elegant solution to the problem of termination detection:
+
+> 
+
+ Termination detection in distributed systems has been an active field of research for some time now. With Time Warp the detection of termination is just one of several global issues handled in terms of GVT. Recall that whenever a process runs out of messages it terminates, and its local virtual clock is set to +inf. This is the only circumstance in which a virtual clock can read +inf. Therefore, whenever GVT reaches +inf, all local virtual clocks must read +inf and no messages can be in transit. No process can ever again unterminate by rolling back to a finite virtual time, and so whenever the GVT calculation returns +inf, Time Warp signals termination.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems 
+ 
+ Algorithms and data structuresDistributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousAsynchronous Distributed Snapshots for Distributed DataflowsNext &rsaquo;MillWheel: Fault-Tolerant Stream Processing at Internet Scale
+ 
+ 
+
+ 
+ 
+## 
+ 2 thoughts on &ldquo;Virtual Time&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: MillWheel: Fault-Tolerant Stream Processing at Internet Scale | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Four short links: 21 August 2015 - O'Reilly Radar 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

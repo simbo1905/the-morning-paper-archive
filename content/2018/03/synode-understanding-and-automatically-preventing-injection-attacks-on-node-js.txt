@@ -1,0 +1,349 @@
+URL: https://blog.acolyer.org/2018/03/12/synode-understanding-and-automatically-preventing-injection-attacks-on-node-js/
+Title: Synode: understanding and automatically preventing injection attacks on&nbsp;Node.js
+---
+
+Synode: understanding and automatically preventing injection attacks on Node.js Staicu et al., NDSS’18
+
+If you’re using JavaScript on the server side (node.js), then you’ll want to understand the class of vulnerabilities described in this paper. JavaScript on the server side doesn’t enjoy some of the same protections as JavaScript running in a browser. In particular, Node.js modules can interact freely with the operating system without the benefit of a security sandbox. The bottom line is this:
+
+> 
+
+ We show that injection vulnerabilities are prevalent in practice, both due to eval, which was previously studied for browser code, and due to the powerful exec API introduced in Node.js. Our study suggests that thousands of modules may be vulnerable to command injection attacks and that fixing them takes a long time, even for popular projects.
+
+The Synode tool developed by the authors combines static analysis with runtime protection to defend against such attacks. You can get it at https://github.com/sola-da/Synode.
+
+## Eval and exec injection vulnerabilities
+
+There are two families of APIs that may allow an attacker to inject unexpected code:
+
+- execand its variants take a string argument and interpret it as a shell command (what could possibly go wrong??!)
+
+- eval and its variants take a string argument and interpret it as JavaScript code, allowing the execution of arbitrary code in the context of the current application.
+
+Of course, you can combine the two to eval a string containing an exec command.
+
+> 
+
+ Node.js code has direct access to the file system, network resources, and any other operating system-level resources provided to processes. As a result, injections are among the most serious security threats on Node.js...
+
+Here’s an example program illustrating a vulnerability:
+
+Consider calling this function as follows: backupFile('-help &amp;&amp; rm -rf * &amp;&amp; echo ", "'). As the authors delightfully put it: “Unfortunately this command does not backup any files but instead it creates space for future backups by deleting all files in the current directory.”
+
+## How widespread is the problem?
+
+The authors studies 235,850 npm modules, and found that 3% (7,686 modules) and 4% (9,111 modules) use exec and eval respectively. Once you start looking at dependencies though (i.e., modules that depend on an exec- or eval-using module), then about 20% of all modules turn out to directly or indirectly depend on at least one injection API.
+
+Fixing the most popular 5% of injection modules would protect almost 90% of the directly dependent modules. Unfortunately, that still requires changing over 780 modules.
+
+Perhaps these vulnerabilities are in seldom-used modules though? That turns out not to be the case:
+
+> 
+
+ The results invalidate the hypothesis that vulnerable modules are unpopular. On the contrary, we observe that various vulnerable modules and injection modules are highly popular, exposing millions of users to the risk of injections.
+
+The authors then looked at call-sites to determine the extent to which data is checked before being passed into injection APIs. Can the site be reached by potentially attacker-controlled data, and are there mitigation checks in place?
+
+> 
+
+ A staggering 90% of the call sites do not use any mitigation technique at all.
+
+Another 9% attempt to sanitise input using regular expressions. Unfortunately, most of those were not correctly implemented. No module used a third-party sanitization module to prevent injections, even though several such modules exist.
+
+Reporting a representative set of 20 vulnerabilities to module developers did not result in quick fixes. “Most of the developers acknowledge the problem. However, in the course of several months only 3 of the 20 vulnerabilities have been completely fixed, confirming earlier observations about the difficulty of effectively notifying developers.”
+
+## Introducing Synode
+
+> 
+
+ ...the risk of injection vulnerabilities is widespread, and a practical technique to mitigate them must support module maintainers who are not particularly responsive. Motivated by these findings, this section presents Synode...
+
+Synode combines static analysis to detect places where injection attacks can potentially take place, with runtime enforcement (guided by the results of that analysis) to ensure that injection attacks are detected and thwarted. The recommended deployment of Synode is via an npm post-installation script. This script will run on each explicitly declared third-party dependent and perform the code rewriting to add dynamic enforcement if needed.
+
+The static analysis phase identifies call sites for injection APIs, and summarises what is known statically about all of the values that may be passed to the function in a template tree. For example:
+
+The template trees are then reduced to a set of templates, where a template is a sequence of strings and inserts:
+
+> 
+
+ If all the templates for a particular call site are constant strings, i.e., there are no unknown parts in the template, then the analysis concludes that the call site is statically safe. For such statically safe call sites, no runtime checking is required. In contrast, the analysis cannot statically ensure the absence of injections if the templates for the call site contain unknown values. In this case, checking is deferred to runtime...
+
+The goal of runtime checking is to prevent values that expand the template computed for the call site in a way that is likely to be unforeseen by the developer, and of course to do so as efficiently as possible. To achieve these combined aims the statically extracted set of templates are first expanded into a set of partial abstract syntax trees (PAST) that represent the expected structure of benign values. Then at runtime the value passed to the injection API is parsed into an AST, and this is compared against the pre-computed PASTs. This process ensures that (i) the runtime AST is derivable from at least one of the PASTs by expanding the unknown substrees, and (ii) the expansions remain within an allowed subset of all possible AST nodes.
+
+For shell commands passed to exec, only AST nodes that represent literals are considered safe. For eval, all AST node types that occur in JSON code are considered safe.
+
+## Evaluation
+
+The mitigation technique is applied to all (at the time of the study) 15,604 node.js modules with at least one injection API call site.
+
+- 18,924 of all 51,627 call sites are found to be statically safe (36.66%)
+
+- The templates for the vast majority of call sites have at most one hole, and very few templates contain more than five.
+
+- Static analysis completes for 96.27% of the 15,604 modules in less than one minute, with an average analysis time for these modules of 4.38 seconds.
+
+To evaluate the runtime mechanism 24 vulnerable modules are exercised with benign and malicious inputs. The modules and injection vectors used are shown in the following table:
+
+This results in 5 false positives (out of 56 benign inputs), which are caused by limitations of the static analysis (3/5) or node types outside of the safe set (2/5). There are no false negatives (undetected malicious inputs). The average runtime overhead for a call is 0.74ms.
+
+## The last word
+
+> 
+
+ In a broader scope, this work shows the urgent need for security tools targeted at Node.js. The technique presented in this paper is an important first step toward securing the increasingly important class of Node.js applications, and we hope it will inspire future work in this space.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousSettling payments fast and private: efficient decentralized routing for path-based transactionsNext &rsaquo;JavaScript Zero: real JavaScript, and zero side-channel attacks
+ 
+ 
+
+ 
+ 
+## 
+ 6 thoughts on &ldquo;Synode: understanding and automatically preventing injection attacks on Node.js&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Claire Mackerras says: 
+
+ 
+ March 12, 2018 at 11:19 am 
+
+ 
+
+ 
+ 
+Wonderful
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: 20% of all Node.js modules found vunerable to injection attacks - Tech + Hckr News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: 20% of all Node.js modules found vunerable to injection attacks - ÇlusterAssets Inc., 
+ 
+ 
+- 
+ 
+ Pingback: Synode: understanding and automatically preventing injection attacks on Node.js | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Synode: understanding and automatically preventing injection attacks on Node.js - Tech + Hckr News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Synode: understanding and automatically preventing injection attacks on Node.js - ÇlusterAssets Inc., 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

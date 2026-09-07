@@ -1,0 +1,43 @@
+{
+  "date": "20150309",
+  "file_name": "20150309",
+  "slug": "zab-high-performance-broadcast-for-primary-backup-systems",
+  "blog_url": "https://blog.acolyer.org/2015/03/09/zab-high-performance-broadcast-for-primary-backup-systems/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the Zab protocol, which underpins ZooKeeper's atomic broadcast mechanism for primary-backup systems. Adrian Colyer highlights Zab's focus on replicating state changes rather than operations, with a critical observation that state changes are incremental and must be applied in order. The protocol is designed for high performance, enabling multiple outstanding transactions while maintaining FIFO ordering for operations from a single client. The author notes that while Zab argues Paxos cannot address this combination, Paxos (with a single distinguished proposer) might theoretically suffice under normal operation, but fails during leader failure scenarios where gaps in sequencing can occur. Zab's key innovation is the 'primary ordering' property, split into local and global orders, which ensures correct state transitions even during leader changes. The protocol operates in three phases: discovery, synchronization, and broadcast, with synchronization being crucial for maintaining primary order despite leader crashes. The paper also details process states (ELECTION, FOLLOWING, LEADING) and the leader oracle mechanism.",
+  "paper_title": "Zab: High-performance broadcast for primary-backup systems",
+  "paper_authors": [
+    "Flavio P. Junqueira",
+    "Benjamin C. Reed",
+    "Ranjit Jhala"
+  ],
+  "paper_year": 2011,
+  "paper_venue": "Technical Report, Stanford University",
+  "paper_url": "http://web.stanford.edu/class/cs347/reading/zab.pdf",
+  "paper_abstract": "Zab: High-performance broadcast for\nprimary-backup systems\nFlavio P. Junqueira, Benjamin C. Reed, and Marco Serafini\nYahoo! Research\n{fpj,breed,serafini}@yahoo-inc.com\n\nAbstract—Zab is a crash-recovery atomic broadcast algorithm\nwe designed for the ZooKeeper coordination service. ZooKeeper\nimplements a primary-backup scheme in which a primary\nprocess executes clients operations and uses Zab to propagate the\ncorresponding incremental state changes to backup processes1 .\nDue the dependence of an i",
+  "paper_file": "papers/2015/03/09/zab-high-performance-broadcast-for-primary-backup-systems.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "consensus-protocols",
+    "atomic-broadcast",
+    "primary-backup",
+    "zookeeper",
+    "paxos",
+    "state-replication",
+    "leader-election",
+    "fifo-ordering",
+    "epoch-synchronization"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Problem with Paxos under requirements",
+      "caption": "Figure 1 illustrates a problem we found with Paxos under our requirements. It shows a run with three distinct proposers that violates our requirement for the order of generated state changes. Proposer P1 executes Phase 1 for sequence numbers 27 and 28. It proposes values A and B for sequence numbers 27 and 28, respectively, in Phase 2 with ballot number 1. Both proposals are accepted only by acceptor A1. Proposer P2 executes Phase 1 against acceptors A2 and A3, and end up proposing C in Phase 2 to sequence number 27 with ballot number 2. Finally, proposer P3, executes Phase 1 and 2, and is able to have a quorum of acceptors choosing C for sequence number 27, B for sequence number 28, and D for 29."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

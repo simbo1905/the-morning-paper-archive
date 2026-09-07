@@ -1,0 +1,46 @@
+{
+  "date": "20160523",
+  "file_name": "20160523",
+  "slug": "efficiently-compiling-efficient-query-plans-for-modern-hardware",
+  "blog_url": "https://blog.acolyer.org/2016/05/23/efficiently-compiling-efficient-query-plans-for-modern-hardware/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Neumann's 2011 paper as a foundational work on optimizing query processing for modern hardware. The paper critiques the traditional iterator model used in query execution, which suffers from inefficiencies due to frequent virtual function calls, poor code locality, and excessive register evictions. Neumann proposes a push-based execution model that reverses the dataflow direction, pushing tuples through operators to minimize memory accesses and maximize data/code locality. This approach compiles query plans into tight, register-efficient code fragments that avoid materialization until necessary, leading to near-optimal performance. The generated code leverages LLVM for efficient assembly output, demonstrating significant speedups in query execution. The paper's insights have directly influenced modern systems like Apache Spark, which adopted similar techniques in its 2.0 release.",
+  "paper_title": "Efficiently Compiling Efficient Query Plans for Modern Hardware",
+  "paper_authors": [
+    "Thomas Neumann"
+  ],
+  "paper_year": 2011,
+  "paper_venue": "VLDB",
+  "paper_url": "http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.230.8553&amp;rep=rep1&amp;type=pdf",
+  "paper_abstract": "In 2011 we showed how to use dynamic code generation to process queries in a data-centric manner. This execution model can produce compact and efficient code and was successfully used by both our own systems and systems of other groups. As the systems become used in practice, additional techniques were developed for shortcomings that did arrive, including low-latency compilation, multi-threading support, and others. This paper gives an overview of the evolution of our query engine within in the last ten years, and points out which problem have to be tackled to bring a compiling system into production usage. PVLDB Reference Format: Thomas Neumann. Evolution of a Compiling Query Engine. PVLDB, 14(12): 3207 - 3210, 2021. doi:10.14778/3476311.3476410 1 millions of queries per day as their core data processing engine, and in other systems like for example [1, 6]. As our system saw more production usage, the system continued to evolve as we addressed issues that arose. First within HyPer, and then after HyPer became commercial, within our new Umbra engine, where we tested even more radical ideas [18]. In this paper, we give an overview of the necessary steps to bring a compiling query engine into production and point out common pitfalls and useful techniques for implementing such a system. We start with an overview of data-centric code generation in Section 2 and then discuss the problem of low latency compilation in Section 3. Afterwards, in Section 4 we look at the integration of morsel-driven execution into the compilation framework. Developer productivity is discussed in Section 5, followed by further extensions of the compilation model in Section 6. 2",
+  "paper_file": "papers/2016/05/23/efficiently-compiling-efficient-query-plans-for-modern-hardware.pdf",
+  "topics": [
+    "storage-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "query-optimization",
+    "query-execution",
+    "iterator-model",
+    "push-based-processing",
+    "code-generation",
+    "LLVM",
+    "pipeline-breakers",
+    "data-locality",
+    "register-allocation"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Example plan with visible pipeline boundaries",
+      "caption": "Example plan with visible pipeline boundaries for select * from r1, (select z, count(*) from r2 where y=3 group by z), r3 where a=b and c=z and x=7 (from [16])."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Compiled query for Figure 1",
+      "caption": "Compiled query for Figure 1."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

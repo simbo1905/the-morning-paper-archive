@@ -1,0 +1,460 @@
+URL: https://blog.acolyer.org/2016/09/12/on-designing-and-deploying-internet-scale-services/
+Title: On designing and deploying internet-scale&nbsp;services
+---
+
+On designing and deploying internet-scale services James Hamilton LISA '07
+
+Want to know how to build cloud native applications? You'll be hard-pushed to find a better collection of wisdom, best practices, and hard-won experience than this 2007 paper from James Hamilton. It's amazing to think that all of this knowledge was captured and written down nine years ago - cloud-native isn't as new as you think! There's so much goodness in this paper, and in such condensed form, that it's hard to do it justice in a summary. If this write-up catches your interest I fully recommend going on to read the original. The last time I read this paper, I was so struck by the value of the content that I created a services checklist based off of it. If you're reviewing or designing a system, you might find it handy.
+
+The paper itself consists of three high-level tenets, followed by ten sub-sections covering different aspects of designing and deploying operations-friendly services. I love this reminder that goods ops starts in design and development, and is not something you can just bolt-on at the end:
+
+> 
+
+ We have long believed that 80% of operations issues originate in design and development... When systems fail, there is a natural tendency to look first to operations since that is where the problem actually took place. Most operations issues, however, either have their genesis in design and development or are best solved there.
+
+Onto the three tenets, which form a common thread through all the other recommendations:
+
+- Expect failures
+
+- Keep things simple... complexity breeds problems, and simpler things are easier to get right.
+
+- Automate everything: "people make mistakes; people need sleep; people forget things. Automated processes are testable, fixable. And therefore ultimately much more reliable.
+
+> 
+
+ Simplicity is the key to efficient operations.
+
+And the ten sub-sections of recommendations break down in the following categories:
+
+- Overall application design (the largest section) - 21 best practices
+
+- Automatic management and provisioning - 11 best practices
+
+- Dependency management - 6 best practices
+
+- Release cycle and testing - 12 best practices
+
+- Hardware selection and standardization - 4 best practices (and perhaps the section of the paper that has dated the most, but the overall point that you shouldn't be depending on any special pet hardware is still spot-on).
+
+- Operations and capacity planning - 5 best practices
+
+- Auditing, monitoring and alerting - 10 best practices
+
+- Graceful degradation and admission control - 3 best practices
+
+- Customer and press communication plan - put one in place (before you need it)!
+
+- Customer self-provisioning and self-help - all customers to help themselves whenever possible
+
+Perhaps now you see why I say this paper is so hard to summarize - what to leave out! Rest assured that all of the above are captured in my checklist.  Some of the advice (though new at the time) has been repeated often since. Below I've tried to pick out some of the things that are less often discussed, give especial food-for-thought, or are just so well put that I couldn't resist sharing them.
+
+- Four years before Netflix started talking about chaos monkey, Hamilton wrote: "The acid test for full compliance with this design principle is the following - is the operations team willing and able to bring down any server in the service at any time without draining the workload first."  And he further goes on to recommend that we analyse component failure modes and the combinations thereof using the same approaches as we might use for security threat modelling - considering each potential threat and implementing adequate mitigation.
+
+> 
+
+ Very unusual combinations of failures may be determined sufficiently unlikely that ensuring the system can operate through them is uneconomical. Be cautious when making this judgement. We've been surprised at how frequently "unusual" combinations of events take place when running thousands of servers that produce millions of opportunities for component failures each day.
+
+- Strive to have only a single version of your service. The most economic services don't give customers control over the version they run, and only host one version. Recognize that multiple versions will be live during rollout and production testing. Versions n and n+1 of all components need to coexist peacefully.
+
+- Partition the system in such a way that partitions are infinitely adjustable and fine-grained, and not bounded by any real world entity (person, collection, customer etc.).
+
+> 
+
+ If the partition is by company, then a big company will exceed the size of a single partition. If the partition is by name prefix, then eventually all the P's, for example, won't fit on a single server.
+
+- Designing for automation may involve significant service-model constraints:
+
+> 
+
+ Automating administration of a service after design and deployment can be very difficult. Successful automation requires simplicity and clear, easy-to-make operational decisions. This in turn depends on a careful service design that, when necessary, sacrifices some latency and throughput to ease automation. The trade-off is often difficult to make, but the administrative savings can be more than an order of magnitude in high-scale services.
+
+(The example Hamilton gives in the paper is choosing to use synchronous replication in order to simplify the decision to failover, avoiding the complications of asynchronous replication).
+
+- Keep configuration and code as a unit throughout the lifecycle.
+
+- The most appropriate level to handle failures is the service level:
+
+> 
+
+ Handle failures and correct errors at the service level where the full execution context is available rather than in lower software levels. For example, build redundancy into the service rather than depending upon recovery at the lower software layer.
+
+- Be careful with your dependencies! It's interesting to contrast Hamilton's advice here with the trend towards microservices architectures:
+
+> 
+
+ Dependency management in high-scale services often doesn't get the attention the topic deserves. As a general rule, dependence on small components or services doesn't save enough to justify the complexity of managing them. Dependencies do make sense when: (1) the components being depended upon are substantial in sive or complexity, or (2) the service being depended upon gains its value in being a single, central instance.
+
+If you do introduce dependencies then: expect latency; isolate failures; use proven components (third-party deps); implement inter-service monitoring and alerting; decouple components so that operation can continue in degraded mode if a dependency fails; and remember that:
+
+> 
+
+ Dependent services and producers of dependent components need to be committed to at least the same SLA as the depending service.
+
+- Don't bother trying to create full staging environments as close as possible to production (as you get ever closer to production realism, the cost goes asymptotic and rapidly approaches that of prod)...
+
+> 
+
+ We instead recommend taking new service releases through standard unit, functional, and production test lab testing and then going into limited production as the final test phase.
+
+To be able to do this with confidence you need to follow four rules:
+
+- The production system must have sufficient redundancy to be able to quickly recover from a catastrophic failure
+
+- Data corruption or state-related failures have to be extremely unlikely (functional tests should be passing)
+
+- Errors must be detected and the engineering team must be monitoring system health of the code in test, and
+
+- It must be possible to quickly roll back all changes and this roll back must be tested before going into production.
+
+> 
+
+ Another potentially counter-intuitive approach we favor is deployment mid-day rather than at night. At night, there is greater risk of mistakes. And, if anomalies crop up when deploying in the middle of the night, there are fewer engineers around to deal with them.
+
+- Ship often! Though here the definition of 'often' is definitely showing its age: "We like shipping on a 3-month cycle, but arguments can be made for other schedules. Our gut feel is that the norm will eventually be less than three months, and many services are already shipping on weekly schedules." 3 months sounds glacial to me today!
+
+- 
+
+Use production data to find problems:
+
+> 
+
+Quality assurance in a large-scale system is a data mining and visualization problem, not a testing problem. Everyone needs to focus on getting the most out of the volumes of data in a production environment.
+
+- For test and development, make it easy to deploy the entire service on a single system. Where this is impossible for some component, write an emulator. "Without this, unit testing is difficult and doesn't fully happen."
+
+> 
+
+ If running the full system is difficult, developers will have a tendency to take a component view rather than a systems view.
+
+- Automate the procedure to move state off of damaged systems if the worst happens:
+
+> 
+
+ The key to operating services efficiently is to build the system to eliminate the vast majority of operations administrative interactions. The goal should be that a highly-reliable 24&#215;7 service should be maintained by a small 8&#215;5 operations staff.
+
+- Make the development team responsible...
+
+> 
+
+ If the development team is frequently called in the middle of the night, automation is the likely outcome. If operations is frequently called, the usual reaction is to grow the operations team.
+
+- Instrument everything, data is the most valuable asset. There's a very good list of what to capture in the paper.
+
+> 
+
+ The operations team can't instrument a service in deployment. Make substantial effort during development to ensure that performance data, health data, throughput data, etc. are all produced by every component in the system.
+
+- Control and meter admission - "it's vital that each service have a fine-grained knob to slowly ramp up usage when coming back on line or recovering from a catastrophic failure..."
+
+I'm going to leave things there, but at risk of repeating myself, there's so much good advice which I had to leave out in this summary that if the subject matter at all interests you, it's well worth reading the full paper.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Distributed SystemsSoftware Engineering 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousReflections on trusting trustNext &rsaquo;Data on the Outside versus Data on the Inside
+ 
+ 
+
+ 
+ 
+## 
+ 8 thoughts on &ldquo;On designing and deploying internet-scale services&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Scott Kevill says: 
+
+ 
+ September 12, 2016 at 11:55 am 
+
+ 
+
+ 
+ 
+I remember reading this paper years ago and similarly being amazed at the incredible density of valuable, hard-earned experience it contained.
+
+I'm still as surprised now as back then that it is not as widely known and revered as it deserves.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Matt Macdonald-Wallace says: 
+
+ 
+ December 19, 2016 at 3:59 pm 
+
+ 
+
+ 
+ 
+It's not about how well the content is published, it's about whether people are willing to listen to the messages within the content.
+
+Many people in the Systems Administration world have been designing for failure and trying to drive test-driven infrastructure as code for seven or eight years now, but only in the past two years have people truly been willing to listen to the lessons that have been learned from those who discovered things the hard way, who wrote code that has since been taken over and made redundant by the excellent work of others.
+
+This is an excellent paper, I hope that this blog post can start to give it the credence it deserves!
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ Pingback: Four short links: 12 September 2016 | A bunch of data 
+ 
+ 
+- 
+ 
+ Pingback: On designing and deploying internet-scale services | the morning paper | My Blog 
+ 
+ 
+- 
+ 
+ Pingback: SRE Weekly Issue #40 - SRE WEEKLY 
+ 
+ 
+- 
+ 
+ Pingback: The Morning Paper on Operability | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: The Cloudify Awesome Sauce Monthly DevOps Roundup | September 2016 | Cloudify 
+ 
+ 
+- 
+ 
+ 
+ 
+ Onux Technologies says: 
+
+ 
+ July 4, 2019 at 8:27 am 
+
+ 
+
+ 
+ 
+Hello Sir
+
+Thanks for posting this amazing blog. It consists of very useful information. The language you used in this is very simple & easy to understood. Post some more blogs related to “computer network design".
+
+Thanks & Regards.
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

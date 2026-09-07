@@ -1,0 +1,49 @@
+{
+  "date": "20150114",
+  "file_name": "20150114",
+  "slug": "mergeable-persistent-data-structures",
+  "blog_url": "https://blog.acolyer.org/2015/01/14/mergeable-persistent-data-structures/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Irmin, an OCaml implementation of mergeable persistent data structures that brings Git-like version control to application data. The key insight is to leverage existing DVCS tools (clone, push, pull, branch, etc.) to manage mutable persistent data structures, enabling inspection, cloning, and reverting of states. Irmin uses Git's repository format and exposes DVCS operations as a library for OCaml applications, with bidirectional mapping to Git for tool compatibility. The paper explores merge mechanisms (CRDTs, data-structure-specific merges, or developer-defined) and delves into mergeable implementations of a queue and a rope (a binary tree-based string structure). The performance cost is noted as a factor of 5, and the blog appreciates the elegance of applying DVCS principles to application data. The mergeable queue and rope sections detail how conflicts are resolved and merged, with the rope's merge operation leveraging subtree comparisons and user-defined merge functions.",
+  "paper_title": "Mergeable persistent data structures",
+  "paper_authors": [
+    "Guillaume Farinier",
+    "Thomas Gazagnaire",
+    "Fabrice Le Fessant",
+    "Michel Mauny"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "",
+  "paper_url": "http://gazagnaire.org/pub/FGM15.pdf",
+  "paper_abstract": "Irmin is an OCaml library to design purely functional data structures that can be persisted on disk and be merged and synchronized efficiently. In this paper, we focus on the merge aspect of the library and present two data structures built on top of Irmin: (i) queues and (ii) ropes that extend the corresponding purely functional data structures with a 3-way merge operation. We provide early theoretical and practical complexity results for these new data structures. Irmin is available as open-source code as part of the MirageOS project.",
+  "paper_file": "papers/2015/01/14/mergeable-persistent-data-structures.pdf",
+  "topics": [
+    "distributed-systems",
+    "algorithms"
+  ],
+  "tags": [
+    "version-control",
+    "persistent-data-structures",
+    "mergeable-data-structures",
+    "CRDTs",
+    "queue",
+    "rope",
+    "Git",
+    "DVCS",
+    "OCaml"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "High-level prefix-tree interface of Irmin",
+      "caption": "High-level prefix-tree interface of Irmin, generated over the block store, the tag store and the application contents description."
+    },
+    {
+      "number": "Figure 2",
+      "title": "IrminMerge signature",
+      "caption": "IrminMerge signature. In queues and ropes signature, IrminMerge.t refers to the type of the above merge function."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

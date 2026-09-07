@@ -1,0 +1,37 @@
+{
+  "date": "20160218",
+  "file_name": "20160218",
+  "slug": "ownership-and-reference-counting-based-garbage-collection-in-the-actor-world",
+  "blog_url": "https://blog.acolyer.org/2016/02/18/ownership-and-reference-counting-based-garbage-collection-in-the-actor-world/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Pony-ORCA, a fully concurrent garbage collection algorithm designed for actor-based languages like Pony. The algorithm leverages actor locality and implicit synchronization via messaging to enable concurrent garbage collection of both objects and actors without requiring synchronization between actors during GC. Key advantages include the ability for actors to perform GC independently based on local state, without waiting for message queues to empty or consulting other actors. The blog emphasizes how Pony's type system ensures race-free tracing and GC by preventing concurrent writes to objects accessible by other actors. The core insight is a reference counting mechanism where each actor maintains local and foreign reference counts, updated via protocol-specific messages (INC/DEC), enabling safe and decentralized GC decisions. The approach draws parallels to the Chandy-Lamport distributed snapshot algorithm, accounting for in-flight messages and maintaining invariants to ensure correctness.",
+  "paper_title": "Ownership and Reference Counting Based Garbage Collection in the Actor World",
+  "paper_authors": [
+    "Clebsch",
+    "Dietrich",
+    "Spoonhower",
+    "Tolmach"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "",
+  "paper_url": "https://github.com/ponylang/ponylang.github.io/blob/master/papers/OGC.pdf",
+  "paper_abstract": "works well in the concurrent setting, but the no-incoming references requirement is often far too strong. Reference counting garbage collection puts no requirement on the heap structure; instead, it tracks, for each object, a count of the number of references to it held by other objects [8]. This approach has been further developed to detect cycles and to deal with the distributed setting [19, 28]. However, the approach has poor locality and thus, in the concurrent setting, it requires synchronization across the various threads [25]. We employ the locality found in actors, and the implicit synchronisation afforded by the actor messaging system, to develop a fully concurrent garbage collection algorithm. Pony-ORCA allows the fully concurrent garbage collection of objects as well as actors. In particular: We propose Pony-ORCA, a fully concurrent protocol for garbage collection in the actor paradigm. It allows actors to perform garbage collection concurrently with any number of other actors. It does not require any form of synchronization across actors except those introduced through the actor paradigm, i.e. message send and message receive. Pony-ORCA is based on ideas from ownership and deferred, distributed, weighted reference counting. It adapts the messaging system of actors to keep the reference count consistent. We introduce a formal model and describe the invariants on which it relies. We illustrate through an example and sketch how these invariants are maintained. We show some benchmarks and argue that the protocol can be implemented efficiently. • An actor may perform garbage collection concurrently with",
+  "paper_file": "papers/2016/02/18/ownership-and-reference-counting-based-garbage-collection-in-the-actor-world.pdf",
+  "topics": [
+    "programming-languages",
+    "distributed-systems"
+  ],
+  "tags": [
+    "garbage-collection",
+    "actor-model",
+    "reference-counting",
+    "concurrent-gc",
+    "pony-language",
+    "type-system",
+    "distributed-snapshot",
+    "message-passing"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

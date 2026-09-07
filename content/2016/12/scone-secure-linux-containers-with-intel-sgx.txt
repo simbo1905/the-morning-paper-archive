@@ -1,0 +1,517 @@
+URL: https://blog.acolyer.org/2016/12/14/scone-secure-linux-containers-with-intel-sgx/
+Title: SCONE: Secure Linux containers with Intel&nbsp;SGX
+---
+
+SCONE: Secure Linux Containers with Intel SGX Arnautov et al., OSDI 2016
+
+We looked at Haven earlier this year, which demonstrated how Intel’s SGX could be used to shield an application from an untrusted cloud provider. Today’s paper choice, SCONE, looks at how to employ similar ideas in the context of containers.
+
+> 
+
+…existing container isolation mechanisms focus on protecting the environment from untrusted containers. Tenants, however, want to protect the confidentiality and integrity of their application data from accesses by unauthorized parties - not only from containers but also from higher-privileged system software, such as the OS kernel and the hypervisor. Attackers typically target vulnerabilities in existing virtualized system software, or they compromise the credentials of privileged system administrators.
+
+Loved by developers and operators for their lightweight and ease-of-use, containers are ideal units of packaging and deployment, giving portability across different environments. So you can run your containers in many places, but do you want to? Much debate has raged about the security properties of the isolation provided by containers. With SCONE, the Secure CONtainer Environment, another piece of the puzzle falls into place making containers not only one of the easiest ways to package and deploy applications, but also one of the most secure. The promise of SCONE is that an enterprise (or indeed, anyone concerned about security) can package up a secure container image which can then be run on any suitable infrastructure platform safe in the knowledge that no-one can see inside the container - not even the operator of the platform or an attacker that has managed to e.g. gain root privileges on a container host. And that makes containers probably the all-round best way there is to run applications, period.
+
+The careful reader will have noticed the key word ‘suitable’ in the preceding paragraph. In this case, suitable means a hardware platform supporting Intel’s Software Guard Extensions (SGX), available for their CPUs since 2015. The SGX extension adds support for secure enclaves which shield application code and data from access by other software (including higher-privileged software). The enclave mechanism seems like a perfect fit for containers - if we run the application process of a container inside an enclave we should be able to guarantee the confidentiality and integrity of the data. A few key questions arise in pursuit of this goal though:
+
+- What’s the best way to adapt a container to run within an enclave, accommodating all of the restrictions that come with that?
+
+- Can it be done in a way that doesn’t break compatibility with existing container platforms (e.g., Docker)?
+
+- Will the end result pay too high a performance overhead to be usable in practice?
+
+Let’s dig in…
+
+## Running a container in an Enclave
+
+Inside an enclave both code and data reside in an enclave page cache (EPC):
+
+> 
+
+While cache-resident, enclave code and data are guarded by CPU access controls. When moved to DRAM, data in EPC pages is protected at the granularity of cache lines. An on-chip memory encryption engine (MEE) encrypts and decrypts cache lines in the EPC written to and fetched from DRAM. Enclave memory is also integrity protected meaning that memory modifications and rollbacks are detected.
+
+From outside of the enclave you can’t see in, but from inside the enclave you can see out (i.e., access untrusted DRAM) and pass function call parameters and results. The enclave code must verify the integrity of all untrusted data. On Intel Skylake CPUs, the EPC size is between 64 and 128 MB. A paging mechanism supports swapping pages between EPC and untrusted DRAM using encrypted buffers. Multiple threads can operate within an enclave, each with its own 4KB thread local storage. Running enclave code incurs performance overhead for three main reasons:
+
+- Privileged instructions cannot execute inside the enclave, so threads must exit the enclave to make system calls
+
+- Enclave code pays a penalty for memory writes and cache misses because the on-chip memory encryption engine (MEE) must encrypt and decrypt cache lines
+
+- Applications with memory requirements exceeding the size of the EPC must pay for the costly encryption and integrity protection involved in moving pages out to DRAM.
+
+A key question therefore is what do you put inside the enclave (and hence what do you leave to run outside)? The ideal is a minimal trusted computing base (TCB) coupled with a need to cross the trusted/untrusted boundary as infrequently as possible. These two goals are in tension with each other (the more functionality you put inside, the greater the TCB, but the less you need to rely on code outside). SCONE chooses to place the C standard library libc inside the enclave, but have system calls made by libc cross the external interface.
+
+> 
+
+While this design does not rely on a minimalist external interface to the host OS, we show that shield libraries can be used to protect a security-sensitive set of system calls: file descriptor based I/O calls, such as read, write, send, and recv, are shielded by transparently encrypting and decrypting the user data.
+
+One limitation (due to SGX itself) is that SCONE cannot support fork, exec, and clone. When system calls are made, unless special support is provided a micro-benchmark showed that the enclave adds an order-of-magnitude overhead. To mitigate this, SCONE uses an asynchronous system call interface:
+
+There are two lock-free, multi-producer, multi-consumer queues: a request queue and a response queue. To make a system call, a request is placed on the request queue, which is serviced by an OS thread inside the SCONE kernel. When the call returns, the result is placed in the response queue.
+
+> 
+
+The enclave code handling system calls also ensures that pointers passed by the OS to the enclave do not point to enclave memory. This check protects the enclave from memory-based Iago attacks and is performed for all shield libraries.
+
+That covers system calls passing data in and out of the enclave. The shield libraries protect other external interfaces:
+
+- A file system shied protects the confidentiality and integrity of files, with transparent authentication and encryption.
+
+- A network shield ensures that all network communications use TLS, terminated inside the enclave.
+
+- A console shield protects the confidentiality of data sent via the stdin, stdout, and stderr streams.
+
+## Integrating with Docker
+
+> 
+
+With SCONE, a secure container consists of a single Linux process that is protected by an enclave, but otherwise it is indistinguishable from a regular Docker container… SCONE does not require modifications to the Docker Engine or its API, but it relies on a wrapper around the original Docker client.
+
+To make it all work, changes are required to the build process to create secure images in the first place, and client-side extensions (a secure SCONE client) are needed to securely spawn and communicate with secure containers.
+
+Images are created in a trusted environment, and the image creator must understand all of the security related aspects of the image - which files to protect, shields to activate, and so on. There are three simple steps:
+
+- Build a SCONE executable of the application to be packaged, which includes statically linking the application with its library dependencies and the SCONE library.
+
+- Use the SCONE client to create the metadata necessary to protect the file system. “The client encrypts specified files and creates a file system (FS) protect file, which contains the message authentication codes for file chunks and the keys used for encryption. The FS protection file itself is encrypted and added to the image.”
+
+- Publish the image using standard Docker mechanisms. There is no need to trust any given Docker registry because all of the security-relevant parts of the image are already protected by the FS protection file.
+
+When a container instance is created from the image, a startup configuration file (SCF) is sent to it via a TLS protected network connection. The SCF contains keys to encrypt standard I/O streams, a hash of the FS protection file and its encryption key, application arguments, and environment variables.
+
+There’s some important fine print here which I’ll return to at the end of this piece:
+
+> 
+
+In production use, the container owner would validate that the container is configured security before sending it to the SCF. The SGX remote attestation mechanism can attest to the enclave to enable this validation, but our current SCONE prototype does not support remote attestation.
+
+## Runtime performance
+
+Section 4 contains the results of a number of experiments using Apache, NGINX, Memcached, Redis, and SQLite all running in secured containers using SCONE. In the charts that follow, ‘glibc’ represents a version of the application using the standard GNU C library, ‘SCONE-sync’ is SCONE without the special async system call support, and ‘SCONE-async’ is SCONE with the special async system call support.
+
+Here’s how SCONE impacts throughput and latency for Apach, Redis, and Memcached (Redis running solely as an in-memory cache):
+
+We can also see the corresponding CPU usage:
+
+Taking Redis as an example, glibc gets to 189,000 operations per second in the test environment, whereas SCONE-async maxes out at 116,000 operations per second (61%). In both cases CPU utilization is limited by the single Redis application thread. With NGINX, SCONE-async achieves 80% of native performance. Here’s the normalized application performance summary for Apache, Redis, Memcached, and NGINX:
+
+The performance of the file system shield was evaluated using SQLite. For small datasets that fit in memory, no cryptographic operations are needed at all. With bigger datasets, performance takes a hit as SQLite starts to persist data on the file system. SCONE achieves about 80% of the baseline performance (in contrast, SQLCipher, a SQLite with application level encryption, can only achieve 35%).
+
+> 
+
+This is because the file system shield of SCONE uses AES-GCM encryption which outperforms AES in cipher block chaining mode as used by default in SQLCipher.
+
+## One last missing piece of the puzzle
+
+You can’t put the decryption keys etc. into the secure image itself as then anyone could use them to decrypt the content. And of course, if you encrypt those keys, then where do you get the decryption keys to decrypt them, and so on. This is why the startup configuration file (SCF) has to be sent once the container is initialised. But how does the owner know to trust the enclave within the remote cloud system? After all, the whole point of this mechanism is that the remote system is untrusted!
+
+SGX solves this conundrum with a mechanism known as attestation, which is described in the Intel white paper ‘Innovative technology for CPU based attestation and sealing’. Ultimately it depends on a chain of trust which goes back to Intel itself verifying the hardware. This mechanism came in for some heavy criticism from researchers at MIT earlier this year: ‘Intel’s SGX security extensions: secure until you look at the detail.’
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ ContainersSecurity 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousDiamond: Automating data management and storage for wide-area, reactive applicationsNext &rsaquo;FaSST: Fast, scalable and simple distributed transactions with two-sided (RDMA) datagram RPCs
+ 
+ 
+
+ 
+ 
+## 
+ 13 thoughts on &ldquo;SCONE: Secure Linux containers with Intel SGX&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ yodaiken says: 
+
+ 
+ December 14, 2016 at 1:59 pm 
+
+ 
+
+ 
+ 
+Can Intel ME bypass or override SGX?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Secure Linux containers with Intel SGX | Firmware Security 
+ 
+ 
+- 
+ 
+ Pingback: Panoply: Low-TCB Linux applications with SGX enclaves | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: SGXIO: Generic trusted I/O path for Intel SGX | the morning paper 
+ 
+ 
+- 
+ 
+ 
+ 
+ TechBook says: 
+
+ 
+ May 4, 2017 at 12:01 pm 
+
+ 
+
+ 
+ 
+[...] SCONE: Secure Linux containers with Intel SGX [...] [...] Previously we've looked at Haven, which uses SGX in the context of cloud infrastructure, SCONE which shows how to run docker containers under SGX, and Panoply which looks at what happens when [...]
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Harold's says: 
+
+ 
+ June 5, 2017 at 2:30 pm 
+
+ 
+
+ 
+ 
+[...] SCONE: Secure Linux containers with Intel SGX [...] [...] Previously we've looked at Haven, which uses SGX in the context of cloud infrastructure, SCONE which shows how to run docker containers under SGX, and Panoply which looks at what happens when [...]
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: SGXBounds: memory safety for shielded execution | the morning paper 
+ 
+ 
+- 
+ 
+ 
+ 
+ DevBlog says: 
+
+ 
+ June 6, 2017 at 2:56 pm 
+
+ 
+
+ 
+ 
+[...] SCONE: Secure Linux containers with Intel SGX [...] [...] Previously we've looked at Haven, which uses SGX in the context of cloud infrastructure, SCONE which shows how to run docker containers under SGX, and Panoply which looks at what happens when [...]
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ toddbschlueter says: 
+
+ 
+ June 15, 2017 at 2:54 pm 
+
+ 
+
+ 
+ 
+[...] Previously we've looked at Haven, which uses SGX in the context of cloud infrastructure, SCONE which shows how to run docker containers under SGX, and Panoply which looks at what happens when [...] [...] SCONE: Secure Linux containers with Intel SGX [...]
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ kenneth says: 
+
+ 
+ June 29, 2017 at 1:03 pm 
+
+ 
+
+ 
+ 
+[...] Previously we've looked at Haven, which uses SGX in the context of cloud infrastructure, SCONE which shows how to run docker containers under SGX, and Panoply which looks at what happens when [...] [...] SCONE: Secure Linux containers with Intel SGX [...]
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ amaranto es says: 
+
+ 
+ July 5, 2017 at 1:00 pm 
+
+ 
+
+ 
+ 
+[...] Previously we've looked at Haven, which uses SGX in the context of cloud infrastructure, SCONE which shows how to run docker containers under SGX, and Panoply which looks at what happens when [...] [...] SCONE: Secure Linux containers with Intel SGX [...]
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ jerryant says: 
+
+ 
+ September 1, 2017 at 1:21 pm 
+
+ 
+
+ 
+ 
+Reblogged this on jerryant.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: REM: Resource-efficient mining for blockchains | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

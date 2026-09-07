@@ -1,0 +1,376 @@
+URL: https://blog.acolyer.org/2017/11/08/fast-and-precise-type-checking-for-javascript/
+Title: Fast and precise type checking for&nbsp;JavaScript
+---
+
+Fast and precise type checking for JavaScript Chaudhuri et al., OOPSLA’17
+
+> 
+
+ In this paper we present the design and implementation of Flow, a fast and precise type checker for JavaScript that is used by thousands of developers on millions of lines of code at Facebook every day.
+
+In a pretty dense 30 pages, ‘Fast and precise type checking for JavaScript’ takes you through exactly how Facebook’s Flow works (although even then, some details are deferred to the extended edition!). I can’t read a paper packed with concise judgements and syntax such as this one now without thinking of Guy Steele’s wonderful recent talk “It’s time for a new old language.” It makes me feel a little better when struggling to get to grips with what the authors are really saying! Rather than unpacking the formal definitions here (which feels like it might take a small book and many hours!!), I’m going to focus in this write-up on giving you a high-level feel for what Flow does under the covers, and how it does it.
+
+## Why Flow? Motivation and goals
+
+> 
+
+ Evolving and growing a JavaScript codebase is notoriously challenging. Developers spend a lot of time debugging silly mistakes — like mistyped property names, out-of-order arguments, references to missing values, checks that never fail due to implicit conversions, and so on — and worse, unraveling assumption and guarantees in code written by others.
+
+The main internal repository at Facebook contains around 13M LoC of JavaScript, spanning about 122K files. That’s a lot of JavaScript! All of that code is covered by Flow, a static type checker for JavaScript that Facebook have been using for the past three years. Flow therefore has to be practical at scale and usable on real-world projects:
+
+- The type checker must be able to cover large parts of a codebase without requiring too many changes in the code. 
+
+- The type checker must give fast responses even on a large codebase. “Developers do not want any noticeable ‘compile-time’ latency in their normal workflow, because that would defeat the whole purpose of using JavaScript.”
+
+Using Flow, developers (or developer tools) get precise answers to code intelligence queries, and Flow can catch a large number of common bugs with few false positives.
+
+To meet Flow’s goals, the designers made three key decisions:
+
+- Common JavaScript idioms such as x = x || 0 are precisely modelled. To be able to handle cases like this requires support for type refinements (more on that soon). 
+
+- Reflection and other legacy pattern that appear in a relatively small fraction of codebases are not explicitly focused on. Flow analyses source code, rather than first translating it to e.g. ES5, or even ES3.
+
+- The constraint-based analysis is modularised to support parallel computation so that queries can be answered in well under a second even on codebases with millions of lines of code. 
+
+The related work section of the paper (§11) provides a nice comparison of the differences in design choices between Flow and TypeScript from the perspective of the Flow team:
+
+> 
+
+ Unlike Flow, [TypeScript] focuses only on finding “likely errors” without caring about soundness. Type inference in TypeScript is mostly local and in some cases contextual; it doesn’t perform a global type inference like Flow, so in general more annotations are needed... Furthermore, even with fully annotated programs, TypeScript misses type errors because of unsound typing rules... Unsoundness is a deliberate choice in TypeScript and Dart, motivated by the desire to balance convenience with bug-finding. But we have enough anecdotal evidence from developers at Facebook that focusing on soundness is not only useful but also desirable, and does not necessarily imply inconvenience.
+
+(We recently looked at ‘To Type or Not to Type’ where the authors found that Flow and TypeScript had roughly equivalent power in their ability to detect bugs.
+
+## High level overview
+
+In Flow, the set of runtime values that a variable may contain is described by its type (nothing new there!). The secret sauce of Flow is using runtime tests in the code to refine types.
+
+For example, consider the following code:
+
+ function pipe(x, f) {
+ if (f != null) { f(x); }
+ }
+
+Seeing the test f != null, Flow refines the type of f to filter out null, and therefore knows that the value null cannot reach the call.
+
+Refinements are useful with algebraic data types too. In this idiom records of different shapes have a common property that specifies the ‘constructor,’ and other properties dependent on the constructor value. For example,
+
+ var nil = { kind : "nil" };
+ var cons = (head, tail) => {
+ return { kind: "cons", head, tail };
+ }
+
+Now when Flow sees a function such as this:
+
+ function sum(list) {
+ if (list.kind === "cons") {
+ return list.head + sum(list.tail);
+ }
+ return 0;
+ }
+
+It refines the type of list following the test list.kind === "cons" so that it knows the only objects reaching the head and tail property accesses on the following line are guaranteed to have those properties.
+
+When Flow sees an idiom such as x = x || nil (the var nil from our previous code snippet, not to be confused with null here!), it models the assignment by merging the refined type of x with the type of nil and updating the type of x with it.
+
+Refinements can also be invalidated by assignments (for example, x = null;).
+
+## Flow of constraints
+
+Section 2 of the paper provides a formal definition of inference supporting refinement in FlowCore, a minimal subset of JavaScript including functions, mutable variables, primitive values, and records. The core components of the FlowCore constraint system are types, effects, and constraints. Effects track variable updates - each language term is associated with an effect, which roughly describes the set of variables that are (re)assigned with the term.
+
+When Flow sees the line of code var nil = { kind: "nil" }; it records that nil is of the form where is a type variable, and also the constraint .
+
+For the function cons,
+
+ var cons = (head, tail) => {
+ return { kind: "cons", head, tail };
+ }
+
+We get a type for cons of and additional constraints . And so the process continues, constructing a flow network.
+
+> 
+
+ Thinking of our system as a dataflow analysis framework, constraint generation amounts to setting up a flow network. The next step is to allow the system to stabilize under a set of appropriate flow functions.
+
+For every new constraint that gets generated, all eligible constraint propagation rule are applied until a fixpoint is reached. Once the fixpoint is reached, Flow can either discover inconsistencies, or prove the absence thereof. Inconsistencies correspond to potential bugs in the use of various operations.
+
+Section 4 in the paper briefly introduces a runtime semantics for FlowCore, and section 5 proves type safety via the introduction of a declarative type system closely matching the type inference system described above.
+
+## Type annotations
+
+> 
+
+ Type annotations follow a similar grammar as types except that there are no type variables, types can appear anywhere type variables could appear, and there are no effects. We consider a type annotation to be just another kind of type use, that expects some type of values. In other words, like everything else we can formulate type checking with flow constraints.
+
+## Modules and dependencies
+
+Flow analyses a code base module-by-module (file-by-file). Each file is analysed separately once all files it depends on have been analysed. This strategy supports incremental and parallel analysis of large code bases.
+
+> 
+
+ The key idea is to demand a “signature” for every module. We ensure that types inferred for the expressions a module exports do not contain type variables — wherever they do, we demand type annotations... Requiring annotations for module interfaces is much better than requiring per-function annotations... Independently, having a signature for every module turns out to be a desirable choice for software engineering. It is considered good practice for documentation (files that import the module can simply look up its signature instead of its implementation), as well as error localization (blames for errors do not cross module boundaries).
+
+## Flow at Facebook
+
+In the 13M lines of JavaScript code in the main internal Facebook repository, about 29% of all locations where annotations could potentially be used actually do have annotations. The value of Flow’s type refinement mechanism was shown by turning it off - this led to more than 145K spurious errors being reported!
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Programming Languages 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousVirtual machine warmup blows hot and coldNext &rsaquo;Type test scripts for TypeScript testing
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;Fast and precise type checking for JavaScript&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Fast and precise type checking for JavaScript - Full-Stack Feed 
+ 
+ 
+- 
+ 
+ 
+ 
+ Noam Lewis says: 
+
+ 
+ November 9, 2017 at 8:56 am 
+
+ 
+
+ 
+ 
+The paper doesn't mention this, but there are also Hindley-Milner-based approaches, such as (my very own) https://github.com/sinelaw/infernu
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ sinelaw says: 
+
+ 
+ November 9, 2017 at 8:59 am 
+
+ 
+
+ 
+ 
+The paper doesn't mention this, but there are also Hindley-Milner-based approaches, such as (my very own) infernu - https://github.com/sinelaw/infernu
+
+It uses row-type polymorphism to represent JS objects, and also handles 'this' using recursive types. There are several examples where it infers stronger or more general types correctly relative to Flow (at least at the time I did the comparison).
+
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ %d

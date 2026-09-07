@@ -1,0 +1,45 @@
+{
+  "date": "20191127",
+  "file_name": "20191127",
+  "slug": "mergeable-replicated-data-types-part-ii",
+  "blog_url": "https://blog.acolyer.org/2019/11/27/mergeable-replicated-data-types-part-ii/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the paper's key contribution: a framework for automatically deriving merge functions for arbitrary data types in distributed systems. The authors demonstrate that merge semantics must be compositional, allowing merge functions for complex data structures (like pairs of counters or queues) to be built from merge functions of their constituent types. The paper introduces type specifications using characteristic relations to distinguish between mergeable and non-mergeable components, and formalizes six rules (Set-Merge, Order-Merge-1/2, Rel-Merge-1/2) to derive merge behavior. The synthesis process then translates these specifications into executable merge functions, implemented in an OCaml library via a PPX extension. Colyer notes the elegance of this approach, emphasizing how the merge specification itself guides the automatic generation of merge logic. The paper also introduces Quark, a system that brings MRDTs to life with a Git-like storage abstraction (Quark store) for efficient versioning and replication. The evaluation shows that Quark can handle common data structures and large application benchmarks (e.g., TPC-C, TPC-E) with succinct diffs, though storage overhead per transaction remains a concern.",
+  "paper_title": "Mergeable Replicated Data Types (MRDTs) - Part II: Deriving Merge Functions and the Quark System",
+  "paper_authors": [
+    "Kaki",
+    "Burcu Kulahcioglu Ozkan",
+    "Rachid Guerraoui",
+    "Jesper Larsson Träff"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "OOPSLA '19",
+  "paper_url": "http://kcsrk.info/papers/oopsla19-mrdt.pdf",
+  "paper_abstract": "object state regardless of its type. We illustrate this notion in the context of a simple integer counter, Fig. 1. A Counter data type in OCaml whose OCaml implementation is shown in Fig. 1. Suppose we wish to replicate the state of the counter across multiple machines, each of which is allowed to perform concurrent conflicting updates to its local instance. As long as clients just use the counter’s add and sub operations, conflicts are benign Proc. ACM Program. Lang., Vol. 1, No. CONF, Article 1. Publication date: January 2018. 1:3 +5 = ⨉2 -1 since integer addition and subtraction commute, add and sub operations can be asynchronously propagated and applied in any order on all replicas, with the resulting final state guaranteed to be the result of a linearization of all concurrently generated operations1 . However, since integer multiplication does not commute with addition and subtraction, we cannot simply apply mult on various replicas asynchronously, and expect the state to converge. Global synchronization for every multiplication is certainly helpful, but is typically too expensive to be practical [Bailis et al. 2013a,b] at scale. Under such circumstances, it is not readily apparent if we can define replicated counters that support multiplication and yet still have a well-defined semantics that guarantees all replicas will converge to the same counter state. Fortunately, a state- and merge-centric view of replication lets us arrive at such a semantics naturally. In the current example, we view the replicated counter state as progressing linearly in terms of versions on different replicas. Synchronization between replicas merges their respective (latest) versions into a new version in the context of their lowest common ancestor (LCA) version. We can define the merge operation by focusing on the difference between the LCA version and the state on each replica. Fig. 2 illustrates this intuition through an example. Here, two concurrent versions of a counter, 10 and ...",
+  "paper_file": "papers/2019/11/27/mergeable-replicated-data-types-part-ii.pdf",
+  "topics": [
+    "distributed-systems",
+    "programming-languages"
+  ],
+  "tags": [
+    "mergeable-replicated-data-types",
+    "compositional-merges",
+    "type-specifications",
+    "merge-function-synthesis",
+    "versioning",
+    "content-addressable-storage",
+    "OCaml-PPX",
+    "three-way-merge",
+    "data-type-merging",
+    "distributed-storage"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "A Counter data type in OCaml",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,44 @@
+{
+  "date": "20170331",
+  "file_name": "20170331",
+  "slug": "bbr-congestion-based-congestion-control",
+  "blog_url": "https://blog.acolyer.org/2017/03/31/bbr-congestion-based-congestion-control/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes the development and deployment of BBR (Bandwidth Bottleneck and Round-trip propagation time), a new TCP congestion control algorithm by Google's make-tcp-fast project. BBR achieves 2-25x throughput improvements over the loss-based CUBIC algorithm, with even more significant gains (up to 133x) when TCP receive buffer sizes are increased. The algorithm is also deployed on YouTube servers, showing improved quality-of-experience metrics and reduced median RTT globally (53% average reduction, >80% in developing regions). The key insight is that BBR replaces loss-based congestion control with a model-based approach that estimates bottleneck bandwidth and round-trip propagation time to operate at Kleinrock's optimal point, avoiding bufferbloat and misinterpretation of loss as congestion. The paper highlights BBR's simplicity, efficiency, and effectiveness in real-world deployments.",
+  "paper_title": "BBR: Congestion-based congestion control",
+  "paper_authors": [
+    "Neal Cardwell",
+    "Yuchung Cheng",
+    "C. Stephen Gunn",
+    "Soheil Hassas Yeganeh",
+    "Van Jacobson"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "ACM Queue",
+  "paper_url": "http://queue.acm.org/detail.cfm?id=3022184",
+  "paper_abstract": "1 OF 34\n\nnetworks\n\nBBR\nNEAL CARDWELL\nYUCHUNG CHENG\nC. STEPHEN GUNN\nSOHEIL HASSAS YEGANEH\nVAN JACOBSON\n\nB\n\nCongestion-Based\nCongestion Control\n\nMeasuring\nbottleneck\nbandwidth\nand round-trip\npropagation\ntime\n\ny all accounts, today’s\nInternet is not moving data\nas well as it should. Most\nof the world’s cellular\nusers experience delays of seconds to minutes;\npublic Wi-Fi in airports and conference venues is often\nworse. Physics and climate researchers need to exchange\npetabytes of data with global c",
+  "paper_file": "papers/2017/03/31/bbr-congestion-based-congestion-control.pdf",
+  "topics": [
+    "networking",
+    "distributed-systems"
+  ],
+  "tags": [
+    "tcp",
+    "congestion-control",
+    "bandwidth-estimation",
+    "round-trip-time",
+    "bufferbloat",
+    "pacing",
+    "cubic",
+    "youtube"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "delivery rate and round-trip time vs. inflight",
+      "caption": "Figure 1: delivery rate and round-trip time vs. inflight"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

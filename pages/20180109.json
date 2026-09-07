@@ -1,0 +1,47 @@
+{
+  "date": "20180109",
+  "file_name": "20180109",
+  "slug": "the-case-for-learned-index-structures-part-ii",
+  "blog_url": "https://blog.acolyer.org/2018/01/09/the-case-for-learned-index-structures-part-ii/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the impressive performance gains of using learned models to replace traditional index structures like B-Trees in systems software. The paper introduces Recursive Model Indexes (RMI), which use a hierarchy of models to predict the position of keys, achieving up to 3x speed improvements and an order-of-magnitude space reduction compared to B-Trees. The key insight is that learned models can better capture data distribution nuances, especially when layered recursively. The blog also explores learned point indexes (hash maps) and existence indexes (Bloom filters), demonstrating that learned models can optimize memory usage and performance, particularly in scenarios with skewed or complex data distributions. The paper evaluates these approaches on real-world datasets, showing consistent advantages over traditional methods.",
+  "paper_title": "The Case for Learned Index Structures",
+  "paper_authors": [
+    "Tim Kraska",
+    "Alex Beutel",
+    "Ed H. Chi",
+    "Jeffrey Dean",
+    "Neoklis Polyzotis"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "",
+  "paper_url": "https://arxiv.org/abs/1712.01208",
+  "paper_abstract": "Indexes are models: a B-Tree-Index can be seen as a model to map a key to the position of a record within a sorted array, a Hash-Index as a model to map a key to a position of a record within an unsorted array, and a BitMap-Index as a model to indicate if a data record exists or not. In this exploratory research paper, we start from this premise and posit that all existing index structures can be replaced with other types of models, including deep-learning models, which we term learned indexes. The key idea is that a model can learn the sort order or structure of lookup keys and use this signal to effectively predict the position or existence of records. We theoretically analyze under which conditions learned indexes outperform traditional index structures and describe the main challenges in designing learned index structures. Our initial results show, that by using neural nets we are able to outperform cache-optimized B-Trees by up to 70% in speed while saving an order-of-magnitude in memory over several real-world data sets. More importantly though, we believe that the idea of replacing core components of a data management system through learned models has far reaching implications for future systems designs and that this work just provides a glimpse of what might be possible.",
+  "paper_file": "papers/2018/01/09/the-case-for-learned-index-structures-part-ii.pdf",
+  "topics": [
+    "storage-systems",
+    "algorithms",
+    "data-engineering"
+  ],
+  "tags": [
+    "learned-indexes",
+    "recursive-model-index",
+    "b-tree",
+    "hash-maps",
+    "bloom-filters",
+    "cdf-learning",
+    "range-indexes",
+    "point-indexes",
+    "existence-indexes",
+    "data-distribution"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Why B-Trees are models",
+      "caption": "Comparison between B-Tree Index and Learned Index structures showing how both map keys to positions with error bounds."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

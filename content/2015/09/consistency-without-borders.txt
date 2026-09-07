@@ -1,0 +1,325 @@
+URL: https://blog.acolyer.org/2015/09/07/consistency-without-borders/
+Title: Consistency Without Borders
+---
+
+Consistency Without Borders - Alvaro et al. 2013
+
+We closed out last week by looking at the gap that has opened up between application developer needs and what the database community is providing, leading to the widespread adoption of Feral Concurrency Control. Today's paper, written two years earlier, anticipates this problem and discusses the possible solution space in the layers between the application and the underlying datastore.
+
+> 
+
+ Over the past several decades, developers of distributed systems have traditionally relied on I/O level techniques... these encapsulate much of the complexity of distributed programming in the storage or messaging layers, simplifying application development.
+
+Yet this approach has two drawbacks - an I/O level approach to consistency guarantees becomes increasingly problematic as systems grow to scale, and it's hard for programmers to reason about:
+
+> 
+
+ Perhaps most importantly, I/O-level interfaces divorce operations from their applications’ semantic context: while programmers reason in terms of application-level correctness properties, storage systems provide guarantees about low-level operations such as reads and writes to opaque registers. This forces developers to manually translate between application-level concepts and low-level storage and messaging operations, a task that is error-prone and requires extensive knowledge of the underlying system. In turn, the storage or messaging infrastructure cannot leverage application semantics, leading to conservative protocols with needlessly high latency and reduced availability. As a result, many practitioners choose to avoid I/O-level consistency mechanisms whenever possible, instead relying on informal application-level design patterns to achieve correct behavior. These patterns are insightful, but challenging to correctly implement, test and maintain in each particular application scenario.
+
+The combination of the subsequent papers on Coordination Avoidance and Feral Concurrency Control back up these points.
+
+I/O guarantees and custom application logic can be viewed as two extremes leading to solutions that are either ill-fitted or over-fitted to the applications whose invariants they protect. So what to do?
+
+> 
+
+ We believe it is imperative for the technical community to re-frame this discussion by offering consistency solutions that inhabit the design space in between these two extremes. We envision a range of consistency techniques across the stack—including at the object, dataflow and language levels—with various tradeoffs between efficiency, generality, and engineering complexity.
+
+## Objects to the rescue?
+
+Starting at the object level, perhaps CRDTs can rescue us?
+
+> 
+
+ Encoding additional semantic knowledge is clearly useful: the significant latency, throughput, and availability improvements delivered by these efforts supports our thesis that opaque I/O-level consistency is not a complete solution. The object-based approach also addresses some of our concerns about the poor reusability of application-level consistency, since common data types like counters, lists, and graphs can be implemented once and then shared by multiple applications.
+
+The drawback here lies in the challenge of composing CRDTs.
+
+> 
+
+ While object-level approaches can encode semantic knowledge about individual objects or values, system-wide semantics about the composition of objects cannot be represented. Object-level consistency often focuses on achieving storage-level properties like replica convergence, leaving the developer responsible for mapping from high-level application properties to invariants over individual objects.
+
+Resorting the the extreme of representing the entire application as a monolithic convergent object leads to unnatural design and brings us back to the extreme of application specific consistency logic.
+
+## Dataflow to the rescue?
+
+So if we want to consider consistency beyond a single object, "a natural next step is to consider the semantics associated with data as it transits through application modules, across process boundaries, and between services."
+
+> 
+
+ Reasoning about the consistency properties of applications composed from a variety of services requires reasoning both about the semantic properties of components and how these properties are preserved across compositions with other components. Hence it requires a model that captures both component semantics and the dependencies between interacting components. One approach is to view the distributed system as an asynchronous dataflow, in which streams of inputs pass through a graph of components that filter, transform, and combine them into streams of outputs.
+
+Confluent components are insensitive to message delivery order, producing a unique output set for all orderings and batching of their inputs.
+
+> 
+
+ It is instructive to compare confluence with the goal of CRDT-level replica convergence. Convergence applies to individual objects, while confluence is a property of dataflow components, and—by composition—of larger dataflow graphs. Compositions of confluent components simplify reasoning about higher-level application-level correctness properties, allowing developers to ignore asynchronous network behavior and concurrency across potentially complex services.
+
+Blazes uses programmer-provided annotations to determine if consistent outcomes are guaranteed without any coordination. "When components are not confluent, Blazes synthesizes additional synchronization logic to ensure unique outputs."
+
+What's not to like?
+
+> 
+
+ The principal drawback of the dataflow approach is the need for manual component annotations: annotating modules can be burdensome and error-prone, especially for complex components. Incorrect annotations corrupt the analysis and can result in unsafe optimizations. For reusable modules (like the CRDTs discussed in Section 4), it may be possible to have an expert supply annotations. This amortizes the cost of annotation and reduces the risk of errors, but is only applicable for commonly used components. This drawback aside, flow-level approaches to consistency occupy an interesting middle ground: they are more broadly applicable than language- or application-level approaches, and more powerful than object-level approaches, which cannot capture composition across services.
+
+## New languages to the rescue?
+
+So what if we wrote the application in a high-level language that directly encoded both dependencies and appropriate semantic properties - then we wouldn't need to rely on user-provided annotations and could let the compiler figure it out...
+
+> 
+
+ First, we need a uniform representation for all system state, including process-local knowledge, system events like timers and interrupts, and network messages. Second, we need a notion of dependencies that accounts for both synchronous, process-local dependencies (local computation) and asynchronous, cross-process dependencies (communication). We call the combination of these ideas data-centric programming: all system state is represented in a uniform manner (as relations), which enables the system logic to be written as declarative queries over that state. An extended language that admits asynchronous queries can capture communication within the same declarative framework. The most recent data-centric language designed by our group is called Bloom.
+
+Monotonicity turns out to be an important semantic property - if a program can be expressed entirely using monotonic logic it is guaranteed to be confluent.
+
+> 
+
+ Hence, monotonic operations form a “safe” vocabulary for distributed programming: because the program’s output is a deterministic function of its input, it is much easier to check that correctness invariants are preserved.
+
+## Reflections
+
+> 
+
+ A general trend can be observed: as consistency mechanisms move closer to the application, they lose generality but gain efficiency.
+
+Can domain-specific tools and limited annotations help?
+
+> 
+
+ One way to help programmers enforce consistency invariants is to provide them with domain-specific tools for distributed program analysis. New languages are one example we have explored; limited annotations are another. There is plenty of room for further work in that vein, and other approaches deserve exploration as well. Ideally, for example, one can imagine new programming language tools that extract properties like monotonicity guarantees from legacy programs and imperative languages.
+
+Can we allow back into our programs some controlled non-determinism? What mechanisms exist when we go beyond monotonicity?
+
+> 
+
+ What is the best way to reason about non-deterministic but well-defined correctness criteria? One strategy is to simply encode the space of acceptable outcomes as a disjunction (e.g., “Purchase X succeeds and Y fails OR purchase X fails and Y succeeds”). A confluent system that satisfies this disjunction ensures that an acceptable outcome is always produced. However, enumerating the space of acceptable outcomes scales poorly as application complexity grows. Is there a more natural model than this enumerated choice of outcomes, and, if so, can we build program analysis tools to support it? More fundamentally, beyond monotonicity, are there design patterns that assist in achieving such “controlled non-determinism,” and can such patterns be codified into theorems, analysis techniques, and language constructs?
+
+The bottom-line:
+
+> 
+
+ The development of reliable distributed applications depends upon programmers’ ability to reason about consistency. By narrowly focusing on I/O-level consistency, traditional research in this area risks increasing irrelevance: as the latency and availability costs of traditional consistency protocols have become prohibitive at scale, developers have begun to avoid consistency mechanisms entirely, instead relying on ad hoc, application-specific rules for conflict resolution and reconciliation. We believe that the solution is to meet application developers on their home turf: to explore a variety of consistency mechanisms, analysis tools, and programming constructs that operate at different layers of the software stack. The goal should be to help programmers judiciously employ consistency of the appropriate strength and to reason about consistency wherever it is most natural.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems 
+ 
+ ConsistencyDistributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousFeral Concurrency Control: An Empirical Investigation of Modern Application IntegrityNext &rsaquo;Out of the Fire Swamp* - Part I, 'The Data Crisis'
+ 
+ 
+
+ 
+ 
+## 
+ 3 thoughts on &ldquo;Consistency Without Borders&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Out of the Fire Swamp* - Part I, 'The Data Crisis' | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Out of the Fire Swamp - Part III, Go with the flow. | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: We Have a DREAM: Distributed Reactive Programming with Consistency Guarantees | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,341 @@
+URL: https://blog.acolyer.org/2017/12/07/be-selfish-and-avoid-dilemmas-fork-after-withholding-attacks-on-bitcoin/
+Title: Be selfish and avoid dilemmas: fork-after-withholding attacks on&nbsp;Bitcoin
+---
+
+Be selfish and avoid dilemmas: fork-after-withholding (FAW) attacks on Bitcoin   Kwon et al., CCS’17
+
+Bitcoin was designed to have no central authority. But power has an amazing way of concentrating. Mining solo is a bit like buying a lottery ticket - big payoff if you happen to win, but your chances of winning are pretty slim. There’s certainly no predictability of income (but a certainty of expenses). Joining a mining pool is a bit like joining a lottery syndicate, you increase your chances of winning, but if the syndicate does win, you only receive a share. The bigger the syndicate, the more predictable the income. So mining pools have become large and important players in the Bitcoin ecosystem.
+
+To further concentrate power (and its associated rewards), pools can try to game the system to their advantage (and hence disadvantage others, because the total reward is fixed). One difficult to eliminate attack that pools can play against each other is called a block withholding attack (BWH). We’ll take a look at what that is in just a moment. Fortunately, in a paper entitled ‘The Miner’s Dilemma’, Eyal showed that when pools mutually attack each other, they both end up worse off. Thus if you assume an attack is likely to lead to retaliation, you’re better off not attacking in the first place. And indeed pools do seem to have implicitly agreed not to attack each other (at least on a large scale).
+
+Today’s paper choice introduces a new variant of block withholding attack, called a fork-after-withholding (FAW) attack. This attack has three properties which collectively are a cause for concern:
+
+- It’s more lucrative than a block withholding attack (about 56% more reward for the attacker)
+
+- When pools attack each other, under reasonable assumptions for the computational power and network capabilities, the miner’s dilemma does not hold - the larger pool takes the extra reward, and the smaller pool takes a loss. 
+
+- There doesn’t seem to be a viable defence.
+
+In other words, FAW has the potential to set in place a vicious circle whereby the rich get richer. Once one pool reaches 51% of the total mining power, all bets are off. Exploiting that majority position though, would undermine all confidence in the network and devalue the currency that the majority pool’s own wealth depends on. Therefore there are strong incentives for pools to stop growing once they get close to this threshold. Under these conditions it seems we are heading towards a duopoly situation, unless the majority pool is controlled by an actor with the explicit goal of destroying the currency.
+
+## Mining pool essentials
+
+Mining pools consist of a manager and multiple miners. Managers distributed work to the miners, which use their computing power to generate either partial (PPoW) or full (FPoW) proofs-of-work. PPoWs have lower difficulty and hence are found more often. When a miner finds either a PPoW or an FPoW they submit it as a share. In the case of an FPoW the manager propagates the block and receives a reward, which is shared among the miners in proportion to their submissions.
+
+## Selfish mining and block withholding
+
+Let’s assume that every participant in the Bitcoin mining ecosystem acts in accordance with their own self-interest. Given a certain amount of mining power at their disposal, what variables does a miner have to play with? Firstly, they can choose which pool or pools to participate in. Secondly, they can decide whether or not to release FPoWs that they discover (why on earth would it be in their own interest not to release a block? We’ll look at some scenarios shortly...). Thirdly, they can control the timing of their announcement of an FPoW if they do find one. Again, it seems on the surface that any timing other than immediately would be disadvantageous since it increases the risk of another fork displacing the block, but it turns out this isn’t always so.
+
+In selfish mining, when a miner finds an FPoW then instead of releasing it immediately they hold on to it privately and continue mining on top of it in an attempt to generate a longer chain of blocks. Upon hearing of another miner attempting to propagate a block, they immediately release theirs, creating a fork. Since the longest chain wins, if the selfish miner has been able to extend their own chain in the meantime, they have a greater chance of being the winning fork and hence collecting more reward.
+
+> 
+
+ Although powerful, selfish mining is widely considered to be impractical.
+
+In a block withholding attack a miner joins a pool and submits PPoWs (in order to claim shares of any pool rewards), but never submits a found FPoW. For a miner that mines both solo and in pools, a strategy of submitting their own ‘honestly found’ blocks when mining independently, but never submitting those found when mining in the pool, has been shown to increase the miner’s overall reward. See section IX in ‘On subversive miner strategies and block withholding attack in Bitcoin digital currency.’
+
+In the above descriptions, the entity playing the role of ‘miner’ could be an individual, or could in fact be a mining pool.
+
+## Fork after withholding
+
+The new fork-after-withholding attack combines elements of selfish mining and block withholding. The attacker (individual or pool) behaves as follows:
+
+- The attacker splits their computing power between innocent mining and infiltration mining , where infiltration mining is mining as part of a target pool, with the intent of taking advantage. 
+
+- When an attacker finds an FPoW as part of infiltration mining in a pool, they hold onto the block privately without publishing it. 
+
+- Depending on what happens next, the privately held FPoW block can either be released to target pool manager hoping to create a fork (as in selfish mining), or dropped altogether (as in block withholding). 
+
+An FPoW will be immediately propagated, hoping to create a fork, if the attacker notices other miners, who are not part of the target pool, propagating a valid block. An FPoW will be dropped if another miner in the target pool finds an FPoW (the attacker will still share in the reward from that of course), or if the attacker themselves finds another FPoW through their innocent mining activities (because here, the attacker will receive a greater share of the block reward for the block they found outside of the target pool).
+
+Here’s a summary diagram:
+
+An attacker can target multiple pools with their infiltration mining to gain an even higher reward. In this case, it’s possible for the attacker to be withholding FPoWs in multiple target pools simultaneously. If another honest miners is observed propagating a block outside of those pools, the attackers submits all their FPoWs immediately, creating forks with multiple branches.
+
+If two pools both used the FAW attack against each other, then we have a FAW attack game.
+
+## Analysis
+
+Sections 5, 6 and 7 in the paper analysis variations of the FAW attack: an attack against one pool (§5), attacks against multiple pools (§6), and the two pool FAW attack game (§7). Here are the main findings:
+
+> 
+
+ An FAW attack is always more profitable than honest mining, and the reward from an FAW attack has a lower bound defined by the reward from a BWH attack.
+
+The size of the reward depends on (amongst other things, such as relative computing power), a variable , the probability that an attacker’s FPoW found through infiltration mining and subsequently released will be selected as the main chain. The higher this probability, the greater the reward.
+
+> 
+
+ An attacker can earn an extra reward regardless of or the target pool size . Therefore, an attacker should always run the FAW attack to increase her own reward... Conversely, a target pool always suffers a loss in the presence of an attacker.
+
+When two pools attack each other, playing the FAW attack game then:
+
+- The miner’s dilemma no longer applies
+
+- The game outcome is based on pool size, and the larger pool wins the game.
+
+Consider two pools, we could call them Pool1 and Pool2. Let Pool1 control a fraction of the overall mining power, and Pool2 control a fraction of the overall mining power . The plot below examines what happens in an FAW attack game between the two pools, for varying values of .
+
+> 
+
+ When is 1, the borderline is exactly the line . In other words, the larger pool always earns the extra reward, and the smaller pool takes a loss. Therefore, the result becomes dependent on pool size, even in the region where the miner’s dilemma holds in the BWH attack game. Furthermore, the region in which the miner’s dilemma does not hold exists even if is less than 1. In summary, under reasonable conditions for two pool’s computational power and network capabilities, the largest pool earns the extra reward. This makes the FAW attack a dominant strategy for any large pool to launch against smaller pools.
+
+Other proof-of-work based systems such as Ethereum, Litecoin, Dogecoin, and Permacoin are also vulnerable to FAW attacks.
+
+## Detection and counter-measures
+
+To be practical, a defense must be backwards compatible. That is, miners that do not upgrade their mining hardware can still mine after the measures are implemented. This matters because Bitcoin’s security is related to the total mining power. Major changes to the protocol are thus impractical, and defences such as the two-phase PoW protocol (which would otherwise work) are ruled out.
+
+Furthermore, simple detection (and expulsion) of an infiltration miner is not sufficient. The attacker can easily use many Sybil nodes, and replace an expelled node with a new one.
+
+The authors also investigate alternative reward systems whereby miners who find an FPoW in a pool receive a higher share of the reward. For example, 0.1 BTC to the miner finding the FPoW, and 0.9 BTC shared among the other miners in the pool according to their PPoW submissions. “Unfortunately, miners may hesitate to join pools using this reward system because of the high reward variance.” It seems the most tractable of the options to me though.
+
+## The last word
+
+> 
+
+ Unlike the “miner’s dilemma” that arises in a BWH attack game, an FAW attack game can produce a clear winner in the Nash equilibrium point - the larger mining pool gains while the smaller pool loses. Interestingly, rational behavior of the target pool manager also makes FAW attacks more profitable. Participants in the Bitcoin network want a cheap and efficient defense against attacks, including FAW attacks, without introducing major changes to the Bitcoin protocol or causing side-effects. Unfortunately, we cannot find such a defense, and discovering a solution remains an open problem.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Blockchain 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousThe dynamics of innocent flesh on the bone: code reuse ten years laterNext &rsaquo;Economic factors of vulnerability trade and exploitation
+ 
+ 
+
+ 
+ 
+## 
+ 7 thoughts on &ldquo;Be selfish and avoid dilemmas: fork-after-withholding attacks on Bitcoin&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Be selfish and avoid dilemmas: fork-after-withholding attacks on Bitcoin | Blockchain Wiki 
+ 
+ 
+- 
+ 
+ Pingback: Bitcoin News Digest Thursday, December 7, 2017 - zentrade.online 
+ 
+ 
+- 
+ 
+ Pingback: Bitcoin is not trustless &bull; Cryptocurrency decentral market headlines 
+ 
+ 
+- 
+ 
+ Pingback: Why Bitcoin is not trustless - Cryptofundamentals | Cryptofundamentals 
+ 
+ 
+- 
+ 
+ Pingback: SoK: Consensus in the age of blockchains | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: SoK: Research perspective and challenges for Bitcoin and cryptocurrency - Part I | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: A survey on security and privacy issues of Bitcoin | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,323 @@
+URL: https://blog.acolyer.org/2015/01/19/mesa-geo-replicated-near-real-time-scalable-data-warehousing/
+Title: Mesa: Geo-Replicated, Near Real-Time, Scalable Data&nbsp;Warehousing
+---
+
+Mesa: Geo-Replicated, Near Real-Time, Scalable Data Warehousing - Google 2014
+
+Mesa is another in the tapestry of systems that support Google's advertising business. Previously editions of The Morning Paper have covered Photon, Spanner, F1, and F1's online schema update mechanism.
+
+> 
+
+ Mesa is a highly scalable analytic data warehousing system that stores critical measurement data related to Google’s Internet advertising business... Mesa handles petabytes of data, processes millions of row updates per second, and serves billions of queries that fetch trillions of rows per day. Mesa is geo-replicated across multiple datacenters and provides consistent and repeatable query answers at low latency, even when an entire datacenter fails.
+
+The size of Google's datasets keeps on growing - "the demand for more detailed and fine-grained information leads to tremendous growth in the data size." One of the largest production datasets grew by 5x over a 24-month period, with a similar increase in CPU costs. This all makes the design of a data warehouse solution pretty challenging. As well as scaling to trillions of rows and petabytes of data, the system also has to support both low-latency point queries for live customer reports, and queries from reporting tools that send millions of queries and fetch billions of rows per day. Oh, and we need atomic updates, near real-time update throughput, and...
+
+> 
+
+ For business and legal reasons, this system must return consistent and correct data. We require strong consistency and repeatable query results even if a query involves multiple datacenters.
+
+Mesa builds on top of Colossus (Google File System successor), BigTable and MapReduce, but neither any existing commercial solution nor Google's own BigTable, Megastore, Spanner or F1 were sufficent as-is.
+
+Mesa's tables require an aggregation function for every individual value column, which is specified in the schema. This enables a 'delta' mechanism to periodically compress individual updates.
+
+> 
+
+ Mesa pre-aggregates certain versioned data and stores it using deltas...
+
+Deltas aggregate information in a version interval. Updates are incorporated into Mesa as singleton deltas, and deltas can be merged over time as needed.
+
+> 
+
+ Mesa allows users to query at a particular version for only a limited time period (e.g., 24 hours). This implies that versions that are older than this time period can be aggregated into a base delta (or, more simply, a base) with version [0,B] for some base version B ≥ 0, and after that any other deltas [V1,V2] with 0 ≤ V1 ≤ V2 ≤ B can be deleted. This process is called base compaction.
+
+Cumulative compaction is used to merge deltas above the base for more efficient query processing.
+
+> 
+
+ The delta compaction policy determines the set of deltas maintained by Mesa at any point in time... Mesa currently uses a variation of the two level delta pol-icy in production that uses multiple levels of cumulative deltas. For recent versions, the cumulative deltas compact a small number of singletons, and for older versions the cu-mulative deltas compact a larger number of versions.
+
+Updates are processed in batches, typically at a frequency of every few minutes.
+
+> 
+
+ Mesa uses a multi-versioned approach. Mesa applies updates in order by version number, ensuring atomicity by always incorporating an update entirely before moving on to the next update. Users can never see any effects from a partially incorporated update.
+
+Mesa is geo-replicated. Each Mesa instance resides in a single datacenter and stores a separate copy of the data.
+
+> 
+
+ The committer assigns each update batch a new version number and publishes all metadata associated with the update (e.g., the locations of the files containing the update data) to the versions database, a globally replicated and consistent data store build on top of the Paxos consensus.
+
+The versioning mechanism is key to avoiding locks and hence to high performance:
+
+> 
+
+ Mesa’s update mechanism design has interesting performance implications. First, since all new queries are issued against the committed version and updates are applied in batches, Mesa does not require any locking between queries and updates. Second, all update data is incorporated asynchronously by the various Mesa instances, with only meta-data passing through the synchronously replicated Paxos-based versions database. Together, these two properties allow Mesa to simultaneously achieve very high query and update throughputs.
+
+Within a Mesa instance there are two subsystems: update/maintenance and querying. These systems are decoupled, allowing them to scale independently (which puts me in mind of CQRS). There's also an internal 'microservices' pattern at work:
+
+> 
+
+ Worker components are responsible for performing the data manipulation work within each Mesa instance. Mesa has a separate set of worker pools for each task type, allowing each worker pool to scale independently.
+
+Mesa uses tens of thousands of machines that are independently administered. As you might expect by now, things fail all the time.
+
+> 
+
+ For any computation, there is a non-negligible probability that faulty hardware or software will cause incorrect data to be generated and/or stored. Simple file level checksums are not sufficient to defend against such events because the corruption can occur transiently in CPU or RAM. At Mesa’s scale, these seemingly rare events are common. Guarding against such corruptions is an important goal in Mesa’s overall design.
+
+Mesa uses a belt-and-braces combination of online and offline data verification processes to catch and resolve errors. Despite all these defences:
+
+> 
+
+ A faulty component such as a floating-point unit on one machine can be extremely hard to diagnose. Due to the dynamic nature of the allocation of cloud machines to Mesa, it is highly uncertain whether such a machine is consistently active. Furthermore, even if the machine with the faulty unit is actively allocated to Mesa, its usage may cause only intermittent issues. Overcoming such operational challenges remains an open problem.
+
+Mesa's predecessor was built on enterprise class machines. Moving to Google's standard cloud-based infrastructure dramatically simplified capacity planning, but had implications for the system design:
+
+> 
+
+ Moving from specialized high performance dedicated machines to this new environment with generic server machines poses interesting challenges in terms of overall system performance. New approaches are needed to offset the limited capabilities of the generic machines in this environment, where techniques which often perform well for dedicated high performance machines may not always work. For example, with data now distributed over possibly thousands of machines, Mesa’s query servers aggressively pre-fetch data from Colossus and use a lot of parallelism to offset the performance degradation from migrating the data from local disks to Colossus.
+
+Finally, while Mesa is certainly impressive, but the Google team aren't resting on their laurels:
+
+> 
+
+ Data warehouses provide OLAP support for mining and analyzing large scale data. There exists an extensive body of research in this area: efficient heuristics for view selection, view maintenance, data cubes, schema evolution and indexing and caching in data warehouses. Much of this work is in the context of centralized architectures and mutable storage. We envision adapting some of these techniques in Mesa by extending them for the massively distributed architectures in the cloud, which in general provisions im-mutable storage using log-structured file-systems. Other industrial research groups have undertaken similar efforts for
+
+ view maintenance over key-value stores.
+
+The ongoing revolution in data storage at scale for cloud-based systems isn't done yet...
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Datastores, Large Scale Systems 
+ 
+ DatastoresGoogleWeb Scale 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousEpigrams on programmingNext &rsaquo;Architecture of a Database System
+ 
+ 
+
+ 
+ 
+## 
+ 5 thoughts on &ldquo;Mesa: Geo-Replicated, Near Real-Time, Scalable Data Warehousing&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Architecture of a Database System | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: WANalytics: Analytics for a geo-distributed, data intensive world | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Liquid: Unifying nearline and offline big data integration | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Shasta: Interactive reporting at scale | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Procella: unifying serving and analytical data at YouTube - the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

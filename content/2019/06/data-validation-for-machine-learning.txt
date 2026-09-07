@@ -1,0 +1,380 @@
+URL: https://blog.acolyer.org/2019/06/05/data-validation-for-machine-learning/
+Title: Data validation for machine&nbsp;learning
+---
+
+Data validation for machine learning Breck et al., SysML'19
+
+Last time out we looked at continuous integration testing of machine learning models, but arguably even more important than the model is the data. Garbage in, garbage out.
+
+> 
+In this paper we focus on the problem of validation the input data fed to ML pipelines. The importance of this problem is hard to overstate, especially for production pipelines. Irrespective of the ML algorithms used, data errors can adversely affect the quality of the generated model.
+
+Breck et al. describe for us the data validation pipeline deployed in production at Google, "used by hundreds of product teams to continuously monitor and validate several petabytes of production data per day." That’s trillions of training and serving examples per day, across more than 700 machine learning pipelines. More than enough to have accumulated some hard-won experience on what can go wrong and the kinds of safeguards it is useful to have in place!
+
+## What could possibly go wrong?
+
+The motivating example is based on an actual production outage at Google, and demonstrates a couple of the trickier issues: feedback loops caused by training on corrupted data, and distance between data providers and data consumers.
+
+An ML model is trained daily on batches of data, with real queries from the previous day joined with labels to create the next day’s training data. Somewhere upstream, a data-fetching RPC call starts failing on a subset of the data, and returns -1 (error code) instead of the desired data value. The -1 error codes are propagated into the serving data and everything looks normal on the surface since -1 is a valid value for the int feature. The serving data eventually becomes training data, and the model quickly learns to predict -1 for the feature value. The model will now underperform for the affected slice of data.
+
+> 
+This example illustrates a common setup where the generation (and ownership!) of the data is decoupled from the ML pipeline... a lack of visibility by the ML pipeline into this data generation logic except through side effects (e.g., the fact that -1 became more common on a slice of the data) makes detecting such slice-specific problems significantly harder.
+
+Errors caused by bugs in code are common, and tend to be different than that type of errors commonly considered in the data cleaning literature.
+
+## Integrating data validation in ML pipelines
+
+Data validation at Google is an integral part of machine learning pipelines.
+
+Pipelines typically work in a continuous fashion with the arrival of a new batch of data triggering a new run. The pipeline ingests the training data, validates it, sends it to a training algorithm to generate a model, and then pushes the trained model to a serving infrastructure for inference.
+
+The data validation stage has three main components: the data analyzer computes statistics over the new data batch, the data validator checks properties of the data against a schema, and the model unit tester looks for errors in the training code using synthetic data (schema-led fuzzing).
+
+## Testing one batch of data
+
+Given a single batch of incoming data, the first question to answer is whether or not it contains any anomalies. If so, on-call will be alerted to kick-start an investigation.
+
+> 
+We expect the data characteristics to remain stable within each batch, as the latter corresponds to a single run of the data-generation code. We also expect some characteristics to remain stable across several batches that are close in time, since it is uncommon to have frequent drastic changes to the data-generation code. For these reasons, we consider any deviation within a batch from the expected data characteristics, given expert domain knowledge, as an anomaly.
+
+The expected data characteristics are captured by a schema:
+
+Constraints specified in the schema can be used to ensure that a certain feature is present (for example), or contains one of an expected set of values, and so on.
+
+An initial version of the schema is synthesised automatically, after which it is version controlled and updated by the engineers. With an initial schema in place, the data validator recommends updates as new data is ingested and analysed. For example, given the training data on the left in the figure below, the schema on the right is derived.
+
+If some data arrives with a previously unseen value for event, then the user will be prompted to consider adding the new value to the domain.
+
+> 
+We expect owners of pipelines to treat the schema as a production asset at par with source code and adopt best practices for reviewing, versioning, and maintaining the schema.
+
+## Detecting skew
+
+Some anomalies only show up when comparing data across different batches, for example, skew between training and serving data.
+
+- Feature skew occurs when a particular feature assumes different values in training versus serving time. For example, a developer may have added or removed a feature. Or harder to detect, data may be obtained by calling a time sensitive API, such as the retrieving the number of clicks so far, and the elapsed time could be different in training and serving.
+
+- Distribution skew occurs when the distribution of feature values over a batch of training data is different from that seen at serving time. For example, sampling of today’s data is used for training the next day’s model, and there is a bug in the sampling code.
+
+- Scoring/serving skew occurs when the way results are presented to the user can feed back into the training data. For example, scoring one hundred videos, but only presenting the top ten. The other ninety will not receive any clicks.
+
+Google’s ML serving infrastructure logs samples of the serving data and this is imported back into the training pipeline where the data validator uses it to detect skew.
+
+To detect feature skew, the validate does a key-join between corresponding batches of training and serving data followed by a feature-wise comparison.
+
+To detect distribution skew the distance between the training and serving distributions is used. Some distance is expected, but if it is too high an alert will be generated. There are classic distance measures such as KL-divergence and cosine similarity, but product teams had a hard time understanding what they really meant and hence how to tune thresholds.
+
+In the end Google settled on using as a distance measure the largest change in probability for any single value in the two distributions. This is easy to understand and configure (e.g., "allow changes of up to 1% for each value"), and each alert comes with a ‘culprit’ value that can be used to start an investigation. Going back to our motivating example, the highest change in frequency would be associated with -1.
+
+## Model unit testing
+
+Model unit testing is a little different, because it isn’t validation of the incoming data, but rather validation of the training code to handle the variety of data it may see. Model unit testing would fit very nicely into the CI setup we looked at last time out.
+
+> 
+...[training] code is mostly a black box for the remaining parts of the platform, including the data-validation system, and can perform arbitrary computations over the data. As we explain below, these computations may make assumptions that do not agree with the data and cause serious errors that propagate through the ML infrastructure.
+
+For example, the training code may apply a logarithm over a number feature, making the implicit assumption that the value will always be positive. These assumptions may well not be present in the schema (that just specifies an integer feature). To flush these out, the schema is used to generate synthetic inputs in a manner similar to fuzz testing, and the generated data is then used to drive a few iterations of the training code.
+
+> 
+In practice, we found that fuzz-testing can trigger common errors in the training code even with a modest number of randomly-generated examples (e.g., in the 100s). In fact, it has worked so well that we have packaged this type of testing as a unit test over training algorithms, and included the test in the standard templates of our ML platform.
+
+## Experiences in production at Google
+
+Users do take ownership of their schemas after the initial generation, but the number of edits required is typically small:
+
+> 
+...anecdotal evidence from some teams suggest a mental shift towards a data-centric view of ML, where the schema is not solely used for data validation but also provides a way to document new features that are used in the pipeline and thus disseminate information across the members of the team.
+
+The following table shows the kinds of anomalies detected in a 30-day period, and whether or not the teams took any action as a result. Product teams fix the majority of detected anomalies.
+
+Furthermore, 6% of all model unit testing runs find some kind of error, indicating that either training code had incorrect assumptions or the schema was underspecified.
+
+## Related work
+
+Before we go, I just wanted to give a quick call out to the related work section in the paper (§7) which contains a very useful summary of works in the data validation, monitoring, and cleaning space.
+
+Google have made their data validation library available in OSS at https://github.com/tensorflow/data-validation.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Machine Learning 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousContinuous integration of machine learning models with ease.ml/ciNext &rsaquo;Towards federated learning at scale: system design
+ 
+ 
+
+ 
+ 
+## 
+ 15 thoughts on &ldquo;Data validation for machine learning&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Data Validation for Machine Learning - Outside The Know 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Data Validation for Machine Learning - Golden News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Data Validation for Machine Learning - Latest news 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Data Validation for Machine Learning - Hckr News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Data Validation for Machine Learning - News about world 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Data Validation for Machine Learning - World Best News 
+ 
+ 
+- 
+ 
+ Pingback: Data Validation for Machine Learning - INDIA NEWS 
+ 
+ 
+- 
+ 
+ Pingback: Data Validation for Machine Learning | My Tech Blog 
+ 
+ 
+- 
+ 
+ Pingback: Tech roundup 26: a journal published by a bot - Javi López G. 
+ 
+ 
+- 
+ 
+ Pingback: Unsupervised Learning: No. 181 | Daniel Miessler 
+ 
+ 
+- 
+ 
+ Pingback: Unsupervised Learning: No. 181 - massala 
+ 
+ 
+- 
+ 
+ Pingback: What bugs cause cloud production incidents? - the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Software engineering for machine learning: a case study - the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Theories of (machine) learning should shape horizon scanning - not just application - Continuume 
+ 
+ 
+- 
+ 
+ Pingback: Tips on how to do knowledge high quality with DataOps - TechMintz 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

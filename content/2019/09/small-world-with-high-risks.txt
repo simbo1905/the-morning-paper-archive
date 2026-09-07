@@ -1,0 +1,359 @@
+URL: https://blog.acolyer.org/2019/09/30/small-world-with-high-risks/
+Title: Small world with high risks: a study of security threats in the npm&nbsp;ecosystem
+---
+
+Small world with high risks: a study of security threats in the npm ecosystem Zimmermann et al., USENIX Security Symposium 2019
+
+This is a fascinating study of the npm ecosystem, looking at the graph of maintainers and packages and its evolution over time. It’s packed with some great data, and also helps us quantify something we’ve probably all had an intuition for— the high risks involved in depending on a open and fast-moving ecosystem. One the key takeaways for me is the concentration of reach in a comparatively small number of packages and maintainers, making these both very high value targets (event-stream, it turns out, wouldn’t even have made the top-1000 in a list of ranked targets!), but also high leverage points for defence. We have to couple this of course with an exceedingly long tail.
+
+## The npm ecosystem
+
+> 
+As the primary source of third-party JavaScript packages for the client-side, server-side, and other platforms, npm is the centrerpiece of a large and important software ecosystem.
+
+Npm is an open ecosystem hosting a collection of over 800,000 packages as of February 2019, and it continues to grow rapidly.
+
+To share a package on npm, a maintainer creates an account on the npm website and runs npm publish in a local folder containing a package.json file. No link to a public version control system (e.g. GitHub) is required, and there is no formal connection between package maintainers on npm and project maintainers on GitHub.
+
+Using a package is also a single command, npm install, which will download and install a package and all of its transitive dependencies. Any third-party package added to an application has the full privileges of that application. For npm packages running outside of the browser on Node.js that means any third-party package can access the file system and network etc.
+
+Some unique characteristics of the npm ecosystem vs other package ecosystems are the high number of transitive dependencies, and heavy reliance on micropackages consisting of only a few lines of code.
+
+## Threat models
+
+So what could possibly go wrong? The paper considers the potential impact of a variety of different attacks:
+
+- An adversary could craft an attack based on an existing known vulnerable package, or a package that includes it via its dependencies
+
+- An adversary could simply publish a malicious package on npm, and try and lure people into downloading and using it.
+
+- An adversary could take over an existing package, for example by persuading the current maintainers to add them as a new maintainer. (E.g., using social engineering techniques).
+
+- An interesting combination of publishing their own package and account takeover is typo-squatting, where the attacker publishes malicious code under a package name very similar to a legitimate package.
+
+- An adversary could compromise and take over the npm account of a legitimate maintainer
+
+And of course there are many variations and combinations of the above.
+
+## Let’s build a graph!
+
+The analysis is this paper is based on downloading the metadata for all packages ever published in npm (up to April 2018), and building a graph of packages, their maintainers, and the dependencies between packages. That leads to a graph with almost 700K nodes and 4.5M edges.
+
+## Packages
+
+The number of direct and indirect dependencies of a package has been steadily increasing over time. A small linear increase in direct dependencies translates into a significant super-linear increase in indirect dependencies. The change in the slope of the transitive dependencies line around 2016 is speculated to be due to the fallout from the left-pad incident.
+
+The bottom line for package dependencies is this:
+
+> 
+When installing an average npm package, a user implicitly trusts around 80 other packages due to transitive dependencies.
+
+Looking at this in the other direction, we can consider the package reach of a package as the number of other packages that directly or indirectly include it. In other words, if a given target package is compromised, how big is the blast radius? The average blast radius for a package has also been growing over time:
+
+More interesting though, is that a ‘rich get richer’ phenomenon is observable whereby the most popular packages are becoming even more popular. The reach of the top 5 packages is shown below.
+
+> 
+Some highly popular packages reach more than 100,000 other packages (emphasis mine), making them a prime target for attacks.
+
+If we rank packages by the size of their potential blast radius on compromise, event-stream would only be #1,165 in the list, with a package reach of 5,466. So in a sense, we all got off lightly!! The eslist-scope attack targeted a package at #347 in the list (when considering runtime and development dependencies).
+
+## Maintainers
+
+In 2018 the average npm maintainer was responsible for almost 4.5 packages. Some maintainers are responsible for over 100 packages though. Looking at the top 5 maintainer handles according to number of packages, we can again see an increase in the concentration of power.
+
+(types here is almost certainly a joint account with multiple Microsoft employees behind it maintaining type definitions for TypeScript, isaacs is the founder of npm).
+
+The number of packages that both the influential and the average maintainers control increased continuously over the years. Looking at it the other way, the number of maintainers implicitly trusted by a given package (i.e., as the maintainers of its transitive dependencies) is also going up.
+
+> 
+The average npm package transitively relies on code published by 40 maintainers. Popular packages rely on "only" (quotes mine) 20... More than 600 highly popular packages rely on code published by at least 100 maintainers.
+
+If you wanted to target a maintainer’s account for takeover, a quick peek at the graph shows that 391 highly influential maintainers affect more than 10,000 packages, making them prime targets for attacks.
+
+## Vulnerabilities
+
+Just looking at known published vulnerabilities, the authors estimate that up to 40% of all packages rely code known to be vulnerable. (We saw a similar phenomenon when looking at frond-end js libraries.)
+
+## Discussion
+
+To be honest, with current practices this all paints a picture of a lost cause with many high value, high blast radius attack targets that is incredibly difficult to secure. The authors offer some pragmatic suggestions as a way forward, targeting those high value targets for good rather than evil!
+
+- We can raise developer awareness of the issues, for example by highlighting the number of transitive dependencies and transitively trusted maintainers when displaying information about a package.
+
+- We can warn developers about packages with known (possibly via transitive dependencies) vulnerabilities. See Snyk for a fabulous way of doing this. I use it on my own projects, but also need to add the disclaimer that Accel is an investor and I’m a board observer at the company!
+
+- We could vet the code of packages before it is allowed into the registry - perhaps with a combination of automatic and manual steps. Doing this for every package would be tough, but doing for the top-n can still make big impact.
+
+- We could also train and vet highly influential maintainers (the impact of this strategy is shown in the blue line in the chart above).
+
+> 
+The overall conclusion is that npm is a small world with high risks. It is "small" in the sense that packages are densely connected via dependencies. The security risk is "high" in the sense that vulnerable or malicious code in a single package may affect thousands of others, and that a single misbehaving maintainer, e.g., due to a compromised account, may have a huge negative impact.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousWireless attacks on aircraft instrument landing systemsNext &rsaquo;In-toto: providing farm-to-table guarantees for bits and bytes
+ 
+ 
+
+ 
+ 
+## 
+ 12 thoughts on &ldquo;Small world with high risks: a study of security threats in the npm ecosystem&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Small world with high risks: a study of security threats in the npm ecosystem - Latest news 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Small world with high risks: a study of security threats in the npm ecosystem - World Best News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Small world with high risks: a study of security threats in the npm ecosystem - Hckr News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Small world with high risks: a study of security threats in the npm ecosystem - protipsss 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Small world with high risks: a study of security threats in the npm ecosystem - Outside The Know 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Small world with high risks: a study of security threats in the npm ecosystem - News about world 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Small world with high risks: a study of security threats in the npm ecosystem - Golden News 
+ 
+ 
+- 
+ 
+ Pingback: Small world with high risks: a study of security threats in the npm ecosystem - INDIA NEWS 
+ 
+ 
+- 
+ 
+ Pingback: Small world with high risks: a study of security threats in the NPM ecosystem - Hacker News Robot 
+ 
+ 
+- 
+ 
+ Pingback: In-toto: providing farm-to-table guarantees for bits and bytes - the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Small world with high risks: a study of security threats in the npm ecosystem - CodingNova 
+ 
+ 
+- 
+ 
+ Pingback: Linkdump #122 | WZB Data Science Blog 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

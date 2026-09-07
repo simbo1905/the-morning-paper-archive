@@ -1,0 +1,42 @@
+{
+  "date": "20181031",
+  "file_name": "20181031",
+  "slug": "moment-based-quantile-sketches-for-efficient-high-cardinality-aggregation-queries",
+  "blog_url": "https://blog.acolyer.org/2018/10/31/moment-based-quantile-sketches-for-efficient-high-cardinality-aggregation-queries/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses a paper introducing a compact and efficiently mergeable quantile sketch called 'moments sketch' for high-cardinality aggregation queries. The author highlights the problem of efficiently answering quantile queries (e.g., 99th percentile latency) over large-scale telemetry data with dimensional metadata, which is challenging due to the need for interactive performance and low memory usage. The moments sketch leverages the method of moments statistical technique and maximum entropy principle to estimate quantiles accurately with minimal storage (under 200 bytes) and fast query times (15-50x faster than comparable methods). The paper demonstrates its integration into systems like Druid, achieving 7x faster quantile queries. The author emphasizes the sketch's mergeability, which allows combining pre-computed summaries without accuracy loss, making it suitable for distributed systems and OLAP engines.",
+  "paper_title": "Moment-based quantile sketches for efficient high cardinality aggregation queries",
+  "paper_authors": [
+    "Gan",
+    "Peter Bailis"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "VLDB",
+  "paper_url": "http://www.bailis.org/papers/moments-vldb2018.pdf",
+  "paper_abstract": "Interactive analytics increasingly involves querying for quantiles over sub-populations of high cardinality datasets. Data processing engines such as Druid and Spark use mergeable summaries to estimate quantiles, but summary merge times can be a bottleneck during aggregation. We show how a compact and efficiently mergeable quantile sketch can support aggregation workloads. This data structure, which we refer to as the moments sketch, operates with a small memory footprint (200 bytes) and computationally efficient (50ns) merges by tracking only a set of summary statistics, notably the sample moments. We demonstrate how we can efficiently estimate quantiles using the method of moments and the maximum entropy principle, and show how the use of a cascade further improves query time for threshold predicates. Empirical evaluation shows that the moments sketch can achieve less than 1 percent quantile error with 15× less overhead than comparable summaries, improving end query time in the MacroBase engine by up to 7× and the Druid engine by up to 60×. App Version OS CAN, v7, iOS 6.2 CAN, v7, iOS 6.3 Mergeable Summaries USA, v7, iOS 6.1 USA, v7, iOS 6.2 USA, v7, iOS 6.3 Aggregation Query CAN, v8, iOS 6.3 USA, v8, iOS 6.1 USA, v8, iOS 6.2 USA, v8, iOS 6.3 Merged Aggregate USA, iOS 6.3 … Figure 1: Given a data cube with pre-aggregated summaries, we can compute roll-ups along specific dimensions by merging the relevant summaries. Efficiently mergeable summaries enable scalable aggregations. As an example of this quantile-driven analysis, our collaborators on a Microsoft application monitoring team collect billions of telemetry events daily from millions of heterogeneous mobile devices. Each device tracks multiple metrics including request latency and memory usage, and is associated with dimensional metadata such as application version and hardware model. Engineers issue quantile queries on a Druid-like [82] in-memory data store, aggregating across different dimensions to monitor...",
+  "paper_file": "papers/2018/10/31/moment-based-quantile-sketches-for-efficient-high-cardinality-aggregation-queries.pdf",
+  "topics": [
+    "data-engineering",
+    "distributed-systems"
+  ],
+  "tags": [
+    "quantile-estimation",
+    "sketches",
+    "data-cubes",
+    "aggregation-queries",
+    "method-of-moments",
+    "maximum-entropy",
+    "mergeable-summaries",
+    "OLAP",
+    "telemetry-data"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Mergeable summaries in a data cube",
+      "caption": "Given a data cube with pre-aggregated summaries, we can compute roll-ups along specific dimensions by merging the relevant summaries. Efficiently mergeable summaries enable scalable aggregations."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

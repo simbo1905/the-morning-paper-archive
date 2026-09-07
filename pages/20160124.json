@@ -1,0 +1,38 @@
+{
+  "date": "20160124",
+  "file_name": "20160124",
+  "slug": "a-distributed-systems-seminar-reading-list",
+  "blog_url": "https://blog.acolyer.org/2016/01/24/a-distributed-systems-seminar-reading-list/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a curated reading list from Murat Demirbas' Distributed Systems Seminar for Spring 2016, featuring papers that are both high-quality and noteworthy. He expresses enthusiasm for the selection, noting that while he had read most of the papers, the ones he hadn't covered were particularly intriguing. The blog post introduces four key papers from the list, including 'The Design and Implementation of the Wave Transactional Filesystem,' 'Arabesque: A System for Distributed Graph Mining,' 'Petuum: A New Platform for Distributed Machine Learning on Big Data,' and 'Chimera: Large-scale classification using machine learning, rules, and crowdsourcing.' Additionally, it mentions 'Panopticon: A lock broker architecture for scalable transactions in the datacenter,' which won an IEEE Big Data 2015 Best Paper award, as a fitting conclusion to the series. The post serves as a guide to the seminar's reading list, emphasizing the importance of exploring these papers for insights into distributed systems, big data, and machine learning.",
+  "paper_title": "The Design and Implementation of the Wave Transactional Filesystem",
+  "paper_authors": [],
+  "paper_year": 2016,
+  "paper_venue": "",
+  "paper_url": "http://muratbuffalo.blogspot.co.uk/2015/12/my-distributed-systems-seminars-reading.html",
+  "paper_abstract": "current or non-sequential modifications to files. This obviates the need to worry about nuances in filesystem behavior, but fails to support use cases requiring concurrency or random-access writes. Flat Datacenter Storage [29] is eventually consistent and requires a network with full-bisection bandwidth, which can be cost prohibitive and is not possible in all environments. This paper introduces the Warp Transactional Filesystem (WTF), a new distributed filesystem that exposes transactional support with a new API that provides file slicing operations. A WTF transaction may span multiple files and is fully general; applications can include calls such as read, write, and seek within their transaction. This file slicing API enables applications to efficiently read, write, and rearrange files without rewriting the underlying data. For example, applications may concatenate multiple files without reading them; garbage collect and compress a database without writing the data; and even sort the contents of record-oriented files without rewriting the files’ contents. The key design decision that enables WTF’s advanced feature set is an architecture that represents filesystem data and metadata to ensure that filesystem-level transactions may be performed using, solely, transactional operations on metadata. Custom storage servers hold filesystem data and handle the bulk of I/O requests. These servers retain no information about the structure of the filesystem; instead, they treat all data as opaque, immutable, variable-length arrays of bytes, called slices. WTF stores references to these slices in HyperDex [17] alongside metadata that describes how to combine the slices to reconstruct files’ contents. This structure enables bookkeeping to be done entirely at the metadata level, within the scope of HyperDex transactions. Supporting this architecture is a custom concurrency control layer that decouples WTF transactions from the underlying HyperDex transactions. This layer ensure...",
+  "paper_file": "papers/2016/01/24/a-distributed-systems-seminar-reading-list.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "transactional-filesystem",
+    "consistency",
+    "distributed-storage"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "WTF distributed architecture",
+      "caption": "Figure 1: WTF employs a distributed architecture consisting of metadata storage, data storage, a replicated coordinator, and the client library. The client library unifies the metadata storage and storage servers to provide a filesystem interface."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Slice pointer representation example",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

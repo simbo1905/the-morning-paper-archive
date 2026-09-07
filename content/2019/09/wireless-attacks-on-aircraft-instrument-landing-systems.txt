@@ -1,0 +1,482 @@
+URL: https://blog.acolyer.org/2019/09/27/wireless-attacks-on-aircraft-instrument-landing-systems/
+Title: Wireless attacks on aircraft instrument landing&nbsp;systems
+---
+
+Wireless attacks on aircraft instrument landing systems Sathaye et al., USENIX Security Symposium 2019
+
+It’s been a while since we last looked at security attacks against connected real-world entities (e.g., industrial machinery, light-bulbs, and cars). Today’s paper is a good reminder of just how important it is becoming to consider cyber threat models in what are primary physical systems, especially if you happen to be flying on an aeroplane - which I am right now as I write this!
+
+The first fully operational Instrument Landing System (ILS) for planes was deployed in 1932. But assumptions we’ve been making since then (and until the present day, it appears!) no longer hold:
+
+> 
+
+ Security was never considered by design as historically the ability to transmit and receive wireless signals required considerable resources and knowledge. However, the widespread availability of powerful and low-cost software-defined radio platforms has altered the threat landscape. In fact, today the majority of wireless systems employed in modern aviation have been shown to be vulnerable to some form of cyber-physical attacks.
+
+Both sections 1 and 6 in the paper give some eye-opening details of known attacks against aviation systems, but to date no-one has published an attack model against one of the most critical of all the aircraft systems: the ILS. Landing is the most dangerous phase of an aircraft’s flight plan, responsible for 59% of all fatal accidents documented by Boeing.
+
+Nearly all commercial flights take place under instrument flight rule (IFR) plans, in which flying by visual reference is either considered unsafe or just not allowed. ILS assists pilots in landing by guiding them on a safe path to the runway, and with autoland systems can even be used to land the plane without human involvement.
+
+> 
+
+ ...pilots are trained and instructed to trust the instruments more than their intuition. If the instruments ask them to fly right, the pilots will fly right. This is true especially when flying in weather conditions that force the pilots to follow the instruments. Detecting and recovering from any instrument failures during crucial landing procedures is one of the toughest challenges in modern aviation.
+
+If we could send adversarial signals to make the plane’s ILS system give a reading other than the true one therefore, then that would be very bad indeed. You won’t be surprised to hear of course, that it turns out we can!
+
+## A quick primer on ILS
+
+> 
+
+ ILS play a key, de-facto role in providing precision landing guidance at the majority of airports today...
+
+ILS is made up of three independent subsystems. The localizer provides guidance on whether the plane is to the right or the left of the ideal centreline approach to the runway. The glidescope provides guidance on whether the plane is above or below the ideal glide path onto the runway. The increasing obsolete (replaced by GPS) marker beacon subsystem provides checkpoints that help determine distance to the runway.
+
+There are three operational standards (with further substandards) based on the maximum decision height for aborting a landing. For CAT I the decision height is 60m above ground, for CAT III it is only 15m. Commercial flights typically fly CAT II or CAT III approaches. Due to the low decision height, attacks on CAT IIII systems can have severe consequences.
+
+ILS is based on radio frequency signals using space modulation to provide horizontal and vertical positioning guidance. Multiple antennas transmit amplitude modulated signals with various powers and phases. Transmitted signals combine in the airspace to give resulting signals with differing depths of modulation (DDM) at different points in the airspace.
+
+Carrier signals are generated with 90Hz and 150Hz tones. For the localisation subsystem, 150 Hz modulation predominates to the right of the centreline, and 90Hz modulation to the left. There’s a similar story in the vertical plane for glidescope.
+
+> 
+
+ Each DDM value directly indicates a specific deviation of the aircraft from the correct touchdown position. For example, the signals combine in space to produce a signal with zero DDM along the center-line of the runway... [Aircraft] instruments are calibrated to show full-scale deflection if DDM > 0.155 or DDM < The overshadow attack is an attack where the attacker transmits specially crafted ILS signals at a power level such that the legitimate signals get overpowered by the attacker’s signal at the receiver. The main reason why such an attack works is that the receivers "lock" and process only the strongest received signal.
+
+An attacker calculates amplitude differences between the 90 and 150 Hz tones based on the offset intended to be introduced at the aircraft. The result will cause the needle on the instrument to shift from the ground truth accordingly.
+
+To make this suitably effective in the cockpit, an offset correction algorithm run by the attacker continuously monitors the current position of the aircraft and adjusts its spoofing signals accordingly. For example, to keep the plane consistently 15m to the left or right of the true centerline, or to cause the plane to be on a glidepath landing short of the runway or overshooting.
+
+A spoofing zone detection algorithm figures out when to start generating the spoofed signal so that no abrupt change to the instrument readings is caused, thus avoiding detection by pilots. Attacker signals are triggered when the aircraft reaches the shaded region in the figure below.
+
+## The single-tone attack
+
+The single-tone attack is less sophisticated and requires lower power. The attacker generates only one of the two sideband tones (i.e., 90 Hz or 150 Hz) with appropriate amplitude levels depending on the desired offset. It’s much harder to precisely control the spoofing offset using this mechanism, but it has the advantage of needing much lower transmission power. The attacker could potentially be located inside the aircraft for example, and initiate a low power attack at the last moment before landing.
+
+## Experimental setup and demonstration
+
+Experiments are conducted in an RF shielded environment using the XPlane 11 flight simulator (which qualifies for FAA-certified flight training hours when used at appropriate frame rates), a commercial aviation grade handheld navigation receiver, and a laptop with software-defined radio hardware (USRP B210s). X-Plane was configured to land on the runway of a midsized airport in the US.
+
+Here’s a video demonstration of an attack in action:
+
+The following figure shows successful localizer spoofing attacks moving a plan up to 50 m left or right of the runway centreline.
+
+And here are results of glidescope attacks making the plane touchdown too soon or too late on the runway.
+
+An accredited pilot also performed final approaches on X-Plane 11 using the attack configuration files and scripts, and did not notice anything untoward on any of the plane’s instruments.
+
+> 
+
+ Through both simulations and experiments using aviation grade commercial ILS receivers and FAA recommended flight simulator, we showed that an attacker can precisely control the approach path of an aircraft without alerting the pilots, especially during low-visibility conditions.
+
+## Are the attacks practical in the real world?
+
+> 
+
+ The ideal location of an onground attacker is at a point along the centerline of the runway... In our context, the attacker has to identify locations on the ground such that the phase difference between the legitimate signal and the spoofing signal remains a constant along the line of approach... Attackers within the plane will have to deal with signal attenuation caused by the body of the aircraft itself and position the spoofing signal transmitter accordingly.
+
+That ideal location is probably hard to achieve ;). Drone-mounted signal generator perhaps??
+
+## Are there any easily deployable defences?
+
+No.
+
+All of the backup systems, including GPS, fail to provide sufficient security guarantees, and even supporting cryptographic authentication on ILS signals would still leave systems vulnerable to record and replay attacks.
+
+> 
+
+ Therefore, through this research, we highlight an open research challenge of building secure, scalable and efficient aircraft landing systems.
+
+(Emphasis mine). But hey, at least the airlines make sure you have your seatbelt fastened for taxi, take-off, and landing ;).
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; Previous50 ways to leak your data: an exploration of apps’ circumvention of the Android permissions systemNext &rsaquo;Small world with high risks: a study of security threats in the npm ecosystem
+ 
+ 
+
+ 
+ 
+## 
+ 19 thoughts on &ldquo;Wireless attacks on aircraft instrument landing systems&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Peter Kriens says: 
+
+ 
+ September 27, 2019 at 9:40 am 
+
+ 
+
+ 
+ 
+Isn't the defense rather easy? You just put a fixed ILS receiver about 100m from the transmitters. Since this is on a fixed location, a change in the DDM is a broken transmitter or an attack. Just disable the ILS and the plane/pilots know how to handle an ILS failure.
+
+Or am I too simplistic?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Oren Tirosh says: 
+
+ 
+ September 27, 2019 at 7:17 pm 
+
+ 
+
+ 
+ 
+I don’t remember where, but I have seen a design for unspoofable GPS. 
+
+Just signing the signal is insufficient because of replay attacks. The system used a signal with a spreading sequence that was unknown to the receiver, making it necessary to make a short recording of the entire RF band. Only after a short delay sufficient for thwarting replay attacks the receiver gets the signed seed of the spreading sequence.
+
+Very high gain directional antennas tracking the satellites might be used to mount a successful replay attack against this system by delaying and retransmitting the entire band. But the required effort is very hig. The gain required to achieve an SNR that will fool the receiver may not be feasible.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Wireless attacks on aircraft instrument landing systems - protipsss 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Wireless attacks on aircraft instrument landing systems - Latest news 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Wireless attacks on aircraft instrument landing systems - Golden News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Wireless attacks on aircraft instrument landing systems - Outside The Know 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Wireless attacks on aircraft instrument landing systems - World Best News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Wireless attacks on aircraft instrument landing systems - News about world 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Wireless attacks on aircraft instrument landing systems - Hckr News 
+ 
+ 
+- 
+ 
+ Pingback: Wireless attacks on aircraft instrument landing systems - INDIA NEWS 
+ 
+ 
+- 
+ 
+ 
+ 
+ Anton Al says: 
+
+ 
+ September 28, 2019 at 9:27 am 
+
+ 
+
+ 
+ 
+One simple metod will be monotoring land fixed receptors and in the presence of an atack alert the pilots!
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: === popurls.com === popular today 
+ 
+ 
+- 
+ 
+ Pingback: Wireless attacks on aircraft instrument landing systems - Lapcity 
+ 
+ 
+- 
+ 
+ 
+ 
+ Seventyseven Hundred says: 
+
+ 
+ September 28, 2019 at 1:37 pm 
+
+ 
+
+ 
+ 
+Why do authentication and cryptography not aid in mitigation?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Wireless attacks on aircraft instrument landing systems - Hacker News Robot 
+ 
+ 
+- 
+ 
+ 
+ 
+ Stan says: 
+
+ 
+ September 29, 2019 at 12:44 pm 
+
+ 
+
+ 
+ 
+Interesting point of view. Reminds me of the movie ‘Die Hard’ where the flight path/glide slope of the planes on approach was changed ending under the ground leading to a disaster...
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: WeWork CEO steps down and more events at Itnig - itnig&#039;s blog 
+ 
+ 
+- 
+ 
+ Pingback: WeWork CEO steps down and more events at Itnig - Read our stories 
+ 
+ 
+- 
+ 
+ Pingback: Video Series with Quipu and Factorial & other Startups News - Itnig 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

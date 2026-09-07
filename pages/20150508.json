@@ -1,0 +1,35 @@
+{
+  "date": "20150508",
+  "file_name": "20150508",
+  "slug": "extensible-distributed-coordination",
+  "blog_url": "https://blog.acolyer.org/2015/05/08/extensible-distributed-coordination/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the paper 'Extensible Distributed Coordination' by Distler et al. (2015), which introduces a sandboxed extension mechanism for coordination services like ZooKeeper and DepSpace. The key idea is to allow client logic to execute within the coordination service itself, similar to stored procedures or triggers in databases, thereby improving throughput and reducing latency for common coordination tasks. The author highlights the benefits of reusing battle-hardened coordination services rather than building new ones, while noting the limitations of their fixed APIs. The paper proposes server-side extensions that can execute multiple operations atomically, eliminating retry loops and reducing remote calls. The evaluation shows significant performance gains (often an order of magnitude) for four Apache Curator recipes, though the author remains cautious about the overhead of executing per-client extensions in the coordination service's core. The approach could enable new use cases by making coordination services more efficient and practical for critical processing paths.",
+  "paper_title": "Extensible Distributed Coordination",
+  "paper_authors": [
+    "Distler",
+    "T."
+  ],
+  "paper_year": 2015,
+  "paper_venue": "",
+  "paper_url": "http://dl.acm.org/authorize?N95499",
+  "paper_abstract": "When deployed in geo-distributed environments, existing state-machine replication protocols require at least one widearea communication step for establishing a total order on client requests. For use cases in which clients are not interested in the actual result of a request, but just need a guarantee that the request will be processed eventually, this property usually incurs unnecessarily high response times. To address this problem we present Weave, a cloud-based georeplication protocol that relies on replica groups in multiple geographic regions to efficiently assign stable sequence numbers to incoming requests. This approach enables Weave to offer guaranteed writes which in the absence of faults only wait for communication within a client’s local replica group to produce an execution guarantee for a particular sequence number. Our experiments with a distributed queue and a replicated log show that guaranteed writes can significantly improve response times of geo-replicated applications.",
+  "paper_file": "papers/2015/05/08/extensible-distributed-coordination.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "coordination-services",
+    "zookeeper",
+    "distributed-coordination",
+    "extensions",
+    "stored-procedures",
+    "triggers",
+    "atomicity",
+    "consensus"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

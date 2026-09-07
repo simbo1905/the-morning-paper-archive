@@ -1,0 +1,327 @@
+URL: https://blog.acolyer.org/2018/06/04/hyperledger-fabric-a-distributed-operating-system-for-permissioned-blockchains/
+Title: Hyperledger fabric: a distributed operating system for permissioned&nbsp;blockchains
+---
+
+Hyperledger fabric: a distributed operating system for permissioned blockchains Androulaki et al., EuroSys'18
+
+(If you don’t have ACM Digital Library access, the paper can be accessed either by following the link above directly from The Morning Paper blog site).
+
+This very well written paper outlines the design of HyperLedger Fabric and the rationales for many of the key design decisions. It’s a great introduction and overview. Fabric is a permissioned blockchain system with the following key features:
+
+- A modular design allows many components to be pluggable, including the consensus algorithm
+
+- Instead of the order-execute architecture used by virtually all existing blockchain systems, Fabric uses an execute-order-validate paradigm which enables a combination of passive and active replication. (We’ll be getting into this in much more detail shortly).
+
+- Smart contracts can be written in any language.
+
+> 
+
+ ...in popular deployment configurations, Fabric achieves throughput of more than 3500 tps, achieving finality with latency of a few hundred ms and scaling well to over 100 peers.
+
+Examples of use cases powered by Fabric include foreign exchange netting in which a blockchain is used to resolve trades that aren’t settling; enterprise asset management tracking hardware assets as they move from manufacturing to deployment and eventually to disposal; and a global cross-currency payments system processing transaction among partners in the APFII organisation in the Pacific region.
+
+## The big picture
+
+> 
+
+ Fabric is a distributed operating system for permissioned blockchains that executes distributed applications written in general purpose programming languages (e.g., Go, Java, Node.js). It securely tracks its execution history in an append-only replicated ledger data structure and has no cryptocurrency built in.
+
+A Fabric blockchain consists of a set of permissioned nodes, with identities provided by a modular membership service provider (MSP). Nodes in a the network play one of three roles; client, peer, or ordering service.
+
+- Clients submit transaction proposals for execution, help orchestrate the execution phase, and finally broadcast transactions for ordering.
+
+- Peers execute transaction proposals and validate transactions. All peers maintain the blockchain ledger. Not all peers execute all transaction proposals, only a subset of nodes called endorsing peers (or endorsers) do so, as specified by the policy of the chaincode (smart contract) to which the transaction pertains. 
+
+- Ordering service nodes (aka orderers) collectively form an ordering service that establishes a total order across all transactions.
+
+It’s possible to construct Fabric networks with multiple blockchains connected to the same ordering service, each such blockchain is called a channel.
+
+> 
+
+ Channels can be used to partition the state of the blockchain network, but consensus across channels is not coordinated and the total order of transactions in each channel is separate from the others.
+
+## From order-execute to execute-order-validate
+
+Everything in Fabric revolves around the execute-order-validate processing pipeline. This is a departure from the traditional blockchain model.
+
+> 
+
+ All previous blockchain systems, permissioned or not, follow the order-execute architecture. This means that the blockchain networks orders transactions first, using a consensus protocol, and then executes them in the same order on all peers sequentially.
+
+Fabric versions up to 0.6 also used the order-execute approach. The weakness of the order-execute are that it forces sequential execution of transactions, cannot cope with non-deterministic code, and requires all smart contracts to run on all peers, which may introduce confidentiality concerns. Feedback across many proof-of-concept applications highlighted some of the practical issues with order-execute too:
+
+- Users would report a bug in the consensus protocol, which in all cases on investigation turned out to be non-deterministic transaction code.
+
+- Users would complain of poor performance, e.g., only five transactions per second, and then on investigation it turned out that the average transaction for the user took 200ms to execute. 
+
+> 
+
+ We have learned that the key properties of a blockchain system, namely consistency, security, and performance, must not depend on the knowledge and goodwill of its users, in particular since the blockchain should run in an untrusted environment.
+
+Fabric rejects order-execute and instead using a three-phase execute-order-validate architecture. A distributed application in Fabric consists of two parts: its smart contract or chaincode, and an endorsement policy configured by system administrators which indicates which indicates permissible endorsers of a transaction.
+
+## The execution phase
+
+Clients sign and send a transaction proposal to one or more endorsers for execution. Endorsers simulate the proposal, executing the operation on the specified chaincode. Chaincode runs in an isolated container. As a result of the simulation, the endorser produces a writeset (modified keys along with their new values) and a readset of keys read during the simulation, along with their version numbers. The endorser then cryptographically signs an endorsement which includes the readset and writeset, and sends this to the client.
+
+The client collects endorsements until they satisfy the endorsement policy of the chaincode (e.g. x of N). All endorsers of the policy are required to produce the same result (i.e., identical readset and writeset). The client then creates a transaction and passes it to the ordering service.
+
+Note that under high contention for certain keys, it is possible for endorsers to return different results and the proposal will fail. "We consciously adopted this design, as it considerably simplifies the architecture and is adequate for typical blockchain applications." In the future CRDTs may be supported to enhance the liveness of Fabric under contention.
+
+> 
+
+ Executing a transaction before the ordering phase is critical to tolerating non-deterministic chaincodes. A chaincode in Fabric with non-determinism can only endanger the liveness of its own operations, because a client might not gather a sufficient number of endorsements for instance.
+
+## The ordering phase
+
+When a client has assembled enough endorsements it submits a transaction to the ordering service.
+
+> 
+
+ The ordering phase establishes a total order on all submitted transactions per channel. In other words, ordering atomically broadcasts endorsements and thereby establishes consensus on transactions, despite faulty orderers. Moreover, the ordering service batches multiple transactions into blocks and outputs a hash-chained sequence of blocks containing transactions.
+
+There may be a large number of peers in the blockchain network, but only relatively few are expected to implement the ordering service. Fabric can be configured to use a built-in gossip service to disseminate delivered blocks from the ordering service to all peers.
+
+The ordering service is not involved in maintaining any blockchain state, and does not validate or execute transactions. Thus the consensus mechanism is completely separated from execution and validation and can be made pluggable (for example using crash-fault tolerant - CFT - or Byzantine fault tolerant - BFT - consensus algorithms).
+
+## The validation phase
+
+Blocks are delivered to peers either directly by the ordering service or via gossip. Validation then consists of three sequential steps:
+
+- Endorsement policy validation happens in parallel for all transactions in the block. If endorsement fails the transaction is marked as invalid.
+
+- A read-write conflict check is done for all transactions in the block sequentially. If versions don’t match the transaction is marked as invalid. 
+
+- The ledger update phase appends the block to the locally stored ledger and updates the blockchain state. 
+
+> 
+
+ The ledger of Fabric contains all transactions, including those that are deemed invalid. This follows from the overall design, because the ordering service, which is agnostic to chaincode state, produces the chain of the blocks and because the validation is done by peers post-consensus.
+
+A nice property that comes from persisting even invalid transactions is that they can be audited, and clients that try to mount a DoS attack by flooding the network with invalid transactions can easily be detected.
+
+## Selected component details
+
+Section 4 in the paper contains a number of interesting implementation details for the various components. In the interests of space, I’m going to focus here on the ledger itself and on chaincode execution.
+
+The ledger component consists of a block store and a peer transaction manager. The block store persists transaction blocks in append only files. It also maintains indices to support random access to blocks and transactions within blocks. The peer transaction manager holds the latest state in a versioned key-value store. A local key-value store is used to implement this, and there are implementations available based on LevelDB and on Apache CouchDB.
+
+Chaincode is executed in a container which isolates chaincodes from each other and from the peer, and simplifies chaincode lifecycle. Go, Java, and Node.js chaincodes are currently supported. Chaincode and the peer communicate using gRPC. Special system chaincodes which implement parts of the Fabric itself run directly in the peer process.
+
+> 
+
+ Through its modularity, Fabric is well-suited for many further improvements and investigations. Future work will address (1) performance by exploring benchmarks and optimizations, (2) scalability to large deployments, (3) consistency guarantees and more general data models, (4) other resilience guarantees through different consensus protocols, (5) privacy and confidentiality for transactions and ledger data through cryptographic techniques, and much more.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Blockchain 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousForkBase: an efficient storage engine for blockchain and forkable applicationsNext &rsaquo;ServiceFabric: a distributed platform for building microservices in the cloud
+ 
+ 
+
+ 
+ 
+## 
+ One thought on &ldquo;Hyperledger fabric: a distributed operating system for permissioned blockchains&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: 医療×ブロックチェーン③　コンセンサスアルゴリズム | | 吉永 和貴 blog 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

@@ -1,0 +1,33 @@
+{
+  "date": "20160113",
+  "file_name": "20160113",
+  "slug": "consensus-on-transaction-commit",
+  "blog_url": "https://blog.acolyer.org/2016/01/13/consensus-on-transaction-commit/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this paper by Jim Gray and Leslie Lamport, which demonstrates that the classic two-phase commit (2PC) protocol is a special case of the consensus problem. The authors introduce Paxos Commit, a non-blocking transaction commit protocol that leverages the Paxos consensus algorithm to tolerate failures among coordinators. Unlike 2PC, which relies on a single coordinator and can block indefinitely upon failure, Paxos Commit uses multiple coordinators (2F+1) to ensure progress as long as a majority are operational. The paper provides TLA+ specifications for both 2PC and Paxos Commit, proving that Paxos Commit refines 2PC. Colyer praises the clarity of the formal specifications and the refinement proofs, noting that they provide a provably correct foundation for transaction commit protocols. The paper also formalizes the requirements for transaction commit, including safety properties (stability and consistency) and liveness properties (non-triviality and non-blocking).",
+  "paper_title": "Consensus on Transaction Commit",
+  "paper_authors": [
+    "Jim Gray",
+    "Leslie Lamport"
+  ],
+  "paper_year": 2004,
+  "paper_venue": "",
+  "paper_url": "http://research.microsoft.com/pubs/64636/tr-2003-96.pdf",
+  "paper_abstract": "The distributed transaction commit problem requires reaching agreement on whether a transaction is committed or aborted. The classic Two-Phase Commit protocol blocks if the coordinator fails. Fault-tolerant consensus algorithms also reach agreement, but do not block whenever any majority of the processes are working. The Paxos Commit algorithm runs a Paxos consensus algorithm on the commit/abort decision of each participant to obtain a transaction commit protocol that uses 2F + 1 coordinators and makes progress if at least F +1 of them are working properly. Paxos Commit has the same stable-storage write delay, and can be implemented to have the same message delay in the fault-free case, as Two-Phase Commit, but it uses more messages. The classic Two-Phase Commit algorithm is obtained as the special F = 0 case of the Paxos Commit algorithm. Contents",
+  "paper_file": "papers/2016/01/13/consensus-on-transaction-commit.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "consensus-protocols",
+    "paxos",
+    "two-phase-commit",
+    "transaction-commit",
+    "tla+",
+    "formal-verification"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

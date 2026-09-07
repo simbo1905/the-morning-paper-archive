@@ -1,0 +1,43 @@
+{
+  "date": "20171211",
+  "file_name": "20171211",
+  "slug": "tail-attacks-on-web-applications",
+  "blog_url": "https://blog.acolyer.org/2017/12/11/tail-attacks-on-web-applications/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a novel and stealthy DDoS attack on n-tier web applications called 'Tail Attacks'. The attack cleverly exploits 'millibottlenecks'—brief resource contention periods lasting milliseconds—by sending timed pulses of attack traffic during 'ON' bursts, followed by 'OFF' periods to avoid detection. This causes queue overflows across distributed tiers, leading to dropped requests and significantly increased tail latencies (4x-8x at the 95th percentile) in real cloud environments like EC2, Azure, and NSF CloudLab. The paper models these attacks using queueing networks and introduces a sophisticated feedback control mechanism using a Kalman filter to dynamically adjust attack parameters, maintaining optimal stealth and effectiveness. Colyer notes the attack's cleverness in evading traditional IDS/IPS tools by mimicking normal traffic patterns while causing disproportionate damage.",
+  "paper_title": "Tail Attacks on Web Applications",
+  "paper_authors": [
+    "Yingying Shan",
+    "Saman A. Zonouz"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "CCS'17",
+  "paper_url": "http://iisp.gatech.edu/sites/default/files/images/tail_attack_-_calton_pu.pdf",
+  "paper_abstract": "1 As the extension of Distributed Denial-of-Service (DDoS) attacks to application layer in recent years, researchers pay much interest in these new variants due to a low-volume and intermittent pattern with a higher level of stealthiness, invaliding the state-of-the-art DDoS detection/defense mechanisms. We describe a new type of low-volume application layer DDoS attack–Tail Attacks on Web Applications. Such attack exploits a newly identified system vulnerability of n-tier web applications (millibottlenecks with sub-second duration and resource contention with strong dependencies among distributed nodes) with the goal of causing the long-tail latency problem of the target web application (e.g., 95th percentile response time > 1 second) and damaging the long-term business of the service provider, while all the system resources are far from saturation, making it difficult to trace the cause of performance degradation. We present a modified queueing network model to analyze the impact of our attacks in n-tier architecture systems, and numerically solve the optimal attack parameters. We adopt a feedback control-theoretic (e.g., Kalman filter) framework that allows attackers to fit the dynamics of background requests or system state by dynamically adjusting attack parameters. To evaluate the practicality of such attacks, we conduct extensive validation through not only analytical, numerical, and simulation results but also real cloud production setting experiments via a representative benchmark website equipped with state-of-the-art DDoS defense tools. We further proposed a solution to detect and defense the proposed attacks, involving three stages: fine-grained monitoring, identifying bursts, and blocking bots. Distributed Denial-of-Service (DDoS) attacks for web applications such as e-commerce are increasing in size, scale and frequency [1, 5]. Akamai’s “quarterly security reports Q4 2016\" [1] shows the spotlight on Thanksgiving Attacks, the week of Thanksgiving (invol...",
+  "paper_file": "papers/2017/12/11/tail-attacks-on-web-applications.pdf",
+  "topics": [
+    "systems-security",
+    "distributed-systems"
+  ],
+  "tags": [
+    "ddos",
+    "latency-attack",
+    "queueing-theory",
+    "kalman-filter",
+    "cloud-security",
+    "n-tier-applications",
+    "feedback-control",
+    "millibottlenecks",
+    "burst-traffic",
+    "rubrobs-benchmark"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Attack scenario and system model",
+      "caption": "Attack scenario and system model"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,42 @@
+{
+  "date": "20170315",
+  "file_name": "20170315",
+  "slug": "application-crash-consistency-and-performance-with-ccfs",
+  "blog_url": "https://blog.acolyer.org/2017/03/15/application-crash-consistency-and-performance-with-ccfs/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights CCFS (Crash-Consistent File System) as a groundbreaking solution to the crash consistency and performance issues in modern file systems. The paper addresses the problem where weak atomicity and re-ordering guarantees in filesystems (like ext4, xfs, btrfs) cause application-level inconsistencies during crashes, despite the filesystem behaving correctly. CCFS introduces causal consistency via 'streams'—grouping file operations where ordering is preserved within a stream but not across streams—effectively restoring application-expected ordering and atomicity. Remarkably, CCFS achieves this with minimal code changes (4,500 lines in a 50KLOC ext4 codebase) and delivers significant performance improvements: up to 80x faster for Git, 685x for SQLite, and 5x for LevelDB, even without application modifications. The key insight is that by carefully designing streams and leveraging causal consistency, CCFS eliminates the need for costly fsync calls and write dependencies, thereby improving both correctness and performance.",
+  "paper_title": "Application crash consistency and performance with CCFS",
+  "paper_authors": [
+    "Pillai",
+    "T"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "FAST'17",
+  "paper_url": "https://www.usenix.org/system/files/conference/fast17/fast17_pillai.pdf",
+  "paper_abstract": "Recent research has shown that applications often incorrectly implement crash consistency. We present ccfs, a file system that improves the correctness of application-level crash consistency protocols while maintaining high performance. A key idea in ccfs is the abstraction of a stream. Within a stream, updates are committed in program order, thus helping correctness; across streams, there are no ordering restrictions, thus enabling scheduling flexibility and high performance. We empirically demonstrate that applications running atop ccfs achieve high levels of crash consistency. Further, we show that ccfs performance under standard filesystem benchmarks is excellent, in the worst case on par with the highest performing modes of Linux ext4, and in some cases notably better. Overall, we demonstrate that both application correctness and high performance can be realized in a modern file system.",
+  "paper_file": "papers/2017/03/15/application-crash-consistency-and-performance-with-ccfs.pdf",
+  "topics": [
+    "storage-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "crash-consistency",
+    "file-systems",
+    "ext4",
+    "atomicity",
+    "ordering",
+    "streams",
+    "causal-consistency",
+    "fsync",
+    "write-dependence"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Journaling Update Protocol",
+      "caption": "Pseudo-code for a simple version of write-ahead journaling; each statement is a system call. The normal text correspond directly to the protocol’s logic, while the bold parts are additional measures needed for portability. Italicized comments show which measures are needed under the default modes of ext2, ext3, ext4, xfs, and btrfs, and the writeback mode of ext3/4 (ext3-wb, ext4-wb)."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

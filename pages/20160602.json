@@ -1,0 +1,40 @@
+{
+  "date": "20160602",
+  "file_name": "20160602",
+  "slug": "sequence-to-sequence-learning-with-neural-networks",
+  "blog_url": "https://blog.acolyer.org/2016/06/02/sequence-to-sequence-learning-with-neural-networks/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this seminal work by Sutskever et al. as a breakthrough in machine translation using sequence-to-sequence learning with neural networks. The paper demonstrates how an LSTM-based model can encode an English sentence into a fixed-dimensional vector (8000 real numbers) and then decode it into a French translation, effectively mapping sequences to sequences. The author emphasizes the LSTM's ability to handle long-range dependencies and the surprising but effective technique of reversing the input sentence to reduce the minimal time lag between corresponding words in source and target languages. The paper also showcases the scalability of deep LSTMs (4 layers, 1000 cells each) and their superior performance over shallow models, achieving a BLEU score of 34.81 on the WMT'14 English-to-French task, outperforming traditional statistical machine translation systems. The qualitative evaluation further supports the model's ability to capture sentence meaning and word order invariance.",
+  "paper_title": "Sequence to Sequence Learning with Neural Networks",
+  "paper_authors": [
+    "Ilya Sutskever",
+    "Oriol Vinyals",
+    "Quoc V. Le"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "NIPS",
+  "paper_url": "https://papers.nips.cc/paper/5346-sequence-to-sequence-learning-with-neural-networks.pdf",
+  "paper_abstract": "Deep Neural Networks (DNNs) are powerful models that have achieved excellent performance on difficult learning tasks. Although DNNs work well whenever large labeled training sets are available, they cannot be used to map sequences to sequences. In this paper, we present a general end-to-end approach to sequence learning that makes minimal assumptions on the sequence structure. Our method uses a multilayered Long Short-Term Memory (LSTM) to map the input sequence to a vector of a fixed dimensionality, and then another deep LSTM to decode the target sequence from the vector. Our main result is that on an English to French translation task from the WMT-14 dataset, the translations produced by the LSTM achieve a BLEU score of 34.8 on the entire test set, where the LSTM’s BLEU score was penalized on out-of-vocabulary words. Additionally, the LSTM did not have difficulty on long sentences. For comparison, a phrase-based SMT system achieves a BLEU score of 33.3 on the same dataset. When we used the LSTM to rerank the 1000 hypotheses produced by the aforementioned SMT system, its BLEU score increases to 36.5, which is close to the previous state of the art. The LSTM also learned sensible phrase and sentence representations that are sensitive to word order and are relatively invariant to the active and the passive voice. Finally, we found that reversing the order of the words in all source sentences (but not target sentences) improved the LSTM’s performance markedly, because doing so introduced many short term dependencies between the source and the target sentence which made the optimization problem easier.",
+  "paper_file": "papers/2016/06/02/sequence-to-sequence-learning-with-neural-networks.pdf",
+  "topics": [
+    "machine-learning"
+  ],
+  "tags": [
+    "sequence-to-sequence",
+    "LSTM",
+    "neural-machine-translation",
+    "deep-learning",
+    "word-embeddings",
+    "recurrent-neural-networks",
+    "BLEU-score"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Sequence to Sequence Model Architecture",
+      "caption": "Our model reads an input sentence “ABC” and produces “WXYZ” as the output sentence. The model stops making predictions after outputting the end-of-sentence token. Note that the LSTM reads the input sentence in reverse, because doing so introduces many short term dependencies in the data that make the optimization problem much easier."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,43 @@
+{
+  "date": "20150115",
+  "file_name": "20150115",
+  "slug": "the-tail-at-scale",
+  "blog_url": "https://blog.acolyer.org/2015/01/15/the-tail-at-scale/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the critical importance of tail latency in large-scale distributed systems, a concept he terms 'tail-tolerance.' The blog post emphasizes how even small percentages of slow requests can disproportionately impact overall system performance, especially when requests fan out across many servers. For example, a system with 100 servers each having a 1% chance of a slow request can result in 63% of user requests experiencing delays. The post underscores that the slowest 5% of requests often account for half of the total 99th-percentile latency, making outliers a major performance bottleneck. Dean and Barroso argue that traditional fault-tolerance techniques are insufficient for addressing latency variability and propose seven design patterns to enhance tail tolerance, including hedged requests, tied requests, micro-partitioning, and canary requests. These techniques aim to mitigate the impact of slow outliers while maintaining system responsiveness.",
+  "paper_title": "The Tail at Scale",
+  "paper_authors": [
+    "Jeffrey Dean",
+    "Luiz André Barroso"
+  ],
+  "paper_year": 2013,
+  "paper_venue": "",
+  "paper_url": "http://www.cs.duke.edu/courses/cps296.4/fall13/838-CloudPapers/dean_longtail.pdf",
+  "paper_abstract": "Low-latency message delivery is crucial for real-time systems. Data originating from a producer must be delivered to consumers, potentially distributed in clusters across metropolitan and continental boundaries. With the growing scale of computing, there can be several thousand consumers of the data. Such systems require a robust messaging system capable of transmitting messages containing data across clusters and efficiently delivering them to consumers. The system must offer guarantees like ordering and at-least-once delivery while avoiding overload on consumers, allowing them to consume messages at their own pace. This paper presents the design of Fast ACS (an abbreviation for Ads Copy Service), a file-based ordered message delivery system that leverages a combination of two-sided (intercluster) and one-sided (intra-cluster) communication primitives—namely, Remote Procedure Call and Remote Memory Access, respectively—to deliver messages. The system has been successfully deployed to dozens of production clusters and scales to accommodate several thousand consumers within each cluster, which amounts to Tbps-scale intra-cluster consumer traffic at peak. Notably, Fast ACS delivers messages to consumers across the globe within a few seconds or even sub-seconds (p99) based on the message volume and consumer scale, at a low resource cost.",
+  "paper_file": "papers/2015/01/15/the-tail-at-scale.pdf",
+  "topics": [
+    "distributed-systems",
+    "cloud-computing"
+  ],
+  "tags": [
+    "tail-latency",
+    "latency-tolerance",
+    "fault-tolerance",
+    "hedged-requests",
+    "tied-requests",
+    "micro-partitioning",
+    "replication",
+    "load-balancing",
+    "canary-requests",
+    "head-of-line-blocking"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Kafka consumer-scaling experiment results",
+      "caption": "Results for Kafka consumer-scaling experiment. As consumers scaled, the consumer throughput went up to 14 Gbps, after which the performance degraded."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

@@ -1,0 +1,260 @@
+URL: https://blog.acolyer.org/2015/08/06/cooking-the-books-formalizing-the-jmm-implementation-recipes/
+Title: Cooking the Books: Formalizing the JMM Implementation&nbsp;Recipes
+---
+
+Cooking the Books: Formalizing the JMM Implementation Recipes - Petri et al. 2015
+
+> 
+
+ A decade ago, the semantics of concurrent Java programs, the Java Memory Model (JMM), was revised and redefined...
+
+... this refinement introduced a formalization called the Data-Race Free (DRF) guarantee. Programs that do not have data races (DRF) in their sequentially consistent (SC) semantics, can only exhibit SC behaviour even when executed on non-SC hardware.
+
+> 
+
+ Unfortunately, due to the complexity of the formalism, many desirable properties of the semantics were not met, and many undesirable properties were not prevented. In light of these shortcomings, there is currently a community effort to better understand and reconsider the definition of the JMM.
+
+The JSR 133 Cookbook for Compiler Writers has become the goto resource for implementing the Java Memory Model on different hardware architectures.
+
+> 
+
+ However, given that [the Cookbook] is an informal document, with no clear – let alone formal – semantic definitions, and no guarantees that the rules defined are correct, we consider a methodology to formalize the semantics induced by its “recipes”, deriving as an important by-product, a provable validation that some of the minimal guarantees required by the JMM are satisfied.
+
+And so the authors of today's paper choice set out to provide a formal semantics for the JMM and a set of refinements for different hardware architectures - notably including Power which is more relaxed than x86. We also get a few hints about the approach to ARM towards the end of the paper. Attempting to summarize the formal model here would not be fruitful and I refer you to the full paper if you want to dig into those details. What we can do though is discuss the approach and some of the lessons learned.
+
+A good example of the value of the formal modelling is the discover that the Cookbook rules for Power don't meet the JMM requirements:
+
+> 
+
+ Perhaps surprisingly, the relation between [the JMM] and [the Cookbook] has not been considered formally before, and notably our results show that the rules implied by [the Cookbook] for Power are at odds with the requirements of the JMM. Concretely, while working on our proofs we found a counter-example to the DRF requirement of the JMM if the rules of the Cookbook are used for Power.
+
+The example was then tried on a Power 7 machine "and (we) were able to reproduce the erroneous behavior in the two different JVM’s we tested, indicating that this is not simply a theoretical inconvenience, but a critical dichotomy between desired semantics and implementations."
+
+Where the rules of the Cookbook are correct, the authors prove that they are so. Where the rules do not produce correct implementations corrections are proposed, which have subsequently been re-integrated into an updated Cookbook.
+
+There are four levels to the proof structure. At the top level, the semantics of the JMM are modelled.
+
+> 
+
+ Below this level, we have a high-level, architecture-agnostic, operational semantics which adopts Power semantics for normal variables, and SC semantics for volatile variables and locks. We denote this semantics by cookbook-high.
+
+Cookbook high deals with normal references, volatile references, and locks. The authors show that Cookbook high semantics respect the JMM.
+
+Below Cookbook high is a model of the intermediate low-level representation introduced in the Compiler Writers Cookbook ('Cookbook Low'):
+
+> 
+
+ This is an intermediate representation used in [the Cookbook] to establish the barriers needed to impose ordering at lower-levels to implement the semantics of cookbook-high. This language serves to bridge the gap between the cookbook-high language and multiple target architectures, each of which have their own ISA that implements different barriers and memory models.
+
+References that are volatile at the Cookbook high level are just normal references at this level and barrier instructions are introduced to prevent local reordering of certain types of instructions. It is shown that Cookbook Low simulates Cookbook High.
+
+At the bottom of the tree, are models for x86 and Power. Regarding Power:
+
+> 
+
+ The main differences between this language and cookbook-low are: (a) this language implements the actual barrier instructions of Power, that is lwsync and sync as opposed to the more abstract barriers of cookbook-low, and (b) unlike the barriers of cookbook-low, these barriers have a global meaning (potentially involving more than one thread).
+
+For x86,
+
+> 
+
+ This language represents the TSO memory model of x86 processors. It has only one barrier instruction, namely mfence. It also has a cas() instruction, used in the implementation of locks.
+
+ARM is not formally modelled in this work, hampered by the fact that "the new ARM v8 relaxed memory model is not yet quite well understood" :
+
+> 
+
+ We are tempted to make the argument that ARM is similar to Power leveraging [24]. Unfortunately [3] has found [24] to be inaccurate w.r.t. ARM. In [3] a different model is proposed, but it is claimed that some current ARM architectures suffer from a bug, which simply stated allows reads on the same reference to be reordered. Moreover, the new ARMv8 relaxed memory model is not yet quite well understood (see [12]). We note however that most of the behaviors discussed in [3] w.r.t. ARM are sound for the JMM, and could easily be incorporated into cookbook-high without affecting our proofs. Moreover, the conservative strategy of [15], which compiles all barriers to the sync-like dmb is guaranteed to satisfy our simulations as shown in Theorem 5.
+
+Thankfully most of don't need to write a compiler honouring Java Memory Model semantics, but it's good to know that work of this nature exists so that those that do can implement it faithfully for us. The paper is also a good read if you're interested in understanding some of the intricacies and subtleties involved in providing consistent high-level semantics across modern hardware architectures.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ HardwareProgramming LanguagesVirtualization 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousOptimization Coaching for JavaScriptNext &rsaquo;Access Rights Analysis in the Presence of Subjects
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

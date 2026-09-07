@@ -1,0 +1,45 @@
+{
+  "date": "20180313",
+  "file_name": "20180313",
+  "slug": "javascript-zero-real-javascript-and-zero-side-channel-attacks",
+  "blog_url": "https://blog.acolyer.org/2018/03/13/javascript-zero-real-javascript-and-zero-side-channel-attacks/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the paper 'JavaScript Zero: Real JavaScript and zero side-channel attacks' as a timely and topical work addressing micro-architectural and side-channel attacks in browsers, particularly relevant given the subsequent emergence of Meltdown and Spectre vulnerabilities. The paper introduces Chrome Zero, a proof-of-concept Chrome extension that defends against such attacks by wrapping JavaScript functions, properties, and objects with policy-enforcing wrappers (virtual machine layering). The core idea is to inject policies that either allow, block, modify, or seek user permission for sensitive operations, thereby mitigating side-channel exploits. The blog emphasizes Chrome Zero's minimal performance impact and its effectiveness in neutralizing various attack vectors, including memory address leaks, timing attacks, multithreading exploits, and sensor API abuses. The paper's key insight is the systematic identification and neutralization of JavaScript features that enable side-channel attacks, providing a practical defense mechanism without significantly degrading user experience.",
+  "paper_title": "JavaScript Zero: Real JavaScript and zero side-channel attacks",
+  "paper_authors": [
+    "Michael Schwarz",
+    "Moritz Lipp",
+    "Daniel Gruss",
+    "Thomas Schuster",
+    "Clémentine Maurice",
+    "Stefan Mangard"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "NDSS",
+  "paper_url": "http://wp.internetsociety.org/ndss/wp-content/uploads/sites/25/2018/02/ndss2018_07A-3_Schwarz_paper.pdf",
+  "paper_abstract": "While traditionally such attacks were implemented using native code [7, 29, 49, 58, 60, 79, 80], recent works have demonstrated that JavaScript code in browsers can also be used to launch such attacks [24, 30, 57, 69]. In an attempt to mitigate JavaScript-based side-channel leakage, browser vendors have mainly focused on restricting the ability of an attacker to precisely measure time [15, 16, 84]. Side-channel attackers, in turn, attempt to get around these restrictions by creating makeshift timers with varying accuracies through the exploitation of other browser APIs, such as message passing or multithreading [42, 66, 72]. More recently, Schwarz et al. [67] presented Chrome Zero, a Chrome extension that protects against JavaScript-based side-channels by blocking or restricting parts of the JavaScript API commonly used by side channel attackers, based on a user-selected protection policy. Going even further, DeterFox [14] aims to eliminate side-channel attacks by ensuring completely deterministic JavaScript execution, and NoScript [51] prevents JavaScript-based attacks by completely disabling JavaScript. A common trend in these approaches is that they are symptomatic and fail to address the root cause of the leakage, namely, the sharing of microarchitectural resources. Instead, most approaches attempt to prevent leakage by modifying browser behavior, striking different balances between security and usability. Thus, we ask the following question. The “eternal war in cache” has reached browsers, with multiple cache-based side-channel attacks and countermeasures being suggested. A common approach for countermeasures is to disable or restrict JavaScript features deemed essential for carrying out attacks. To assess the effectiveness of this approach, in this work we seek to identify those JavaScript features which are essential for carrying out a cache-based attack. We develop a sequence of attacks with progressively decreasing dependency on JavaScript features, culmina...",
+  "paper_file": "papers/2018/03/13/javascript-zero-real-javascript-and-zero-side-channel-attacks.pdf",
+  "topics": [
+    "systems-security",
+    "web-security",
+    "browser-security"
+  ],
+  "tags": [
+    "side-channel-attacks",
+    "microarchitectural-attacks",
+    "JavaScript-security",
+    "cache-attacks",
+    "ASLR-bypass",
+    "timing-attacks",
+    "browser-defenses",
+    "Chrome-extension",
+    "memory-address-leaks",
+    "sensor-api-exploits",
+    "SharedArrayBuffer",
+    "web-workers",
+    "JIT-optimization"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

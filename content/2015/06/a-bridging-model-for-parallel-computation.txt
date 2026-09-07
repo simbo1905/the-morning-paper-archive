@@ -1,0 +1,335 @@
+URL: https://blog.acolyer.org/2015/06/08/a-bridging-model-for-parallel-computation/
+Title: A Bridging Model for Parallel&nbsp;Computation
+---
+
+A Bridging Model for Parallel Computation - Valiant 1990
+
+We've seen a lot of references to the 'Bulk Synchronous Parallel' model over the last two weeks. When it was conceived by Valiant in 1990 though, it was intended as a much more general model than simply an abstraction to support graph processing. As the von Neumann model provides a unifying approach that can bridge between the worlds of sequential hardware and software, so Valiant sought for a unifying model that could provide an effective bridge between parallel hardware and software. Valiant proposed the Bulk Sysnchronous Parallel model to play this role, and makes a strong case for it.
+
+> 
+
+ Even with rapidly changing technology and architectural ideas, hardware designers can still share the common goal of realizing efficient von Neumann machines, without having to be too concerned about the software that is going to be executed. Similarly, the software industry in all its diversity can aim to write programs that can be executed efficiently on this model, without explicit consideration of the hardware. Thus, the von Neumann model is the connecting bridge that enables programs from the diverse and chaotic world of software to run efficiently on machines from the diverse and chaotic world of hardware....
+
+We need an analogous bridging model for parallel computation:
+
+> 
+
+ In this article we introduce the bulk-synchronous parallel (BSP) model and provide evidence that it is a viable candidate for the role of bridging model. It is intended neither as a hardware nor programming model, but something in between.
+
+In other words, hardware designers can focus on creating hardware that is able to efficiently implement the Bulk Synchronous Parallel (BSP) model, and software developers can focus on creating software that can efficiently mapped onto a BSP machine.
+
+> 
+
+ In justifying the BSP for this role, our main argument is that when mapping high-level programs to actual machines in a great variety of contexts, little efficiency is lost if we utilize this single model. The adoption of such a standard can be expected to insulate software and hardware development from one another and make possible both general purpose machines and transportable software.
+
+Valiant seeks to show that the BSP model is universally efficient. That is it can be implemented efficiently in hardware, and it can support efficient executions of parallel programs and algorithms. The goal for the latter is to be optimal, defined as within a constant (low) multiplicative factor of the optimal execution time.
+
+Central to the efficiency of the BSP model is what Valiant calls "sufficient parallel slackness." It's a lesson still very much relevant to us today.
+
+> 
+
+ A major feature of the BSP model is that it provides this option with optimal efficiency (i.e., within constant factors) provided the programmer writes programs with sufficient parallel slackness. This means programs are written for v virtual parallel processors to run on p physical processors where v is rather larger than p (e.g., v=p log p). The slack is exploited by the compiler to schedule and pipeline computation and communication efficiently.
+
+This parallel slackness is key to achieving an even workload distribution. We still often see the recommendation to have, for example, many more partitions than nodes with distributed stores. Note that as the number of processors increases, the need for v to be meaningfully larger than p means that optimal execution seems to require embarrassingly parallel problems. With a smaller p, this is not the case.
+
+## The BSP model
+
+The BSP model has three attributes:
+
+- A number of components, each performing processing and/or memory functions
+
+- A router that delivers messages point to point between components
+
+- Facilities for synchronising all or a subset of the component at a regular time interval L, where L is the periodicity parameter.
+
+> 
+
+ A computation consists of a sequence of supersteps. In each superstep, each component is allocated a task consisting of some combination of local computation steps, message transmissions and (implicitly) message arrivals from other components. After each period of L time units, a global check is made to determine whether the superstep has been completed by all the components. If it has, the machine proceeds to the next superstep. Otherwise, the next period of L units is allocated to the unfinished superstep.
+
+The synchronization mechanism captures the idea of global sychronization at a controllable level of coarseness. No assumptions are made about the relative delivery times of messages within a superstep. Local operations are carried out only on data locally available before the start of the superstep.
+
+This much will be familiar from the graph papers we've been studying. New is Valiant's analysis of the properties of the BSP model, which sheds light on its general applicability...
+
+## Parameters of the BSP model
+
+The key parameters that define the model are:
+
+- L - the periodicity of global synchronization. The hardware sets lower bounds on L, the software sets an upper bound since the larger the value of L, the larger the granularity that has to be exhibited by the program. 
+
+- g - which models the throughput of the router. In particular, if in each superstep each component sends and is sent at most h messages, then gh is the number of time units taken by this communication. 
+
+- p - the number of physical processors
+
+- v - the number of virtual processors
+
+> 
+
+ Even in a fixed technology we think of the parameter g as being controllable, within limits, in the router design. It can be kept low by using more pipelining or by having wider communication channels. Keeping g low or fixed as the machine size p increases incurs, of course, extra costs.
+
+## Analysis of the BSP model
+
+Consider first the problem of memory accesses, and assume a hashing scheme to divide data across processors.
+
+> 
+
+ ...it is observed that for hashing to succeed in parallel algorithms running at optimal efficiency some parallel slack is necessary, and a moderate amount is sufficient if g can be regarded as a constant.
+
+If p log p random accesses are made in a superstep, then there is a high probability that each component will not get more than about 3 log p requests, which is O(log p). For any function f(p), growing faster than log p, if p f(p) accesses are made in a superstep the worst-case access will exceed the average rate by even smaller factors. With v virtual processors, each physical machine has v/p components and there is a high probability v requests can be executed in optimal O(v/p) time.
+
+> 
+
+ The conclusion is that if hashing is to be exploited efficiently, the periodicity L may as well be at least logarithmic, and if it is logarithmic, optimality can be achieved.
+
+To deal with concurrent accesses to the same location (hot data), Valiant proposing combining networks that combine and replicate messages instead of just sending them point-to-point.
+
+> 
+
+ For example, suppose that we are simulating v virtual processors on a p-processor BSP computer and know that at any instant at most h accesses are made to any one location. Then if u = &Omega;(hp log p), concurrent accesses can be simulated optimally by simply replicating any data items that are to be sent to r locations r times at the source processor (and charging for their transmission as for r messages). Similarly, if any combining occurs, it does so at the target processor.
+
+Now let's look at solving problems of size 'n' on a BSP machine...
+
+> 
+
+ We will describe parallel algorithms in which the time-processor product exceeds the number of computational operations by only a fixed multiplicative constant, independent of L, g, p and n, provided that L and g are below certain critical values. In such “optimal” algorithms there may still be several directions of possible improvements, namely in the multiplicative constant as well as in the critical values of g and L.
+
+For parallel matrix multiplication, an optimal runtime of O(n3/p) is shown to be achievable when g = O(n/(sqrt(p))) and L = O(n3/p). Optimality is also shown for broadcasting and for a parallel prefix operation using d-ary recursion.
+
+> 
+
+ There are several important algorithms such as the fast Fourier transform that can be implemented directly on the butterfly graph. ...an instance of such a graph with n inputs can be divided into (log n)/log d successive layers, where each layer consists of (n log d)/d independent butterfly graphs of d/log d inputs each.
+
+Here optimality can be achieved if g = O( log d) and L = O(d log d), where d = n/p. Finally, Leighton's columnsort has an optimal implementation with g = O(log (n/p)) and L = O((n/p) log (n/p).
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Algorithms and data structuresDistributed SystemsGraph 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousScalability! But at what COST?Next &rsaquo;Detecting Termination of Distributed Computations Using Markers
+ 
+ 
+
+ 
+ 
+## 
+ 5 thoughts on &ldquo;A Bridging Model for Parallel Computation&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Asynchronous Complex Analytics in a Distributed Dataflow Architecture | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Arabesque: A System for Distributed Graph Mining | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Petuum: A New Platform for Distributed Machine Learning on Big Data | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: GeePS: Scalable deep learning on distributed GPUs with a GPU-specialized parameter server | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Occupy the cloud: distributed computing for the 99% | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

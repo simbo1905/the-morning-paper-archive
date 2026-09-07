@@ -1,0 +1,412 @@
+URL: https://blog.acolyer.org/2017/09/20/a-longitudinal-end-to-end-view-of-the-dnssec-ecosystem/
+Title: A longitudinal, end-to-end view of the DNSSEC&nbsp;ecosystem
+---
+
+A longitudinal, end-to-end view of the DNSSEC ecosystem Chung et al., USENIX Security 2017
+
+DNS, the Domain Name System, provides a vital function on the Internet, mapping names to values. Unprotected, it's also an attractive target for hackers with attack vectors such DNS spoofing and cache poisoning. Thus about two decades ago a set of security extensions, DNSSEC, were introduced. DNSSEC allows clients and resolvers to verify that DNS responses have not been forged or modified in flight.
+
+You'd think that after two decades, everyone would be using DNSSEC everywhere. That's not the case, but we're making some progress:
+
+> 
+
+ Largely in response to powerful attacks such as the Kaminsky Attack, DNSSEC adoption has increased recently. As of early 2017, more than 90% of top-level domains (TLDs) and 47% of country-code TLDs (ccTLDs) are DNSSEC-enabled. Widely used DNS resolvers now attempt DNSSEC validation by default, e.g., as of January 2012 Comcast (one of the largest ISPs in the US) requests and validates DNSSEC records for all queries, and Google (which operates the largest public DNS resolver) did the same in March 2013.
+
+This still means that, for example, over half of country-code TLDs are not DNSSEC enabled. But it gets much worse. In order for DNSSEC to provide the protections it claims, it needs to be used properly on both the server side (key management, signature publication etc.) and on the client side (validating responses).
+
+> 
+
+ This paper performs the first large-scale, longitudinal measurement study into how well DNSSEC's PKI is managed... Our investigation reveals pervasive mismanagement of the DNSSEC infrastructure. For example, we found that 31% of domains that support DNSSEC fail to publish all relevant records required for validation; 39% of the domains use insufficiently strong key-signing keys; and although 82% of resolvers in our study request DNSSEC records, only 12% of them actually attempt to validate them.
+
+DNSSEC in practice it seems, is pretty much broken.
+
+## How DNSSEC works
+
+Let's begin by looking at how DNSSEC is supposed to work. DNS uses records to map domain names to values. For example, an A record maps a domain name to an IP address, and an NS record maps a domain name to the authoritative name server for the domain. DNSEC adds its own record types:
+
+- DNSKEY records are public keys. Typically each zone uses two DNSKEY records to sign DNS records. The two DNSKEYs for a zone are the Key Signing Key (KSK) and the Zone Signing Key (ZSK). The KSK is only used to produce RRSIGs for DNSKEY records, the ZSK is used for all other record types. ZSKs are intended to be rolled over daily or weekly, and KSKs monthly or yearly. 
+
+- RRSIG (Resource Record Signature) records are cryptographic signatures of other records. Each RRSIG is a signature over all records of a certain type, for a certain name. Such a set of records is called an RRSet. RRSIGs are created using the private key corresponding to a public DNSKEY.
+
+- DS (Delegation Signer) records are essentially hashes of DNSKEYs. These are uploaded to the parent zone, ultimately establishing a chain of trust reaching up to the root zone. DS records in the parent zone are authenticated using RRSIGs just like any other record type. 
+
+When a resolver wants to look up a name it iteratively determines the authoritative name server for the domain and obtains the record (absent caching). If the resolver supports DNSSEC it also needs to fetch (by setting the D0 DNSSEC OK bit in its request) and validate all of the associated DNSEC records.
+
+> 
+
+ The DNSSEC PKI is rooted at the KSK of the DNS root zone. This KSK is well-known by DNSSEC-aware resolvers. Validating a DNS response starts at the root and continues down the DNS hierarchy: A resolver begins by using the KSK to validate the root DNSKEY RRSIG, which validates the root zone’s ZSK. The resolver can then validate the child zone’s DS record (and thereby the child zone’s KSK) using the RRSIG for the DS records in the root zone, as this is signed with the root zone’s ZSK. This process continues until the record in question is authenticated.
+
+## DNSSEC in practice - domains
+
+To study a large number of domains, the authors looked at domains in the .com, .net, and org TLDs. These comprise about 150M TLDs, covering 64% of the Alexa top-1M and 75% of the Alexa top-1K websites. Daily scans are done over a period of 21 months. To get a finer-grained view, hourly scans are also done for a subset of these domains (all second-level domains in .com and .org, about 708K domains in total) over a period of three months.
+
+> 
+
+ One key observation is that DNSSEC deployment is rare: between 0.6% (.com) and 1.0% (.org) of domains have DNSKEY records published in our latest snapshot. The fraction of domains that have DNSKEYs is, however, steadily growing. For example, for .org the fraction rose from 0.75% in March 2015 to over 1.0% in December 2016, even though the number of second-level domains in these TLDs is growing as well.
+
+The spikes in growth turn out to be due to actions by a small number of authoritative name servers (e.g. hyp.net enabling DNSSEC for 11,026 domains in one go).
+
+Popular websites are more likely to sign their domains, but the overall deployment remains low even among the most popular domains: the Top-10K sites have a DNSSEC deployment rate of only 1.85%!).
+
+Even with DNSSEC enabled, the proper DS records may not be installed in the parent domain. Without this, domains cannot be validated even if they provide correct RRSIGs for all their records.
+
+> 
+
+ We observe that 28% - 32% of signed domains do not have a DS record, meaning they cannot be validated.
+
+(So that knocks out about a third of our already meagre 1.85% or less).
+
+When you drill into this, you find that not all name servers are equal.
+
+> 
+
+ Table 1 (below) shows the results for the top 15 authoritative name servers, which cover 83% of the signed domains we study. We find a highly skewed distribution, with most of the name servers publishing DS records for almost all signed domains, but with four failing to upload a DS record for nearly all of their domains.
+
+You had one job!!
+
+Some signed domains also fail to publish RRSIGS (1.7%).
+
+Let's suppose we have published all of the required records. We still need the signatures and timestamps in those records to be correct and not expired. About 0.5% of RRSIG records are invalid under these criteria.
+
+> 
+
+ Even the best record management practices can result in an insecure system if the cryptographic keys that they rely on are mismanaged...
+
+In principle each domain's KSK and ZSK should be unique, but are name servers tempted to save administrative overhead and share keys? You bet!
+
+Key sharing is mostly explained by policies at a small number of name servers:
+
+*.loopia.se, we're looking at you again!
+
+Even if you did have unique keys, are they strong enough? Adopting NIST standards for defining weak keys (e.g., RSA keys with a length less than or equal to 1024 bits, DSA keys less than 2048 bits, elliptic curve keys less than 160 bits), the authors found that the vast majority of ZSKs are weak (91.7%)!
+
+For the final hammer blow, the authors looked at whether these keys were rotated as per the recommendations. (Have a guess ;) ).
+
+> 
+
+ Over 70% of domains do zero KSK rollovers during our 21 month study period.
+
+(And of those that do, about 7% use abrupt rollovers that may break clients). About 45% of domains had no ZSK rollovers either.
+
+## DNSSEC in practice - resolver validation
+
+Suppose a name server actually did get all of the above right. A client is still not protected unless its resolver requests and validates DNSSEC records properly. The authors measured 403,355 exit nodes from 177 countries and 8,842 ASes over a period of 13 days. 83% of resolvers sent requests with the D0 bit set, indicating that they support DNSSEC. However...
+
+> 
+
+ We found that 3,635 resolvers (82.1% of the DNSSEC-aware resolvers) from 146 ASes fail to validate the DNSSEC responses, even though they issue the DNS requests with the D0 bit set.
+
+Here are the top 15 culprits:
+
+And here's the story when looking just at public DNS services:
+
+(Thank you Google).
+
+## A bleak picture
+
+> 
+
+ Our study paints a bleak picture of the security provided by the DNSSEC ecosystem, one that has not improved substantially over time. Our findings highlight the need for continuous auditing of DNSSEC deployments and automated processes for correctly and securely managing DNSSEC material.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ NetworkingSecurity 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousTo type or not to type: quantifying detectable bugs in JavaScriptNext &rsaquo;CLKSCREW: Exposing the perils of security-oblivious energy management
+ 
+ 
+
+ 
+ 
+## 
+ 5 thoughts on &ldquo;A longitudinal, end-to-end view of the DNSSEC ecosystem&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ Pino says: 
+
+ 
+ September 21, 2017 at 2:30 pm 
+
+ 
+
+ 
+ 
+How much of this is due to DNS hosting providers that charge extra for DNSSEC signing? GoDaddy, for instance, puts DNSSEC functionality into it's "Premium DNS" upsell.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ taejoong says: 
+
+ 
+ September 28, 2017 at 7:41 pm 
+
+ 
+
+ 
+ 
+Yes, it is absolutely related with hosting provider's policy. You will be able to find the answer from our another paper "Understanding the Role of Registrars in DNSSEC Deployment", which will be published IMC'17 (http://conferences.sigcomm.org/imc/2017/program/)
+
+The short answer for your question is that charing an extra money for DNSSEC doesn't help for DNSSEC deployment at all. For GoDaddy, we found that only 0.02% of (.com, .org, .net) domains are signed, but for OVH that provides DNSSEC for free, 25.9% of domains are signed.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ greylina says: 
+
+ 
+ September 30, 2017 at 12:50 pm 
+
+ 
+
+ 
+ 
+If you use Godaddy's DNS servers you have to pay for DNSSEC. If you change the DNS servers of a domain registered at Godaddy to e.g. Cloudflare's free DNS servers you can configure DNSSEC without paying.
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ taejoong says: 
+
+ 
+ November 15, 2017 at 8:38 pm 
+
+ 
+
+ 
+ 
+Our paper that focuses on the registrar has just been published in IMC'17, and you can see the paper here: https://conferences.sigcomm.org/imc/2017/papers/imc17-final53.pdf
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ Pingback: TrustBase: an architecture to repair and strengthen certificate-based authentication | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

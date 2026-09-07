@@ -1,0 +1,96 @@
+{
+  "date": "20180521",
+  "file_name": "20180521",
+  "slug": "semantics-and-complexity-of-graphql",
+  "blog_url": "https://blog.acolyer.org/2018/05/21/semantics-and-complexity-of-graphql/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the growing adoption of GraphQL since its open-sourcing by Facebook in 2015, focusing on the paper's analysis of its computational properties. He notes a critical issue with public-facing GraphQL APIs: queries can inadvertently (or maliciously) request exponentially large datasets by increasing breadth or depth, leading to severe performance degradation (e.g., GitHub's API timing out at depth 6 for certain queries). The authors formalize GraphQL's semantics and study three key problems: evaluation complexity (decidable in nondeterministic logarithmic space), enumeration efficiency (linear time with constant delay for normalized queries), and response size (exponential upper bound). Colyer emphasizes the practical implications—exponential response sizes can cripple backend systems—and praises the paper's rigorous formalization and theoretical insights, while acknowledging the limitations of ad-hoc mitigation strategies like depth limits.",
+  "paper_title": "Semantics and Complexity of GraphQL",
+  "paper_authors": [
+    "Olaf Hartig",
+    "Juan F. Pérez"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "WWW'18",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3186014",
+  "paper_abstract": "As data interoperability has become increasingly more important as of late, so has the topic of database query language translations. Being able to translate between different query languages, both old and new, could potentially improve a lot of different systems. One of these systems is HeFQUIN, a federated query engine that primarily focuses on querying many different RDF data sources by sending out SPARQL sub-queries. Exploring ways to extend this engine to include non-RDF data sources, like GraphQL for example, would naturally increase the uses of such an engine. This thesis presents, and implements, a generalized approach for translating SPARQL queries, primarily Basic Graph Patterns (BGPs), into GraphQL queries, after which the resulting JSON response received by executing the query is translated back to solution mappings. The performance of the translator implementation is then evaluated by using a set of pre-determined, specially designed, test queries. These queries are structured to encompass many different scenarios the proposed translator could face. The results of the evaluation tests reveal that the translator implementation with its steps only constitute a comparatively small fraction of the full request to the GraphQL endpoints. Finally, it is concluded that due in part to the generalized nature of the approach, a wide range of different structured basic graph patterns are able to be translated, as long as they follow the set up requirements imposed on the BGP and the GraphQL endpoint. Acknowledgments For the work derived in this thesis report I would like to acknowledge the efforts of my supervisor Sebastián Ferrada and, examiner Olaf Hartig, who both have been instrumental in the discussion surrounding the report by providing valuable and much appreciated feedback. iv Contents Abstract iii Acknowledgments iv Contents v List of Figures vii List of Tables viii",
+  "paper_file": "papers/2018/05/21/semantics-and-complexity-of-graphql.pdf",
+  "topics": [
+    "programming-languages",
+    "algorithms"
+  ],
+  "tags": [
+    "graphql",
+    "query-complexity",
+    "computational-complexity",
+    "query-evaluation",
+    "response-size",
+    "enumeration-problem",
+    "graph-databases",
+    "query-optimization"
+  ],
+  "figures": [
+    {
+      "number": "Figure 3.1",
+      "title": "Concept overview",
+      "caption": null
+    },
+    {
+      "number": "Figure 3.2",
+      "title": "Subject-based star pattern decomposition of the example BGP",
+      "caption": null
+    },
+    {
+      "number": "Figure 3.3",
+      "title": "Rules describing a valid BGP",
+      "caption": null
+    },
+    {
+      "number": "Figure 3.4",
+      "title": "Creating connectors for the example BGP",
+      "caption": null
+    },
+    {
+      "number": "Figure 3.5",
+      "title": "Cyclic connector scheme for the altered example BGP",
+      "caption": null
+    },
+    {
+      "number": "Figure 4.1",
+      "title": "Module architecture overview",
+      "caption": null
+    },
+    {
+      "number": "Figure 4.2",
+      "title": "JSONs parsed per query",
+      "caption": null
+    },
+    {
+      "number": "Figure 4.3",
+      "title": "Translation from SPARQL query to GraphQL query",
+      "caption": null
+    },
+    {
+      "number": "Figure 4.4",
+      "title": "GraphQL query execution",
+      "caption": null
+    },
+    {
+      "number": "Figure 4.5",
+      "title": "Parsing JSON response to solution graph",
+      "caption": null
+    },
+    {
+      "number": "Figure 4.6",
+      "title": "Executing SPARQL query over solution graph",
+      "caption": null
+    },
+    {
+      "number": "Figure 4.7",
+      "title": "Total translation time of the steps in Figures 4.3, 4.5, 4.6",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

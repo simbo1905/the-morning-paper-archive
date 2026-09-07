@@ -1,0 +1,445 @@
+URL: https://blog.acolyer.org/2016/02/05/is-sound-gradual-typing-dead/
+Title: Is Sound Gradual Typing&nbsp;Dead?
+---
+
+Is Sound Gradual Typing Dead? - Takikawa et al. 2016
+
+Last year we looked at the notion of gradual typing in an ECOOP 2015 paper by Takikawa et al. based on TypedRacket. Today's choice from POPL 2016 by Takikawa et al. has the rather dramatic sounding title 'Is Sound Gradual Typing Dead?'. If the paper title is meant to get you to read the paper.... it worked! The short version is that the authors conducted a series of performance tests as they gradually changed programs from fully untyped to fully typed. What they found is that gradual typing introduces very high overheads, and that it's hard for maintenance programmers to predict what the performance impact of gradual typing will be (e.g. in some cases, performance degraded by over 100x). All experiments were run on TypedRacket, so we have to distinguish between the characteristics of this one implementation vs. the idea of gradual typing in general, but even so the work throws up some serious questions for research into practical gradual typing to address. This forms another part of the great debate surrounding the benefits of static and dynamic languages.
+
+> 
+
+ Over the past couple of decades dynamically-typed languages have become a staple of the software engineering world. Programmers use these languages to build all kinds of software systems. In many cases, the systems start as innocent prototypes. Soon enough, though, they grow into complex, multi-module programs, at which point the engineers realize that they are facing a maintenance night- mare, mostly due to the lack of reliable type information. Gradual typing proposes a language-based solution to this pressing software engineering problem. The idea is to extend the language so that programmers can incrementally equip pro- grams with types. In contrast to optional typing, gradual typing provide programmers with soundness guarantees.
+
+To make all this work, you have to insert runtime checks between the typed and untyped portions of the program. Macro-level gradual typing forces programmers to add typing on a module-by-module basis, micro-level gradual typing allows type annotations to be added to any declaration. We want gradual typing to allow programmers to add types with minimal changes to existing code, and we want the cost of 'soundness' to remain tolerable - program performance must not degrade too much as programmers add type annotations.
+
+> 
+
+ Most publications come with qualified remarks about the performance of partially typed programs. Some plainly admit that such mixed programs may suffer performance degradations of up to two orders of magnitude.
+
+To assess the performance impact of gradual typing, the authors take programs with n modules and create a typed and untyped version of each. There are therefore 2n possible configurations from all untyped to all typed and everything inbetween. Each configuration is then benchmarked. Here's what the performance lattice for the suffixtree program looks like - there are six modules, giving 64 total combinations. A white circle represents an untyped module, and a black circle a typed one. Thus we have the fully typed program at the top of the lattice, and the fully untyped one at the bottom of the lattice.
+
+ 
+
+Note how varying the paths on the journey from fully untyped to fully typed are. When choosing the first module to type, you might experience anything from no performance overhead (1x) to nearly 89x performance degradation.
+
+> 
+
+ The performance lattice for suffixtree is bad news for gradual typing. It exhibits performance “valleys” in which a maintenance programmer can get stuck. Consider starting with the untyped program, and for some reason choosing to add types to label. The program slows down by a factor of 88x. Without any guidance, a developer may choose to then add types to structs and see the program slow down to 104x. After that, typing main (104x), ukkonen (99x), and lcs (103x) do little to improve performance. It is only when all the modules are typed that performance becomes acceptable again (0.7x).
+
+How much of a slowdown is acceptable? Let's say you would still be prepared to deploy a program into production if the slowdown a factor of N or less. This is what the authors call N-deliverable.
+
+> 
+
+ N-deliverable: A configuration in a performance lattice is N-deliverable if its performance is no worse than an Nx slowdown compared to the completely untyped configuration.
+
+Perhaps the slow down is too much to consider deploying in production, but could still be used to add type checking during testing. The type checking is then at least usable in some context.
+
+> 
+
+ N/M usable: A configuration in a performance lattice is N/M-usable if its performance is worse than an Nx slowdown, but no worse than an Mx slowdown compared to the completely untyped configuration.
+
+Suppose you start typing a program, and arrive at unacceptable performance (worse than Mx). How many additional modules do you have to type before the performance becomes acceptable again?
+
+> 
+
+ L-step N/M usable: A configuration is L-step M/N-usable if it is unacceptable and at most L type conversion steps away from a N-deliverable or N/M-usable configuration.
+
+The authors used the lattice methodology to look at 12 different programs, doing 30 runs of each configuration of each program. They set rather generous acceptability levels of N = 3, M = 10, and L = 2. (I.e. you can deploy anything that gives a slow down of up to 3x, but no more).
+
+In the paper you'll find a lot of charts that look like this:
+
+On the x-axis is the overhead introduced by gradual typing, and on the y-axis the number of configurations (combinations of typed and untyped modules) with that overhead or less. If typing introduced no overhead at all therefore, you'd see a vertical line at x=0. The red-dashed line marks the '60% of all configurations' point. In the first column we see L=0, in the second column the chart shows L=1. Here the meaning of the x-axis is that this is the lowest overhead that can be reached in 1 step from the current configuration. the third column shows L=2. The charts don't make pretty reading.
+
+> 
+
+ Unsound type systems are useful. They document the code, find bugs at compile-time, and enable the IDE to assist programmers. Sound type systems are useful and meaningful. A soundly typed program cannot go wrong, up to a well-defined set of run-time exceptions. When a typed program raises an exception, the accompanying message usually pinpoints the location of the problem in the program source... The problem is that, according to our measurements, the cost of enforcing soundness is overwhelming. Figures 4 and 5 clarify
+
+ just how few partially typed configurations are usable by developers or deliverable to customers. For almost all benchmarks, the lines are below the (red) horizontal line of acceptability.
+
+Converting a module may take a considerable amount of time, so that L=2 is a generous choice. But even at this level the number of acceptable configurations does not increase by much - and this is when we assume the programmer somehow knows which two modules to convert to get the best performance gain possible!
+
+All the tests were done with TypedRacket, but research results suggest that other gradually typed languages may suffer similarly (e.g. 10x slowdowns for Reticulated Python, and on average 22x slowdowns for Safe TypeScript).
+
+> 
+
+ In the context of current implementation technology, sound gradual typing is dead. We support this thesis with benchmarking results for all possible gradual typing scenarios for a dozen Racket/Typed Racket benchmarks of various sizes and complexities. Even under rather liberal considerations, few of these scenarios end up in de- liverable or usable system configurations. Even allowing for ad- ditional conversions of untyped portions of the program does not yield much of an improvement.
+
+The authors suggest further research in three areas:
+
+- A full application of the method to other implementations, and to micro-level gradual typing.
+
+- Can sophisticated JIT compilers eliminate some of the overheads? ("we conjecture that performance pathologies will still remain").
+
+- Development of guidelines for annotating and measuring the performance of gradually typed programs to help programmers identify which components of a gradually typed configuration are likely to yield the most performance benefit for time invested. The acceptance of TypedRacket in the commercial and open-source Racket community suggests that some programmers find a way around the performance bottlenecks (or find the trade-offs involved worth it).
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Programming Languages 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousReducing Crash Recoverability to ReachabilityNext &rsaquo;Chapar: Certified Causally Consistent Distributed Key-Value Stores
+ 
+ 
+
+ 
+ 
+## 
+ 2 thoughts on &ldquo;Is Sound Gradual Typing Dead?&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Is sound gradual typing dead? | ..:: Frog in the box ::.. | ..:: Frog in the box ::.. 
+ 
+ 
+- 
+ 
+ Pingback: 2016.9 Blobs Leaping Away | Weekly changes in and around Perl 6 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Loading Comments...
+ 
+ 
+ 
+ 
+
+ 
+ 
+ Write a Comment...
+ 
+ 
+ 
+ 
+ Email (Required)
+ 
+ 
+ 
+ Name (Required)
+ 
+ 
+ 
+ Website
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ %d

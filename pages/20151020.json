@@ -1,0 +1,45 @@
+{
+  "date": "20151020",
+  "file_name": "20151020",
+  "slug": "high-performance-acid-via-modular-concurrency-control",
+  "blog_url": "https://blog.acolyer.org/2015/10/20/high-performance-acid-via-modular-concurrency-control/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the paper 'High-Performance ACID via Modular Concurrency Control' as a novel approach to improving the performance of ACID databases without sacrificing their guarantees. The key insight is that traditional ACID implementations use uniform concurrency control mechanisms across all transactions, which can be overly conservative and limit performance. The paper introduces Modular Concurrency Control (MCC), which partitions transactions into groups and assigns each group a tailored concurrency control mechanism, enabling more aggressive optimizations while maintaining ACID guarantees. The approach is demonstrated by a modified MySQL Cluster that achieves an 8.2x speedup on the unmodified TPC-C benchmark, showcasing significant performance gains without altering application semantics. The blog emphasizes the elegance of decoupling abstraction from implementation and the theoretical underpinnings that ensure correctness, including the use of nexus locks for inter-group conflict resolution and runtime pipelining for intra-group concurrency.",
+  "paper_title": "High-Performance ACID via Modular Concurrency Control",
+  "paper_authors": [
+    "Chengjie Qin",
+    "Jianfeng Zhan",
+    "Lingmei Weng",
+    "Yi Liu",
+    "Xiaoyu Zhang"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "SOSP'15",
+  "paper_url": "http://sigops.org/sosp/sosp15/current/2015-Monterey/printable/263-xie.pdf",
+  "paper_abstract": "This paper describes the design, implementation, and evaluation of Callas, a distributed database system that offers to unmodiﬁed, transactional ACID applications the opportunity to achieve a level of performance that can currently only be reached by rewriting all or part of the application in a BASE/NoSQL style. The key to combining performance and ease of programming is to decouple the ACID abstraction— which Callas offers identically for all transactions—from the mechanism used to support it. MCC, the new Modular approach to Concurrency Control at the core of Callas, makes it possible to partition transactions in groups with the guarantee that, as long as the concurrency control mechanism within each group upholds a given isolation property, that property will also hold among transactions in different groups. Because of their limited and specialized scope, these groupspeciﬁc mechanisms can be customized for concurrency with unprecedented aggressiveness. In our MySQL Cluster-based prototype, Callas yields an 8.2x throughput gain for TPC-C with no programming effort.",
+  "paper_file": "papers/2015/10/20/high-performance-acid-via-modular-concurrency-control.pdf",
+  "topics": [
+    "storage-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "acid",
+    "concurrency-control",
+    "modularity",
+    "transaction-processing",
+    "isolation-levels",
+    "nexus-locks",
+    "runtime-pipelining",
+    "serializability",
+    "transaction-chopping"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "A simple banking application",
+      "caption": "A simple banking application."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

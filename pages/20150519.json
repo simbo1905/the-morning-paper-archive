@@ -1,0 +1,44 @@
+{
+  "date": "20150519",
+  "file_name": "20150519",
+  "slug": "tao-facebooks-distributed-data-store-for-the-social-graph",
+  "blog_url": "https://blog.acolyer.org/2015/05/19/tao-facebooks-distributed-data-store-for-the-social-graph/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights TAO, Facebook's distributed data store designed to handle the extreme read demands of the social graph. The paper describes how TAO evolved from a memcache+MySQL system to a dedicated graph-aware cache that mediates access to MySQL, optimizing for reads, efficiency, and availability over strong consistency. Key insights include the objects-and-associations data model, association lists for ordered queries, and a two-tier caching hierarchy with leader/follower architecture. The system deliberately sacrifices some consistency (e.g., eventual consistency with hanging associations) to achieve scalability, while providing read-after-write consistency within tiers and critical reads for sensitive operations. The separation of cache and persistent store layers enables independent scaling and tradeoffs, proving effective at Facebook's scale.",
+  "paper_title": "TAO: Facebook's Distributed Data Store for the Social Graph",
+  "paper_authors": [
+    "Nicholas Bronson",
+    "Ariel Rabkin",
+    "Rong Ou",
+    "Kaushik Veeraraghavan"
+  ],
+  "paper_year": 2013,
+  "paper_venue": "USENIX Annual Technical Conference (ATC)",
+  "paper_url": "https://www.usenix.org/conference/atc13/technical-sessions/presentation/bronson",
+  "paper_abstract": "\b\u0016\u0004\u0001\u0016 \u001b\u001a\u0019\b\u0016\u000f  \u0019\u0013 \b\u0016\u0007 \u000e\u0016 \u001b\u0016 \u001b\u0012\u001b\u0016\u0014\u000e\u001b\u0012\u001b\u0006 Figure 1: A running example of how a user’s checkin might be mapped to objects and associations. 2 Background A single Facebook page may aggregate and ﬁlter hundreds of items from the social graph. We present each user with content tailored to them, and we ﬁlter every item with privacy checks that take into account the current viewer. This extreme customization makes it infeasible to perform most aggregation and ﬁltering when content is created; instead we resolve data dependencies and check privacy each time the content is viewed. As much as possible we pull the social graph, rather than pushing it. This implementation strategy places extreme read demands on the graph data store; it must be efﬁcient, highly available, and scale to high query rates. 2.1 Serving the Graph from Memcache Facebook was originally built by storing the social graph in MySQL, querying it from PHP, and caching results in memcache [21]. This lookaside cache architecture is well suited to Facebook’s rapid iteration cycles, since all 2013 USENIX Annual Technical Conference (USENIX ATC ’13) 49 of the data mapping and cache-invalidation computations are in client code that is deployed frequently. Over time a PHP abstraction was developed that allowed developers to read and write the objects (nodes) and associations (edges) in the graph, and direct access to MySQL was deprecated for data types that ﬁt the model. TAO is a service we constructed that directly implements the objects and associations model. We were motivated by encapsulation failures in the PHP API, by the opportunity to access the graph easily from non-PHP services, and by several fundamental problems with the lookaside cache architecture: Inefﬁcient edge lists: A key-value cache is not a good semantic ﬁt for lists of edges; queries must always fetch the entire edge list and changes to a single edge require the entire list to be reloaded. Basic list support in a lookaside cache would only ...",
+  "paper_file": "papers/2015/05/19/tao-facebooks-distributed-data-store-for-the-social-graph.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "graph-databases",
+    "caching",
+    "consistency-models",
+    "social-networks",
+    "read-optimization",
+    "MySQL",
+    "sharding",
+    "eventual-consistency",
+    "cache-hierarchy"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Running example of user checkin mapping",
+      "caption": "A running example of how a user’s checkin might be mapped to objects and associations."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

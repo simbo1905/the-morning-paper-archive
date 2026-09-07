@@ -1,0 +1,43 @@
+{
+  "date": "20181114",
+  "file_name": "20181114",
+  "slug": "unikernels-as-processes",
+  "blog_url": "https://blog.acolyer.org/2018/11/14/unikernels-as-processes/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights an innovative approach by Williams et al. to run unikernels as processes instead of virtual machines (VMs), addressing key deployment challenges. The authors propose using seccomp in Linux to restrict system calls to a narrow interface, mimicking the isolation benefits of VM-based unikernels while leveraging standard process tooling for debugging, deployment, and infrastructure reuse. The key insight is that unikernels, traditionally VM-like entities, can be treated as specialized processes with strong isolation, reduced startup times, and improved performance. The paper introduces 'nabla,' a prototype system extending Solo5 and ukvm to demonstrate these benefits, showing significant reductions in system calls, kernel function access, and startup times, alongside increased throughput and memory density compared to traditional VM-based unikernels.",
+  "paper_title": "Unikernels as Processes",
+  "paper_authors": [
+    "Steven J. Williams",
+    "Anil Madhavapeddy",
+    "Richard Mortier"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "SoCC'18",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3267845",
+  "paper_abstract": "of a library OS that the application needs to run directly on a virtual hardware abstraction, thereby inheriting the desirable isolation properties of virtual machines (VMs). Although originally limited to OCaml-based applications with MirageOS [34], unikernel communities have now emerged around many different languages [2, 3, 10, 18, 42] and some even support common applications and runtimes [9, 27] like nginx, redis, Node.js express, Python, etc. Due to their lightweight characteristics and strong isolation, unikernels are well suited for microservices [23, 44], network function virtualization [36], or emerging highly-responsive cloud workloads like so-called “serverless computing” [1, 7], where multiple mistrusting cloud users run small snippets of code in an event-based manner [29]. However, despite the isolation benefits, adopting VMlike characteristics introduces several issues. First, existing tooling for VMs was not designed for lightweight, highlyresponsive cloud services and requires redesign for unikernels or lightweight VMs [35] to address memory density, performance, and startup time. Second, unikernels are like blackbox VMs, which raises questions of how to debug them in production [19]. Finally, unikernels running as VMs cannot be deployed on top of—and take advantage of the elasticity properties of—already virtualized infrastructure without the performance, complexity and security implications of nested virtualization [17]. In this paper, we describe a technique to run unikernels as processes, while retaining their VM-like isolation properties. We believe that running unikernels as processes is an important step towards running them in production, because, as processes, they can reuse lighter-weight process or container tooling, be debugged with standard process debugging tools, and run in already-virtualized infrastructure. Our approach is based on two observations. First, unikernels are more like applications than kernels and, as such, do not requi...",
+  "paper_file": "papers/2018/11/14/unikernels-as-processes.pdf",
+  "topics": [
+    "distributed-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "unikernels",
+    "seccomp",
+    "isolation",
+    "virtualization",
+    "processes",
+    "performance",
+    "debugging",
+    "memory-density",
+    "startup-time"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Unikernel isolation using a monitor process with virtualization technology",
+      "caption": "Unikernel isolation using a monitor process with virtualization technology"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

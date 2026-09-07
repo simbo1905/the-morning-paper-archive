@@ -1,0 +1,386 @@
+URL: https://blog.acolyer.org/2015/05/20/farm-fast-remote-memory/
+Title: FaRM: Fast Remote&nbsp;Memory
+---
+
+FaRM: Fast Remote Memory - Dragojevic, et al. 2014
+
+Yesterday we looked at Facebook's graph store,TAO, that can handle a billion reads/sec and millions of writes/sec. In today's choice a team from Microsoft Research reimplemented TAO, and beat those numbers by an order of magnitude!
+
+> 
+
+ FaRM’s per-machine throughput of 6.3 million operations per second is 10x that reported for Tao. FaRM’s average latency at peak throughput was 41µs which is 40–50x lower than reported Tao latencies.
+
+A distributed hashtable implementation also 'performs well,' with a 20 machine cluster performing 167 million key-value lookups per second with a latency of 31 microseconds.
+
+What's the secret? RDMA - Remote Direct Memory Access.
+
+While decreasing DRAM prices mean you can build a cluster with tens of terabytes of main memory, the challenge with distributed in-memory stores is preventing network communication from becoming the bottleneck, especially for workload patterns that require small random data accesses. The discrepancy is so severe claim the authors, that we can't solve it while continuing to use TCP/IP!
+
+> 
+
+ Emerging fast networks are not going to solve this problem while systems continue to use traditional TCP/IP networking. For example, the results in [16] show a state-of-the-art key-value store performing 7x worse in a client-server setup using TCP/IP than in a single-machine setup despite extensive request batching.
+
+Abandoning TCP/IP sounds pretty drastic! But help is at hand with RDMA : Remote Direct Memory Access. RDMA traditionally requires Infinband, but a new approach called RDMA over Converged Ethernet (RoCE) enables RDMA over Ethernet. It is this latter configuration that all the evaluations in the paper were based upon.
+
+** Update ** Holge Hoffstätte also pointed out via twitter that SoftRoCE (RoCE over tunnelled UDP is also on its way).
+
+> 
+
+ RDMA provides reliable user-level reads and writes of remote memory. It achieves low latency and high throughput because it bypasses the kernel, avoids the overheads of complex protocol stacks, and performs remote memory accesses using only the remote NIC without involving the remote CPU. RDMA has long been supported by Infiniband but it has not seen widespread use in data centers because Infiniband has traditionally been expensive and it is not compatible with Ethernet. Today, RoCE supports RDMA over Ethernet with data center bridging at competitive prices.
+
+Over the same Ethernet network, RDMA gives an order of magnitude improvement in message rate and latency relative to TCP/IP. It's still very much NUMA though, since accessing local memory is 23x faster than accessing memory over RDMA. Thus data locality is important in any design.
+
+> 
+
+ RoCE is price competitive at the rack level: $19/Gbps for 40 Gbps RoCE compared to $60/Gbps for 10 Gbps Ethernet, but there are some concerns about the scalability of RoCE. We expect it to scale to hundreds of nodes and there is ongoing work to improve scalability to thousands of nodes.
+
+With the coming of RoCE and NVMM things are going to get very interesting indeed for distributed computing in the data center.
+
+FaRM provides a strictly serializable ACID programming model on top of RDMA:
+
+> 
+
+ Applications start a transaction by creating a transaction context. They can allocate and free objects using txAlloc and txFree inside transactions. Allocations return opaque 64-bit pointers that can be used to access objects or stored in object fields to build pointer linked data structures. Applications can request that the new object is allocated close to an existing object by supplying the existing object’s address to txAlloc. FaRM attempts to store the two objects in the same machine and keep them on the same machine even after recovering from failures or adding new machines. This allows applications to collocate data that is commonly accessed together.
+
+The API also provides support for lock-free reads and function shipping to execute operations where the data is located. Beneath the FaRM API we find three key components: a set of communication primitives, distributed memory management, and a distributed transaction manager. On top of this FaRM also provides a general key-value store interface implemented as a hashtable on top of the shared address space.
+
+## Communication Primitives
+
+> 
+
+ FaRM uses one-sided RDMA reads to access data directly and it uses RDMA writes to implement a fast message passing primitive. This primitive uses a circular buffer to implement a unidirectional channel.... The receiver periodically polls the word at the “Head” position to detect new messages. Any non-zero value L in the head indicates a new message, of length L. The receiver then polls the message trailer; when it becomes non-zero, the entire message has been received because RDMA writes are performed in increasing address order.
+
+Senders use RDMA write messages to write to the buffer tail. Micro-benchmarking shows a request rate between 11x and 9x TCP/IP when request sizes are between 16 and 512 bytes (a typical range). "One-sided RDMA reads achieve an additional 2x improvement for sizes up to 256 bytes because they require half the network packets." At peak request rates, FaRM hase 145x lower latency than TCP/IP and 12x lower in an unloaded system.
+
+Achieving this level of performance required careful management of the available cache space on the NIC: both for page tables and for RDMA queue-pairs. The team had to enhance the existing large page support in Windows and Linux and implemented a kernel driver called PhyCo that allocates physically contiguous and naturally aligned 2GB memory regions at boot time. This reduced the number of pages required to 1! To reduce the number of queue pairs, a queue pair was shared between a number of threads instead of 1 per thread.
+
+## Distributed Memory Management
+
+FaRMs address space is divided into multiple 2GB shared memory regions. Consistent hashing is used to map a region identifier to the machine that holds the data.
+
+> 
+
+ Consistent hashing is implemented using a one-hop distributed hashtable. Each machine is mapped into k virtual rings by hashing its IP address with k hash functions. FaRM uses multiple rings to allow multiple regions to be recovered in parallel as in RAMCloud and also to improve load balancing.
+
+Memory is allocated in three tiers: slabs, blocks, regions. Regions are obtained from a cluster-wide region allocator. A machine-wide block allocator allocates blocks from shared memory regions in multiples of 1MB. Threads have private slab allocators that allocate small objects from blocks.
+
+> 
+
+ Each block is used to allocate objects of the same size. FaRM supports 256 distinct sizes from 64 bytes to 1 MB. The sizes are selected so the average fragmentation is 1.8% and the maximum is 3.6%.
+
+## Transaction Management
+
+FaRM supports distributed transactions to ensure consistency, with optimistic concurrency control and 2-phase commit. Logs are kept on SSDs, and the 2-phase commit protocol is implemented using RDMA messaging.
+
+> 
+
+ FaRM replicas keep the log on SSDs. To improve logging performance, they use a few megabytes of non-volatile RAM to hold the circular message buffers and to buffer log entries... The two-phase commit protocol is implemented using RDMA-based messaging, which was shown to have very low latency. This reduces conflicts and improves performance by reducing the amount of time locks are held. Despite these optimizations, two-phase commit may be too expensive to implement common case operations.
+
+## FaRM's key-value store
+
+FaRM's key-value store is implemented on top of the shared address space. It uses a variant of a hopscotch hashtable as opposed to popular alternatives based on cuckoo hashing.
+
+> 
+
+ Designing a hashtable that performs well using RDMA is similar to other forms of memory hierarchy aware data structure design: it is important to balance achieving good space efficiency with minimizing the number and size of RDMAs required to perform common operations. Ideally, we would like to perform lookups, which are the most common operation, using a single RDMA read. We identified hopscotch hashing as a promising approach to achieve this goal because it guarantees that a key-value pair is located in a small contiguous region of memory that may be read with a single RDMA... Each bucket in a hopscotch hashtable has a neighbourhood that includes the bucket and the H - 1 buckets that follow. Hopscotch hashing maintains the invariant that a key-value pair is stored in the neighbourhood of the key’s bucket (i.e., the bucket the key hashes to).
+
+Large neighbourhoods performed poorly with RDMA because they result in large reads, so the authors defined a new chained associative hopscotch hashing algorithm that balances space efficiency with the size and number of RDMAs used to perform lookups.
+
+> 
+
+ The new algorithm uses an overflow chain per bucket. If an insert fails to move an empty bucket into the right neighbourhood, it adds the key-value pair to the overflow chain of the key’s bucket instead of resizing the table.
+
+Lookups are performed using lock-free read-only operations. Updates are performed with transactions.
+
+> 
+
+ We use a technique inspired by flat combining to combine concurrent inserts and updates to the same key into a single transaction. This improves throughput by more than 4x in our experiments with skewed YCSB workload by reducing the overheads of concurrency control and replication for hot keys.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Datastores 
+ 
+ DatastoresMicrosoftNetworking 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousTAO: Facebook's Distributed Data Store for the Social GraphNext &rsaquo;Congestion Avoidance and Control
+ 
+ 
+
+ 
+ 
+## 
+ 16 thoughts on &ldquo;FaRM: Fast Remote Memory&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: FAWN: A Fast Array of Wimpy Nodes | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Pregel: A System for Large-Scale Graph Processing | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: The Week That Was for week ending May 24, 2015 | Practical Performance Analyst 
+ 
+ 
+- 
+ 
+ Pingback: GraphX: Graph Processing in a Distributed Dataflow Framework | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Implementing Linearizability at Large Scale and Low Latency | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: A Year in Papers | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: A Year in Papers-IT大道 
+ 
+ 
+- 
+ 
+ Pingback: No Compromises: Distributed Transactions with Consistency, Availability, and Performance | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: The RAMCloud Storage System | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: All Change Please | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: FaSST: Fast, scalable and simple distributed transactions with two-sided (RDMA) datagram RPCs | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: FaSST: Fast, scalable and simple distributed transactions with two-sided (RDMA) datagram RPCs | CS TOPIC 
+ 
+ 
+- 
+ 
+ Pingback: RFP: When RPC is faster than server-bypass with RDMA | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: KV-Direct: High-performance in-memory key-value store with programmable NIC | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: The case for network-accelerated query processing | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Fast key-value stores: an idea whose time has come and gone - the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

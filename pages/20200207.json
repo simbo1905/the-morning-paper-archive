@@ -1,0 +1,45 @@
+{
+  "date": "20200207",
+  "file_name": "20200207",
+  "slug": "cloudburst",
+  "blog_url": "https://blog.acolyer.org/2020/02/07/cloudburst/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses 'Cloudburst: stateful functions-as-a-service' from the RISELab at Berkeley, addressing limitations in current serverless computing platforms that lack efficient state management. Adrian Colyer highlights Cloudburst's approach of using a highly-scalable key-value store (Anna) for persistent state, local caches co-located with function execution environments, and cache-consistency protocols to maintain data consistency while preserving the autoscaling and operational benefits of FaaS. The paper introduces the concept of 'logical disaggregation with physical colocation' (LDPC), where storage and compute are disaggregated but physically colocated to optimize data locality. The design includes a scheduler to place functions near cached data, enabling low-latency access and cross-function communication at wire speed. The programming model is Python-based, with support for function composition into DAGs and transparent state resolution via KVS references. The paper also explores consistency models, including causal consistency and repeatable reads, by wrapping Python state in lattice types to integrate with Anna's coordination-free consistency mechanisms.",
+  "paper_title": "Cloudburst: stateful functions-as-a-service",
+  "paper_authors": [
+    "Sreekanti Bagchi",
+    "Josep Torrellas",
+    "Ion Stoica",
+    "Scott Shenker"
+  ],
+  "paper_year": 2020,
+  "paper_venue": "",
+  "paper_url": "https://arxiv.org/abs/2001.04592",
+  "paper_abstract": "PVLDB Reference Format: Vikram Sreekanti, Chenggang Wu, Xiayue Charles Lin, Johann SchleierSmith, Jose M. Faleiro, Joseph E. Gonzalez, Joseph M. Hellerstein, Alexey Tumanov. Cloudburst: Stateful Functions-as-a-Service. PVLDB, 13(11): 2438-2452, 2020. DOI: https://doi.org/10.14778/3407790.3407836",
+  "paper_file": "papers/2020/02/07/cloudburst.pdf",
+  "topics": [
+    "distributed-systems",
+    "cloud-computing"
+  ],
+  "tags": [
+    "serverless",
+    "functions-as-a-service",
+    "stateful-computing",
+    "key-value-store",
+    "cache-consistency",
+    "data-locality",
+    "consensus-protocols",
+    "lattice-based-consistency",
+    "scheduling",
+    "DAG-composition"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Latency comparison for square(increment(x: int))",
+      "caption": "Median (bar) and 99th percentile (whisker) latency for square(increment(x: int)). Cloudburst matches the best distributed Python systems and outperforms other FaaS systems by over an order of magnitude (§6.1)."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

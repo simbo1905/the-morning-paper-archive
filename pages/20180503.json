@@ -1,0 +1,53 @@
+{
+  "date": "20180503",
+  "file_name": "20180503",
+  "slug": "stateless-datacenter-load-balancing-with-beamer",
+  "blog_url": "https://blog.acolyer.org/2018/05/03/stateless-datacenter-load-balancing-with-beamer/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses Beamer, a stateless datacenter load balancer presented at NSDI'18, which addresses key challenges in traditional stateful load balancers. Adrian Colyer highlights that existing solutions rely on per-flow state to maintain consistent routing, which can lead to issues like incomplete or outdated state during rapid network changes (e.g., scale-out events) and vulnerability to denial-of-service attacks such as SYN floods. The key insight behind Beamer is to eliminate the need for per-flow state in load balancers by leveraging the connection state already maintained by backend servers. Beamer achieves this through stable hashing (to minimize churn during reconfigurations) and daisy-chaining (where servers forward packets for unknown connections to their correct destinations). The prototype demonstrates high performance, handling 33 million packets per second on a ten-core server, and is designed to be deployable in both software and hardware.",
+  "paper_title": "Stateless datacenter load-balancing with Beamer",
+  "paper_authors": [
+    "Vladimir Olteanu",
+    "Dejan Kostić",
+    "Mihai Dobrescu",
+    "Katerina Argyraki"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "NSDI",
+  "paper_url": "https://www.usenix.org/conference/nsdi18/presentation/olteanu",
+  "paper_abstract": "Datacenter load balancers (or muxes) steer traffic destined to a given service across a dynamic set of backend machines. To ensure consistent load balancing decisions when backends come or leave, existing solutions make a load balancing decision per connection and then store it as per-connection state to be used for future packets. While simple to implement, per-connection state is brittle: SYNflood attacks easily fill state memory, preventing muxes from keeping state for good connections. We present Beamer, a datacenter load-balancer that is designed to ensure stateless mux operation. The key idea is to leverage the connection state already stored in backend servers to ensure that connections are never dropped under churn: when a server receives a mid-connection packet for which it doesn’t have state, it forwards it to another server that should have state for the packet. Stateless load balancing brings many benefits: our software implementation of Beamer is twice faster than Google’s Maglev, the state of the art software load balancer, and can process 40Gbps of HTTP uplink traffic on 7 cores. Beamer is simple to deploy both in software and in hardware as our P4 implementation shows. Finally, Beamer allows arbitrary scale-out and scale-in events without dropping any connections.",
+  "paper_file": "papers/2018/05/03/stateless-datacenter-load-balancing-with-beamer.pdf",
+  "topics": [
+    "distributed-systems",
+    "networking"
+  ],
+  "tags": [
+    "load-balancing",
+    "stateless",
+    "daisy-chaining",
+    "stable-hashing",
+    "ECMP",
+    "SYN-flood",
+    "datacenter-networking",
+    "MPTCP"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Load balancing: traffic to the VIP address is load-balanced across a pool of servers, each with a DIP address. Return traffic bypasses the muxes.",
+      "caption": null
+    },
+    {
+      "number": "Figure 2",
+      "title": "Mux and server disagree over the status of a connection.",
+      "caption": null
+    },
+    {
+      "number": "Figure 3",
+      "title": "Scale out: stateful load balancers break TCP connections.",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

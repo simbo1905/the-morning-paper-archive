@@ -1,0 +1,439 @@
+URL: https://blog.acolyer.org/2018/05/28/large-scale-analysis-of-style-injection-by-relative-path-overwrite/
+Title: Large-scale analysis of style injection by relative path&nbsp;overwrite
+---
+
+Large-scale analysis of style injection by relative path overwrite Arshad et al., WWW'18
+
+(If you don’t have ACM Digital Library access, the paper can be accessed either by following the link above directly from The Morning Paper blog site, or from the WWW 2018 proceedings page).
+
+We’ve all been fairly well trained to have good awareness of cross-site scripting (XSS) attacks. Less obvious, and also less well known, is that a similar attack is possible using style sheet injection. A good name for these attacks might be SSS: same-site style attacks.
+
+> 
+
+ Even though style injection may appear less serious a threat than script injection, it has been shown that it enables a range of attacks, including secret exfiltration... Our work shows that around 9% of the sites in the Alexa top 10,000 contain at least one vulnerable page, out of which more than one third can be exploited.
+
+I’m going to break today’s write-up down into four parts:
+
+- How on earth do you do secret exfiltration with a stylesheet? 
+
+- Injecting stylesheet content using Relative Path Overwite (RPO)
+
+- Finding RPO vulnerabilities in the wild
+
+- How can you defend against RPO attacks?
+
+## Secret exfiltration via stylesheets
+
+Style sheet injection belongs to a family of attacks known as ‘scriptless’ attacks. While CSS is intended for controlling styling and layout, it does also contain some context-sensitive features that can be used to extract and exfiltrate data. Suppose a page contains some sensitive data you’d like to get your hands on. The first thing you need to do is make that visible if it was otherwise hidden (CSS attribute accessors and content properties will help with this). Once the content is visible, you can apply style directives to it, such as fonts...
+
+> 
+
+ Custom attacker-supplied fonts can change the size of the secret text depending on its value. Animation features can be used to cycle through a number of fonts in order to test different combinations. Media queries or the appearance of scrollbars can be used to implement conditional style, and data exfiltration by loading a different URL for each condition from the attacker’s server. Taken together, Heiderich et al. demonstrate that these techniques allow an attacker to steal credit card numbers or CSRF tokens without script execution.
+
+There are other attacks too, this is just one example.
+
+Helping the attacker is the fact that the CSS standard mandates browsers be forgiving when parsing CSS, skipping over parts they don’t understand. Against the attacker though, is the fact that modern browsers won’t load documents with non-CSS content types or syntax errors as stylesheets, if they come from a different domain than the including page.
+
+## The Relative Path Overwrite (RPO) attack vector
+
+If both the including page and the included stylesheet come from the same domain though, it’s game on. Relative Path Overwrite vulnerabilities allow an attacker to engineer this scenario.
+
+Consider a web page hosted at http://example.com/rpo/test.php, which references a remote stylesheet with the relative path dist/styles.css. When the browser loads test.php, the relative path for the stylesheet is resolved to http://example.com/rpo/dist/styles.css. This is all working as designed.
+
+Now consider what happens if an attacker tries to load the page http;//example.com/rpo/test.php/ (note the trailing slash). For many web sites, this will still return the test.php page. However, now the relative path for the stylesheet resolves to something altogether different, as the trailing slash indicates to the browser a ‘directory’ rather than a ‘file’ (the browser has no way of knowing the true route configuration on the back end of course). So the browser tries to load the stylesheet from http://example.com/rpo/test.php/dist/styles.css.
+
+Attempting to load a stylesheet from this URL may result in an error, but for a number of servers this will be treated as passing dist/styles.css as an (unused!) parameter to test.php. The parameter will be ignored, and stylesheet loaded by the browser will actually be the page http://example.com/rpo/test.php itself.
+
+There’s just one small step left: the test.php page must itself contain a text injection vulnerability. For example, a user supplied parameter which will be included in the page output. The attacker crafts their attack CSS within this text field.
+
+> 
+
+ The first account of RPO is attributed to a blog post by Gareth Heyes, introducing self-referencing a PHP script with server-side URL rewriting.
+
+Nowadays a whole family of RPO based attacks are known. A page is vulnerable to RPO if the following conditions are met:
+
+- The page includes at least on stylesheet using a relative path
+
+- The server is set up to serve the same page even if the URL is manipulated by appending characters that browsers interpret as path separators
+
+- The page reflects style directives injected into the URL or cookie. Not that the reflection can occur in an arbitrary location within the page, and markup or script injection are not necessary.
+
+- The page does not contain a base HTML tag before relative paths that would let the browser know how to correctly expand them.
+
+Vulnerable pages are exploitable if the injected style is interpreted by the browser and used for rendering. Browsers in standards-compliant mode will not attempt to parse documents with a content type other than CSS when referenced as a stylesheet. But browsers also support a quirks mode that will. A browser will go into quirks mode based on the document type specified for the page. Even when a document type would otherwise indicate standards-compliant mode, quirks mode can often be forced in IE by loading the vulnerable page into a frame.
+
+## Finding RPO vulnerabilities in the wild
+
+The authors examine pages from the Common Crawl archive to extract candidate pages including at least one stylesheet using a relative path. Then to determine if the pages are vulnerable, they attempt to inject style directives by requesting variations of each page’s URL to cause path confusion and test whether the generated response reflects the injected style directives. Finally, they look to see whether the vulnerable pages can be exploited by checking whether the reflected style directives are parsed and used for rendering. (See §3.5 for a discussion of ethical considerations).
+
+The following figure summarises the various path confusion and style injection tactics tried.
+
+The following chart summarises what the team found, bucketing sites by their Alexa rank.
+
+In general, the higher the Alexa rank, the more likely a site is to contain a vulnerable page (perhaps because these sites also tend to have more pages overall?). 2.9% of vulnerable pages turned out to be exploitable. In total, 0.5% of sites overall had at least one exploitable page.
+
+The following show the most frequent document types that caused browsers to render in quirks mode.
+
+> 
+
+ While analyzing the exploitable pages in our dataset, we noticed that many appeared to belong to well-known CMSes. Since these web applications are typically installed on thousands of sites, fixing RPO weaknesses in these applications could have a large impact... After careful analysis, we confirmed four CMSes to be exploitable in their most recent version that are being used by 40,255 pages across 1,197 sites.
+
+The vulnerabilities were responsibly disclosed, and at the time the paper was written, one of the four had responded to say they intended to fix the issue.
+
+## Defences
+
+One option is to use only absolute URLs, taking away the relative path expansion. Alternatively you can specify a base tag, though Internet Explorer did not appear to implement the tag correctly (i.e., was still vulnerable) at the time of the evaluation. One of the best mitigations is to avoid exploitation by declaring a modern document type that causes rendering in standards compliant mode. This defeats the attack in all browsers apart from IE. For IE it is also necessary to prevent the page being loaded in a frame by using X-Frame-Options , using X-Content-Type-Options to disable ‘content type sniffing,’ and X-UA-Compatible to turn off IE’s compatibility view.
+
+> 
+
+ Compared to XSS, it is much more challenging to avoid injection of style directives. Yet, developers have at their disposal a range of simple mitigation techniques that can prevent their sites from being exploited in modern browsers.
+
+Now it’s just up to you to use them!
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Security 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousUnsupervised anomaly detection via variational auto-encoder for seasonal KPIs in web applicationsNext &rsaquo;Measuring the tendency of CNNs to learn surface statistical regularities
+ 
+ 
+
+ 
+ 
+## 
+ 17 thoughts on &ldquo;Large-scale analysis of style injection by relative path overwrite&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Large-scale analysis of style injection by relative path overwrite | World News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Large-scale analysis of style injection by relative path overwrite 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Large-scale analysis of style injection by relative path overwrite - Tech + Hckr News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Large-scale analysis of style injection by relative path overwrite - Latest news 
+ 
+ 
+- 
+ 
+ Pingback: Large-scale analysis of style injection by relative path overwrite - The XBuzz 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Large-scale analysis of style injection by relative path overwrite - World Best News 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Large-scale analysis of style injection by relative path overwrite | Do Mithay Bol 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Large-scale analysis of style injection by relative path overwrite - JkNews 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Large-scale analysis of style injection by relative path overwrite - News about world 
+ 
+ 
+- 
+ 
+ Pingback: Large-scale analysis of style injection by relative path overwrite 
+ 
+ 
+- 
+ 
+ Pingback: Large-scale analysis of style injection by relative path overwrite - The XBuzz 
+ 
+ 
+- 
+ 
+ Pingback: New top story on Hacker News: Large-scale analysis of style injection by relative path overwrite - ÇlusterAssets Inc., 
+ 
+ 
+- 
+ 
+ 
+ 
+ Chris Maggiulli says: 
+
+ 
+ May 29, 2018 at 1:47 am 
+
+ 
+
+ 
+ 
+I wish a PoC was provided for clarificaton. I can follow what the author is saying regarding the directory / browser step, but I don't understand it in relation to a URL or Cookie parameter injection. If an unsanitized parameter is being used as a style sheet attribute (for example, of the URL has a query parameter named "color" with a value of "red"), wouldn't the directory issue be moot? In other words, if I can pass an uncheck value into the document, couldn't I just make that value contain the malicious CSS itself?
+
+ Or are you saying that the parameters value is the name of the CSS file, and therefore using the directory exploit in step 1 you can pass in an absolute URL to an external stylesheet hosted on a remote server? Also do CSS stylesheets not fall under the CORS umbrella? If so why not?
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ adriancolyer says: 
+
+ 
+ May 29, 2018 at 5:24 am 
+
+ 
+
+ 
+ 
+Hi Chris, as I understand it the issue is that text injected in the color field won’t be interpreted as a style sheet when loading the page normally with content type text/html. So the RPO part tricks the browser into loading the page *as a stylesheet*, and then the lax CSS parsing enables all the HTML noise before the injected CSS to be skipped over. Both parts working in tandem are necessary. Regards, Adrian.
+
+ 
+
+ 
+ 
+
+ 
+- 
+ 
+ 
+ 
+ dubek says: 
+
+ 
+ May 29, 2018 at 8:47 am 
+
+ 
+
+ 
+ 
+s/Not that/Note that/
+
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: 相對路徑的攻擊方式 (Relative Path Overwite，RPO) - Gea-Suan Lin&#039;s BLOG 
+ 
+ 
+- 
+ 
+ Pingback: 相对路径重写 (Relative Path Overwite, RPO) - Neurohazard 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

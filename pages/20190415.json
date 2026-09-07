@@ -1,0 +1,43 @@
+{
+  "date": "20190415",
+  "file_name": "20190415",
+  "slug": "time-protection-the-missing-os-abstraction",
+  "blog_url": "https://blog.acolyer.org/2019/04/15/time-protection-the-missing-os-abstraction/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights this EuroSys'19 best paper award winner as a principled approach to addressing timing-based microarchitectural attacks (like Spectre and Meltdown) by introducing the concept of 'time protection' in operating systems. The paper argues for OS-level enforcement of temporal isolation, analogous to memory protection, to prevent interference between security domains that could leak information through execution speed variations. Colyer emphasizes the paper's focus on practical software-based solutions given current hardware limitations, while also noting areas where future hardware cooperation will be needed. The key insight is that eliminating shared hardware resources (or partitioning them) is the primary defense against timing channels, with five concrete requirements for OS-level time protection implementation. The evaluation demonstrates that these mechanisms effectively eliminate covert channels while quantifying their performance overhead.",
+  "paper_title": "Time protection: the missing OS abstraction",
+  "paper_authors": [
+    "Yuval Yarom",
+    "Daniel Genkin",
+    "Gernot Heiser"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "EuroSys'19",
+  "paper_url": "https://ts.data61.csiro.au/publications/csiro_full_text//Ge_YCH_19.pdf",
+  "paper_abstract": "Covert channels enable information leakage across security boundaries of the operating system. Microarchitectural covert channels exploit changes in execution timing resulting from competing access to limited hardware resources. We use the recent experimental support for time protection, aimed at preventing covert channels, in the seL4 microkernel and evaluate the efficacy of the mechanisms against five known channels on Ariane, an open-source 64-bit application-class RISC-V core. We confirm that without hardware support, these defences are expensive and incomplete. We show that the addition of a single-instruction extension to the RISC-V ISA, that flushes microarchitectural state, can enable the OS to close all five evaluated covert channels with low increase in context switch costs and negligible hardware overhead. We conclude that such a mechanism is essential for security.",
+  "paper_file": "papers/2019/04/15/time-protection-the-missing-os-abstraction.pdf",
+  "topics": [
+    "operating-systems",
+    "systems-security"
+  ],
+  "tags": [
+    "timing-channels",
+    "microarchitectural-attacks",
+    "side-channel-attacks",
+    "covert-channels",
+    "cache-attacks",
+    "hardware-isolation",
+    "seL4",
+    "interrupt-handling",
+    "kernel-isolation"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Cache state before and after Trojan encoding",
+      "caption": "A cache before and after the Trojan encodes the secret s."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

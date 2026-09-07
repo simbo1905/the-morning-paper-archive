@@ -1,0 +1,35 @@
+{
+  "date": "20150914",
+  "file_name": "20150914",
+  "slug": "fast-database-restarts-at-facebook",
+  "blog_url": "https://blog.acolyer.org/2015/09/14/fast-database-restarts-at-facebook/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights Facebook's Scuba, a fast distributed in-memory database used for critical monitoring tasks. The key challenge addressed is the slow restart process of Scuba servers, which previously took 2.5-3 hours per machine due to the need to reload 120 GB of data from disk. The paper introduces a novel approach using shared memory to decouple memory state from process lifetime, enabling rapid restarts. By copying data to shared memory during shutdown and back to heap memory at startup, Scuba reduces restart time to just 2-3 minutes per server. This method avoids the complexity of custom allocators while allowing format modifications and enabling frequent software deployments. The technique also leverages Scuba's architecture with multiple leaf servers per machine to parallelize restarts and minimize downtime.",
+  "paper_title": "Fast Database Restarts at Facebook",
+  "paper_authors": [
+    "Aayush Goel",
+    "Jeffrey F. Naughton",
+    "Srinivasan Seshan"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "",
+  "paper_url": "https://research.facebook.com/publications/553456231437505/fast-database-restarts-at-facebook/",
+  "paper_abstract": "With the advent of cloud computing, where computational resources are expensive and data movement needs to be secured and minimized, database management systems need to reconsider their architecture to accommodate such requirements. In this paper, we present our analysis, design and evaluation of an FPGA-based hardware accelerator for offloading compression and encryption for SAP HANA, SAP’s Software-as-a-Service (SaaS) in-memory database. Firstly, we identify expensive data-transformation operations in the I/O path. Then we present the design details of a system consisting of compression followed by different types of encryption to accommodate different security levels, and identify which combinations maximize performance. We also analyze the performance benefits of offloading decryption to the FPGA followed by decompression on the CPU. The experimental evaluation using SAP HANA traces shows that analytical engines can benefit from FPGA hardware offloading. The results identify a number of important trade-offs (e.g., the system can accommodate low-latency secured transactions to high-performance use cases or offer lower storage cost by also compressing payloads for less critical use cases), and provide valuable information to researchers and practitioners exploring the nascent space of hardware accelerators for database engines. PVLDB Reference Format: Monica Chiosa, Fabio Maschi, Ingo Müller, Gustavo Alonso, and Norman May. Hardware Acceleration of Compression and Encryption in SAP HANA. PVLDB, 15(12): 3277 - 3291, 2022. doi:10.14778/3554821.3554822",
+  "paper_file": "papers/2015/09/14/fast-database-restarts-at-facebook.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "in-memory-databases",
+    "shared-memory",
+    "database-restarts",
+    "fast-recovery",
+    "software-upgrades",
+    "crash-consistency"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

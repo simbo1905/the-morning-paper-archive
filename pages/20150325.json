@@ -1,0 +1,36 @@
+{
+  "date": "20150325",
+  "file_name": "20150325",
+  "slug": "samc-semantic-aware-model-checking-for-fast-discovery-of-deep-bugs-in-cloud-systems",
+  "blog_url": "https://blog.acolyer.org/2015/03/25/samc-semantic-aware-model-checking-for-fast-discovery-of-deep-bugs-in-cloud-systems/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights SAMC (Semantic-aware model checking) as a significant advancement in distributed system verification, addressing a critical gap in existing distributed model checkers (dmck). While prior dmcks like MODIST and DIR effectively reduce state space using techniques such as dynamic partial order reduction (DPOR) and dynamic interface reduction, they struggle with failure scenarios—a major source of bugs in distributed systems. The author emphasizes that 50% of deep bugs in systems like ZooKeeper, Hadoop, and Cassandra involve complex reorderings of messages, crashes, and reboots, which existing tools often miss. SAMC solves this by incorporating application semantics and crash/reboot scenarios into its model checking, enabling it to uncover deep bugs up to three orders of magnitude faster than state-of-the-art techniques. The tool found 2 new bugs in recent versions of ZooKeeper and Hadoop and validated its approach by rediscovering 12 known deep bugs with minimal testing time. The key insight is that leveraging semantic awareness—beyond traditional reduction techniques—can drastically improve the efficiency and scalability of distributed model checking, making it practical for real-world systems.",
+  "paper_title": "SAMC: Semantic-aware model checking for fast discovery of deep bugs in cloud systems",
+  "paper_authors": [
+    "Leesatapornwongsa",
+    "Aritra Sengupta",
+    "Haryadi S. Gunawi"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-leesatapornwongsa.pdf",
+  "paper_abstract": "† Surya University 52, 53]. The last five years have seen a rise of software model checkers targeted for distributed systems [22, 25, 43, 50, 51]; for brevity, we categorize such systems as dmck (distributed system model checker). Dmck works by exercising all possible sequences of events (e.g., different reorderings of messages), and hereby pushing the target system into corner-case situations and unearthing hard-to-find bugs. To address the state-space explosion problem, existing dmcks adopt advanced state reduction techniques such as dynamic partial order reduction (DPOR), making them mature and highly practical for checking large-scale systems [25, 51]. Despite these early successes, existing dmcks unfortunately fall short in addressing present reliability challenges of cloud systems. In particular, large-scale cloud systems are expected to be highly reliable in dealing with complex failures, not just one instance, but multiple of them. However, to the best of our knowledge, no existing dmcks can exercise multiple failures without exploding the state space. We elaborate this issue later; for now, we discuss complex failures in cloud environments. Cloud systems run on large clusters of unreliable commodity machines, an environment that produces a growing number and frequency of failures, including “surprising” failures [2, 26]. Therefore, it is common to see complex failure-induced bugs such as the one below. The last five years have seen a rise of implementationlevel distributed system model checkers (dmck) for verifying the reliability of real distributed systems. Existing dmcks however rarely exercise multiple failures due to the state-space explosion problem, and thus do not address present reliability challenges of cloud systems in dealing with complex failures. To scale dmck, we introduce semantic-aware model checking (SAMC), a white-box principle that takes simple semantic information of the target system and incorporates that knowledge into state-space red...",
+  "paper_file": "papers/2015/03/25/samc-semantic-aware-model-checking-for-fast-discovery-of-deep-bugs-in-cloud-systems.pdf",
+  "topics": [
+    "distributed-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "model-checking",
+    "distributed-model-checking",
+    "crash-consistency",
+    "state-space-reduction",
+    "dpors",
+    "failure-scenarios",
+    "semantic-aware",
+    "aspectj"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

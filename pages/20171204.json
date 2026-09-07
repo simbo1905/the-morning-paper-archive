@@ -1,0 +1,48 @@
+{
+  "date": "20171204",
+  "file_name": "20171204",
+  "slug": "ffwd-delegation-is-much-faster-than-you-think",
+  "blog_url": "https://blog.acolyer.org/2017/12/04/ffwd-delegation-is-much-faster-than-you-think/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer reviews the paper 'ffwd: delegation is (much) faster than you think' by Roghanchi et al., presented at SOSP'17. The paper explores delegation as an alternative to traditional locking mechanisms for managing shared data structures across multi-core systems. Unlike fine-grained locking, which often fails to outperform single-threaded execution due to overheads, delegation dedicates a hardware thread to manage a shared data structure, forwarding all accesses through this thread. Surprisingly, this simple approach can outperform locking by an order of magnitude for data structures that perform best on a single thread, thanks to improved cache locality and reduced contention. The key insight is that delegation leverages the single-threaded performance ceiling while avoiding the scalability bottlenecks of locking. The paper also provides a comprehensive review of existing approaches to shared data management, including spinlocks, queue-based locks, lock-free structures, RCU, and STM, before diving into the design and evaluation of ffwd.",
+  "paper_title": "ffwd: delegation is (much) faster than you think",
+  "paper_authors": [
+    "Hossein Roghanchi",
+    "Aasheesh Kolli",
+    "Michael J. Cafarella",
+    "Thomas F. Wenisch"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "SOSP'17",
+  "paper_url": "https://dl.acm.org/citation.cfm?id=3132771",
+  "paper_abstract": "We revisit the question of delegation vs. synchronized access to shared memory, and show through analysis and demonstration that delegation can be much faster than locking under a range of common circumstances. Starting from first principles, we propose fast, fly-weight delegation (ffwd). The highly optimized design of ffwd allows it to significantly outperform prior work on delegation, while retaining the scalability advantage. In experiments with 6 benchmark applications, and 6 shared data structures, running on four different multi-socket systems with up to 128 hardware threads, we compare ffwd to a selection of lock, combining, lock-free, software transactional memory and delegation designs. Overall, we find that ffwd often offers a simple and highly competitive alternative to existing work. By definition, the performance of a fully delegated data structure is limited by the single-thread throughput of said data structure. However, due to cache effects, many data structures offer their best performance when confined to a single thread. With an efficient delegation mechanism, we approach this single-threaded performance in a multi-threaded setting. In application-level benchmarks, we see improvements up to 100% over the next best solution tested (RCL), and multiple micro-benchmarks show improvements in the 5–10× range.",
+  "paper_file": "papers/2017/12/04/ffwd-delegation-is-much-faster-than-you-think.pdf",
+  "topics": [
+    "distributed-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "delegation",
+    "locking",
+    "concurrency",
+    "shared-data-structures",
+    "multi-core-systems",
+    "cache-locality",
+    "synchronization",
+    "critical-sections"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Throughput vs. critical section duration",
+      "caption": "Throughput as a function of critical section duration, for single-threaded execution, delegation, and locking (higher is better)."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Throughput vs. memory accesses",
+      "caption": "Throughput as a function of memory accesses, for single-threaded execution, delegation, and locking (higher is better)."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

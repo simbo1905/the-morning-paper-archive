@@ -1,0 +1,37 @@
+{
+  "date": "20191209",
+  "file_name": "20191209",
+  "slug": "a-persistent-problem",
+  "blog_url": "https://blog.acolyer.org/2019/12/09/a-persistent-problem/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer summarizes the Twizzler OS project's work on a new programming model for Non-Volatile Memory (NVM), presented by Daniel Bittman at HPTS'19. The paper argues for a clean-slate redesign of OS and programming abstractions to fully leverage NVM's byte-addressable, persistent nature. Key insights include the need for persistent pointers based on identity rather than ephemeral virtual addresses, a global address space spanning nodes and processes, and the elimination of serialization overheads. The authors propose replacing POSIX interfaces with a system where objects (with 128-bit unique IDs) are the fundamental unit of persistence, using a Foreign Object Table (FOT) to manage cross-object references efficiently. The blog highlights the boldness of the approach, its potential benefits for programmability and security, and the challenges around object layout versioning and security enforcement without kernel involvement.",
+  "paper_title": "Twizzler: A Data-centric OS for Non-Volatile Memory",
+  "paper_authors": [
+    "Daniel Bittman",
+    "Peter Alvaro",
+    "Darrell D. E. Long",
+    "Ethan L. Miller"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "PLOS'19",
+  "paper_url": "https://www.ssrc.ucsc.edu/media/pubs/b34d36f0e950e8570ecfbbb555505ae32cbb624c.pdf",
+  "paper_abstract": "Byte-addressable, non-volatile memory (NVM) presents an opportunity to rethink the entire system stack. We present Twizzler, an operating system redesign for this near-future. Twizzler removes the kernel from the I/O path, provides programs with memory-style access to persistent data using small (64 bit), object-relative cross-object pointers, and enables simple and efficient long-term sharing of data both between applications and between runs of an application. Twizzler provides a clean-slate programming model for persistent data, realizing the vision of Unix in a world of persistent RAM. We show that Twizzler is simpler, more extensible, and more secure than existing I/O models and implementations by building software for Twizzler and evaluating it on NVM DIMMs. Most persistent pointer operations in Twizzler impose less than 0.5 ns added latency. Twizzler operations are up to 13× faster than Unix, and SQLite queries are up to 4.2× faster than on PMDK. YCSB workloads ran 1.1–2.9× faster on Twizzler than on native and NVM-optimized SQLite backends.",
+  "paper_file": "papers/2019/12/09/a-persistent-problem.pdf",
+  "topics": [
+    "operating-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "non-volatile-memory",
+    "persistent-pointers",
+    "global-address-space",
+    "object-based-storage",
+    "foreign-object-table",
+    "clean-slate-design",
+    "crash-consistency",
+    "security"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

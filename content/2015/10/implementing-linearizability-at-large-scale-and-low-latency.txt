@@ -1,0 +1,354 @@
+URL: https://blog.acolyer.org/2015/10/22/implementing-linearizability-at-large-scale-and-low-latency/
+Title: Implementing Linearizability at Large Scale and Low&nbsp;Latency
+---
+
+Implementing Linearizability at Large Scale and Low Latency - Lee at al. 2015
+
+Yesterday we saw how to layer a strictly serializable transaction model on top of an inconsistent replication protocol. Previously we've also looked at how to bolt-on a causal consistency model on top of eventual consistency. Today's paper demonstrates how to bolt-on (layer) a linearizable consistency model on top of remote RPCs offering 'at least once' semantics. It upgrades 'at least once' to 'exactly once.'
+
+Where does linearizability fit on the distributed systems map? It's the strongest form of consistency we can have for operations on a single object. In contrast, serializability refers to the ordering of (isolation between) groups of operations, possibly across multiple objects - transactions. Strict serializability (as we saw yesterday with TAPIR) combines both linearizability and serializability. Peter Bailis has a great summary of these concepts on his blog.
+
+> 
+
+ Consistency is one of the most important issues in the design of large-scale storage systems; it represents the degree to which a system’s behavior is predictable, particularly in the face of concurrency and failures. Stronger forms of consistency make it easier to develop applications and reason about their correctness, but they may impact performance or scalability and they generally require greater degrees of fault tolerance. The strongest possible form of consistency in a concurrent system is linearizability, which was originally defined by Herlihy and Wing. However, few large-scale storage systems implement linearizability today.
+
+RIFL is a Reusable Infrastructure For Linearizability. It durably records the results of completed RPC calls, and if an RPC is retried after it has completed, RIFL will return the recorded result with re-invoking the operation. RIFL guarantees this safety even in the event of server crashes or data migration. It is lightweight enough to be used in ultra-low latency systems such as RAMCloud and FaRM, which have end-to-end response times as low as 5&micro;s. It has also been designed to be scalable and support clusters with tens of thousands of servers and millions of clients. "Scalability impacted the design of RIFL in several ways, including the mechanisms for generating unique RPC identifiers and for garbage-collecting metadata."
+
+> 
+
+ Using RIFL, we were able to make existing operations such as writes and atomic increments linearizable with less than 20 additional lines of code per operation. We also used RIFL to construct a new multi-object transaction mechanism in RAMCloud; the use of RIFL significantly reduced the amount of mechanism that had to be built for transactions. The RAMCloud implementation of RIFL exhibits high performance: it adds less than 4% to the 13.5 µs base cost for writes, and simple distributed transactions execute in about 20 µs. RAMCloud transactions outperform H-Store on the TPC-C benchmark, providing at least 10x lower latency and 1.35x–7x as much throughput.
+
+The authors show that several of the commonly used techniques to achieve stronger consistency are not by themselves sufficient for linearizability. For example, idempotent operations may be retried when a component restarts after a crash, and this can cause non-linearizable histories.
+
+> 
+
+ The problem with most distributed systems is that they implement at-least-once semantics. If a client issues a request but fails to receive a response, it retries the operation. However, it is possible that the first request actually completed and the server crashed before sending a response. In this situation the retry causes the operation to be performed twice, which violates linearizability. In order for a system to provide linearizable behavior, it must implement exactly-once semantics. To do this, the system must detect when an incoming request is a retry of a request that already completed.
+
+RIFL assumes the existence of an RPC mechanism in the underlying system, and it also assumes the system implements automatic retries to give at-least-once semantics. Given this baseline, RIFL implements exactly once semantics on top. The basic design is exactly what you would expect: give each request a unique id, remember the results of requests, and if you see a subsequent invocation for the same request id, just return the remembered results. Doing this efficiently at scale is the key challenge...
+
+> 
+
+ In order to implement exactly-once semantics, RIFL must solve four overall problems: RPC identification, completion record durability, retry rendezvous, and garbage collection.
+
+## RPC identification
+
+128-bit global request identifiers are assigned by clients: the first 64 bits are a unique client id, and the second 64-bits are managed by the client as its own local request ids. Client identifiers are managed using a lease mechanism.
+
+## Completion Record Durability
+
+For completion record durability, RIFL piggy-backs on the underlying system:
+
+> 
+
+ This completion record must include the RPC identifier as well as any results that are returned to the client. Furthermore, the completion record must be created atomically with the mutations of the operation, and it must have similar durability properties. It must not be possible for an operation to complete without a visible completion record, or vice versa. RIFL assumes that the underlying system provides durable storage for completion records.
+
+## Retry Rendezvous
+
+If an operation is retried, the server that handles the request must know about the previous invocation. In a large-scale system the request may not be sent to the same server that handled the original request, or the data may have been migrated / rebalanced in the interim. For distributed operations involving multiple servers (e.g. multi-object transactions), the problem of knowing on which server to store the request-id, response pair is even greater. The solution is very similar to the way metadata is handled in bolt-on causal consistency:
+
+> 
+
+ RIFL uses a single principle to handle both migration and distributed operations. Each operation is associated with a particular object in the underlying system, and the completion record is stored wherever that object is stored. If the object migrates, then the completion record must move with it. All retries must necessarily involve the same object(s), so they will discover the completion record. If an operation involves more than one object, one of them is chosen as a distinguished object for that operation, and the completion record is stored with that object. The distinguished object must be chosen in an unambiguous fashion, so that retries use the same distinguished object as the original request.
+
+## Garbage Collection
+
+RIFL must eventually reclaim the completion records for completed operations - but it can't do so until it is sure these operations will never be retried. For normal operations acknowledgements are used to determine when a client has received a result and thus will not retry an operation. In the event of client crashes, the ack will never be received and to cover this case RIFL uses client leases.
+
+## RIFL Design
+
+RIFL is comprised of three modules: a Request Tracker, a Lease Manager, and a Result Tracker. The Request Tracker runs on client machines and manages sequence numbers for outstanding RPCs.
+
+> 
+
+ LeaseManager runs on both clients and servers to manage client leases. On clients, LeaseManager creates and renews the client’s lease, which also yields a unique identifier for the client. On servers, LeaseManager detects the expiration of client leases.
+
+Result Tracker runs only on servers. It keeps track of currently executing RPCs and manages the completion records for those that have finished.
+
+RIFL was implemented on top of RAMCloud, an ultra-low latency system. It increased median write latencies by less than 4%. Scalability is assessed in three dimensions: memory space for completion records and lease information; performance degradation if a single server becomes 'hot' and must manage state for a large number of clients; and growth in lease renewal traffic.
+
+For a server with 1M active clients, total memory requirement is ~160MB, latency increases by 5% compared to a single active client, and lease renewal traffic consumes less than 0.2% of the lease server's capacity.
+
+## Implementing Transactions
+
+The authors built a transaction mechanism on top of RIFL.
+
+> 
+
+ Transactions are a more complex use case for RIFL, since they involve multiple objects on different servers. We found that RIFL significantly simplified the implementation of transactions, and the resulting mechanism offers high performance, both in absolute terms and relative to other systems. The two-phase commit protocol for RAMCloud transactions is based on Sinfonia; we chose this approach be- cause Sinfonia offers the lowest possible latency for distributed transactions.
+
+The application-visible API for transactions is based on a new Transaction class. An application creates a Transaction object, uses it to read, write, and delete RAMCloud objects, and then invokes commit.
+
+> 
+
+ The issue of exactly-once semantics arises in several places in the RAMCloud transaction mechanism. For example, a server may crash after completing a prepare but before responding; its objects and lock table will migrate to another server during crash recovery, and the client will eventually retry with that server. In addition, a client that is presumed dead may not actually be dead, so it could send prepare RPCs at the same time the recovery coordinator is sending requestAbort RPCs for the same objects: once one of these RPCs has reached a decision for an object, the other RPC must see the same decision. Finally, a “dead” client may wake up after recovery is complete and go through its two-phase protocol; participants must not re-execute prepare RPCs for which requestAbort RPCs were executed during recovery, and the client must reach the same overall decision about whether the transaction committed.
+
+ All of these situations are handled by using RIFL for the prepare and requestAbort RPCs.
+
+In the RAMCloud implementation a transaction with only one object commits in 17.8&micro;s, a transaction involving five objects commits in 27.3&micro;s. See the full paper for details of how RAMCloud with transactions performs on the TPC-C workload.
+
+## The end-to-end argument
+
+> 
+
+ RIFL only guarantees exactly-once semantics for an operation if its client is reliable. If a client crashes and loses its state, then its operations in progress may or may not complete. We assume this behavior is acceptable, since the timing of the crash could already cause some operations not to complete. However, the client may itself be a server for some higher-level client...
+
+For example, an application server responding to requests from a browser. If the browser itself retries, we're back with the same issues RIFL was designed to eliminate.
+
+> 
+
+ One way to handle these multi-layer situations is to implement RIFL at each layer. For example, browsers could generate a unique identifier for each HTTP request, which can be recorded on front-end servers and used to ensure that requests are carried out exactly once. However, the ultimate client is a human, and humans are not likely to implement RIFL. For example, what happens if a user invokes an operation in his/her browser and the browser (or the machine running it) crashes during the operation? Once again, the operation may or may not complete. The only way to ensure true end-to-end exactly-once semantics is for the side effects of operations to be recognizable to humans, so that users can determine on their own whether each operation completed.
+
+For example, by providing a means for the end user to check whether the order really does exist, or the reservation was made, and so on.
+
+> 
+
+ Even though final responsibility for exactly-once semantics must lie with the user, it is still important for the underlying system to support linearizability in its implementation. This allows the system to be constructed in layers while avoiding avoid internal duplication of operations, so that a user-recognizable operation occurs either exactly as specified or not at all. As a counter-example, if an order were partially filled, it might be difficult for the user to recognize that it needs to be (partially) reissued.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Distributed Systems 
+ 
+ ConsistencyDistributed Systems 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousBuilding Consistent Transactions with Inconsistent ReplicationNext &rsaquo;Vuvuzela: Scalable Private Messaging Resistant to Traffic Analysis
+ 
+ 
+
+ 
+ 
+## 
+ 8 thoughts on &ldquo;Implementing Linearizability at Large Scale and Low Latency&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: Fast In-memory Transaction Processing using RDMA and HTM | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: The RAMCloud Storage System | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: The RAMCloud Storage System-IT大道 
+ 
+ 
+- 
+ 
+ Pingback: All Change Please | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: A Distributed Systems Seminar Reading List... | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Omid reloaded: scalable and highly-available transaction processing | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: JavaScript for extending low-latency in-memory key-value stores | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Exploiting commutativity for practical fast replication | the morning paper 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

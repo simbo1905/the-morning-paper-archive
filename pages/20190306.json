@@ -1,0 +1,46 @@
+{
+  "date": "20190306",
+  "file_name": "20190306",
+  "slug": "keeping-calm-when-distributed-consistency-is-easy",
+  "blog_url": "https://blog.acolyer.org/2019/03/06/keeping-calm-when-distributed-consistency-is-easy/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the CALM theorem (Consistency As Logical Monotonicity) as a profound insight with the potential to influence distributed systems design, akin to the impact of CAP. The paper by Hellerstein & Alvaro provides an accessible exploration of CALM, emphasizing the importance of avoiding coordination in high-performing distributed systems. The key insight is that coordination-free distributed systems can achieve consistency if and only if they are monotonic—meaning once a fact is established, it cannot be refuted by future information. The blog post explores how monotonicity, commutativity, and confluence relate to CALM, and how these principles can guide the design of systems like CRDTs and the Bloom language. Colyer underscores the shift from focusing on storage semantics to application-level semantics, advocating for designs that minimize accidental coordination.",
+  "paper_title": "Keeping CALM: When Distributed Consistency is Easy",
+  "paper_authors": [
+    "Joseph M. Hellerstein",
+    "Peter Alvaro"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "",
+  "paper_url": "https://arxiv.org/abs/1901.01930",
+  "paper_abstract": "Keeping CALM: When Distributed Consistency is Easy\n\narXiv:1901.01930v2 [cs.DC] 26 Jan 2019\n\n1\n\nJoseph M. Hellerstein\n\nPeter Alvaro\n\nhellerstein@berkeley.edu\nUC Berkeley\n\npalvaro@cs.ucsc.edu\nUC Santa Cruz\n\nINTRODUCTION\n\nNearly all of the software we use today is part of a distributed\nsystem. Apps on your phone participate with hosted services in\nthe cloud; together they form a distributed system. Hosted services\nthemselves are massively distributed systems, often running on\nmachines spread across",
+  "paper_file": "papers/2019/03/06/keeping-calm-when-distributed-consistency-is-easy.pdf",
+  "topics": [
+    "distributed-systems",
+    "algorithms"
+  ],
+  "tags": [
+    "calm-theorem",
+    "consistency",
+    "coordination-avoidance",
+    "monotonicity",
+    "confluence",
+    "commutativity",
+    "crdt",
+    "bloom-language"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Distributed waits-for graph with replicated nodes and partitioned edges",
+      "caption": "A distributed waits-for graph with replicated nodes and partitioned edges. There are two cycles here: one local to Machine 1 ({T1 ,T2 }), and one that spans Machines 1 and 2 ({T1 ,T3 })."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Distributed object reference graph with remote references",
+      "caption": "A distributed object reference graph with remote references (dotted arrows). The fact that object O 3 is reachable from Root can be established without any information from Machine 3. Objects O 5 and O 6 are garbage, which can only be established by knowing the entire graph."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

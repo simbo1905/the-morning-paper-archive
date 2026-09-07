@@ -1,0 +1,44 @@
+{
+  "date": "20170822",
+  "file_name": "20170822",
+  "slug": "javascript-for-extending-low-latency-in-memory-key-value-stores",
+  "blog_url": "https://blog.acolyer.org/2017/08/22/javascript-for-extending-low-latency-in-memory-key-value-stores/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses a paper from HotCloud'17 that explores extending RAMCloud, an ultra-low latency in-memory key-value store, by enabling server-side computation to overcome limitations of its simple key-value interface. Adrian Colyer highlights the need for stored procedures to handle inter-record dependencies and reduce data transfer overheads, noting that RAMCloud's 5µs round-trip latency is problematic for spinning or context switching. The paper evaluates three approaches—SQL, native C++/code, and JavaScript—and concludes that JavaScript, despite initial skepticism, offers the best balance of performance, safety, and flexibility. JavaScript's sandboxed execution, low invocation overhead (196 ns vs. 2,242 ns for hardware-protected native code), and JIT optimization make it ideal for RAMCloud's latency-sensitive environment. The authors also consider asm.js and hint at WebAssembly, though it's not explicitly discussed in the paper. The design leverages V8's context switching and exposes database abstractions to JavaScript for richer functionality.",
+  "paper_title": "JavaScript for extending low-latency in-memory key-value stores",
+  "paper_authors": [
+    "Zhang",
+    "Stutsman"
+  ],
+  "paper_year": 2017,
+  "paper_venue": "HotCloud'17",
+  "paper_url": "https://www.usenix.org/conference/hotcloud17/program/presentation/zhang",
+  "paper_abstract": "Large scale in-memory key-value stores like RAMCloud can perform millions of operations per second per server with a few microseconds of access latency. However, these systems often only provide simple feature sets, and the lack of extensibility is an obstacle for building higher-level services. We evaluate the possibility of using JavaScript for shipping computation to data and for extending database functionality by comparing against other possible approaches. Microbenchmarks are promising; the V8 JavaScript runtime provides near native performance with reduced isolation costs when compared with native code and hardware-based protections. We conclude with initial thoughts on how this technology can be deployed for fast procedures that operate on in-memory data, that maximize gains from JIT, and that exploit the kernelbypass DMA capabilities of modern network cards.",
+  "paper_file": "papers/2017/08/22/javascript-for-extending-low-latency-in-memory-key-value-stores.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems",
+    "cloud-computing"
+  ],
+  "tags": [
+    "key-value-stores",
+    "server-side-computation",
+    "javascript",
+    "V8",
+    "stored-procedures",
+    "RDMA",
+    "in-memory-databases",
+    "latency-optimization",
+    "context-switching",
+    "JIT-compilation"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Comparison of approaches for hosting user-supplied logic",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

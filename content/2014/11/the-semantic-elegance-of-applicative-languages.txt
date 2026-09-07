@@ -1,0 +1,272 @@
+URL: https://blog.acolyer.org/2014/11/28/the-semantic-elegance-of-applicative-languages/
+Title: The Semantic Elegance of Applicative&nbsp;Languages
+---
+
+The Semantic Elegance of Applicative Languages - Turner '81.
+
+Here's a paper you can enjoy simply for its prose!
+
+> 
+
+ In what does the alleged superiority of applicative languages consist?
+
+In what indeed! And while we're at it, what's an applicative language? I looked up a few definitions; if we call it a functional language I don't think we'll go too far wrong.
+
+Let us resume...
+
+> 
+
+ In what does the alleged superiority of applicative languages consist? In the last analysis the answer must be in terms of the reduction in the time required to produce a correct program to solve a given problem. On reflection I decided that the best way to demonstrate this would be to take some reasonably non-trivial problem and show how, by proceeding within a certain kind of applicative language framework it was possible to develop a working solution with a fraction of the effort that would have been necessary in a conventional imperative language.
+
+The cynical among you might be thinking: he's picked a problem that's well suited to be solved with a functional programming approach, and then shown that the functional approach is a good way of solving it! Even if that is true, it's still a joy to get an insight into the mind of an advanced functional programmer. It reminds me of one of those chess books where a great player explains what they were thinking move by move in an annotated game.
+
+The problem is to enumerate all of the possible paraffin molecules. These are made of carbon C and hydrogen H atoms. Each C makes 4 bonds, and paraffins don't allow double bonds or cycles.
+
+ H H H
+ | | |
+H - C - H , H - C - C - H , ...
+ | | |
+ H H H
+
+See the problem statement and example in the paper - it is succintly explained, and for maximum value you should pause and spend some time thinking how you would solve it before reading on. The tricky parts come when the 'C's themselves start to make complex shapes (T's etc.), and you need to weed out duplicates through symmetries.
+
+> 
+
+ from the point of view of a programmer who had not tried it before, the problem seemed difficult enough to be interesting. At least several competent programmers I know reported to me that they had found it so.
+
+Central to the solution is figuring out when two molecules are equivalent. Turner defines operations 'invert', 'rotate' and 'swap' which make structure-preserving changes to the shape of a molecule. There then follows a very elegant solution based on determining a 'closure under laws.'
+
+-- a and b are equivalent if b is a member of the set of 
+-- all equivalent representations of a... 
+equiv a b = member (equivclass a) b
+
+equivclass a = closure_under_laws [rotate, invert, swap] [a]
+
+> 
+
+ The key idea is embodied in the function "closure under laws" which takes a set of functions and a set of objects and finds the closure of the latter under repeated applications of the members of the former.
+
+With another neat (and commonly used) functional technique of generating an infinite list of molecules from which we can display as many as we like, the initial version of the program is complete.
+
+> 
+
+ This solution, however, runs with appalling slowness (I tried it) mainly because of easily removable inefficiencies in our definition of "para". There is a minor problem and a major problem...
+
+The major problem is due to repeated calculation of the same sub-molecules many times over. Failure to memoise leads to an exponential deterioration in performance!
+
+> 
+
+ For a recursive function, like "para", memoisation leads to an exponential improvement in performance. (or to put it another way, failure to memoise leads an exponential deterioration in performance!)
+
+There follows some discussion of the author's lessons learned during this exercise:
+
+- the effort needed to derive a solution can be reduced to a small fraction of that required in a traditional programming language
+
+- an applicative language (even if it's not the language used for the ultimate implementation) can be an extremely valuable tool for the development and testing of algorithms
+
+- the language supports very nicely a separation of concerns in which you first make things correct without worrying about efficiency, and then repair efficiency by applying transformations known to preserve correctness:
+
+> 
+
+ In a surprising large number of cases it turns out that a small number of standard optimisations are sufficient to bring about the necessary improvement in performance. Two in particular seem to be of such general applicability as to deserve special mention in a next (and final) section of this paper...
+
+And what are these two methods? Memoisation (discussed earlier), and filter promotion.
+
+Filter promotion is the idea that instead of generating a list containing terms we don't want, and then filtering them out (e.g. filter pred xs), push the filter predicate down into the list generator so that we don't generate the unwanted terms in the first place.
+
+> 
+
+ We can get a considerable improvement in performance, however, by pushing the filter inside the generator "partitions" so that the unwanted lists are not created in the first place
+
+It's a short read, and hard to communicate the value in a summary. I hope I have whetted your appetite to go and read the whole paper. If you want to play around with the code, I ported the solution to Haskell here. Though I bet you can improve on my code given I'm not especially fluent in Haskell...
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Programming Languages 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousSwiftCloud: Fault-tolerant geo-replication integrated all the way to the clientNext &rsaquo;Protocols for Secure Computations
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

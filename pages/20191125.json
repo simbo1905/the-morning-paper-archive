@@ -1,0 +1,44 @@
+{
+  "date": "20191125",
+  "file_name": "20191125",
+  "slug": "mergeable-replicated-data-types-part-i",
+  "blog_url": "https://blog.acolyer.org/2019/11/25/mergeable-replicated-data-types-part-i/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses the paper 'Mergeable Replicated Data Types' from OOPSLA'19, which introduces Mergeable Replicated Data Types (MRDTs) as an extension of CRDTs with composable properties. The author highlights the paper's key insight: the use of invertible relational specifications to derive merge functions automatically for complex data types, enabling low-latency, high-availability operations in geo-replicated or local-first systems. The post emphasizes the paper's principled approach to lifting ordinary data types to their mergeable counterparts with minimal programmer effort, and its implementation in the Quark system. Adrian Colyer also notes the paper's comprehensive coverage of MRDTs, including their derivation, composition, and implementation, making it a significant contribution to distributed systems and programming languages.",
+  "paper_title": "Mergeable Replicated Data Types",
+  "paper_authors": [
+    "Amit Levy",
+    "Michael J. Freedman",
+    "Shriram Krishnamurthi"
+  ],
+  "paper_year": 2019,
+  "paper_venue": "OOPSLA'19",
+  "paper_url": "http://kcsrk.info/papers/oopsla19-mrdt.pdf",
+  "paper_abstract": "object state regardless of its type. We illustrate this notion in the context of a simple integer counter, Fig. 1. A Counter data type in OCaml whose OCaml implementation is shown in Fig. 1. Suppose we wish to replicate the state of the counter across multiple machines, each of which is allowed to perform concurrent conflicting updates to its local instance. As long as clients just use the counter’s add and sub operations, conflicts are benign Proc. ACM Program. Lang., Vol. 1, No. CONF, Article 1. Publication date: January 2018. 1:3 +5 = ⨉2 -1 since integer addition and subtraction commute, add and sub operations can be asynchronously propagated and applied in any order on all replicas, with the resulting final state guaranteed to be the result of a linearization of all concurrently generated operations1 . However, since integer multiplication does not commute with addition and subtraction, we cannot simply apply mult on various replicas asynchronously, and expect the state to converge. Global synchronization for every multiplication is certainly helpful, but is typically too expensive to be practical [Bailis et al. 2013a,b] at scale. Under such circumstances, it is not readily apparent if we can define replicated counters that support multiplication and yet still have a well-defined semantics that guarantees all replicas will converge to the same counter state. Fortunately, a state- and merge-centric view of replication lets us arrive at such a semantics naturally. In the current example, we view the replicated counter state as progressing linearly in terms of versions on different replicas. Synchronization between replicas merges their respective (latest) versions into a new version in the context of their lowest common ancestor (LCA) version. We can define the merge operation by focusing on the difference between the LCA version and the state on each replica. Fig. 2 illustrates this intuition through an example. Here, two concurrent versions of a counter, 10 and ...",
+  "paper_file": "papers/2019/11/25/mergeable-replicated-data-types-part-i.pdf",
+  "topics": [
+    "distributed-systems",
+    "programming-languages"
+  ],
+  "tags": [
+    "CRDTs",
+    "replication",
+    "mergeable-data-types",
+    "relational-specifications",
+    "three-way-merge",
+    "composability",
+    "versioning",
+    "invertible-mappings",
+    "Quark-system",
+    "local-first-applications"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "A Counter data type in OCaml",
+      "caption": "A Counter data type in OCaml"
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

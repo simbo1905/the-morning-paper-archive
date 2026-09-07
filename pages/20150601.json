@@ -1,0 +1,44 @@
+{
+  "date": "20150601",
+  "file_name": "20150601",
+  "slug": "graphx-graph-processing-in-a-distributed-dataflow-framework",
+  "blog_url": "https://blog.acolyer.org/2015/06/01/graphx-graph-processing-in-a-distributed-dataflow-framework/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights GraphX as an innovative approach to graph processing by leveraging a general-purpose distributed dataflow framework (Spark) instead of building a specialized graph system. He notes the key insight is that graph processing can achieve performance parity with specialized engines while gaining broader benefits like fault tolerance and integration with other data processing tasks. The paper argues that essential graph computation patterns can be recast as dataflow optimizations, enabling composition with unstructured and tabular data without data movement or duplication. Colyer emphasizes GraphX's minimal codebase (2500 lines for runtime, 34 for API) and its ability to avoid changes to Spark's core, making it an attractive alternative to systems like Giraph or GraphLab. The blog also contrasts GraphX's synchronous model with the asynchronous advantages discussed in earlier PowerGraph work, acknowledging trade-offs in algorithm convergence and performance.",
+  "paper_title": "GraphX: Graph Processing in a Distributed Dataflow Framework",
+  "paper_authors": [
+    "Joseph E. Gonzalez",
+    "Reynold S. Xin",
+    "Ankur Dave",
+    "Daniel Crankshaw",
+    "Michael J. Franklin",
+    "Ion Stoica"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-gonzalez.pdf",
+  "paper_abstract": "In pursuit of graph processing performance, the systems community has largely abandoned general-purpose distributed dataflow frameworks in favor of specialized graph processing systems that provide tailored programming abstractions and accelerate the execution of iterative graph algorithms. In this paper we argue that many of the advantages of specialized graph processing systems can be recovered in a modern general-purpose distributed dataflow system. We introduce GraphX, an embedded graph processing framework built on top of Apache Spark, a widely used distributed dataflow system. GraphX presents a familiar composable graph abstraction that is sufficient to express existing graph APIs, yet can be implemented using only a few basic dataflow operators (e.g., join, map, group-by). To achieve performance parity with specialized graph systems, GraphX recasts graph-specific optimizations as distributed join optimizations and materialized view maintenance. By leveraging advances in distributed dataflow frameworks, GraphX brings low-cost fault tolerance to graph processing. We evaluate GraphX on real workloads and demonstrate that GraphX achieves an order of magnitude performance gain over the base dataflow framework and matches the performance of specialized graph processing systems while enabling a wider range of computation.",
+  "paper_file": "papers/2015/06/01/graphx-graph-processing-in-a-distributed-dataflow-framework.pdf",
+  "topics": [
+    "distributed-systems",
+    "data-engineering"
+  ],
+  "tags": [
+    "graph-processing",
+    "distributed-dataflow",
+    "Spark",
+    "vertex-cut-partitioning",
+    "graph-parallel",
+    "fault-tolerance",
+    "bulk-synchronous-processing"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "GraphX as a thin layer on Spark",
+      "caption": "GraphX is a thin layer on top of the Spark general-purpose dataflow framework (lines of code)."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

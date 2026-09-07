@@ -1,0 +1,338 @@
+URL: https://blog.acolyer.org/2016/11/07/a-comprehensive-formal-security-analysis-of-oauth-2-0/
+Title: A comprehensive formal security analysis of OAuth&nbsp;2.0
+---
+
+A comprehensive formal security analysis of OAuth 2.0 Fett et al. CCS '16
+
+Formal methods may not be appropriate in all cases, but there are some places where the rigour they introduce can be a really good idea. Security is one of those places. In today's paper from CCS '16 Fett et al. create a formal model of OAuth 2.0, and through this process identify four vulnerabilities in a protocol that's been widely adopted and deployed, and plays an increasingly important role on the web. All of these were reported to the OAuth and OpenID Connect working groups who confirmed the attacks. In addition to finding existing vulnerabilities, the authors also propose relatively simple fixes to prevent them, and prove that with these alterations, OAuth provides the desired authorisation, authentication, and session integrity properties.
+
+> 
+
+ In this paper, we carry out the first extensive formal analysis of the OAuth 2.0 standard in an expressive web model. Our analysis aims at establishing strong authorisation, authentication, and session integrity guarantees, for which we provide formal definitions.
+
+This particular version of the paper doesn't actually contain the model itself, nor the formal proofs. For that, see the 95-page technical report version of the same.  But it does describe the approach that they took, and the main results. For most of us, that's probably a pretty good compromise.
+
+The OAuth model is built on top of the FKS model of the web, in the general Dolev-Yao style (in case you were wondering ;) ).  The FKS model mimics published (de-facto) standards and specifications for the web, including HTTP/1.1 and HTML5. It defines a general communication model, and based on it, web systems consisting of web browsers, DNS servers, and web servers as well as web and network attackers. On top of this Fett at al. build an OAuth model that includes all of the configuration options of OAuth and all four OAuth modes (more on those in a minute).
+
+> 
+
+ To prove the security properties of OAuth, our model includes the fixes against the new attacks presented in section 3 as well as standard mitigations against known attacks. Altogether, this offers clear implementation guidelines, without which OAuth would be insecure.
+
+Based on this model, they prove the following results:
+
+Let a Relying Party be a website that relies on OAuth in order to authenticate users or gain authorisation to access resources on their behalf, and let Identity Provider be a website that relies on OAuth to grant access to resources. Then:
+
+- In an OAuth web system in which an attacker can obtain access to a protected resource, then either the Identity Provider itself is corrupt, or the browser of the user is corrupt, or a Relying Party is corrupt. In other words, the OAuth web system is secure with respect to authorisation.
+
+- In an OAuth web system in which an attacker can obtain the service token issued by an honest Relying Party using some Identity Provider then either the Identity Provider, Relying Party, or user's browser is corrupt. In other words, the OAuth web system is secure with respect to authentication.
+
+- In an OAuth web system in which a user is logged in with some identity, then the user started an OAuth web flow. Moreover, if the Identity Provider used in that flow is honest then the user is logged in under exactly the same identity for which the OAuth flow was started by the user. In other words, OAuth is secure w.r.t. session integrity for authorisation and authentication.
+
+Remember these guarantees only hold if a standard list of precautions have been taken (I'll cover those later), and fixes for the four identified vulnerabilities are in place. The status of those fixes in the wild is a little uncertain from my reading of the paper:
+
+> 
+
+ We reported all attacks to the OAuth and OpenID Connect working groups who confirmed the attacks. The OAuth working group invited us to present our findings to them and prepared a draft for an RFC that mitigates the IdP mix-up attack (using the fix described in Section 3.2). Fixes regarding the other attacks are currently under discussion. We also notified nytimes.com, Facebook, and the developers of mod_auth_openidc and pyoidc.
+
+(This for a paper presented two weeks ago).
+
+## A very short OAuth primer
+
+OAuth was originally intended for authorisation, but is also commonly used for authentication. This latter use case is typically implemented by having the user authorise the RelyingParty to access a unique user identifier (resource) at the Identity Provider, which serves to log the user in.
+
+> 
+
+ Roughly speaking, in the most common modes, OAuth works as follows: If a user wants to authorize an RP to access some ofthe user’s data at an IdP, the RP redirects the user (i.e., the user’s browser) to the IdP, where the user authenticates and agrees to grant the RP access to some of her user data at the IdP. Then, along with some token (an authorization code or an access token) issued by the IdP, the user is redirected back to the RP. The RP can then use the token as a credential at the IdP to access the user’s data at the IdP.OAuth is also commonly used for authentication, although it was not designed with authentication in mind. A user can, for example, use her Facebook account, with Facebook being the IdP, to log in at the social network Pinterest (the RP). Typically, in order to log in, the user authorizes the RP to access a unique user identifier at the IdP. The RP then retrieves this identifier and considers this user to be logged in.
+
+There are four modes in which OAuth can be used:
+
+- Authorisation code mode.  The classic redirect flow you've probably seen in endless conference presentations. (See flow diagram below).
+
+- Implicit mode. Similar to the standard authorisation code mode, but the Identity Provider delivers an access token to the Relying Party directly via the users browser (requires some javascript support)
+
+- Resource owner password credentials mode. The user gives their credentials for an Identity Provider directly to the Relying Party. Intended for highly trusted Relying Parties when the previous two modes are not possible to perform - e.g. the scenario does not involve a web browser.
+
+- Client credentials mode. This is the only mode not initiated by the user. Instead the Relying Party initiates a flow to obtain an access token used to access resources at an Identity Provider. For example, Facebook allows Relying Parties to use the client credentials mode to obtain an access token to access reports of their advertiser's performance.
+
+## The attacks
+
+> 
+
+ As mentioned in the introduction, while trying to prove the security of OAuth based on the FKS web model and our OAuth model, we found four attacks on OAuth, which we call 307 redirect attack, IdP mix-up attack, state leak attack, and naïve RP session integrity attack, respectively. In this section, we provide detailed descriptions of these attacks along with easily implementable fixes. Our formal analysis of OAuth (see Section 5) then shows that these fixes are indeed sufficient to establish the security of OAuth
+
+## 307 Redirect
+
+At step 6 in the flow above the user has authenticated with the Identity Provider and the Identity Provider sends a redirect back to the user's browser to send them onto the Relying Party site to continue their flow.  The OAuth standard permits any HTTP redirect mechanism available via the user-agent (it doesn't have to be a 302).
+
+If the Identity Provider happens to use a 307 redirect, the user's browser will send a POST request to the Relying Party's that contains all of the form data from the previous request, including the user credentials. An attacker running a malicious Relying Party can thus steal the credentials.
+
+The only HTTP redirect code unambiguously defined to drop the the body of an HTTP POST request is a 303. So the fix is simply to always require 303 redirects.
+
+## Identity Provider mix-up
+
+The attacker confuses a Relying Party about which Identity Provider the user chose at the beginning of the login/authorisation process. It's all downhill from there....
+
+> 
+
+ This attack applies to the authorization code mode and the implicit mode of OAuth when explicit user intention tracking is usedby the RP. To launch the attack, the attacker manipulates the first request of the user such that the RP thinks that the user wants to use an identity managed by an IdP of the attacker (AIdP) while the user instead wishes to use her identity managed by an honest IdP (HIdP). As a result, the RP sends the authorization code or the access token issued by HIdP to the attacker. The attacker then can use this information to login at the RP under the user’s identity (managed by HIdP) or access the user’s protected resources at HIdP.
+
+In brief, a user browsing a Relying Party site selects that they want to login using some Honest Identity Provider. But the attacker intercepts this request and replaces the Honest Identity Provider with one controlled by the attacker.  The response of the Relying Party is then intercepted once more and sent onto the Honest Provider, the attacker also replaces the client id of the Relying Party at the Attackers Id Provider with the client id at the Honest Id Provider (which is public knowledge).  From this point on all traffic is assumed to be sent over https and thus cannot be inspected or altered.  The user authenticates at the Honest Id Provider, and is redirect back to the Relying Party. The Relying Party thinks that the nonce code contained in this redirect was issued by the Attacker's Id Provider, and so tries to redeem it for an access token at the Attacker's Id Provider. This leaks the code to the attacker.
+
+> 
+
+ A fundamental problem in the authorisation code and implicit modes of the OAuth standard is a lack of reliable information in the redirect in steps 6 and 7... our fix therefore is to include the identity of the Identity Provider in the redirect URI in some form that cannot be influenced by the attacker, e.g. using a new URI parameter.
+
+## State leak
+
+The state leak attack enables an attacker to force a browser to be logged under the attacker's name at a Relying Party, or force a Relying Party to use a resource of the attacker instead of a resource of the user. It enables what is often called session swapping, or login CSRF. It works by making the final redirect destination be a link to an attacker's website, which will contain Referer headers with the full URI of the page the user was redirected to, including OAuth state and code. Authorization codes are single use, but state is not.
+
+> 
+
+ We suggest to limit state to a single use and to use the recently introduced referrer policies to avoid leakage of the state (or code) to the attacker... Our OAuth model includes this fix (such that only the origin is permitted in the Referer header for links on web pages of RPs/IdPs) and our security proof shows its effectiveness.
+
+## Naive Relying Party session integrity attack
+
+This attack also breaks the session integrity property. The attacker starts a session with an Honest Identity Provider and obtains a code or token for his or her own account. When a user wants to login to a RelyingParty using the attacker's identity provider (perhaps substituted as before), they are sent back to the callback URL of the honest identity provider at the Relying Party, but using the attackers own (previously obtained) credentials.
+
+> 
+
+ The fix is always to use explicit user intention tracking.
+
+(In other words, don't just rely on the particular callback URL that gets invoked, but instead keep track of which one you are expecting to be used).
+
+## Preconditions for the OAuth guarantees
+
+This post is too long already. But suppose you took care of the above four issues (none of them particularly difficult once you know of them), you'd also need the following in place to be sure of security:
+
+- No untrusted third-party javascript on the sites of Relying Parties and Identity Providers, no open redirectors, and no cross-site scripting vulnerabilities.
+
+- Relying Parties and Identity Providers must use the Referrer Policy to specify that Referrer headers on links form any of their web pages may not contain more than the origin of the respective page.
+
+- All endpoint URIs use HTTPS
+
+- Cookies are always set with the secure attribute
+
+- The user only ever sends their password to an Identity Provider over an encrypted channel, and only to the Identity Provider the password was chosen for.
+
+- When a Relying Party sends an access token to an Identity Provider, the Identity Provider returns the user identifier and client id for which the access token was issued. The Relying Party must check that the returned client id is its own, otherwise a malicious Relying Party could impersonate an honest user at an honest RP.
+
+- Explicit user intention tracking must be used.
+
+## Share this:
+
+- 
+ Share on X (Opens in new window)
+ X
+ 
+- 
+ Share on LinkedIn (Opens in new window)
+ LinkedIn
+ 
+- 
+ Email a link to a friend (Opens in new window)
+ Email
+ 
+- 
+ Print (Opens in new window)
+ Print
+ 
+- Like Loading...
+
+ 
+## Related
+
+ 
+
+ 
+ 
+ Posted in Uncategorized 
+ 
+ Formal methodsSecurity 
+ 
+
+ 
+
+ 
+ 
+ 
+## Post navigation
+
+ &lsaquo; PreviousScaling Spark in the real world: performance and usabilityNext &rsaquo;On formalism in specifications
+ 
+ 
+
+ 
+ 
+## 
+ 2 thoughts on &ldquo;A comprehensive formal security analysis of OAuth 2.0&rdquo; 
+
+ 
+ 
+ 
+- 
+ 
+ Pingback: On formalism in specifications | the morning paper 
+ 
+ 
+- 
+ 
+ Pingback: Weekly Tech Digest | Imperfect Devops 
+ 
+ 
+
+ 
+ 
+ 
+Comments are closed.
+
+ 
+ 
+
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ Blog at WordPress.com.
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+Reblog
+ 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+ 
+ Join 3,125 other subscribers
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Sign me up 
+ 
+ 
+ 
+- 
+ 
+ Already have a WordPress.com account? Log in now. 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ 
+ Privacy 
+ 
+ 
+ 
+- 
+ 
+ 
+ 
+ 
+ 
+ 
+- 
+ 
+ the morning paper 
+ 
+ 
+- 
+ 
+ 
+
+ Subscribe
+ 
+ 
+ 
+
+ Subscribed
+ 
+ 
+ 
+- Sign up
+ 
+- Log in
+ 
+- 
+ 
+ Copy shortlink
+ 
+
+ 
+ 
+ 
+- 
+ 
+ Report this content 
+ 
+ 
+- 
+ 
+ View post in Reader 
+ 
+ 
+- 
+ Manage subscriptions
+ 
+ 
+- Collapse this bar
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+
+ 
+ %d

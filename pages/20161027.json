@@ -1,0 +1,42 @@
+{
+  "date": "20161027",
+  "file_name": "20161027",
+  "slug": "replex-a-scalable-highly-available-multi-index-data-store",
+  "blog_url": "https://blog.acolyer.org/2016/10/27/replex-a-scalable-highly-available-multi-index-data-store/",
+  "blog_title": "",
+  "blog_summary": "Replex, a best paper award winner at USENIX 2016, tackles the challenge of building scalable, highly available key-value stores that also support efficient queries by non-primary keys. Traditional NoSQL databases scale by partitioning data based on a single primary key, but this makes secondary index queries inefficient as they require querying all partitions. Maintaining secondary indices with distributed transactions for data integrity further degrades performance. Replex innovates by combining replicas and indices into 'replexes'—each replex serves as both a replica and an index, sorted differently. This dual role reduces overhead, as secondary indices come at minimal cost. The paper introduces a novel replication scheme using chain replication to ensure consistency across replexes, where operations are validated by consensus before replication. Hybrid replexes further optimize recovery and query performance under failures by sharing failure tolerance across multiple replexes, reducing storage and network overhead. Experimental results show Replex outperforms state-of-the-art systems like HyperDex and Cassandra by up to 10×.",
+  "paper_title": "Replex: A scalable, highly available multi-index data store",
+  "paper_authors": [
+    "Cheng Tai",
+    "Stephen R. Beard",
+    "Michael J. Freedman"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "USENIX Annual Technical Conference (USENIX ATC)",
+  "paper_url": "https://www.cs.princeton.edu/~mfreed/docs/replex-atc16.pdf",
+  "paper_abstract": "made scaling NoSQL datastores easy: by using the key to divide the data into partitions or “shards”, the datastore could be efﬁciently mapped onto multiple nodes. Unfortunately, this model is inconvenient for programmers, who often still need to query data by a value other than the primary key. The need for scalable, high-performance datastores has led to the development of NoSQL databases, which achieve scalability by partitioning data over a single key. However, programmers often need to query data with other keys, which data stores provide by either querying every partition, eliminating the beneﬁts of partitioning, or replicating additional indexes, wasting the beneﬁts of data replication. In this paper, we show there is no need to compromise scalability for functionality. We present Replex, a datastore that enables efﬁcient querying on multiple keys by rethinking data placement during replication. Traditionally, a data store is ﬁrst globally partitioned, then each partition is replicated identically to multiple nodes. Instead, Replex relies on a novel replication unit, termed replex, which partitions a full copy of the data based on its unique key. Replexes eliminate any additional overhead to maintaining indices, at the cost of increasing recovery complexity. To address this issue, we also introduce hybrid replexes, which enable a rich design space for trading off steady-state performance with faster recovery. We build, parameterize, and evaluate Replex on multiple dimensions and ﬁnd that Replex surpasses the steady-state and failure recovery performance of HyperDex, a state-of-the-art multi-key data store. 1 Several NoSQL datastores[1, 3, 14, 9, 15, 7] have emerged that can support queries on multiple keys through the use of secondary indexes. Many of these datastores simply query all partitions to search for an entry which matches a secondary key. In this approach, performance quickly degrades as the number of partitions increases, defeating the reason for pa...",
+  "paper_file": "papers/2016/10/27/replex-a-scalable-highly-available-multi-index-data-store.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems"
+  ],
+  "tags": [
+    "key-value-stores",
+    "secondary-indices",
+    "chain-replication",
+    "consensus-protocols",
+    "hybrid-replication",
+    "fault-tolerance",
+    "availability",
+    "scalability"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "System model for a replex with 3 indexes",
+      "caption": "Every replex stores the table across a number of partitions. This diagram shows the system model for a table with 3 indexes. When a row r is inserted, hA, hB, and hC determine which partition (shaded) in the replex stores r. Similarly, a lookup on a replex is broadcast to a number of partitions based on h."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

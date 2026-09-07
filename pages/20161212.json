@@ -1,0 +1,37 @@
+{
+  "date": "20161212",
+  "file_name": "20161212",
+  "slug": "xft-practical-fault-tolerance-beyond-crashes",
+  "blog_url": "https://blog.acolyer.org/2016/12/12/xft-practical-fault-tolerance-beyond-crashes/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a critical mismatch between modern security assumptions (perimeter-less security) and the fault-tolerance models used in distributed systems (crash fault tolerance, CFT). While Byzantine fault tolerance (BFT) addresses this gap, its high overheads limit adoption. The paper introduces Cross Fault Tolerance (XFT), a model that bridges CFT and BFT by providing stronger protections than CFT with performance comparable to CFT systems. XFT assumes that a majority of replicas are correct and can communicate synchronously, even in the presence of Byzantine faults, but avoids the overly strong adversary model of classical BFT. The authors argue XFT is well-suited for geo-replicated systems and permissioned blockchains, where network partitions and adversarial behavior are less likely to coordinate. The paper also presents XPaxos, an XFT-based state-machine replication protocol that includes a decentralized view-change mechanism and a fault-detection subprotocol to maintain consistency in the presence of non-crash faults.",
+  "paper_title": "XFT: Practical Fault-Tolerance Beyond Crashes",
+  "paper_authors": [
+    "Hengfeng Wei",
+    "Yu Huang",
+    "Jian Lu"
+  ],
+  "paper_year": 2016,
+  "paper_venue": "OSDI",
+  "paper_url": "https://www.usenix.org/system/files/conference/osdi16/osdi16-liu.pdf",
+  "paper_abstract": "Despite years of intensive research, Byzantine faulttolerant (BFT) systems have not yet been adopted in practice. This is due to additional cost of BFT in terms of resources, protocol complexity and performance, compared with crash fault-tolerance (CFT). This overhead of BFT comes from the assumption of a powerful adversary that can fully control not only the Byzantine faulty machines, but at the same time also the message delivery schedule across the entire network, effectively inducing communication asynchrony and partitioning otherwise correct machines at will. To many practitioners, however, such strong attacks appear irrelevant. In this paper, we introduce cross fault tolerance or XFT, a novel approach to building reliable and secure distributed systems and apply it to the classical state-machine replication (SMR) problem. In short, an XFT SMR protocol provides the reliability guarantees of widely used asynchronous CFT SMR protocols such as Paxos and Raft, but also tolerates Byzantine faults in combination with network asynchrony, as long as a majority of replicas are correct and communicate synchronously. This allows the development of XFT systems at the price of CFT (already paid for in practice), yet with strictly stronger resilience than CFT — sometimes even stronger than BFT itself. As a showcase for XFT, we present XPaxos, the first XFT SMR protocol, and deploy it in a geo-replicated setting. Although it offers much stronger resilience than CFT SMR at no extra resource cost, the performance of XPaxos matches that of the state-of-the-art CFT protocols.",
+  "paper_file": "papers/2016/12/12/xft-practical-fault-tolerance-beyond-crashes.pdf",
+  "topics": [
+    "distributed-systems",
+    "operating-systems"
+  ],
+  "tags": [
+    "consensus-protocols",
+    "paxos",
+    "raft",
+    "byzantine-fault-tolerance",
+    "crash-fault-tolerance",
+    "geo-replication",
+    "fault-detection",
+    "view-change",
+    "state-machine-replication"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

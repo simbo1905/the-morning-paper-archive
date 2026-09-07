@@ -1,0 +1,39 @@
+{
+  "date": "20151112",
+  "file_name": "20151112",
+  "slug": "a-sound-and-optimal-incremental-build-system-with-dynamic-dependencies",
+  "blog_url": "https://blog.acolyer.org/2015/11/12/a-sound-and-optimal-incremental-build-system-with-dynamic-dependencies/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the challenges developers face with build systems, noting that a significant portion of development effort is spent maintaining build scripts that grow increasingly complex. The paper introduces Pluto, a build system by Erdweg et al., which is both sound (always produces correct output) and optimal (avoids unnecessary work). Pluto dynamically tracks dependencies during build execution, enabling fine-grained incremental rebuilding. Key innovations include dynamic dependency registration, custom timestamps for precise dependency tracking, automatic injection of builder implementation dependencies, and support for cyclic dependencies via custom cycle-breakers. The paper formalizes Pluto's dependency graph and proves the soundness and optimality of its rebuild algorithm. Case studies demonstrate Pluto's applicability to incremental compilation for languages like Stratego and SugarJ, simplifying their build processes by replacing custom dependency tracking with Pluto's general solution.",
+  "paper_title": "A Sound and Optimal Incremental Build System with Dynamic Dependencies",
+  "paper_authors": [
+    "Sebastian Erdweg",
+    "Tijs van der Storm",
+    "Mauricio Verano Merino",
+    "Ralf Lämmel",
+    "Eelco Visser"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "OOPSLA'15",
+  "paper_url": "http://www.informatik.uni-marburg.de/~seba/publications/pluto-incremental-build.pdf",
+  "paper_abstract": "1. Build systems are used in all but the smallest software projects to invoke the right build tools on the right files in the right order. A build system must be sound (after a build, generated files consistently reflect the latest source files) and efficient (recheck and rebuild as few build units as possible). Contemporary build systems provide limited efficiency because they lack support for expressing finegrained file dependencies. We present a build system called pluto that supports the definition of reusable, parameterized, interconnected builders. When run, a builder notifies the build system about dynamically required and produced files as well as about other builders whose results are needed. To support fine-grained file dependencies, we generalize the traditional notion of time stamps to allow builders to declare their actual requirements on a file’s content. pluto collects the requirements and products of a builder with their stamps in a build summary. This enables pluto to provides provably sound and optimal incremental rebuilding. To support dynamic dependencies, our rebuild algorithm interleaves dependency analysis and builder execution and enforces invariants on the dependency graph through a dynamic analysis. We have developed pluto as a Java API and used it to implement more than 25 builders. We describe our experience with migrating a larger Ant build script to pluto and compare the respective build times. Software developers struggle with build systems on a regular basis. Previous studies show that on average 12% of development effort is not spent on developing software but on maintaining build scripts [11]. Another study finds that build scripts in existing software projects continuously change and grow in complexity in sync with changes to the project’s source code [12]. These studies show that the development and maintenance of build scripts is an essential part of software development. As with any software artifact, build scripts are difficult...",
+  "paper_file": "papers/2015/11/12/a-sound-and-optimal-incremental-build-system-with-dynamic-dependencies.pdf",
+  "topics": [
+    "programming-languages",
+    "compilers",
+    "operating-systems"
+  ],
+  "tags": [
+    "build-systems",
+    "incremental-compilation",
+    "dependency-tracking",
+    "dynamic-dependencies",
+    "soundness",
+    "optimality",
+    "cyclic-dependencies",
+    "file-stamps"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

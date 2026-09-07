@@ -1,0 +1,45 @@
+{
+  "date": "20151123",
+  "file_name": "20151123",
+  "slug": "hashed-and-hierarchical-timing-wheels",
+  "blog_url": "https://blog.acolyer.org/2015/11/23/hashed-and-hierarchical-timing-wheels/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights the 1987 paper by Varghese and Lauck, which introduces efficient data structures for managing timers in systems with large numbers of outstanding requests. The blog post emphasizes the practical relevance of the paper, noting its use in modern systems like Apache Kafka's 'purgatory' data structure for tracking timeouts. Colyer explains the paper's exploration of seven different timer management schemes, ranging from simple unordered lists to hierarchical timing wheels, and their respective time complexities for operations like start, stop, and per-tick bookkeeping. The key insight is the introduction of hierarchical timing wheels (Scheme 7) and hashed timing wheels (Scheme 6) as optimal solutions for balancing memory usage and operational efficiency, particularly in systems requiring high scalability.",
+  "paper_title": "Hashed and Hierarchical Timing Wheels: Data Structures for the Efficient Implementation of a Timer Facility",
+  "paper_authors": [
+    "George Varghese",
+    "Tony Lauck"
+  ],
+  "paper_year": 1987,
+  "paper_venue": "ACM Symposium on Operating Systems Principles (SOSP)",
+  "paper_url": "http://www.cs.columbia.edu/~nahum/w6998/papers/sosp87-timing-wheels.pdf",
+  "paper_abstract": "be detected by periodic checking (e.g. memory corruption) and such timers always expire. Other failures can be only be inferred by the lack of some positive action (e.g. message acknowledgment) within a specified period. If failures are infrequent these timers rarely expire. Conventional algorithms to implement an Operating System timer module take O(n) time to start or mainrain a timer, where n is the number of outstanding timers: this is expensive for large n. This paper begins by exploring the relationship between timer algorithms, time flow mechanisms used in discrete event simulations, and sorting techniques. Next a timer algorithm for small timer intervals is presented that is similar to the timing wheel technique used in logic sinmlators. By using a circular buffer or timing wheel, it takes O(1) time to start, stop, and maintain timers within the range of the wheel. Algorithms in which the notion of time or relative time is integral: Examples include algorithms that control the rate of production of some entity (process control, rate-based flow control in communications), scheduling algorithms, and algorithms to control packet lifetimes in computer networks. These timers almost always expire. Two extensions for larger values of the interval are described. In the first, the timer interval is hashed into a slot on the timing wheel. In the second, a hierarchy of timing wheels with different granularities is used to span a greater range of intervals. The performance of these two schemes and various implementation tradeoffs are discussed. 1 The performance of algorithms to implement a timer module becomes an issue when any of the following are true: • The algorithm is implemented by a processor that is interrupted each time a hardware clock ticks, and the interrupt overhead is substantial.",
+  "paper_file": "papers/2015/11/23/hashed-and-hierarchical-timing-wheels.pdf",
+  "topics": [
+    "operating-systems",
+    "data-structures"
+  ],
+  "tags": [
+    "timers",
+    "data-structures",
+    "timer-management",
+    "hierarchical-timing-wheels",
+    "hashed-timing-wheels",
+    "time-complexity",
+    "scalability"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Critical parameters for timer module routines",
+      "caption": "Figure 1. The performance measures important for the client applications should be used to choose among timer algorithms."
+    },
+    {
+      "number": "Figure 4",
+      "title": "Performance summary of Scheme 1",
+      "caption": null
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

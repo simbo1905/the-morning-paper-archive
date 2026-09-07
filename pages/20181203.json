@@ -1,0 +1,50 @@
+{
+  "date": "20181203",
+  "file_name": "20181203",
+  "slug": "securify-practical-security-analysis-of-smart-contracts",
+  "blog_url": "https://blog.acolyer.org/2018/12/03/securify-practical-security-analysis-of-smart-contracts/",
+  "blog_title": "",
+  "blog_summary": "The blog post discusses Securify, a practical security analysis tool for smart contracts that uses expert heuristics (patterns) to identify security issues. Adrian Colyer highlights Securify's approach of translating EVM bytecode into Datalog facts and applying compliance or violation patterns to detect security properties or flaws. The tool is noted for its availability, scalability (analyzing over 18K contracts), and use by security auditors. The key insight is that while perfect verification of Turing-complete smart contracts is undecidable, Securify's pattern-based method provides a practical and automated way to catch common vulnerabilities. The post also emphasizes the tool's ability to infer facts from bytecode, support custom patterns, and its evaluation on real-world contracts, revealing widespread security issues.",
+  "paper_title": "Securify: Practical Security Analysis of Smart Contracts",
+  "paper_authors": [
+    "Petar Tsankov",
+    "Andrei Dan",
+    "Dana Drachsler-Cohen",
+    "Arthur Gervais",
+    "Boris Köpf",
+    "Srdjan Marinovic"
+  ],
+  "paper_year": 2018,
+  "paper_venue": "CCS'18",
+  "paper_url": "https://arxiv.org/pdf/1806.01143.pdf",
+  "paper_abstract": "Permissionless blockchains allow the execution of arbitrary programs (called smart contracts), enabling mutually untrusted entities to interact without relying on trusted third parties. Despite their potential, repeated security concerns have shaken the trust in handling billions of USD by smart contracts. To address this problem, we present Securify, a security analyzer for Ethereum smart contracts that is scalable, fully automated, and able to prove contract behaviors as safe/unsafe with respect to a given property. Securify’s analysis consists of two steps. First, it symbolically analyzes the contract’s dependency graph to extract precise semantic information from the code. Then, it checks compliance and violation patterns that capture sufficient conditions for proving if a property holds or not. To enable extensibility, all patterns are specified in a designated domain-specific language. Securify is publicly released, it has analyzed > 18K contracts submitted by its users, and is regularly used to conduct security audits by experts. We present an extensive evaluation of Securify over real-world Ethereum smart contracts and demonstrate that it can effectively prove the correctness of smart contracts and discover critical violations. Key Challenges. The main challenge in creating an effective security analyzer for smart contracts is the Turing-completeness of the programming language, which renders automated verification of arbitrary properties undecidable. To address this issue, current automated solutions tend to rely on fairly generic testing and symbolic execution methods (e.g., Oyente [39] and Mythril [16]). While useful in some settings, these approaches come with several drawbacks: (i) they can miss critical violations (due to under-approximation), (ii) yet, can also produce false positives (due to imprecise modeling of domain-specific elements [30]), and (iii) they can fail to achieve sufficient code coverage on realistic contracts (Oyente achieves only 20...",
+  "paper_file": "papers/2018/12/03/securify-practical-security-analysis-of-smart-contracts.pdf",
+  "topics": [
+    "systems-security",
+    "programming-languages"
+  ],
+  "tags": [
+    "smart-contracts",
+    "security-analysis",
+    "datalog",
+    "EVM-bytecode",
+    "vulnerability-detection",
+    "compliance-patterns",
+    "violation-patterns",
+    "taint-analysis"
+  ],
+  "figures": [
+    {
+      "number": "Figure 1",
+      "title": "Securify's approach overview",
+      "caption": "Securify’s approach is based on automatic inference of semantic program facts followed by checking of compliance and violation security patterns over these facts."
+    },
+    {
+      "number": "Figure 2",
+      "title": "Securify's behavior classification",
+      "caption": "Securify uses compliance and violation patterns to guarantee that certain behaviors are safe and, respectively, unsafe. The remaining behaviors are reported as warnings (to avoid missing errors)."
+    }
+  ],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

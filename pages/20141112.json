@@ -1,0 +1,32 @@
+{
+  "date": "20141112",
+  "file_name": "20141112",
+  "slug": "an-evaluation-of-amazon-s3s-consistency-behavior",
+  "blog_url": "https://blog.acolyer.org/2014/11/12/an-evaluation-of-amazon-s3s-consistency-behavior/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a paper that presents a novel method for benchmarking staleness in distributed datastores, specifically evaluating Amazon S3's consistency behavior. The author's approach involves creating timestamps, writing version numbers, and continuously reading until the old version is no longer returned to measure the inconsistency window. The findings reveal surprising behavior in S3, which toggles between a 'LOW' phase with a random inconsistency window (mean 28ms, median 15ms) and a 'SAW' phase with a sawtooth-like pattern peaking at 11 seconds. Additionally, S3 frequently violates monotonic read consistency (12% of reads) despite offering high availability (over eight nines). The paper's methodology is praised as reusable, though the underlying cause of S3's behavior remains unexplained.",
+  "paper_title": "Eventual Consistency: How soon is eventual? An Evaluation of Amazon S3's Consistency Behavior",
+  "paper_authors": [
+    "Bermbach",
+    "Tai"
+  ],
+  "paper_year": 2011,
+  "paper_venue": "",
+  "paper_url": "http://www.aifb.kit.edu/images/1/17/How_soon_is_eventual.pdf",
+  "paper_abstract": "Over the last few years, Cloud storage systems and so-called NoSQL datastores have found widespread adoption. In contrast to traditional databases, these storage systems typically sacrifice consistency in favor of latency and availability as mandated by the CAP theorem, so that they only guarantee eventual consistency. Existing approaches to benchmark these storage systems typically omit the consistency dimension or did not investigate eventuality of consistency guarantees. In this work we present a novel approach to benchmark staleness in distributed datastores and use the approach to evaluate Amazon’s Simple Storage Service (S3). We report on our unexpected findings.",
+  "paper_file": "papers/2014/11/12/an-evaluation-of-amazon-s3s-consistency-behavior.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "eventual-consistency",
+    "s3",
+    "consistency-benchmarking",
+    "monotonic-read-consistency",
+    "staleness-measurement"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

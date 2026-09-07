@@ -1,0 +1,38 @@
+{
+  "date": "20141217",
+  "file_name": "20141217",
+  "slug": "a-hitchhikers-guide-to-fast-and-efficient-data-reconstruction-in-erasure-coded-data-centers",
+  "blog_url": "https://blog.acolyer.org/2014/12/17/a-hitchhikers-guide-to-fast-and-efficient-data-reconstruction-in-erasure-coded-data-centers/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer highlights a paper that addresses the inefficiencies of Reed-Solomon (RS) erasure codes in large-scale distributed storage systems like HDFS. While RS codes reduce storage overhead compared to replication, they significantly increase disk and network traffic during data reconstruction due to the need to download k units to recover a single missing unit. The author emphasizes that this overhead is a major bottleneck, with Facebook's production systems experiencing massive daily data transfers (180+ TB) for reconstruction. The paper introduces 'Hitchhiker,' a novel encoding and decoding technique layered atop RS codes that reduces reconstruction traffic by 25-45% without additional storage or sacrificing fault tolerance. The key insight is that most failures affect only a single block (98.08% of cases), and encoding is a one-time task while reconstruction is frequent, enabling a trade-off where slightly higher encoding time is acceptable for significant reconstruction savings. The approach pairs two RS stripes and 'piggybacks' encoding, with XOR-based variants reducing computational complexity for faster degraded reads and recovery.",
+  "paper_title": "A Hitchhiker's Guide to Fast and Efficient Data Reconstruction in Erasure-Coded Data Centers",
+  "paper_authors": [
+    "K. V. Rashmi",
+    "Nihar B. Shah",
+    "Hari Balakrishnan",
+    "Kannan Ramchandran"
+  ],
+  "paper_year": 2014,
+  "paper_venue": "SIGCOMM",
+  "paper_url": "http://www.eecs.berkeley.edu/~nihar/publications/Hitchhiker_SIGCOMM14.pdf",
+  "paper_abstract": "s the flows of erasure coding operations as directed acyclic graphs, which can be configured to support PPR [126] and repair pipelining [106]. It is later extended to support the elastic transformation of a base erasure code construction (e.g., RS codes) to a repair-efficient erasure code construction (e.g., MSR codes) with a configurable sub-packetization level [179]. Prior studies mainly focus on optimizing the repair operations based on RS codes, in which the repair of a chunk can be decomposed into partial linear combinations (§2.1) due to additive associativity. Geometric Partitioning [164] considers regenerating codes and identifies the trade-off between degraded read time and repair efficiency for different chunk sizes. It partitions an object into chunks whose sizes follow a geometric sequence, such that it uses small chunks to reduce the degraded read time and large chunks to achieve high repair efficiency. ParaRC [112] extends OpenEC [113] to parallelize the repair of regenerating codes by balancing the load of retrieving sub-chunks across different nodes, based on the sub-packetization nature (§3.2). Proactive repair. The above repair algorithms trigger a repair operation upon the detection of a failure. Proactive repair approaches have been proposed to repair soon-to-fail nodes by monitoring the health status of nodes (e.g., by failure prediction algorithms). ToleRAID [59] proposes an adaptive strategy by combining reactive and proactive repair operations for RAID to tolerate tail latencies in SSDs. Hu et al. [63] propose to proactively launch degraded reads to mitigate the access loads of hotspots. FastPR [111] combines the migration of the chunks in a soon-to-fail node and the decoding of the chunks in the soon-to-fail node through erasure coding. Concurrent repair. Most studies on the repair algorithms for erasure coding focus on single-chunk failures within a stripe. However, concurrent multi-chunk failures within a stripe are also possible. Lazy rec...",
+  "paper_file": "papers/2014/12/17/a-hitchhikers-guide-to-fast-and-efficient-data-reconstruction-in-erasure-coded-data-centers.pdf",
+  "topics": [
+    "storage-systems",
+    "distributed-systems",
+    "algorithms"
+  ],
+  "tags": [
+    "erasure-coding",
+    "reed-solomon",
+    "reconstruction",
+    "XOR",
+    "data-recovery",
+    "fault-tolerance",
+    "storage-overhead",
+    "degraded-reads"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}

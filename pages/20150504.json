@@ -1,0 +1,45 @@
+{
+  "date": "20150504",
+  "file_name": "20150504",
+  "slug": "putting-consistency-back-into-eventual-consistency",
+  "blog_url": "https://blog.acolyer.org/2015/05/04/putting-consistency-back-into-eventual-consistency/",
+  "blog_title": "",
+  "blog_summary": "Adrian Colyer reviews the paper 'Putting Consistency Back into Eventual Consistency' by Balegas et al. (EuroSys 2015), which challenges the notion that weak eventual consistency is unavoidable in geo-replicated systems. The authors propose 'Explicit Consistency,' an alternative model where applications specify invariants (consistency rules) that the system must maintain, rather than relying on execution order constraints. The key insight is to use SMT solvers (Z3) to analyze these invariants and determine which operations can safely execute without coordination, while still enforcing application-level guarantees. The paper introduces two strategies for handling operations requiring coordination: invariant repair (post-facto correction of violations) and violation avoidance (proactive reservation mechanisms like multi-level locks and escrow reservations). The prototype, Indigo, demonstrates performance comparable to weak consistency for most operations while enforcing invariants, though it has limitations (e.g., single-object invariants). The violation avoidance strategy, based on a reservation system, is highlighted as particularly novel and interesting.",
+  "paper_title": "Putting Consistency Back into Eventual Consistency",
+  "paper_authors": [
+    "Vitor Enes",
+    "Sérgio Duarte",
+    "Carlos Baquero",
+    "João Leitão",
+    "Ricardo Vilaça",
+    "Sérgio Miguel Fernandes",
+    "M. João Pereira",
+    "Luís Rodrigues"
+  ],
+  "paper_year": 2015,
+  "paper_venue": "EuroSys 2015",
+  "paper_url": "http://dl.acm.org/authorize?N95495",
+  "paper_abstract": "A\nConsistency in Non-Transactional Distributed Storage Systems\nPaolo Viotti, EURECOM\nMarko Vukolić, IBM RESEARCH - ZURICH\n\nOver the years, different meanings have been associated to the word consistency in the distributed systems\ncommunity. While in the ’80s “consistency” typically meant strong consistency, later defined also as linearizability, in recent years, with the advent of highly available and scalable systems, the notion of “consistency”\nhas been at the same time both weakened and blur",
+  "paper_file": "papers/2015/05/04/putting-consistency-back-into-eventual-consistency.pdf",
+  "topics": [
+    "distributed-systems",
+    "storage-systems"
+  ],
+  "tags": [
+    "eventual-consistency",
+    "consistency-models",
+    "invariants",
+    "SMT-solver",
+    "Z3",
+    "reservation-mechanisms",
+    "multi-level-locks",
+    "escrow-reservations",
+    "invariant-repair",
+    "violation-avoidance",
+    "geo-replication",
+    "SwiftCloud"
+  ],
+  "figures": [],
+  "extraction_method": "pdftotext",
+  "ocr_used": false
+}
