@@ -1,10 +1,10 @@
 /**
  * Main SPA application module.
- * Handles: data loading, tag autocomplete, search, infinite scroll, routing.
+ * Handles: WASM init, data loading, tag autocomplete, search, infinite scroll, routing.
  */
 
-import { hasData, storePapers, getAllPapers, clearData } from "./db.js";
-import { dumbSearch, filterByTags, getAllTags, getCachedResults } from "./search.js";
+import { hasData, storePapers } from "./db.js";
+import { search, fuzzySearch, filterByTags, getAllTags, getCachedResults, initWasm, getSearchMode, getTagCounts } from "./search.js";
 import { structuralFreeze, validatePaperMeta } from "./validate.js";
 
 /** @type {ReadonlyArray<string>} */
@@ -32,6 +32,11 @@ export async function init() {
     await loadData();
   }
 
+  // Initialize WASM search in background
+  initWasm().then(() => {
+    updateSearchMode();
+  }).catch(() => {});
+
   if (status) status.textContent = "Ready";
 
   // Setup tag autocomplete
@@ -39,6 +44,9 @@ export async function init() {
 
   // Setup search
   setupSearch();
+
+  // Setup fuzzy search toggle
+  setupFuzzyToggle();
 
   // Setup routing
   setupRouting();
@@ -48,6 +56,9 @@ export async function init() {
 
   // Hide status
   if (status) status.style.display = "none";
+
+  // Setup word cloud
+  setupWordCloud();
 }
 
 /**
@@ -70,6 +81,18 @@ async function loadData() {
     }
   }
   await storePapers(papers);
+}
+
+/**
+ * Update the search mode indicator.
+ */
+function updateSearchMode() {
+  const mode = getSearchMode();
+  const indicator = document.getElementById("search-mode");
+  if (indicator) {
+    indicator.textContent = mode === "wasm" ? "WASM BM25" : "string";
+    indicator.className = mode === "wasm" ? "search-mode wasm" : "search-mode dumb";
+  }
 }
 
 /**
@@ -135,6 +158,23 @@ function renderTagPills() {
   }
 }
 
+/** @type {boolean} */
+let fuzzyMode = false;
+
+/**
+ * Setup fuzzy search toggle.
+ */
+function setupFuzzyToggle() {
+  const toggle = document.getElementById("fuzzy-toggle");
+  if (toggle) {
+    toggle.addEventListener("change", () => {
+      fuzzyMode = toggle.checked;
+      const input = document.getElementById("search-input");
+      if (input) doSearch(input.value);
+    });
+  }
+}
+
 /**
  * Setup search input.
  */
@@ -156,7 +196,11 @@ function setupSearch() {
 async function doSearch(query) {
   const timing = document.getElementById("timing");
   const t0 = performance.now();
-  await dumbSearch(query, 500);
+  if (fuzzyMode && query.trim()) {
+    await fuzzySearch(query, 500, 2);
+  } else {
+    await search(query, 500);
+  }
   await reapplyFilters();
   const elapsed = performance.now() - t0;
   if (timing) timing.textContent = `${currentResults.length} results in ${elapsed.toFixed(1)}ms`;
@@ -207,6 +251,80 @@ export function setupInfiniteScroll() {
   }, { rootMargin: "200px" });
 
   observer.observe(sentinel);
+}
+
+/**
+ * Setup ECharts word cloud for tags.
+ */
+async function setupWordCloud() {
+  const chartDiv = document.getElementById("word-cloud");
+  if (!chartDiv) return;
+
+  const tagCounts = await getTagCounts();
+  const topTags = tagCounts.slice(0, 100);
+
+  // Load ECharts from CDN
+  const script = document.createElement("script");
+  script.src = "https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js";
+  script.onload = () => {
+    const wordcloudScript = document.createElement("script");
+    wordcloudScript.src = "https://cdn.jsdelivr.net/npm/echarts-wordcloud@2/dist/echarts-wordcloud.min.js";
+    wordcloudScript.onload = () => {
+      renderWordCloud(chartDiv, topTags);
+    };
+    document.head.appendChild(wordcloudScript);
+  };
+  document.head.appendChild(script);
+}
+
+/**
+ * Render the word cloud.
+ * @param {HTMLElement} container
+ * @param {ReadonlyArray<{name: string, value: number}>} data
+ */
+function renderWordCloud(container, data) {
+  // @ts-ignore - ECharts loaded from CDN
+  const chart = echarts.init(container);
+  chart.setOption({
+    tooltip: { show: true },
+    series: [{
+      type: "wordCloud",
+      shape: "circle",
+      left: "center",
+      top: "center",
+      width: "90%",
+      height: "90%",
+      sizeRange: [12, 40],
+      rotationRange: [-30, 30],
+      gridSize: 8,
+      drawOutOfBound: false,
+      textStyle: {
+        fontFamily: "sans-serif",
+        fontWeight: "bold",
+        color: () => {
+          const colors = ["#0066cc", "#1a73e8", "#0066cc", "#4285f4", "#1a73e8"];
+          return colors[Math.floor(Math.random() * colors.length)];
+        },
+      },
+      emphasis: {
+        textStyle: {
+          shadowBlur: 10,
+          shadowColor: "rgba(0,0,0,0.3)",
+        },
+      },
+      data: data.map(d => ({
+        name: d.name,
+        value: d.value,
+      })),
+    }],
+  });
+
+  // Click to add tag
+  chart.on("click", (/** @type {any} */ params) => {
+    if (params.name && !selectedTags.includes(params.name)) {
+      addTag(params.name);
+    }
+  });
 }
 
 /**

@@ -18,12 +18,19 @@
 
   <main id="main-view">
     <section class="search-section">
-      <input
-        type="search"
-        id="search-input"
-        placeholder="Search papers..."
-        aria-label="Search papers"
-        autocomplete="off">
+      <div class="search-row">
+        <input
+          type="search"
+          id="search-input"
+          placeholder="Search papers..."
+          aria-label="Search papers"
+          autocomplete="off">
+        <label class="fuzzy-toggle-label">
+          <input type="checkbox" id="fuzzy-toggle">
+          Fuzzy
+        </label>
+        <span id="search-mode" class="search-mode dumb">string</span>
+      </div>
 
       <div class="tag-filter">
         <input
@@ -42,6 +49,11 @@
         <span id="timing" class="timing"></span>
       </div>
     </section>
+
+    <details class="word-cloud-section">
+      <summary>Tag cloud — click a tag to filter</summary>
+      <div id="word-cloud" style="width: 100%; height: 300px;"></div>
+    </details>
 
     <section id="results" class="results"></section>
 
