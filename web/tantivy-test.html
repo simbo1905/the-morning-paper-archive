@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Tantivy shard search — browser verification</title>
+  <style>
+    body { font-family: monospace; margin: 2rem; }
+    table { border-collapse: collapse; margin: 1rem 0; }
+    td, th { border: 1px solid #999; padding: 0.2rem 0.6rem; text-align: left; }
+    .pass { color: #060; }
+    .fail { color: #c00; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Tantivy shard search — browser verification</h1>
+  <pre id="status">loading…</pre>
+  <table id="battery"><thead><tr><th>query</th><th>hits</th><th>oracle</th><th>ms</th><th>verdict</th></tr></thead><tbody></tbody></table>
+  <script type="module">
+    const ORACLE = [
+      { label: "blockchai", q: "blockchai", fuzzy: null, expect: 0 },
+      { label: "quantum blockchain", q: "quantum blockchain", fuzzy: null, expect: 2 },
+      { label: "consensus", q: "consensus", fuzzy: null, expect: 109 },
+      { label: "consensuz~2", q: "consensuz", fuzzy: 2, expect: 111 },
+      { label: "paxos consensus", q: "paxos consensus", fuzzy: null, expect: 37 },
+      { label: "distributed transactions", q: "distributed transactions", fuzzy: null, expect: 126 },
+      { label: "compiler optimization", q: "compiler optimization", fuzzy: null, expect: 13 },
+    ];
+
+    const status = document.getElementById("status");
+    const log = (line) => { console.log(line); status.textContent += line + "\n"; };
+
+    async function fetchWithProgress(url, onProgress) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
+      const total = Number(response.headers.get("content-length"));
+      const reader = response.body.getReader();
+      const chunks = [];
+      let received = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        received += value.length;
+        onProgress(received, total);
+      }
+      const bytes = new Uint8Array(received);
+      let offset = 0;
+      for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+      return bytes;
+    }
+
+    const fmtBytes = (n) => n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${(n / 1024).toFixed(1)} KB`;
+
+    const t0 = performance.now();
+    const mod = await import(new URL("./tantivy_search.js", document.baseURI).href);
+    await mod.default();
+    const TantivySearcher = mod.TantivySearcher;
+    log(`wasm module ready in ${(performance.now() - t0).toFixed(0)} ms`);
+
+    const manifest = await (await fetch("./tantivy/manifest.json")).json();
+    log(`manifest: ${manifest.numShards} shards, ${manifest.totalDocs} docs`);
+
+    const shardBuffers = [];
+    const loadStart = performance.now();
+    let bytesLoaded = 0;
+    for (const shard of manifest.shards) {
+      const started = performance.now();
+      const bytes = await fetchWithProgress(`./tantivy/${shard.file}`, (received, total) => {
+        const note = total ? `${(100 * received / total).toFixed(0)}%` : fmtBytes(received);
+        if (received === total || !total) console.log(`  ${shard.file}: ${note}`);
+      });
+      const ms = performance.now() - started;
+      bytesLoaded += bytes.length;
+      console.log(`${shard.file}: ${fmtBytes(bytes.length)} in ${ms.toFixed(0)} ms`);
+      shardBuffers.push(bytes);
+    }
+    const loadMs = performance.now() - loadStart;
+    log(`shards fetched: ${shardBuffers.length} files, ${fmtBytes(bytesLoaded)} in ${loadMs.toFixed(0)} ms`);
+
+    const initStart = performance.now();
+    const searcher = new TantivySearcher();
+    for (const bytes of shardBuffers) searcher.add_shard(bytes);
+    const initMs = performance.now() - initStart;
+    const numDocs = searcher.num_docs();
+    log(`init (unpack + index open): ${initMs.toFixed(0)} ms, num_docs=${numDocs}`);
+
+    const LIMIT = 100000;
+    let passCount = 0;
+    const tbody = document.getElementById("battery").tBodies[0];
+    for (const row of ORACLE) {
+      const started = performance.now();
+      const json = row.fuzzy === null
+        ? searcher.search(row.q, LIMIT)
+        : searcher.search_fuzzy(row.q, LIMIT, row.fuzzy);
+      const ms = performance.now() - started;
+      const hits = JSON.parse(json).length;
+      const pass = hits === row.expect;
+      if (pass) passCount++;
+      const verdict = pass ? "PASS" : "FAIL";
+      log(`battery ${row.label}: ${hits} hits (oracle ${row.expect}) in ${ms.toFixed(1)} ms -> ${verdict}`);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${row.label}</td><td>${hits}</td><td>${row.expect}</td><td>${ms.toFixed(1)}</td>` +
+        `<td class="${pass ? "pass" : "fail"}">${verdict}</td>`;
+      tbody.appendChild(tr);
+    }
+    const allPass = passCount === ORACLE.length && numDocs === manifest.totalDocs;
+    log(`battery: ${passCount}/${ORACLE.length} PASS, num_docs=${numDocs} (need 995) -> ${allPass ? "ALL PASS" : "FAIL"}`);
+    console.log(`SUMMARY: ${passCount}/${ORACLE.length} PASS; num_docs=${numDocs}; load=${loadMs.toFixed(0)} ms; init=${initMs.toFixed(0)} ms`);
+  </script>
+</body>
+</html>
