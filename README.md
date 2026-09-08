@@ -8,65 +8,17 @@ A static site, no backend. You open it in a browser, it downloads a ~15 MB JSONL
 
 ## Architecture
 
-### Build time and runtime flow
+### Build time flow
 
 ```mermaid
 flowchart TD
-    subgraph build["Build time - offline, manual"]
-        blog["blog.acolyer.org"]
-        content["content/*.txt"]
-        metadata["phase1a_metadata.jsonl - 995 records"]
-        papers["papers/*/slug.pdf + slug.txt + slug.json"]
-        pages["pages/YYYYMMDD.json + .md"]
-        jsonl["wasm-test/search_data.jsonl"]
-        rust["wasm-test/simple-search/src/lib.rs"]
-        wasm["web/simple_search.js + simple_search_bg.wasm"]
-
-        blog -->|crawl| content
-        content -->|Mistral Small LLM| metadata
-        metadata -->|download PDFs + pdftotext/OCR| papers
-        papers -->|flatten_layout.py| pages
-        pages -->|concatenate to JSONL| jsonl
-        rust -->|wasm-pack build| wasm
-    end
-
-    subgraph runtime["Runtime - browser"]
-        html["index.html"]
-        appjs["app.js"]
-        load["loadData"]
-        validate["validatePaperMeta - JTD check"]
-        freeze["structuralFreeze - deep freeze"]
-        idb["IndexedDB"]
-        initwasm["initWasm - background"]
-        wasmload["load WASM + JSONL"]
-        bm25["WasmSearcher - BM25 index in WASM"]
-        query["User types query - 300ms debounce"]
-        wasmsearch["wasmSearcher.search - JSON"]
-        dumbsearch["dumbSearch - string includes"]
-        tagfilter["Tag filter - filterByTags"]
-        cards["paper-card Web Components - 20 per page, infinite scroll"]
-
-        html --> appjs
-        appjs --> load
-        load -->|fetch search_data.jsonl ~15MB| validate
-        validate --> freeze
-        freeze --> idb
-        appjs -->|background| initwasm
-        initwasm --> wasmload
-        wasmload --> bm25
-        query --> wasmsearch
-        wasmload -.->|if WASM fails| dumbsearch
-        wasmsearch --> tagfilter
-        dumbsearch --> tagfilter
-        tagfilter --> cards
-    end
-
-    jsonl -.->|fetched at runtime| load
-    jsonl -.->|fetched at runtime| wasmload
-    wasm -.->|loaded at runtime| wasmload
+    blog["blog.acolyer.org"] -->|crawl| content["content/*.txt"]
+    content -->|Mistral Small LLM| metadata["phase1a_metadata.jsonl"]
+    metadata -->|download PDFs + pdftotext/OCR| papers["papers/*/slug.pdf + slug.txt + slug.json"]
+    papers -->|flatten_layout.py| pages["pages/YYYYMMDD.json + .md"]
+    pages -->|concatenate to JSONL| jsonl["search_data.jsonl"]
+    rust["simple-search/src/lib.rs"] -->|wasm-pack build| wasm["simple_search.js + .wasm"]
 ```
-
-### Step details
 
 | Step | Description |
 |------|-------------|
@@ -76,12 +28,34 @@ flowchart TD
 | 4 | flatten_layout.py produces pages/YYYYMMDD.json and .md |
 | 5 | Concatenate all pages/*.json into search_data.jsonl |
 | 6 | wasm-pack compiles Rust BM25 index to WASM |
-| 7 | Browser fetches search_data.jsonl (~15 MB) |
+
+### Runtime flow
+
+```mermaid
+flowchart TD
+    html["index.html"] --> appjs["app.js init"]
+    appjs -->|first visit| load["fetch search_data.jsonl ~15MB"]
+    load --> validate["validatePaperMeta per line"]
+    validate --> freeze["structuralFreeze"]
+    freeze --> idb["store in IndexedDB"]
+    appjs -->|background| initwasm["load WASM module"]
+    initwasm -->|fetch JSONL + build index| bm25["WasmSearcher BM25 in WASM"]
+
+    query["User query 300ms debounce"] -->|WASM ready| wasmsearch["wasmSearcher.search"]
+    query -->|WASM failed| dumbsearch["dumbSearch over IndexedDB data"]
+    wasmsearch --> tagfilter["filterByTags"]
+    dumbsearch --> tagfilter
+    tagfilter --> cards["paper-card components 20 per page infinite scroll"]
+```
+
+| Step | Description |
+|------|-------------|
+| 7 | On first visit, browser fetches search_data.jsonl (~15 MB) |
 | 8 | Each line validated with validatePaperMeta, then deep-frozen |
 | 9 | Valid papers stored in IndexedDB, cached across visits |
 | 10 | WASM module loaded in background, builds BM25 index from JSONL |
-| 11 | User query sent to WASM search, falls back to string-contains if WASM unavailable |
-| 12 | Tag post-filtering applied to cached search results |
+| 11 | User query sent to WASM search if available, otherwise dumbSearch over IndexedDB |
+| 12 | Tag post-filtering applied to search results |
 | 13 | Results rendered as paper-card Web Components, 20 per page with infinite scroll |
 
 ### Data pipeline
