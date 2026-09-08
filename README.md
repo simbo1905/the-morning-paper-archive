@@ -8,34 +8,81 @@ A static site, no backend. You open it in a browser, it downloads a ~15 MB JSONL
 
 ## Architecture
 
-```
-                    BUILD TIME (offline, manual)                          RUNTIME (browser)
-                    ─────────────────────────────                          ──────────────────
+### Build time and runtime flow
 
-  blog.acolyer.org                                                        index.html
-        │ crawl                                                                 │
-        ▼                                                                       ├── app.js
-  content/*.txt                                                                 │     loadData()
-        │                                                                       │     ├── fetch search_data.jsonl (~15MB)
-        ▼ Mistral Small LLM                                                     │     ├── JSON.parse each line
-  phase1a_metadata.jsonl (995 records)                                          │     ├── validatePaperMeta() ← JTD-style check
-        │                                                                       │     ├── structuralFreeze() ← deep freeze
-        ▼ download PDFs + pdftotext/OCR                                         │     └── storePapers() → IndexedDB
-  papers/*/slug.pdf + slug.txt + slug.json                                      │
-        │                                                                       │     initWasm() (background, non-blocking)
-        ▼ flatten_layout.py                                                     │     ├── import simple_search.js (wasm-bindgen glue)
-  pages/YYYYMMDD.json + .md                                                     │     ├── load simple_search_bg.wasm
-        │                                                                       │     ├── fetch search_data.jsonl
-        ▼ concatenate to JSONL                                                  │     └── new WasmSearcher(data) → BM25 index in WASM
-  wasm-test/search_data.jsonl                                                   │
-                                                                                │     User types query (300ms debounce)
-  wasm-test/simple-search/src/lib.rs                                            │     ├── WASM ready? → wasmSearcher.search() → JSON
-        │ wasm-pack build --target web                                         │     └── fallback  → dumbSearch() (string .includes())
-        ▼                                                                       │
-  web/simple_search.js + simple_search_bg.wasm                                  │     Tag filter → filterByTags() over cached results
-                                                                                │
-                                                                                └── <paper-card> Web Components (20 per page, infinite scroll)
+```mermaid
+flowchart TD
+    subgraph build["Build time - offline, manual"]
+        blog["blog.acolyer.org"]
+        content["content/*.txt"]
+        metadata["phase1a_metadata.jsonl - 995 records"]
+        papers["papers/*/slug.pdf + slug.txt + slug.json"]
+        pages["pages/YYYYMMDD.json + .md"]
+        jsonl["wasm-test/search_data.jsonl"]
+        rust["wasm-test/simple-search/src/lib.rs"]
+        wasm["web/simple_search.js + simple_search_bg.wasm"]
+
+        blog -->|crawl| content
+        content -->|Mistral Small LLM| metadata
+        metadata -->|download PDFs + pdftotext/OCR| papers
+        papers -->|flatten_layout.py| pages
+        pages -->|concatenate to JSONL| jsonl
+        rust -->|wasm-pack build| wasm
+    end
+
+    subgraph runtime["Runtime - browser"]
+        html["index.html"]
+        appjs["app.js"]
+        load["loadData"]
+        validate["validatePaperMeta - JTD check"]
+        freeze["structuralFreeze - deep freeze"]
+        idb["IndexedDB"]
+        initwasm["initWasm - background"]
+        wasmload["load WASM + JSONL"]
+        bm25["WasmSearcher - BM25 index in WASM"]
+        query["User types query - 300ms debounce"]
+        wasmsearch["wasmSearcher.search - JSON"]
+        dumbsearch["dumbSearch - string includes"]
+        tagfilter["Tag filter - filterByTags"]
+        cards["paper-card Web Components - 20 per page, infinite scroll"]
+
+        html --> appjs
+        appjs --> load
+        load -->|fetch search_data.jsonl ~15MB| validate
+        validate --> freeze
+        freeze --> idb
+        appjs -->|background| initwasm
+        initwasm --> wasmload
+        wasmload --> bm25
+        query --> wasmsearch
+        wasmload -.->|if WASM fails| dumbsearch
+        wasmsearch --> tagfilter
+        dumbsearch --> tagfilter
+        tagfilter --> cards
+    end
+
+    jsonl -.->|fetched at runtime| load
+    jsonl -.->|fetched at runtime| wasmload
+    wasm -.->|loaded at runtime| wasmload
 ```
+
+### Step details
+
+| Step | Description |
+|------|-------------|
+| 1 | Crawl blog.acolyer.org to content/*.txt |
+| 2 | Mistral Small LLM extracts metadata to phase1a_metadata.jsonl |
+| 3 | Download paper PDFs, extract text via pdftotext or Tesseract OCR |
+| 4 | flatten_layout.py produces pages/YYYYMMDD.json and .md |
+| 5 | Concatenate all pages/*.json into search_data.jsonl |
+| 6 | wasm-pack compiles Rust BM25 index to WASM |
+| 7 | Browser fetches search_data.jsonl (~15 MB) |
+| 8 | Each line validated with validatePaperMeta, then deep-frozen |
+| 9 | Valid papers stored in IndexedDB, cached across visits |
+| 10 | WASM module loaded in background, builds BM25 index from JSONL |
+| 11 | User query sent to WASM search, falls back to string-contains if WASM unavailable |
+| 12 | Tag post-filtering applied to cached search results |
+| 13 | Results rendered as paper-card Web Components, 20 per page with infinite scroll |
 
 ### Data pipeline
 
@@ -61,24 +108,24 @@ The search engine is a hand-rolled BM25 inverted index in Rust, compiled to WASM
 
 Dependencies: `wasm-bindgen`, `serde`, `serde_json`. Nothing else.
 
-```
-WasmSearcher::new(jsonl_data)
-    ├── Parse JSONL → Vec<Document>
-    ├── For each doc: concatenate title + authors + venue + summary + abstract + topics + tags
-    ├── Tokenize: lowercase, split on non-alphanumeric, filter len > 1
-    ├── Build term frequency map → posting list per term
-    └── Compute avg_doc_length
+**Index construction** (WasmSearcher::new):
 
-WasmSearcher::search(query, limit)
-    ├── Tokenize query
-    ├── For each term: look up postings, compute IDF, BM25 score
-    │     IDF = ln((N - df + 0.5) / (df + 0.5) + 1)
-    │     tf_norm = tf × (k1+1) / (tf + k1 × (1 - b + b × dl/avgdl))
-    │     k1 = 1.5, b = 0.75
-    ├── Sum scores across terms per doc
-    ├── Sort by score descending, truncate to limit
-    └── Return JSON array: [{score, date, title, authors, year, venue, slug}]
-```
+1. Parse JSONL into Vec of Document
+2. For each doc: concatenate title, authors, venue, summary, abstract, topics, tags
+3. Tokenize: lowercase, split on non-alphanumeric, filter tokens longer than 1 char
+4. Build term frequency map and posting list per term
+5. Compute average document length
+
+**Search** (WasmSearcher::search):
+
+1. Tokenize query
+2. For each term: look up postings, compute IDF and BM25 score
+   - IDF = ln((N - df + 0.5) / (df + 0.5) + 1)
+   - tf_norm = tf * (k1+1) / (tf + k1 * (1 - b + b * dl/avgdl))
+   - k1 = 1.5, b = 0.75
+3. Sum scores across terms per doc
+4. Sort by score descending, truncate to limit
+5. Return JSON array of results with score, date, title, authors, year, venue, slug
 
 Fuzzy search uses Levenshtein distance to expand query terms against the in-memory vocabulary before scoring.
 
@@ -104,21 +151,17 @@ Validation happens at every boundary where data crosses from one system to anoth
 
 No framework, no build step, no transpiler, no bundler. Pure ES modules + Web Components + JSDoc.
 
-```
-index.html
-  └── <script type="module">
-        import { init, setupInfiniteScroll } from "./web/src/app.js"
-        import "./web/src/components.js"
+Entry point: `index.html` loads `web/src/app.js` and `web/src/components.js` as ES modules.
 
-web/src/
-  ├── app.js          SPA orchestrator: data loading, search, routing, infinite scroll
-  ├── search.js       Search abstraction: WASM BM25 with fallback to string-contains
-  ├── db.js           IndexedDB layer (papers keyed by date, cached across visits)
-  ├── validate.js     JTD-style runtime validator + structuralFreeze
-  ├── types.js        JSDoc typedefs (PaperMeta, SearchResult, Figure)
-  ├── components.js   Three Web Components (light-DOM, no Shadow DOM)
-  └── styles.css      Dark mode, responsive layout
-```
+| File | Responsibility |
+|------|---------------|
+| `app.js` | SPA orchestrator: data loading, search, routing, infinite scroll |
+| `search.js` | Search abstraction: WASM BM25 with fallback to string-contains |
+| `db.js` | IndexedDB layer (papers keyed by date, cached across visits) |
+| `validate.js` | JTD-style runtime validator + structuralFreeze |
+| `types.js` | JSDoc typedefs (PaperMeta, SearchResult, Figure) |
+| `components.js` | Three Web Components (light-DOM, no Shadow DOM) |
+| `styles.css` | Dark mode, responsive layout |
 
 **Web Components** (all light-DOM, native semantic HTML):
 
@@ -138,25 +181,22 @@ web/src/
 
 ## Repository layout
 
-```
-the-morning-paper-archive/
-├── index.html                      Entry point (GitHub Pages SPA)
-├── .nojekyll                        Disables Jekyll on GitHub Pages
-├── pages/                          995 × YYYYMMDD.json + .md (served statically)
-├── papers/                         Downloaded PDFs + extracted text + figures
-├── content/                        Crawled blog post text
-├── phase1a_metadata.jsonl          995 LLM-extracted metadata records
-├── scripts/                        Python data pipeline (phases 1–6)
-├── wasm-test/
-│   ├── simple-search/              Rust crate (BM25 inverted index → WASM)
-│   ├── search_data.jsonl           995 docs as JSONL (the WASM index input)
-│   └── simple-search-test/         Native Rust test binary
-└── web/
-    ├── simple_search.js             wasm-bindgen generated JS glue
-    ├── simple_search_bg.wasm        Compiled WASM binary
-    ├── nginx.conf                   Local dev config
-    └── src/                         Frontend source (vanilla JS + JSDoc)
-```
+| Path | Description |
+|------|-------------|
+| `index.html` | Entry point (GitHub Pages SPA) |
+| `.nojekyll` | Disables Jekyll on GitHub Pages |
+| `pages/` | 995 files as YYYYMMDD.json + .md (served statically) |
+| `papers/` | Downloaded PDFs + extracted text + figures |
+| `content/` | Crawled blog post text |
+| `phase1a_metadata.jsonl` | 995 LLM-extracted metadata records |
+| `scripts/` | Python data pipeline (phases 1-6) |
+| `wasm-test/simple-search/` | Rust crate (BM25 inverted index compiled to WASM) |
+| `wasm-test/search_data.jsonl` | 995 docs as JSONL (the WASM index input) |
+| `wasm-test/simple-search-test/` | Native Rust test binary |
+| `web/simple_search.js` | wasm-bindgen generated JS glue |
+| `web/simple_search_bg.wasm` | Compiled WASM binary |
+| `web/nginx.conf` | Local dev config |
+| `web/src/` | Frontend source (vanilla JS + JSDoc) |
 
 ## Building from source
 
