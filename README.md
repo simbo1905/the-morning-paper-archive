@@ -1,10 +1,12 @@
-# The Morning Paper Archive
+# The Morning Paper Archive 
 
 An internet archive of [blog.acolyer.org](https://blog.acolyer.org) — Adrian Colyer's "The Morning Paper," a random walk through Computer Science research. The blog went offline for several months in 2017; this project preserves all 995 articles in a searchable, client-side application hosted on GitHub Pages.
 
-## What it is
+# https://simbo1905.github.io/the-morning-paper-archive/
 
-A static site, no backend. You open it in a browser, it downloads a ~15 MB JSONL file containing metadata for all 995 papers, builds a BM25 inverted index in WebAssembly, and runs all search queries locally. No server round-trips after the initial page load.
+## What is it?
+
+A static site, no backend. You open it in a browser; it downloads a ~15 MB JSONL file containing metadata for all 995 papers, builds a BM25 inverted index in WebAssembly, and runs all search queries locally. No server round-trips after the initial page load.
 
 ## Architecture
 
