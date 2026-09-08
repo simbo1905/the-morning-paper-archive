@@ -166,7 +166,7 @@ def main():
             # Build compact JSON for the pages/ folder
             # Include only what's needed for the SPA
             compact = {
-                "date": date8,
+                "date": file_name,
                 "file_name": file_name,
                 "slug": slug,
                 "blog_url": data.get("blog_url", url),
@@ -174,7 +174,7 @@ def main():
                 "blog_summary": data.get("blog_summary", ""),
                 "paper_title": data.get("paper_title", ""),
                 "paper_authors": data.get("paper_authors", []),
-                "paper_year": data.get("paper_year", 0),
+                "paper_year": data.get("paper_year") or 0,
                 "paper_venue": data.get("paper_venue") or "",
                 "paper_url": data.get("paper_url") or "",
                 "paper_abstract": data.get("paper_abstract") or "",
@@ -192,7 +192,7 @@ def main():
         else:
             # Write a minimal JSON from the metadata record
             compact = {
-                "date": date8,
+                "date": file_name,
                 "file_name": file_name,
                 "slug": slug,
                 "blog_url": url,
@@ -200,7 +200,7 @@ def main():
                 "blog_summary": rec.get("blog_summary", ""),
                 "paper_title": rec.get("paper_title", ""),
                 "paper_authors": rec.get("paper_authors", []),
-                "paper_year": rec.get("paper_year", 0),
+                "paper_year": rec.get("paper_year") or 0,
                 "paper_venue": rec.get("paper_venue", "") or "",
                 "paper_url": rec.get("paper_url", "") or "",
                 "paper_abstract": "",
