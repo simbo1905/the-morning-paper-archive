@@ -1,0 +1,24 @@
+# web/nginx.local.conf.in — template; Makefile substitutes @ROOT@/,@PORT@/,@PID@/,@LOG@/
+worker_processes 1;
+pid @PID@;
+error_log @LOG@;
+events {
+    worker_connections 1024;
+}
+http {
+    access_log off;
+    server {
+        listen @PORT@;
+        root @ROOT@;
+        add_header 'Access-Control-Allow-Origin' '*';
+        types {
+            application/wasm wasm;
+            application/javascript js;
+            text/html html;
+            application/json json;
+            text/plain txt md jsonl;
+            text/css css;
+            application/octet-stream bin;
+        }
+    }
+}
