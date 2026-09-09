@@ -89,6 +89,7 @@ export async function init() {
       await loadData(reporter);
     } else {
       console.log("[phase] IndexedDB warm: JSONL fetch skipped");
+      if (jsonlExpected) reporter.relinquish(jsonlExpected);
     }
     console.log("[phase] IndexedDB ready");
 

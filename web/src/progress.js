@@ -82,6 +82,17 @@ export class ProgressReporter {
   }
 
   /**
+   * Remove previously expected bytes that will not be fetched (warm-visit
+   * IndexedDB hit), so the bar renormalizes instead of ending short of 100%.
+   * @param {number} bytes
+   * @returns {void}
+   */
+  relinquish(bytes) {
+    this.#expected = Math.max(0, this.#expected - bytes);
+    this.#emit();
+  }
+
+  /**
    * Account `bytes` received.
    * @param {number} bytes
    * @returns {void}

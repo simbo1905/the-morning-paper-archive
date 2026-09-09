@@ -167,6 +167,17 @@
         r.add(1);
         assert(r.percent() === 33, `percent ${r.percent()}`);
       });
+      test("ProgressReporter: relinquish renormalizes warm-skip denominator", () => {
+        const r = new progressMod.ProgressReporter();
+        r.expect(5100000);
+        r.expect(990000);
+        r.add(5100000);
+        assert(r.percent() === 83, `pre-relinquish ${r.percent()}`);
+        r.relinquish(990000);
+        assert(r.percent() === 100, `post-relinquish ${r.percent()}`);
+        r.add(990000);
+        assert(r.percent() === 100, `overshoot after relinquish ${r.percent()}`);
+      });
       test("ProgressReporter: onUpdate emissions on expect+add", () => {
         /** @type {number[]} */
         const seen = [];
