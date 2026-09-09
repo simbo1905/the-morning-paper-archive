@@ -3,7 +3,7 @@
  * Handles: loading overlay, data loading, tag autocomplete, search, infinite scroll, routing.
  */
 
-import { hasData, storePapers } from "./db.js";
+import { clearData, hasData, storePapers } from "./db.js";
 import { search, fuzzySearch, filterByTags, getAllTags, getCachedResults, initArticleSearch, getTagCounts, fetchIndexManifest } from "./search.js";
 import { fetchTextWithProgress, fetchWithProgress, fmtBytes, ProgressReporter } from "./progress.js";
 import { decompressGzip } from "./decompress.js";
@@ -24,7 +24,7 @@ let firstQueryLogged = false;
 /** @type {number} */
 let jsonlExpected = 0;
 
-/** @type {{file: string, bytes: number, rawBytes: number, encoding?: string} | null} */
+/** @type {{file: string, bytes: number, rawBytes: number, encoding?: string, dataVersion?: string} | null} */
 let jsonlInfo = null;
 
 const PAGE_SIZE = 20;
@@ -83,7 +83,18 @@ export async function init() {
     }
 
     // Phase: JSONL metadata (first visit only; IndexedDB hit on warm visits).
-    if (!(await hasData())) {
+    // A stored data-version that differs from the manifest's (including
+    // visitors from the pre-tantivy site, which stored none) forces a
+    // re-bootstrap so stale metadata can never masquerade as current.
+    const dataVersion = jsonlInfo?.dataVersion ?? null;
+    const storedVersion = localStorage.getItem("mp-data-version");
+    const warm = await hasData();
+    const stale = warm && dataVersion !== null && storedVersion !== dataVersion;
+    if (!warm || stale) {
+      if (stale) {
+        console.warn("[data] stored metadata version " +
+          `${storedVersion ?? "(none)"} != ${dataVersion} — re-bootstrapping IndexedDB`);
+      }
       setLoadingStatus("Fetching paper metadata...");
       console.log("[phase] JSONL");
       await loadData(reporter);
@@ -91,6 +102,7 @@ export async function init() {
       console.log("[phase] IndexedDB warm: JSONL fetch skipped");
       if (jsonlExpected) reporter.relinquish(jsonlExpected);
     }
+    if (dataVersion !== null) localStorage.setItem("mp-data-version", dataVersion);
     console.log("[phase] IndexedDB ready");
 
     updateSearchMode(tantivyInfo);

@@ -18,6 +18,17 @@ fn gz_bytes(data: &[u8]) -> Result<Vec<u8>, std::io::Error> {
     enc.finish()
 }
 
+/// FNV-1a 64-bit hash of the bytes, as hex. Change-detection token only,
+/// not a cryptographic hash.
+fn fnv1a64_hex(data: &[u8]) -> String {
+    let mut hash: u64 = 0xcbf29ce484222325;
+    for &b in data {
+        hash ^= b as u64;
+        hash = hash.wrapping_mul(0x100000001b3);
+    }
+    format!("{hash:016x}")
+}
+
 /// Shard the md article index into N chronological bins under web/tantivy/,
 /// each packed in the blob manifest format. Writes BOTH rungs to disk:
 /// shard-NN.bin (raw, the oracle) and shard-NN.bin.gz (wire, gzip -9), plus
@@ -134,6 +145,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "bytes": jsonl_gz.len(),
             "rawBytes": jsonl_raw.len(),
             "encoding": "gzip",
+            // Change-detection token (FNV-1a 64 of the raw JSONL bytes, hex).
+            // The browser re-bootstraps its IndexedDB when this differs from
+            // the version it stored on the previous visit.
+            "dataVersion": fnv1a64_hex(&jsonl_raw),
         },
         "schema": schema_json,
         "shards": shards_json,
