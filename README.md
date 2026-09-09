@@ -81,7 +81,7 @@ Six-phase Python pipeline that crawls the blog, extracts metadata via LLM, downl
 | 6 | `phase6_build_json.py` | Merges metadata + abstract + figures into final JTD-compliant JSON per paper |
 | — | `flatten_layout.py` | Flattens to `pages/YYYYMMDD.json` + `pages/YYYYMMDD.md` |
 
-All scripts use `#!/usr/bin/env -S uv -S python3` shebangs and have resume capability (skip-if-exists, progress JSON). `papers/` is the pipeline working directory (downloaded PDFs, extracted text, figures); it is not tracked in git.
+All scripts use a `uv` shebang (`#!/usr/bin/env -S uv run --script`, dependencies declared in the PEP 723 comment block) and have resume capability (skip-if-exists, progress JSON). `papers/` is the pipeline working directory (downloaded PDFs, extracted text, figures); it is not tracked in git.
 
 ## Search
 
@@ -111,7 +111,7 @@ The full-article search engine is Tantivy, compiled to WASM via `wasm-bindgen`. 
 
 **Merged semantics** (`web/src/merge.js`): results from both engines are deduped by date, score is the max of the two engines, and each result is annotated `source: "article" | "json" | "both"`. Output sorted by score desc, ties break to the newer date. An empty query is a listing of all 995 papers, newest first — not a search.
 
-**No hidden fallback**: the old `simple_search.js` / `simple_search_bg.wasm` WASM search is deleted from the site. If Tantivy fails to initialise, the UI logs the failure loudly (`console.warn`) and the search-mode indicator honestly shows "JSON only" — no silent mode switching, no fake results.
+**No hidden fallback**: there is exactly one Tantivy engine and one JSON engine; neither silently replaces the other. If Tantivy fails to initialise, the UI logs the failure loudly (`console.warn`) and the search-mode indicator honestly shows "JSON only" — no silent mode switching, no fake results.
 
 ## Wire format and sizes
 
@@ -226,6 +226,22 @@ Representative measured values (Apple Silicon host, release builds; per-run valu
 | Browser: fetch 20 shards (localhost, raw rung) | 41 ms |
 | Browser: WASM init (unpack + index open, 995 docs) | 6 ms |
 
+## Porting the technique
+
+The whole design is corpus-agnostic. To give any static knowledge base a real full-text search engine with zero backend, replicate these nine decisions:
+
+1. **Prebuild the index offline with a real engine.** Build a Tantivy index once, natively, over the final rendered documents (here: the 995 article markdown bodies). Never build the index per visit in the browser.
+2. **Shard chronologically and pack each shard into one blob.** ~50 docs per shard, one blob per shard in a self-describing format (`u32 LE manifest_len | "filename:offset:len" lines | concatenated bytes`). Shards fetch in parallel and the packer can regroup them at will (one big blob or N shards).
+3. **Serve compressed bytes as plain octet-stream.** Gzip at build time, ship with no `Content-Encoding` header; the browser treats the payload as opaque bytes and the progress bar tracks true wire size. Decompress client-side with native `DecompressionStream` — a hard requirement with an honest failure message, never a silent fallback.
+4. **Load blobs into an in-memory directory, not a filesystem.** The WASM crate unpacks each blob into a `RamDirectory` (skipping the two lock files) and opens the index — the mmap-equivalent for the browser: a `Vec<u8>` behind a `Directory` implementation. Tantivy needs `default-features = false` (no mmap) plus `getrandom` with the `wasm_js` feature for `wasm32-unknown-unknown`.
+5. **Query across shards, merge by score.** Same schema and parser in every shard (conjunction-by-default); results carry `{date, score, shardIndex}` and merge client-side.
+6. **Two search layers, merged, source-annotated.** Full-text BM25 over bodies plus a plain string-contains over structured metadata (kept in IndexedDB), deduped by document id, max score wins, `source: article | json | both`. An empty query is a listing, not a search.
+7. **Gate everything against an oracle.** Build the same corpus with Whoosh (`scripts/whoosh_oracle.py`), fix a battery of queries + expected hit counts, and require the real engine to match 7/7 natively, in the browser, and on the deployed site. No "sounds plausible" — counts only.
+8. **Loading is all-or-nothing.** Full-viewport overlay with a wire-byte progress bar from the first paint; the page does not exist for the user until every byte is in. `fetchWithProgress` (ReadableStream) per asset, one aggregated `ProgressReporter` so the bar never jumps backwards (renormalize on warm-visit skips with `relinquish`).
+9. **Version the corpus.** The manifest carries a `dataVersion` (FNV-1a of the corpus bytes); the browser re-bootstraps its IndexedDB when it differs, so returning visitors can never keep serving stale metadata.
+
+Costs measured on this corpus: 6.4 MB total wire (10.2 MB raw) for index + metadata, 2.1 MB WASM, sub-10 ms queries in-browser, one-time build per data change.
+
 ## Repository layout
 
 | Path | Description |
@@ -241,11 +257,6 @@ Representative measured values (Apple Silicon host, release builds; per-run valu
 | `wasm-test/search_data.jsonl.gz` | Gzip rung of the JSONL, 988,746 bytes |
 | `wasm-test/tantivy-native/` | Native Rust crate: builds the Tantivy md-article index, packs it as a single blob and as 20 shards |
 | `wasm-test/tantivy-search/` | Rust crate compiled to WASM: blob loader + merged searcher |
-| `wasm-test/simple-search/` | Superseded hand-rolled BM25 Rust crate (kept as history; not on the site) |
-| `wasm-test/simple-search-test/` | Superseded native test harness for the hand-rolled crate |
-| `wasm-test/simple_search.js` / `.wasm` | Legacy WASM artifacts of the superseded engine (not loaded by the site) |
-| `wasm-test/seekstorm-native/` | Abandoned SeekStorm evaluation crate |
-| `wasm-test/tantivy-native/tantivy_index.blob` | Abandoned 1,957,372-byte metadata-field index (real, loadable; superseded corpus design) |
 | `web/tantivy/` | `manifest.json` + `manifest.raw.json` + 20 shard `.bin` (raw) + `.bin.gz` (wire) |
 | `web/tantivy_search.js` | wasm-bindgen generated JS glue for tantivy-search |
 | `web/tantivy_search_bg.wasm` | Compiled WASM binary for tantivy-search |

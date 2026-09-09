@@ -5,8 +5,7 @@ use std::path::Path;
 use tantivy::directory::RamDirectory;
 use tantivy::{Directory, Index};
 
-/// Packed-blob format (byte-compatible with the original build_index.rs
-/// packer, and with the item03/04 consumers):
+/// Packed-blob format (shared by the packers and the wasm crate consumers):
 ///
 ///   u32 LE  manifest_len
 ///   manifest: "filename:offset:len" lines, separated by '\n' (no trailing
