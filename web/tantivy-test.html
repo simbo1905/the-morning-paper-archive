@@ -51,7 +51,37 @@
 
     const fmtBytes = (n) => n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${(n / 1024).toFixed(1)} KB`;
 
+    /**
+     * Decompress gzip bytes via the native DecompressionStream (hard
+     * requirement on the gzip rung — no silent fallback).
+     * @param {Uint8Array} compressed
+     * @returns {Promise<Uint8Array>}
+     */
+    async function decompressGzip(compressed) {
+      if (typeof DecompressionStream === "undefined") {
+        throw new Error("browser too old for gzip index — needs DecompressionStream");
+      }
+      const ds = new DecompressionStream("gzip");
+      const writer = ds.writable.getWriter();
+      writer.write(compressed);
+      writer.close();
+      const reader = ds.readable.getReader();
+      const chunks = [];
+      let total = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        total += value.length;
+      }
+      const out = new Uint8Array(total);
+      let off = 0;
+      for (const c of chunks) { out.set(c, off); off += c.length; }
+      return out;
+    }
+
     const t0 = performance.now();
+    (async () => {
     const mod = await import(new URL("./tantivy_search.js", document.baseURI).href);
     await mod.default();
     const TantivySearcher = mod.TantivySearcher;
@@ -69,10 +99,11 @@
         const note = total ? `${(100 * received / total).toFixed(0)}%` : fmtBytes(received);
         if (received === total || !total) console.log(`  ${shard.file}: ${note}`);
       });
+      const raw = shard.encoding === "gzip" ? await decompressGzip(bytes) : bytes;
       const ms = performance.now() - started;
       bytesLoaded += bytes.length;
-      console.log(`${shard.file}: ${fmtBytes(bytes.length)} in ${ms.toFixed(0)} ms`);
-      shardBuffers.push(bytes);
+      console.log(`${shard.file}: ${fmtBytes(bytes.length)} wire (raw ${fmtBytes(raw.length)}) in ${ms.toFixed(0)} ms`);
+      shardBuffers.push(raw);
     }
     const loadMs = performance.now() - loadStart;
     log(`shards fetched: ${shardBuffers.length} files, ${fmtBytes(bytesLoaded)} in ${loadMs.toFixed(0)} ms`);
@@ -106,6 +137,11 @@
     const allPass = passCount === ORACLE.length && numDocs === manifest.totalDocs;
     log(`battery: ${passCount}/${ORACLE.length} PASS, num_docs=${numDocs} (need 995) -> ${allPass ? "ALL PASS" : "FAIL"}`);
     console.log(`SUMMARY: ${passCount}/${ORACLE.length} PASS; num_docs=${numDocs}; load=${loadMs.toFixed(0)} ms; init=${initMs.toFixed(0)} ms`);
+  })().catch((err) => {
+    const msg = "FATAL: " + (err instanceof Error ? `${err.name}: ${err.message}` : String(err));
+    console.error(msg);
+    document.getElementById("status").textContent += msg + "\n";
+  });
   </script>
 </body>
 </html>
