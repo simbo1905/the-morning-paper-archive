@@ -8,6 +8,7 @@
 import { getAllPapers } from "./db.js";
 import { mergeResults } from "./merge.js";
 import { fetchWithProgress, fmtBytes } from "./progress.js";
+import { decompressGzip } from "./decompress.js";
 
 /** @type {import("./types.js").PaperMeta[] | null} */
 let allPapers = null;
@@ -25,6 +26,51 @@ let tantivySearcher = null;
 let tantivyReady = false;
 
 /**
+ * One packed shard as declared by the manifest. `bytes` is the wire size
+ * (compressed when encoding = "gzip"); rawBytes is the size after
+ * decompression and the blob handed to add_shard.
+ * @typedef {Object} ManifestShard
+ * @property {string} file
+ * @property {number} docs
+ * @property {string} firstDate
+ * @property {string} lastDate
+ * @property {number} bytes
+ * @property {number} [rawBytes]
+ * @property {string} [encoding]
+ */
+
+/**
+ * Shard index manifest. totalBytes/totalRawBytes cover the shards only;
+ * jsonl describes the metadata JSONL wire rung (gzip or absent for raw).
+ * @typedef {Object} Manifest
+ * @property {number} numShards
+ * @property {number} totalDocs
+ * @property {number} [totalBytes]
+ * @property {number} [totalRawBytes]
+ * @property {{file: string, bytes: number, rawBytes: number, encoding?: string}} [jsonl]
+ * @property {ReadonlyArray<ManifestShard>} shards
+ */
+
+/** @type {Promise<Manifest> | null} */
+let manifestPromise = null;
+
+/**
+ * Fetch (once) the shard index manifest. Shared with app.js so the JSONL
+ * rung selection and the shard loader agree on one manifest.
+ * @returns {Promise<Manifest>} parsed manifest.json
+ */
+export function fetchIndexManifest() {
+  if (!manifestPromise) {
+    manifestPromise = (async () => {
+      const resp = await fetch(new URL("../tantivy/manifest.json", import.meta.url).href);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status} for tantivy/manifest.json`);
+      return resp.json();
+    })();
+  }
+  return manifestPromise;
+}
+
+/**
  * Load all papers from IndexedDB into memory.
  * @returns {Promise<ReadonlyArray<import("./types.js").PaperMeta>>}
  */
@@ -37,42 +83,52 @@ async function ensureLoaded() {
 }
 
 /**
- * Load the Tantivy article index: fetch the 20 packed shard .bin files in
- * parallel (byte progress aggregated into the reporter), then unpack them
- * into a TantivySearcher.
- * @param {{ reporter?: import("./progress.js").ProgressReporter }} [hooks]
+ * Load the Tantivy article index: fetch the 20 packed shard files in
+ * parallel (wire byte progress aggregated into the reporter — the wire
+ * bytes ARE the compressed rung, so the progress bar tracks real network
+ * time), decompress gzip shards client-side, then unpack them into a
+ * TantivySearcher. The rung comes from the manifest: shards declaring
+ * encoding "gzip" are decompressed before add_shard; shards without the
+ * field are used raw. A gzip rung on a browser without DecompressionStream
+ * throws DecompressionUnsupported — never a silent fallback.
+ * @param {{ reporter?: import("./progress.js").ProgressReporter, onManifest?: (info: {wireBytes: number, rawBytes: number}) => void }} [hooks]
  * @returns {Promise<{numDocs: number, initMs: number, loadMs: number, shardCount: number}>}
  */
-export async function initArticleSearch({ reporter } = {}) {
+export async function initArticleSearch({ reporter, onManifest } = {}) {
   const t0 = performance.now();
   // Assets live next to this module (web/tantivy_search.js, web/tantivy/),
   // so resolve relative to import.meta.url — document.baseURI differs between
   // index.html (site root) and web/src-tests.html (web/).
   const mod = await import(new URL("../tantivy_search.js", import.meta.url).href);
   await mod.default();
-  const manifestResp = await fetch(new URL("../tantivy/manifest.json", import.meta.url).href);
-  if (!manifestResp.ok) throw new Error(`HTTP ${manifestResp.status} for tantivy/manifest.json`);
-  const manifest = await manifestResp.json();
+  const manifest = await fetchIndexManifest();
   console.log(`[shards] ${manifest.numShards} shards, ${manifest.totalDocs} docs expected`);
 
+  let wireTotal = 0;
+  let rawTotal = 0;
   for (const shard of manifest.shards) {
     if (reporter) reporter.expect(shard.bytes);
+    wireTotal += shard.bytes;
+    rawTotal += shard.rawBytes ?? shard.bytes;
   }
+  if (onManifest) onManifest({ wireBytes: wireTotal, rawBytes: rawTotal });
+
   const loadStart = performance.now();
   const buffers = await Promise.all(manifest.shards.map(async (shard) => {
     const url = new URL(`../tantivy/${shard.file}`, import.meta.url).href;
     const started = performance.now();
     let last = 0;
-    const bytes = await fetchWithProgress(url, (received) => {
+    const wire = await fetchWithProgress(url, (received) => {
       if (reporter) reporter.add(received - last);
       last = received;
     });
     const ms = performance.now() - started;
-    console.log(`${shard.file}: ${fmtBytes(bytes.length)} in ${ms.toFixed(1)} ms`);
+    const bytes = shard.encoding === "gzip" ? await decompressGzip(wire) : wire;
+    console.log(`${shard.file}: ${fmtBytes(wire.length)}${shard.encoding === "gzip" ? ` wire (raw ${fmtBytes(bytes.length)})` : ""} in ${ms.toFixed(1)} ms`);
     return bytes;
   }));
   const loadMs = performance.now() - loadStart;
-  console.log(`[shards] ${buffers.length} files, ${fmtBytes(buffers.reduce((sum, b) => sum + b.length, 0))} in ${loadMs.toFixed(1)} ms`);
+  console.log(`[shards] ${buffers.length} files, ${fmtBytes(buffers.reduce((sum, b) => sum + b.length, 0))} raw in ${loadMs.toFixed(1)} ms`);
 
   const initStart = performance.now();
   tantivySearcher = new mod.TantivySearcher();

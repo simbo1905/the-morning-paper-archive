@@ -196,6 +196,87 @@
       }
     }
 
+    // ---------- pure: decompress.js (gzip rung) ----------
+    /**
+     * Compress bytes with the browser's CompressionStream — the test-side
+     * encoder we control.
+     * @param {Uint8Array} bytes
+     * @returns {Promise<Uint8Array>}
+     */
+    async function gzipBytes(bytes) {
+      const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));
+      return new Uint8Array(await new Response(stream).arrayBuffer());
+    }
+
+    /**
+     * @param {Uint8Array} a
+     * @param {Uint8Array} b
+     * @returns {boolean}
+     */
+    function bytesEqual(a, b) {
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return false;
+      }
+      return true;
+    }
+
+    /** @type {typeof import("./src/decompress.js") | null} */
+    let decompressMod = null;
+    try {
+      decompressMod = await import("./src/decompress.js");
+    } catch (err) {
+      report("import decompress.js", false, String(err));
+    }
+    if (decompressMod) {
+      await testAsync("decompress: gzip roundtrip via CompressionStream", async () => {
+        const sample = new TextEncoder().encode("the morning paper — compression rung C: ".repeat(40) + "tail");
+        const gz = await gzipBytes(sample);
+        const back = await decompressMod.decompressGzip(gz);
+        assert(bytesEqual(back, sample), "roundtrip bytes differ");
+        assert(gz.length < sample.length, `gz ${gz.length} not smaller than raw ${sample.length}`);
+      });
+      await testAsync("decompress: rejects non-gzip bytes", async () => {
+        let threw = false;
+        try {
+          await decompressMod.decompressGzip(new TextEncoder().encode("plain text, not gzip"));
+        } catch {
+          threw = true;
+        }
+        assert(threw, "expected decompressGzip to throw on non-gzip input");
+      });
+      await testAsync("shards: .bin.gz decompresses to exact .bin bytes", async () => {
+        const raw = await progressMod.fetchWithProgress(new URL("./tantivy/shard-00.bin", document.baseURI).href);
+        const wire = await progressMod.fetchWithProgress(new URL("./tantivy/shard-00.bin.gz", document.baseURI).href);
+        assert(wire.length < raw.length, `wire ${wire.length} not smaller than raw ${raw.length}`);
+        const back = await decompressMod.decompressGzip(wire);
+        assert(bytesEqual(back, raw), "decompressed shard != raw shard");
+        return `raw ${raw.length} B -> wire ${wire.length} B (${(100 * wire.length / raw.length).toFixed(1)}%)`;
+      });
+      await testAsync("jsonl: search_data.jsonl.gz decompresses to 995 lines", async () => {
+        const wire = await progressMod.fetchWithProgress(new URL("../wasm-test/search_data.jsonl.gz", document.baseURI).href);
+        const text = new TextDecoder().decode(await decompressMod.decompressGzip(wire));
+        const lines = text.split("\n").filter(l => l.trim());
+        assert(lines.length === 995, `lines ${lines.length}`);
+        return `${wire.length} B wire, 995 lines`;
+      });
+      await testAsync("manifest: declared shard sizes match wire and raw bytes", async () => {
+        const manifestResp = await fetch(new URL("./tantivy/manifest.json", document.baseURI).href);
+        const manifest = await manifestResp.json();
+        const s0 = manifest.shards[0];
+        const wire = await progressMod.fetchWithProgress(new URL(`./tantivy/${s0.file}`, document.baseURI).href);
+        assert(wire.length === s0.bytes, `wire ${wire.length} != declared bytes ${s0.bytes}`);
+        if (s0.encoding === "gzip") {
+          const raw = await progressMod.fetchWithProgress(new URL(`./tantivy/${s0.file.replace(/\.gz$/, "")}`, document.baseURI).href);
+          assert(raw.length === s0.rawBytes, `raw ${raw.length} != declared rawBytes ${s0.rawBytes}`);
+          const back = await decompressMod.decompressGzip(wire);
+          assert(bytesEqual(back, raw), "decompressed != raw");
+          return `gzip rung: wire ${wire.length} B, raw ${raw.length} B`;
+        }
+        return "raw rung: encoding absent, wire check only";
+      });
+    }
+
     // ---------- integration: IndexedDB + tantivy + merged search ----------
     try {
       const dbMod = await import("./src/db.js");

@@ -11,6 +11,8 @@ http {
         listen @PORT@;
         root @ROOT@;
         add_header 'Access-Control-Allow-Origin' '*';
+        # Local dev only: never let the browser cache assets between runs.
+        expires -1;
         types {
             application/wasm wasm;
             application/javascript js;
@@ -18,7 +20,7 @@ http {
             application/json json;
             text/plain txt md jsonl;
             text/css css;
-            application/octet-stream bin;
+            application/octet-stream bin gz;
         }
     }
 }

@@ -4,8 +4,9 @@
  */
 
 import { hasData, storePapers } from "./db.js";
-import { search, fuzzySearch, filterByTags, getAllTags, getCachedResults, initArticleSearch, getTagCounts } from "./search.js";
-import { fetchTextWithProgress, ProgressReporter } from "./progress.js";
+import { search, fuzzySearch, filterByTags, getAllTags, getCachedResults, initArticleSearch, getTagCounts, fetchIndexManifest } from "./search.js";
+import { fetchTextWithProgress, fetchWithProgress, fmtBytes, ProgressReporter } from "./progress.js";
+import { decompressGzip } from "./decompress.js";
 import { structuralFreeze, validatePaperMeta } from "./validate.js";
 
 /** @type {ReadonlyArray<string>} */
@@ -23,6 +24,9 @@ let firstQueryLogged = false;
 /** @type {number} */
 let jsonlExpected = 0;
 
+/** @type {{file: string, bytes: number, rawBytes: number, encoding?: string} | null} */
+let jsonlInfo = null;
+
 const PAGE_SIZE = 20;
 
 /**
@@ -31,27 +35,50 @@ const PAGE_SIZE = 20;
 export async function init() {
   const t0 = performance.now();
   const reporter = new ProgressReporter(setProgress);
-  // Declare the full expected payload up front (shards + JSONL) so the bar
-  // never jumps backwards when a later phase reports its size.
+  // One shared manifest read decides both rungs: shard encoding and the
+  // JSONL wire format. Without a manifest we fall back to the legacy raw
+  // JSONL path (network failure case, not a capability fallback).
   try {
-    const head = await fetch(new URL("./wasm-test/search_data.jsonl", document.baseURI).href, { method: "HEAD" });
-    if (head.ok) {
-      jsonlExpected = Number(head.headers.get("content-length")) || 0;
-      if (jsonlExpected) reporter.expect(jsonlExpected);
+    const manifest = await fetchIndexManifest();
+    if (manifest.jsonl) {
+      jsonlInfo = manifest.jsonl;
+      jsonlExpected = manifest.jsonl.bytes;
+      reporter.expect(manifest.jsonl.bytes);
     }
   } catch {
-    // JSONL size declared lazily in loadData on the first progress event
+    // No manifest — JSONL size declared lazily in loadData on the first
+    // progress event (legacy HEAD probe below).
+  }
+  if (!jsonlInfo) {
+    // Declare the full expected payload up front so the bar never jumps
+    // backwards when a later phase reports its size.
+    try {
+      const head = await fetch(new URL("./wasm-test/search_data.jsonl", document.baseURI).href, { method: "HEAD" });
+      if (head.ok) {
+        jsonlExpected = Number(head.headers.get("content-length")) || 0;
+        if (jsonlExpected) reporter.expect(jsonlExpected);
+      }
+    } catch {
+      // JSONL size declared lazily in loadData on the first progress event
+    }
   }
   try {
     // Phase: shards + WASM init. If tantivy fails we continue JSON-only,
-    // loudly — no silent degradation, no fake results.
+    // loudly — no silent degradation, no fake results. Capability failures
+    // (missing DecompressionStream on a gzip rung) stop the load instead.
     setLoadingStatus("Loading Tantivy article index...");
     console.log("[phase] shards");
     /** @type {{numDocs: number, initMs: number, loadMs: number, shardCount: number} | null} */
     let tantivyInfo = null;
     try {
-      tantivyInfo = await initArticleSearch({ reporter });
+      tantivyInfo = await initArticleSearch({
+        reporter,
+        onManifest: ({ wireBytes, rawBytes }) => {
+          setLoadingStatus(`Loading Tantivy article index (${fmtBytes(rawBytes)} raw index → ${fmtBytes(wireBytes)} wire)...`);
+        },
+      });
     } catch (err) {
+      if (err instanceof Error && err.name === "DecompressionUnsupported") throw err;
       console.warn("[tantivy] article index failed to load — running JSON only:", err);
     }
 
@@ -97,20 +124,34 @@ export async function init() {
 }
 
 /**
- * Load paper metadata from the JSONL file and store in IndexedDB.
+ * Load paper metadata from the JSONL file (raw or gzip rung per the
+ * manifest) and store in IndexedDB.
  * @param {import("./progress.js").ProgressReporter} reporter
  */
 async function loadData(reporter) {
-  const url = new URL("./wasm-test/search_data.jsonl", document.baseURI).href;
+  const url = new URL(`./wasm-test/${jsonlInfo ? jsonlInfo.file : "search_data.jsonl"}`, document.baseURI).href;
   let last = 0;
-  const text = await fetchTextWithProgress(url, (received, total) => {
-    if (total && !jsonlExpected) {
-      jsonlExpected = total;
-      reporter.expect(total);
-    }
-    reporter.add(received - last);
-    last = received;
-  });
+  /** @type {string} */
+  let text;
+  if (jsonlInfo && jsonlInfo.encoding === "gzip") {
+    const started = performance.now();
+    const wire = await fetchWithProgress(url, (received) => {
+      reporter.add(received - last);
+      last = received;
+    });
+    const raw = await decompressGzip(wire);
+    text = new TextDecoder().decode(raw);
+    console.log(`[jsonl] ${jsonlInfo.file}: ${fmtBytes(wire.length)} wire (raw ${fmtBytes(raw.length)}) in ${(performance.now() - started).toFixed(1)} ms`);
+  } else {
+    text = await fetchTextWithProgress(url, (received, total) => {
+      if (total && !jsonlExpected) {
+        jsonlExpected = total;
+        reporter.expect(total);
+      }
+      reporter.add(received - last);
+      last = received;
+    });
+  }
   const papers = [];
   for (const line of text.split("\n")) {
     if (!line.trim()) continue;
