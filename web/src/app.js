@@ -1,10 +1,11 @@
 /**
  * Main SPA application module.
- * Handles: WASM init, data loading, tag autocomplete, search, infinite scroll, routing.
+ * Handles: loading overlay, data loading, tag autocomplete, search, infinite scroll, routing.
  */
 
 import { hasData, storePapers } from "./db.js";
-import { search, fuzzySearch, filterByTags, getAllTags, getCachedResults, initWasm, getSearchMode, getTagCounts } from "./search.js";
+import { search, fuzzySearch, filterByTags, getAllTags, getCachedResults, initArticleSearch, getTagCounts } from "./search.js";
+import { fetchTextWithProgress, ProgressReporter } from "./progress.js";
 import { structuralFreeze, validatePaperMeta } from "./validate.js";
 
 /** @type {ReadonlyArray<string>} */
@@ -16,58 +17,100 @@ let currentResults = [];
 /** @type {number} */
 let visibleCount = 0;
 
+/** @type {boolean} */
+let firstQueryLogged = false;
+
+/** @type {number} */
+let jsonlExpected = 0;
+
 const PAGE_SIZE = 20;
 
 /**
  * Initialize the SPA.
  */
 export async function init() {
-  const status = document.getElementById("status");
-  if (status) status.textContent = "Loading data...";
-
-  // Check if data is in IndexedDB
-  const has = await hasData();
-  if (!has) {
-    if (status) status.textContent = "Fetching paper metadata...";
-    await loadData();
+  const t0 = performance.now();
+  const reporter = new ProgressReporter(setProgress);
+  // Declare the full expected payload up front (shards + JSONL) so the bar
+  // never jumps backwards when a later phase reports its size.
+  try {
+    const head = await fetch(new URL("./wasm-test/search_data.jsonl", document.baseURI).href, { method: "HEAD" });
+    if (head.ok) {
+      jsonlExpected = Number(head.headers.get("content-length")) || 0;
+      if (jsonlExpected) reporter.expect(jsonlExpected);
+    }
+  } catch {
+    // JSONL size declared lazily in loadData on the first progress event
   }
+  try {
+    // Phase: shards + WASM init. If tantivy fails we continue JSON-only,
+    // loudly — no silent degradation, no fake results.
+    setLoadingStatus("Loading Tantivy article index...");
+    console.log("[phase] shards");
+    /** @type {{numDocs: number, initMs: number, loadMs: number, shardCount: number} | null} */
+    let tantivyInfo = null;
+    try {
+      tantivyInfo = await initArticleSearch({ reporter });
+    } catch (err) {
+      console.warn("[tantivy] article index failed to load — running JSON only:", err);
+    }
 
-  // Initialize WASM search in background
-  initWasm().then(() => {
-    updateSearchMode();
-  }).catch(() => {});
+    // Phase: JSONL metadata (first visit only; IndexedDB hit on warm visits).
+    if (!(await hasData())) {
+      setLoadingStatus("Fetching paper metadata...");
+      console.log("[phase] JSONL");
+      await loadData(reporter);
+    } else {
+      console.log("[phase] IndexedDB warm: JSONL fetch skipped");
+    }
+    console.log("[phase] IndexedDB ready");
 
-  if (status) status.textContent = "Ready";
+    updateSearchMode(tantivyInfo);
 
-  // Setup tag autocomplete
-  setupTagAutocomplete();
+    // Setup tag autocomplete
+    setupTagAutocomplete();
 
-  // Setup search
-  setupSearch();
+    // Setup search
+    setupSearch();
 
-  // Setup fuzzy search toggle
-  setupFuzzyToggle();
+    // Setup fuzzy search toggle
+    setupFuzzyToggle();
 
-  // Setup routing
-  setupRouting();
+    // Setup routing
+    setupRouting();
 
-  // Initial search (empty = show all)
-  await doSearch("");
+    // Initial search (empty = show all)
+    await doSearch("");
 
-  // Hide status
-  if (status) status.style.display = "none";
+    // Hide status
+    const status = document.getElementById("status");
+    if (status) status.style.display = "none";
 
-  // Setup word cloud
-  setupWordCloud();
+    // Setup word cloud
+    setupWordCloud();
+
+    hideLoading();
+    console.log(`[timing] load + init + first query in ${(performance.now() - t0).toFixed(0)} ms`);
+  } catch (err) {
+    showLoadingError(err);
+  }
 }
 
 /**
  * Load paper metadata from the JSONL file and store in IndexedDB.
+ * @param {import("./progress.js").ProgressReporter} reporter
  */
-async function loadData() {
-  const response = await fetch("./wasm-test/search_data.jsonl");
-  if (!response.ok) throw new Error(`Failed to fetch data: ${response.status}`);
-  const text = await response.text();
+async function loadData(reporter) {
+  const url = new URL("./wasm-test/search_data.jsonl", document.baseURI).href;
+  let last = 0;
+  const text = await fetchTextWithProgress(url, (received, total) => {
+    if (total && !jsonlExpected) {
+      jsonlExpected = total;
+      reporter.expect(total);
+    }
+    reporter.add(received - last);
+    last = received;
+  });
   const papers = [];
   for (const line of text.split("\n")) {
     if (!line.trim()) continue;
@@ -81,18 +124,68 @@ async function loadData() {
     }
   }
   await storePapers(papers);
+  console.log(`[phase] IndexedDB: stored ${papers.length} papers`);
 }
 
 /**
- * Update the search mode indicator.
+ * Update the search mode indicator. It must never claim a mode that is not
+ * running: both sources are real and always visible.
+ * @param {{numDocs: number, initMs: number, loadMs: number, shardCount: number} | null} info
  */
-function updateSearchMode() {
-  const mode = getSearchMode();
+function updateSearchMode(info) {
   const indicator = document.getElementById("search-mode");
-  if (indicator) {
-    indicator.textContent = mode === "wasm" ? "WASM BM25" : "string";
-    indicator.className = mode === "wasm" ? "search-mode wasm" : "search-mode dumb";
+  if (!indicator) return;
+  if (info) {
+    indicator.textContent = "JSON + Tantivy articles";
+    indicator.className = "search-mode tantivy";
+    indicator.title = `${info.numDocs} article docs in ${info.shardCount} shards, index open in ${info.initMs.toFixed(0)} ms`;
+  } else {
+    indicator.textContent = "JSON only";
+    indicator.className = "search-mode json-only";
+    indicator.title = "Tantivy article index unavailable — metadata search only";
   }
+}
+
+/**
+ * Set the loading overlay progress percentage.
+ * @param {number} percent
+ */
+function setProgress(percent) {
+  const bar = document.getElementById("loading-bar");
+  const label = document.getElementById("loading-percent");
+  if (bar) bar.style.width = `${percent}%`;
+  if (label) label.textContent = `${percent}%`;
+}
+
+/**
+ * @param {string} text
+ */
+function setLoadingStatus(text) {
+  const status = document.getElementById("loading-status");
+  if (status) status.textContent = text;
+}
+
+/**
+ * Hide the overlay and reveal the main UI once everything is loaded.
+ */
+function hideLoading() {
+  const overlay = document.getElementById("loading");
+  const mainView = document.getElementById("main-view");
+  if (overlay) overlay.style.display = "none";
+  if (mainView) mainView.style.display = "";
+}
+
+/**
+ * Show the error in the overlay — nothing half-loaded is ever shown.
+ * @param {unknown} err
+ */
+function showLoadingError(err) {
+  const overlay = document.getElementById("loading");
+  const mainView = document.getElementById("main-view");
+  if (mainView) mainView.style.display = "none";
+  if (overlay) overlay.classList.add("loading-error");
+  setLoadingStatus(`Error: ${err instanceof Error ? err.message : String(err)}`);
+  console.error("[loading] failed:", err);
 }
 
 /**
@@ -204,6 +297,10 @@ async function doSearch(query) {
   await reapplyFilters();
   const elapsed = performance.now() - t0;
   if (timing) timing.textContent = `${currentResults.length} results in ${elapsed.toFixed(1)}ms`;
+  if (!firstQueryLogged) {
+    firstQueryLogged = true;
+    console.log(`[timing] first query in ${elapsed.toFixed(1)} ms`);
+  }
 }
 
 /**

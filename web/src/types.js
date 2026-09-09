@@ -36,6 +36,7 @@
  * @property {number} year
  * @property {string} venue
  * @property {string} slug
+ * @property {"article" | "json" | "both"} [source] - which engine produced the hit (set by mergeResults)
  */
 
 export {};

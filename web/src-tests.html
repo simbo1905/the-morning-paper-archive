@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>web/src tests — merge, progress, integration battery</title>
+  <style>
+    body { font-family: monospace; margin: 2rem; }
+    table { border-collapse: collapse; margin: 1rem 0; }
+    td, th { border: 1px solid #999; padding: 0.2rem 0.6rem; text-align: left; }
+    .pass { color: #060; }
+    .fail { color: #c00; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>web/src tests</h1>
+  <pre id="summary">running…</pre>
+  <table id="tests">
+    <thead><tr><th>test</th><th>verdict</th><th>detail</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <script type="module">
+    /** Oracle bar for article-index hits (from the whoosh oracle battery). */
+    const ORACLE = [
+      { label: "blockchai", q: "blockchai", fuzzy: null, expect: 0 },
+      { label: "quantum blockchain", q: "quantum blockchain", fuzzy: null, expect: 2 },
+      { label: "consensus", q: "consensus", fuzzy: null, expect: 109 },
+      { label: "consensuz~2", q: "consensuz", fuzzy: 2, expect: 111 },
+      { label: "paxos consensus", q: "paxos consensus", fuzzy: null, expect: 37 },
+      { label: "distributed transactions", q: "distributed transactions", fuzzy: null, expect: 126 },
+      { label: "compiler optimization", q: "compiler optimization", fuzzy: null, expect: 13 },
+    ];
+
+    const tbody = document.getElementById("tests").tBodies[0];
+    const summary = document.getElementById("summary");
+    /** @type {number} */
+    let passCount = 0;
+    /** @type {number} */
+    let failCount = 0;
+
+    /**
+     * @param {string} name
+     * @param {boolean} ok
+     * @param {string} [detail]
+     */
+    function report(name, ok, detail) {
+      if (ok) passCount++; else failCount++;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${name}</td><td class="${ok ? "pass" : "fail"}">${ok ? "PASS" : "FAIL"}</td><td>${detail ?? ""}</td>`;
+      tbody.appendChild(tr);
+      console.log(`TEST ${ok ? "PASS" : "FAIL"} ${name}${detail ? " — " + detail : ""}`);
+    }
+
+    /**
+     * @param {string} name
+     * @param {() => void} fn
+     */
+    function test(name, fn) {
+      try {
+        fn();
+        report(name, true);
+      } catch (err) {
+        report(name, false, String(err));
+      }
+    }
+
+    /**
+     * @param {string} name
+     * @param {() => Promise<void>} fn
+     */
+    async function testAsync(name, fn) {
+      try {
+        const detail = await fn();
+        report(name, true, typeof detail === "string" ? detail : undefined);
+      } catch (err) {
+        report(name, false, String(err));
+      }
+    }
+
+    /**
+     * @param {boolean} cond
+     * @param {string} [message]
+     */
+    function assert(cond, message) {
+      if (!cond) throw new Error(message || "assertion failed");
+    }
+
+    // ---------- pure: merge.js ----------
+    /** @type {typeof import("./src/merge.js")["mergeResults"] | null} */
+    let mergeResults = null;
+    try {
+      ({ mergeResults } = await import("./src/merge.js"));
+    } catch (err) {
+      report("import merge.js", false, String(err));
+    }
+    if (mergeResults) {
+      test("merge: article-only hit keeps source=article and its fields", () => {
+        const art = [{ score: 5, date: "20200101", shardIndex: 3, title: "T", authors: ["a"], year: 2020, venue: "V", slug: "s" }];
+        const m = mergeResults([], art, 10);
+        assert(m.length === 1, `length ${m.length}`);
+        assert(m[0].source === "article", `source ${m[0].source}`);
+        assert(m[0].score === 5 && m[0].date === "20200101" && m[0].title === "T", "fields carried");
+      });
+      test("merge: json-only hit gets source=json", () => {
+        const json = [{ score: 1, date: "20190101", title: "J", authors: ["b"], year: 2019, venue: "W", slug: "j" }];
+        const m = mergeResults(json, [], 10);
+        assert(m.length === 1 && m[0].source === "json", `source ${m[0]?.source}`);
+      });
+      test("merge: dedupe by date -> source=both, score = max", () => {
+        const json = [{ score: 1, date: "20190101", title: "J", authors: ["b"], year: 2019, venue: "W", slug: "j" }];
+        const art = [{ score: 2.5, date: "20190101", shardIndex: 0 }];
+        const m = mergeResults(json, art, 10);
+        assert(m.length === 1, `length ${m.length}`);
+        assert(m[0].source === "both", `source ${m[0].source}`);
+        assert(m[0].score === 2.5, `score ${m[0].score}`);
+        assert(m[0].title === "J", "json fields fill gaps");
+      });
+      test("merge: dedupe the other way round keeps max score", () => {
+        const json = [{ score: 9, date: "20190101", title: "J", authors: [], year: 2019, venue: "", slug: "j" }];
+        const art = [{ score: 2, date: "20190101" }];
+        const m = mergeResults(json, art, 10);
+        assert(m[0].score === 9 && m[0].source === "both", `score ${m[0].score} source ${m[0].source}`);
+      });
+      test("merge: limit slices the output", () => {
+        const json = [1, 2, 3].map(i => ({ score: 1, date: `20200${i}01`, title: "J", authors: [], year: 2020, venue: "", slug: `j${i}` }));
+        const m = mergeResults(json, [], 2);
+        assert(m.length === 2, `length ${m.length}`);
+      });
+      test("merge: sorted by score desc, ties break to newer date", () => {
+        const json = [
+          { score: 1, date: "20190101", title: "J", authors: [], year: 2019, venue: "", slug: "j" },
+          { score: 3, date: "20180101", title: "K", authors: [], year: 2018, venue: "", slug: "k" },
+        ];
+        const art = [{ score: 1, date: "20200101" }];
+        const m = mergeResults(json, art, 10);
+        assert(m[0].date === "20180101" && m[0].score === 3, `first ${m[0].date}`);
+        assert(m[1].date === "20200101" && m[2].date === "20190101", "tie order");
+      });
+    }
+
+    // ---------- pure: progress.js ProgressReporter ----------
+    /** @type {typeof import("./src/progress.js") | null} */
+    let progressMod = null;
+    try {
+      progressMod = await import("./src/progress.js");
+    } catch (err) {
+      report("import progress.js", false, String(err));
+    }
+    if (progressMod) {
+      test("ProgressReporter: 0% when nothing expected", () => {
+        assert(new progressMod.ProgressReporter().percent() === 0, "expected 0");
+      });
+      test("ProgressReporter: percent = loaded/expected", () => {
+        const r = new progressMod.ProgressReporter();
+        r.expect(200);
+        r.add(50);
+        assert(r.percent() === 25, `percent ${r.percent()}`);
+      });
+      test("ProgressReporter: clamped at 100 on overshoot", () => {
+        const r = new progressMod.ProgressReporter();
+        r.expect(100);
+        r.add(250);
+        assert(r.percent() === 100, `percent ${r.percent()}`);
+      });
+      test("ProgressReporter: floor rounding", () => {
+        const r = new progressMod.ProgressReporter();
+        r.expect(3);
+        r.add(1);
+        assert(r.percent() === 33, `percent ${r.percent()}`);
+      });
+      test("ProgressReporter: onUpdate emissions on expect+add", () => {
+        /** @type {number[]} */
+        const seen = [];
+        const r = new progressMod.ProgressReporter(p => seen.push(p));
+        r.expect(100);
+        r.add(50);
+        r.add(50);
+        assert(JSON.stringify(seen) === "[0,50,100]", `emissions ${JSON.stringify(seen)}`);
+      });
+
+      // fetchWithProgress — same-origin only
+      if (location.protocol === "http:" || location.protocol === "https:") {
+        await testAsync("fetchWithProgress: manifest.json roundtrip + monotonic progress", async () => {
+          /** @type {Array<[number, number]>} */
+          const events = [];
+          const bytes = await progressMod.fetchWithProgress(
+            new URL("./tantivy/manifest.json", document.baseURI).href,
+            (received, total) => events.push([received, total]),
+          );
+          const parsed = JSON.parse(new TextDecoder().decode(bytes));
+          assert(parsed.numShards === 20, `numShards ${parsed.numShards}`);
+          assert(events.length > 0, "no progress events");
+          assert(events.every((e, i) => e[0] >= (events[i - 1]?.[0] ?? 0)), "progress not monotonic");
+          assert(events[events.length - 1][0] === bytes.length, "final received != byte length");
+          assert(events[events.length - 1][1] === bytes.length, "total != byte length (Content-Length)");
+        });
+      }
+    }
+
+    // ---------- integration: IndexedDB + tantivy + merged search ----------
+    try {
+      const dbMod = await import("./src/db.js");
+      const valMod = await import("./src/validate.js");
+      const searchMod = await import("./src/search.js");
+
+      if (!(await dbMod.hasData())) {
+        const t0 = performance.now();
+        const text = await progressMod.fetchTextWithProgress(
+          new URL("../wasm-test/search_data.jsonl", document.baseURI).href,
+          () => {},
+        );
+        /** @type {import("./src/types.js").PaperMeta[]} */
+        const papers = [];
+        for (const line of text.split("\n")) {
+          if (!line.trim()) continue;
+          try {
+            const data = JSON.parse(line);
+            if (valMod.validatePaperMeta(data)) papers.push(valMod.structuralFreeze(data));
+          } catch {
+            // skip invalid
+          }
+        }
+        await dbMod.storePapers(papers);
+        report("IndexedDB bootstrap from JSONL", papers.length === 995, `${papers.length} papers in ${(performance.now() - t0).toFixed(0)} ms`);
+      } else {
+        console.log("TEST IndexedDB warm: JSONL fetch skipped");
+      }
+
+      const info = await searchMod.initArticleSearch();
+      report("tantivy num_docs = 995", info.numDocs === 995, `num_docs=${info.numDocs}, init=${info.initMs.toFixed(1)} ms, load=${info.loadMs.toFixed(1)} ms, shards=${info.shardCount}`);
+
+      for (const row of ORACLE) {
+        await testAsync(`battery ${row.label}`, async () => {
+          const results = row.fuzzy === null
+            ? await searchMod.search(row.q, 100000)
+            : await searchMod.fuzzySearch(row.q, 100000, row.fuzzy);
+          const articleHits = results.filter(r => r.source === "article" || r.source === "both").length;
+          assert(articleHits === row.expect, `article-source ${articleHits} != oracle ${row.expect} (merged ${results.length})`);
+          assert(results.length >= row.expect, `merged ${results.length} < oracle ${row.expect}`);
+          return `article-source ${articleHits} (oracle ${row.expect}), merged ${results.length}`;
+        });
+      }
+
+      await testAsync("empty query lists all 995 papers", async () => {
+        const listing = await searchMod.search("", 500);
+        assert(listing.length === 995, `listing length ${listing.length}`);
+        assert(listing[0].date >= listing[listing.length - 1].date, "not newest first");
+      });
+
+      await testAsync("merged results cached in sessionStorage", async () => {
+        await searchMod.search("consensus", 100000);
+        const cached = searchMod.getCachedResults();
+        assert(cached.length > 0, "no cached results");
+        assert(cached.some(r => r.source === "both" || r.source === "article" || r.source === "json"), "results lack source");
+      });
+    } catch (err) {
+      report("integration battery bootstrap", false, String(err));
+    }
+
+    const total = passCount + failCount;
+    summary.textContent = `${passCount}/${total} PASS` + (failCount ? ` — ${failCount} FAIL` : " — ALL PASS");
+    console.log(`SUMMARY: ${passCount}/${total} PASS`);
+  </script>
+</body>
+</html>

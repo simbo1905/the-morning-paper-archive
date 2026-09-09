@@ -43,6 +43,7 @@ export function validatePaperMeta(data) {
   if (typeof obj.paper_year !== "number") return false;
   if (!Array.isArray(obj.topics)) return false;
   if (!Array.isArray(obj.tags)) return false;
-  if (typeof obj.ocr_used !== "boolean") return false;
+  // ocr_used is nullable in the JTD schema (paper-meta.jdt.json).
+  if (obj.ocr_used !== null && typeof obj.ocr_used !== "boolean") return false;
   return true;
 }

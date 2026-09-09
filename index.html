@@ -9,6 +9,16 @@
 <body>
   <a href="#main" class="skip-link">Skip to main content</a>
 
+  <div id="loading" class="loading-overlay">
+    <div class="loading-box">
+      <p class="loading-title">Loading The Morning Paper&hellip;</p>
+      <div class="loading-bar-track">
+        <div id="loading-bar" class="loading-bar" style="width: 0%"></div>
+      </div>
+      <p class="loading-line"><span id="loading-percent">0%</span> &mdash; <span id="loading-status">starting&hellip;</span></p>
+    </div>
+  </div>
+
   <header>
     <h1>The Morning Paper</h1>
     <p class="subtitle">Adrian Colyer's blog — 995 papers, searchable</p>
@@ -16,7 +26,7 @@
 
   <div id="status" class="status">Loading...</div>
 
-  <main id="main-view">
+  <main id="main-view" style="display:none">
     <details class="word-cloud-section" open>
       <summary>Tag cloud — click a tag to filter</summary>
       <div id="word-cloud" style="width: 100%; height: 300px;"></div>
@@ -34,7 +44,7 @@
           <input type="checkbox" id="fuzzy-toggle">
           Fuzzy
         </label>
-        <span id="search-mode" class="search-mode dumb">string</span>
+        <span id="search-mode" class="search-mode"></span>
       </div>
 
       <div class="tag-filter">

@@ -1,9 +1,13 @@
 /**
- * Search module — WASM BM25 search with fallback to dumb string-contains.
- * Search results are cached in sessionStorage for tag post-filtering.
+ * Search module — Tantivy article search merged with simple JSON contains.
+ * The JSON part always runs; it is an honest visible search of the paper
+ * metadata, not a fallback. Search results are cached in sessionStorage
+ * for tag post-filtering.
  */
 
 import { getAllPapers } from "./db.js";
+import { mergeResults } from "./merge.js";
+import { fetchWithProgress, fmtBytes } from "./progress.js";
 
 /** @type {import("./types.js").PaperMeta[] | null} */
 let allPapers = null;
@@ -11,14 +15,14 @@ let allPapers = null;
 /** @type {ReadonlyArray<import("./types.js").SearchResult> | null} */
 let lastResults = null;
 
+/** @type {ReadonlyMap<string, import("./types.js").PaperMeta>} */
+let papersByDate = new Map();
+
 /** @type {any} */
-let wasmSearcher = null;
+let tantivySearcher = null;
 
 /** @type {boolean} */
-let wasmReady = false;
-
-/** @type {string} */
-let searchMode = "dumb";
+let tantivyReady = false;
 
 /**
  * Load all papers from IndexedDB into memory.
@@ -27,80 +31,102 @@ let searchMode = "dumb";
 async function ensureLoaded() {
   if (!allPapers) {
     allPapers = [...(await getAllPapers())].toSorted((a, b) => b.date.localeCompare(a.date));
+    papersByDate = new Map(allPapers.map(p => [p.date, p]));
   }
   return allPapers;
 }
 
 /**
- * Try to load the WASM search module.
- * @returns {Promise<void>}
+ * Load the Tantivy article index: fetch the 20 packed shard .bin files in
+ * parallel (byte progress aggregated into the reporter), then unpack them
+ * into a TantivySearcher.
+ * @param {{ reporter?: import("./progress.js").ProgressReporter }} [hooks]
+ * @returns {Promise<{numDocs: number, initMs: number, loadMs: number, shardCount: number}>}
  */
-export async function initWasm() {
-  try {
-    // Use absolute path relative to document for GitHub Pages compatibility
-    const basePath = new URL("./web/simple_search.js", document.baseURI).href;
-    const wasmModule = await import(/* @vite-ignore */ basePath);
-    await wasmModule.default();
-    const response = await fetch("./wasm-test/search_data.jsonl");
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.text();
-    const t0 = performance.now();
-    wasmSearcher = new wasmModule.WasmSearcher(data);
-    const buildTime = performance.now() - t0;
-    wasmReady = true;
-    searchMode = "wasm";
-    console.log(`WASM search ready: ${wasmSearcher.num_docs()} docs, built in ${buildTime.toFixed(1)}ms`);
-    const indicator = document.getElementById("search-mode");
-    if (indicator) indicator.title = `WASM BM25: ${wasmSearcher.num_docs()} docs, built in ${buildTime.toFixed(1)}ms`;
-  } catch (err) {
-    console.log("WASM search unavailable, using dumb search:", err.message);
-    searchMode = "dumb";
-    const indicator = document.getElementById("search-mode");
-    if (indicator) indicator.title = `WASM failed: ${err.message}`;
+export async function initArticleSearch({ reporter } = {}) {
+  const t0 = performance.now();
+  // Assets live next to this module (web/tantivy_search.js, web/tantivy/),
+  // so resolve relative to import.meta.url — document.baseURI differs between
+  // index.html (site root) and web/src-tests.html (web/).
+  const mod = await import(new URL("../tantivy_search.js", import.meta.url).href);
+  await mod.default();
+  const manifestResp = await fetch(new URL("../tantivy/manifest.json", import.meta.url).href);
+  if (!manifestResp.ok) throw new Error(`HTTP ${manifestResp.status} for tantivy/manifest.json`);
+  const manifest = await manifestResp.json();
+  console.log(`[shards] ${manifest.numShards} shards, ${manifest.totalDocs} docs expected`);
+
+  for (const shard of manifest.shards) {
+    if (reporter) reporter.expect(shard.bytes);
   }
+  const loadStart = performance.now();
+  const buffers = await Promise.all(manifest.shards.map(async (shard) => {
+    const url = new URL(`../tantivy/${shard.file}`, import.meta.url).href;
+    const started = performance.now();
+    let last = 0;
+    const bytes = await fetchWithProgress(url, (received) => {
+      if (reporter) reporter.add(received - last);
+      last = received;
+    });
+    const ms = performance.now() - started;
+    console.log(`${shard.file}: ${fmtBytes(bytes.length)} in ${ms.toFixed(1)} ms`);
+    return bytes;
+  }));
+  const loadMs = performance.now() - loadStart;
+  console.log(`[shards] ${buffers.length} files, ${fmtBytes(buffers.reduce((sum, b) => sum + b.length, 0))} in ${loadMs.toFixed(1)} ms`);
+
+  const initStart = performance.now();
+  tantivySearcher = new mod.TantivySearcher();
+  for (const bytes of buffers) tantivySearcher.add_shard(bytes);
+  const initMs = performance.now() - initStart;
+  const numDocs = tantivySearcher.num_docs();
+  tantivyReady = true;
+  console.log(`[wasm] tantivy ready: ${numDocs} docs, unpack + index open in ${initMs.toFixed(1)} ms (module import ${((performance.now() - t0) - loadMs - initMs).toFixed(1)} ms)`);
+  return { numDocs, initMs, loadMs, shardCount: manifest.shards.length };
 }
 
 /**
- * Run search — uses WASM if available, falls back to dumb string-contains.
+ * Run search — merged results: tantivy article hits plus simpleJsonSearch
+ * hits, deduped by date with max score. An empty query is a listing of all
+ * papers, newest first (no search engines involved).
  * @param {string} query
- * @param {number} limit
+ * @param {number} [limit]
  * @returns {Promise<ReadonlyArray<import("./types.js").SearchResult>>}
  */
 export async function search(query, limit = 500) {
-  if (!query.trim()) {
-    return dumbSearch(query, limit);
-  }
-  if (wasmReady && wasmSearcher) {
-    return wasmSearch(query, limit);
-  }
-  return dumbSearch(query, limit);
-}
-
-/**
- * WASM BM25 search.
- * @param {string} query
- * @param {number} limit
- * @returns {Promise<ReadonlyArray<import("./types.js").SearchResult>>}
- */
-async function wasmSearch(query, limit) {
-  const jsonStr = wasmSearcher.search(query, limit);
-  const results = JSON.parse(jsonStr);
+  const results = await runSearch(query, limit, 0);
   lastResults = results;
   cacheResults(results);
   return results;
 }
 
 /**
- * Dumb string-contains search over paper metadata.
+ * Fuzzy search — tantivy fuzzy article hits merged with the JSON contains
+ * search the same way (the JSON part stays plain contains).
  * @param {string} query
- * @param {number} limit
+ * @param {number} [limit]
+ * @param {number} [editDistance]
  * @returns {Promise<ReadonlyArray<import("./types.js").SearchResult>>}
  */
-export async function dumbSearch(query, limit = 500) {
-  const papers = await ensureLoaded();
-  const q = query.toLowerCase().trim();
+export async function fuzzySearch(query, limit = 500, editDistance = 2) {
+  const results = await runSearch(query, limit, editDistance);
+  lastResults = results;
+  cacheResults(results);
+  return results;
+}
+
+/**
+ * Shared implementation for search and fuzzySearch.
+ * @param {string} query
+ * @param {number} limit
+ * @param {number} editDistance
+ * @returns {Promise<ReadonlyArray<import("./types.js").SearchResult>>}
+ */
+async function runSearch(query, limit, editDistance) {
+  await ensureLoaded();
+  const q = query.trim();
   if (!q) {
-    const results = papers.slice(0, limit).map(p => ({
+    // Empty query = listing, not a search fallback. Never call tantivy.
+    return allPapers.map(p => ({
       score: 1.0,
       date: p.date,
       title: p.paper_title,
@@ -109,19 +135,44 @@ export async function dumbSearch(query, limit = 500) {
       venue: p.paper_venue,
       slug: p.slug,
     }));
-    lastResults = results;
-    cacheResults(results);
-    return results;
   }
+  const jsonHits = await simpleJsonSearch(q, limit);
+  if (!tantivyReady || !tantivySearcher) {
+    return mergeResults(jsonHits, [], limit);
+  }
+  const articleHits = editDistance > 0
+    ? enrich(articleSearch(tantivySearcher.search_fuzzy(q, limit, editDistance)))
+    : enrich(articleSearch(tantivySearcher.search(q, limit)));
+  return mergeResults(jsonHits, articleHits, limit);
+}
 
-  const results = papers
+/**
+ * Tantivy article search over the full article body text.
+ * @param {string} jsonStr
+ * @returns {ReadonlyArray<{score: number, date: string, shardIndex: number}>}
+ */
+function articleSearch(jsonStr) {
+  return JSON.parse(jsonStr);
+}
+
+/**
+ * Simple, honest string-contains search over paper metadata
+ * (title, authors, venue, summary, abstract, topics, tags).
+ * @param {string} q lowercase query
+ * @param {number} limit
+ * @returns {Promise<ReadonlyArray<import("./types.js").SearchResult>>}
+ */
+async function simpleJsonSearch(q, limit) {
+  const papers = await ensureLoaded();
+  const needle = q.toLowerCase();
+  return papers
     .filter(p => {
       const haystack = [
         p.paper_title, p.blog_summary, p.paper_abstract,
         p.paper_venue, p.paper_authors.join(" "),
         p.topics.join(" "), p.tags.join(" "),
       ].join(" ").toLowerCase();
-      return haystack.includes(q);
+      return haystack.includes(needle);
     })
     .slice(0, limit)
     .map(p => ({
@@ -133,36 +184,27 @@ export async function dumbSearch(query, limit = 500) {
       venue: p.paper_venue,
       slug: p.slug,
     }));
-
-  lastResults = results;
-  cacheResults(results);
-  return results;
 }
 
 /**
- * Fuzzy search via WASM.
- * @param {string} query
- * @param {number} limit
- * @param {number} editDistance
- * @returns {Promise<ReadonlyArray<import("./types.js").SearchResult>>}
+ * Enrich tantivy hits with paper metadata (article dates can carry
+ * "-2" suffix variants; the JSON layer has the same keys).
+ * @param {ReadonlyArray<{score: number, date: string, shardIndex: number}>} hits
+ * @returns {ReadonlyArray<{score: number, date: string, shardIndex: number, title?: string, authors?: ReadonlyArray<string>, year?: number, venue?: string, slug?: string}>}
  */
-export async function fuzzySearch(query, limit = 500, editDistance = 2) {
-  if (wasmReady && wasmSearcher) {
-    const jsonStr = wasmSearcher.search_fuzzy(query, limit, editDistance);
-    const results = JSON.parse(jsonStr);
-    lastResults = results;
-    cacheResults(results);
-    return results;
-  }
-  return dumbSearch(query, limit);
-}
-
-/**
- * Get the current search mode.
- * @returns {string}
- */
-export function getSearchMode() {
-  return searchMode;
+function enrich(hits) {
+  return hits.map(hit => {
+    const paper = papersByDate.get(hit.date);
+    if (!paper) return hit;
+    return {
+      ...hit,
+      title: paper.paper_title,
+      authors: paper.paper_authors,
+      year: paper.paper_year,
+      venue: paper.paper_venue,
+      slug: paper.slug,
+    };
+  });
 }
 
 /**
