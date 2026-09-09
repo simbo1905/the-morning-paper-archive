@@ -202,7 +202,13 @@
           assert(events.length > 0, "no progress events");
           assert(events.every((e, i) => e[0] >= (events[i - 1]?.[0] ?? 0)), "progress not monotonic");
           assert(events[events.length - 1][0] === bytes.length, "final received != byte length");
-          assert(events[events.length - 1][1] === bytes.length, "total != byte length (Content-Length)");
+          // Content-Length may be the compressed size on origins that
+          // gzip-transfer text assets (GitHub Pages), so the decompressed
+          // byte length is >= the reported total; equality holds only on
+          // identity-encoded transfers.
+          const total = events[events.length - 1][1];
+          assert(total === null || bytes.length >= total,
+            `total ${total} vs byte length ${bytes.length}`);
         });
       }
     }
